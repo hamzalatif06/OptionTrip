@@ -1,0 +1,30 @@
+@charset "UTF-8";
+
+/* Import Google Fonts - Updated to match TripTap */
+/* Plus Jakarta Sans is now loaded in index.html for better performance */
+/* Keep Playfair Display for decorative headings if used */
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&display=swap");
+
+/* Import Bootstrap CSS - Must be first (matches original HTML order) */
+@import url('./bootstrap.min.css');
+
+/* Import the full style.css - Main stylesheet (matches original HTML order) */
+@import url('./style.css');
+
+/* Import Plugin CSS */
+@import url('./plugin.css');
+
+/* FontAwesome is loaded via CDN in public/index.html */
+/* The local fontawesome.min.css is not needed since we use CDN */
+
+/* Import Line Icons */
+@import url('../fonts/line-icons.css');
+
+/* Note: The full style.css contains all the main styles from the original template */
+/* This file now matches the CSS loading order from the original HTML:
+   1. bootstrap.min.css
+   2. style.css
+   3. plugin.css
+   4. fontawesome.min.css (via CDN)
+   5. line-icons.css
+*/

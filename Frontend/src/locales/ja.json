@@ -1,0 +1,81 @@
+{
+  "common": {
+    "home": "ホーム",
+    "about": "私たちについて",
+    "tours": "ツアー",
+    "destinations": "目的地",
+    "blog": "ブログ",
+    "contact": "お問い合わせ",
+    "login": "ログイン/登録",
+    "search": "検索",
+    "follow": "フォロー",
+    "followOnInstagram": "Instagramでフォロー",
+    "quickLinks": "クイックリンク",
+    "categories": "カテゴリー",
+    "travel": "旅行",
+    "newsletter": "ニュースレター",
+    "privacyPolicy": "プライバシーポリシー",
+    "termsConditions": "利用規約",
+    "customerService": "カスタマーサービス",
+    "allRightsReserved": "全著作権所有",
+    "emailAddress": "メールアドレス",
+    "subscribe": "購読する",
+    "language": "言語"
+  },
+  "header": {
+    "location": "ハリウッド、アメリカ",
+    "dateFormat": "{{date}}"
+  },
+  "banner": {
+    "exploreWorld": "世界を探索",
+    "planDreamTrip": "今日から夢の旅を計画し始めましょう！",
+    "bannerDescription": "私たちのAIが数分で完璧な旅程を作成します。夢の旅を簡単に説明するだけで、残りはお任せください—フライトからアクティビティまで、すべてあなたの好みに合わせてパーソナライズされます。",
+    "camping": "キャンプ",
+    "hiking": "ハイキング",
+    "beachTours": "ビーチツアー",
+    "surfing": "サーフィン",
+    "safari": "サファリ",
+    "cycling": "サイクリング",
+    "trekings": "トレッキング"
+  },
+  "footer": {
+    "aboutDescription": "OptionTripは、AIを活用した旅行計画プラットフォームで、あなたの好み、予算、旅行スタイルに合わせてパーソナライズされた旅行行程を作成します。高度な人工知能と豊富な旅行データを組み合わせて、あなたの夢に合ったユニークな体験を提供します。",
+    "poBox": "私書箱",
+    "location": "場所",
+    "email": "メール",
+    "website": "ウェブサイト",
+    "newsletterDescription": "ニュース、プロモーション、その他の興味深い情報が詰まったメールを受信する200,000人以上のグローバル読者のコミュニティに参加してください。",
+    "copyright": "OptionTrip。全著作権所有。"
+  },
+  "discountAction": {
+    "loveGoing": "行く先を愛する",
+    "exploreLife": "あなたの人生を探索、",
+    "travelWant": "行きたい場所へ旅しましょう！",
+    "description": "AIを活用した旅行計画ツールで、今日から旅を始めましょう。パーソナライズされた推奨事項、限定オファー、シームレスな予約—すべてが一箇所に。完璧な冒険があなたを待っています。"
+  },
+  "languages": {
+    "en": "英語",
+    "ru": "ロシア語",
+    "de": "ドイツ語",
+    "fr": "フランス語",
+    "it": "イタリア語",
+    "es": "スペイン語",
+    "pl": "ポーランド語",
+    "uk": "ウクライナ語",
+    "tr": "トルコ語",
+    "hu": "ハンガリー語",
+    "sv": "スウェーデン語",
+    "pt": "ポルトガル語",
+    "sr": "セルビア語",
+    "ar": "アラビア語",
+    "zh": "中国語",
+    "ja": "日本語",
+    "vi": "ベトナム語",
+    "th": "タイ語",
+    "ko": "韓国語",
+    "hi": "ヒンディー語",
+    "bn": "ベンガル語",
+    "id": "インドネシア語"
+  }
+}
+

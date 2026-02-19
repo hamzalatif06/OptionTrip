@@ -1,0 +1,135 @@
+/* Auth Input Component Styles */
+
+.auth-input-wrapper {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.auth-input-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #122D46;
+  margin-bottom: 8px;
+  font-family: var(--font-primary);
+}
+
+.auth-input-required {
+  color: #F30F89;
+  margin-left: 2px;
+}
+
+.auth-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1.5px solid #C2CAD2;
+  border-radius: 12px;
+  background-color: #fff;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.auth-input-container:hover {
+  border-color: #0A539D;
+}
+
+.auth-input-container.focused {
+  border-color: #0A539D;
+  box-shadow: 0 0 0 3px rgba(10, 83, 157, 0.1);
+}
+
+.auth-input-container.has-error {
+  border-color: #F30F89;
+}
+
+.auth-input-container.has-error.focused {
+  box-shadow: 0 0 0 3px rgba(243, 15, 137, 0.1);
+}
+
+.auth-input {
+  flex: 1;
+  width: 100%;
+  padding: 14px 16px;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  font-weight: 500;
+  color: #122D46;
+  background-color: transparent;
+  font-family: var(--font-primary);
+}
+
+.auth-input.with-icon {
+  padding-left: 0;
+}
+
+.auth-input::placeholder {
+  color: #9FAAB6;
+  font-weight: 400;
+}
+
+.auth-input:disabled {
+  background-color: #F8F9FA;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.auth-input-icon-left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 16px;
+  padding-right: 12px;
+  color: #596C7E;
+}
+
+.auth-input-password-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #596C7E;
+  transition: color 0.2s ease;
+}
+
+.auth-input-password-toggle:hover {
+  color: #0A539D;
+}
+
+.auth-input-password-toggle:focus {
+  outline: none;
+}
+
+.auth-input-error {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  color: #F30F89;
+  font-weight: 500;
+  font-family: var(--font-primary);
+}
+
+/* Responsive Styles */
+@media (max-width: 767px) {
+  .auth-input {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+
+  .auth-input-label {
+    font-size: 13px;
+  }
+
+  .auth-input-icon-left {
+    padding-left: 14px;
+    padding-right: 10px;
+  }
+
+  .auth-input-password-toggle {
+    padding: 0 10px;
+  }
+}

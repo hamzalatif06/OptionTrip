@@ -1,0 +1,91 @@
+{
+  "common": {
+    "home": "Home",
+    "about": "About Us",
+    "tours": "Tours",
+    "destinations": "Destinations",
+    "blog": "Blog",
+    "contact": "Contact Us",
+    "login": "Login/Register",
+    "search": "Search",
+    "follow": "Follow",
+    "followOnInstagram": "Follow on Instagram",
+    "quickLinks": "Quick link",
+    "categories": "Categories",
+    "travel": "Travel",
+    "newsletter": "Newsletter",
+    "privacyPolicy": "Privacy Policy",
+    "termsConditions": "Terms & Conditions",
+    "customerService": "Customer Service",
+    "allRightsReserved": "All rights reserved",
+    "emailAddress": "Email Address",
+    "subscribe": "Subscribe",
+    "language": "Language"
+  },
+  "header": {
+    "location": "Your Location",
+    "detectingLocation": "Detecting...",
+    "dateFormat": "{{date}}"
+  },
+  "banner": {
+    "exploreWorld": "Explore The World",
+    "planDreamTrip": "Start Planning Your Dream Trip Today!",
+    "bannerDescription": "Let our AI create your perfect itinerary in minutes. Simply describe your dream trip, and we'll handle the rest—from flights to activities, all personalized to your preferences.",
+    "camping": "Camping",
+    "hiking": "Hiking",
+    "beachTours": "Beach Tours",
+    "surfing": "Surfing",
+    "safari": "Safari",
+    "cycling": "Cycling",
+    "trekings": "Trekings"
+  },
+  "footer": {
+    "aboutDescription": "OptionTrip is an AI-powered travel planning platform that creates personalized trip itineraries tailored to your preferences, budget, and travel style. We combine advanced artificial intelligence with extensive travel data to deliver unique experiences that match your dreams.",
+    "poBox": "PO Box",
+    "location": "Location",
+    "email": "Email",
+    "website": "Website",
+    "newsletterDescription": "Join our community of over 200,000 global readers who receives emails filled with news, promotions, and other good stuff.",
+    "copyright": "OptionTrip. All rights reserved."
+  },
+  "discountAction": {
+    "loveGoing": "Love Where You're Going",
+    "exploreLife": "Explore Your Life,",
+    "travelWant": "Travel Where You Want!",
+    "description": "Start your journey today with our AI-powered trip planner. Get personalized recommendations, exclusive deals, and seamless booking—all in one place. Your perfect adventure awaits."
+  },
+  "languages": {
+    "en": "English",
+    "ru": "Russian",
+    "de": "German",
+    "fr": "French",
+    "it": "Italian",
+    "es": "Spanish",
+    "pl": "Polish",
+    "uk": "Ukrainian",
+    "tr": "Turkish",
+    "hu": "Hungarian",
+    "sv": "Swedish",
+    "pt": "Portuguese",
+    "sr": "Serbian",
+    "ar": "Arabic",
+    "zh": "Chinese",
+    "ja": "Japanese",
+    "vi": "Vietnamese",
+    "th": "Thai",
+    "ko": "Korean",
+    "hi": "Hindi",
+    "bn": "Bengali",
+    "id": "Indonesian"
+  },
+  "vi": {
+    "welcome": "Hello! 👋 I'm Vi, your AI travel assistant. I'm here to help you throughout your journey! To get started, could you please share your name or booking number?",
+    "disclaimer": "AI Assistant: Vi is an AI-powered assistant. Please double-check important or time-sensitive information.",
+    "online": "Online",
+    "placeholderNotIdentified": "Enter your name or booking number...",
+    "placeholderIdentified": "Ask me anything about your trip...",
+    "startNewConversation": "Start New Conversation",
+    "minimize": "Minimize"
+  }
+}
+

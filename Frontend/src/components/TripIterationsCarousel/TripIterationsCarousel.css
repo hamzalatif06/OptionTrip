@@ -1,0 +1,324 @@
+/* Trip Iterations Carousel - OptionTrip Theme - Modern Design */
+
+.trip-iterations-carousel {
+  position: relative;
+  width: 100%;
+  padding: 40px 0;
+}
+
+.trip-iterations-carousel__header {
+  text-align: center;
+  margin-bottom: 48px;
+  padding: 0 20px;
+}
+
+.trip-iterations-carousel__title {
+  font-size: 36px;
+  font-weight: 700;
+  color: #17233e;
+  margin: 0 0 12px 0;
+  line-height: 1.2;
+}
+
+.trip-iterations-carousel__subtitle {
+  font-size: 18px;
+  color: #777;
+  margin: 0;
+  font-weight: 500;
+}
+
+.trip-iterations-carousel__container {
+  position: relative;
+  overflow: visible;
+  padding: 0 20px;
+}
+
+.trip-iterations-carousel__track {
+  display: flex;
+  gap: 32px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 12px 0 32px 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #029e9d #eaf7ff;
+}
+
+.trip-iterations-carousel__track::-webkit-scrollbar {
+  height: 10px;
+}
+
+.trip-iterations-carousel__track::-webkit-scrollbar-track {
+  background: #eaf7ff;
+  border-radius: 10px;
+  margin: 0 20px;
+}
+
+.trip-iterations-carousel__track::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #029e9d 0%, #027a79 100%);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.trip-iterations-carousel__track::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, #027a79 0%, #026665 100%);
+}
+
+.trip-iterations-carousel__slide {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 420px;
+}
+
+.trip-iterations-carousel__nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 40px;
+}
+
+.trip-iterations-carousel__nav-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid #029e9d;
+  background: #FFFFFF;
+  color: #029e9d;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(2, 158, 157, 0.15);
+  font-weight: 700;
+}
+
+.trip-iterations-carousel__nav-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #029e9d 0%, #027a79 100%);
+  color: #FFFFFF;
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(2, 158, 157, 0.3);
+}
+
+.trip-iterations-carousel__nav-button:disabled {
+  border-color: #f1f1f1;
+  color: #c0c0c0;
+  cursor: not-allowed;
+  opacity: 0.4;
+  box-shadow: none;
+}
+
+.trip-iterations-carousel__dots {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.trip-iterations-carousel__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d0d0d0;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.trip-iterations-carousel__dot.active {
+  width: 32px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #029e9d 0%, #027a79 100%);
+  box-shadow: 0 4px 12px rgba(2, 158, 157, 0.4);
+}
+
+.trip-iterations-carousel__dot:hover:not(.active) {
+  background: #029e9d;
+  transform: scale(1.3);
+  box-shadow: 0 3px 8px rgba(2, 158, 157, 0.3);
+}
+
+.trip-iterations-carousel__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+  font-size: 18px;
+  color: #777;
+  gap: 16px;
+}
+
+.trip-iterations-carousel__loading::before {
+  content: '';
+  width: 48px;
+  height: 48px;
+  border: 4px solid #eaf7ff;
+  border-top-color: #029e9d;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.trip-iterations-carousel__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+  padding: 60px 40px;
+  text-align: center;
+  background: linear-gradient(135deg, #f9fffe 0%, #eaf7ff 100%);
+  border-radius: 24px;
+  border: 2px dashed #029e9d;
+  margin: 20px;
+}
+
+.trip-iterations-carousel__empty-icon {
+  font-size: 80px;
+  margin-bottom: 24px;
+  opacity: 0.6;
+  filter: grayscale(30%);
+}
+
+.trip-iterations-carousel__empty-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #17233e;
+  margin-bottom: 12px;
+}
+
+.trip-iterations-carousel__empty-text {
+  font-size: 16px;
+  color: #777;
+  font-weight: 500;
+  max-width: 400px;
+}
+
+/* Responsive Design */
+@media (max-width: 991px) {
+  .trip-iterations-carousel {
+    padding: 32px 0;
+  }
+
+  .trip-iterations-carousel__header {
+    margin-bottom: 36px;
+  }
+
+  .trip-iterations-carousel__title {
+    font-size: 30px;
+  }
+
+  .trip-iterations-carousel__subtitle {
+    font-size: 16px;
+  }
+
+  .trip-iterations-carousel__slide {
+    max-width: 380px;
+  }
+
+  .trip-iterations-carousel__track {
+    gap: 24px;
+  }
+
+  .trip-iterations-carousel__nav {
+    margin-top: 32px;
+  }
+}
+
+@media (max-width: 767px) {
+  .trip-iterations-carousel {
+    padding: 24px 0;
+  }
+
+  .trip-iterations-carousel__header {
+    margin-bottom: 28px;
+    padding: 0 16px;
+  }
+
+  .trip-iterations-carousel__title {
+    font-size: 24px;
+  }
+
+  .trip-iterations-carousel__subtitle {
+    font-size: 15px;
+  }
+
+  .trip-iterations-carousel__container {
+    padding: 0 16px;
+  }
+
+  .trip-iterations-carousel__slide {
+    max-width: 340px;
+  }
+
+  .trip-iterations-carousel__track {
+    gap: 20px;
+    padding: 8px 0 24px 0;
+  }
+
+  .trip-iterations-carousel__track::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .trip-iterations-carousel__nav {
+    margin-top: 28px;
+    gap: 16px;
+  }
+
+  .trip-iterations-carousel__nav-button {
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+  }
+
+  .trip-iterations-carousel__dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .trip-iterations-carousel__dot.active {
+    width: 28px;
+  }
+
+  .trip-iterations-carousel__empty {
+    padding: 40px 24px;
+    margin: 16px;
+  }
+
+  .trip-iterations-carousel__empty-icon {
+    font-size: 64px;
+  }
+
+  .trip-iterations-carousel__empty-title {
+    font-size: 20px;
+  }
+
+  .trip-iterations-carousel__empty-text {
+    font-size: 14px;
+  }
+}
+
+/* Support for single column on small screens */
+@media (max-width: 480px) {
+  .trip-iterations-carousel__slide {
+    max-width: calc(100vw - 48px);
+  }
+
+  .trip-iterations-carousel__title {
+    font-size: 22px;
+  }
+
+  .trip-iterations-carousel__subtitle {
+    font-size: 14px;
+  }
+}

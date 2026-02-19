@@ -1,0 +1,81 @@
+{
+  "common": {
+    "home": "Startseite",
+    "about": "Über uns",
+    "tours": "Touren",
+    "destinations": "Reiseziele",
+    "blog": "Blog",
+    "contact": "Kontakt",
+    "login": "Anmelden/Registrieren",
+    "search": "Suchen",
+    "follow": "Folgen",
+    "followOnInstagram": "Auf Instagram folgen",
+    "quickLinks": "Schnelllinks",
+    "categories": "Kategorien",
+    "travel": "Reisen",
+    "newsletter": "Newsletter",
+    "privacyPolicy": "Datenschutzerklärung",
+    "termsConditions": "Allgemeine Geschäftsbedingungen",
+    "customerService": "Kundenservice",
+    "allRightsReserved": "Alle Rechte vorbehalten",
+    "emailAddress": "E-Mail-Adresse",
+    "subscribe": "Abonnieren",
+    "language": "Sprache"
+  },
+  "header": {
+    "location": "Hollywood, Amerika",
+    "dateFormat": "{{date}}"
+  },
+  "banner": {
+    "exploreWorld": "Erkunden Sie die Welt",
+    "planDreamTrip": "Beginnen Sie heute mit der Planung Ihrer Traumreise!",
+    "bannerDescription": "Lassen Sie unsere KI in wenigen Minuten Ihren perfekten Reiseplan erstellen. Beschreiben Sie einfach Ihre Traumreise, und wir kümmern uns um den Rest—von Flügen bis zu Aktivitäten, alles auf Ihre Vorlieben zugeschnitten.",
+    "camping": "Camping",
+    "hiking": "Wandern",
+    "beachTours": "Strandtouren",
+    "surfing": "Surfen",
+    "safari": "Safari",
+    "cycling": "Radfahren",
+    "trekings": "Wanderungen"
+  },
+  "footer": {
+    "aboutDescription": "OptionTrip ist eine KI-gestützte Reiseplanungsplattform, die personalisierte Reisepläne erstellt, die auf Ihre Vorlieben, Ihr Budget und Ihren Reisestil zugeschnitten sind. Wir kombinieren fortschrittliche künstliche Intelligenz mit umfangreichen Reisedaten, um einzigartige Erlebnisse zu bieten, die zu Ihren Träumen passen.",
+    "poBox": "Postfach",
+    "location": "Standort",
+    "email": "E-Mail",
+    "website": "Website",
+    "newsletterDescription": "Schließen Sie sich unserer Gemeinschaft von über 200.000 Lesern weltweit an, die E-Mails mit Nachrichten, Angeboten und anderen interessanten Inhalten erhalten.",
+    "copyright": "OptionTrip. Alle Rechte vorbehalten."
+  },
+  "discountAction": {
+    "loveGoing": "Lieben Sie, wohin Sie gehen",
+    "exploreLife": "Erkunden Sie Ihr Leben,",
+    "travelWant": "Reisen Sie, wohin Sie wollen!",
+    "description": "Beginnen Sie Ihre Reise noch heute mit unserem KI-gestützten Reiseplaner. Erhalten Sie personalisierte Empfehlungen, exklusive Angebote und nahtlose Buchungen—alles an einem Ort. Ihr perfektes Abenteuer wartet."
+  },
+  "languages": {
+    "en": "Englisch",
+    "ru": "Russisch",
+    "de": "Deutsch",
+    "fr": "Französisch",
+    "it": "Italienisch",
+    "es": "Spanisch",
+    "pl": "Polnisch",
+    "uk": "Ukrainisch",
+    "tr": "Türkisch",
+    "hu": "Ungarisch",
+    "sv": "Schwedisch",
+    "pt": "Portugiesisch",
+    "sr": "Serbisch",
+    "ar": "Arabisch",
+    "zh": "Chinesisch",
+    "ja": "Japanisch",
+    "vi": "Vietnamesisch",
+    "th": "Thailändisch",
+    "ko": "Koreanisch",
+    "hi": "Hindi",
+    "bn": "Bengalisch",
+    "id": "Indonesisch"
+  }
+}
+

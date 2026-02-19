@@ -1,0 +1,330 @@
+/* Trip Iteration Card - OptionTrip Theme - Modern Design */
+
+.trip-iteration-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 2px solid #f1f1f1;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 580px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(23, 35, 62, 0.06);
+}
+
+.trip-iteration-card:hover {
+  border-color: #029e9d;
+  box-shadow: 0 16px 48px rgba(2, 158, 157, 0.12);
+  transform: translateY(-6px);
+}
+
+.trip-iteration-card.selected {
+  border-color: #029e9d;
+  border-width: 3px;
+  box-shadow: 0 20px 56px rgba(2, 158, 157, 0.2);
+  transform: translateY(-4px);
+}
+
+/* Image Section */
+.trip-iteration-card__image-section {
+  width: 100%;
+  height: 220px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px 16px 0 0;
+}
+
+.trip-iteration-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.trip-iteration-card:hover .trip-iteration-card__image {
+  transform: scale(1.08);
+}
+
+.trip-iteration-card__image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.6) 100%);
+  display: flex;
+  align-items: flex-end;
+  padding: 20px;
+}
+
+.trip-iteration-card__destination-badge {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(12px);
+  padding: 8px 16px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #17233e;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Header Section */
+.trip-iteration-card__header {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  position: relative;
+  background: linear-gradient(135deg, #f0fffe 0%, #e8f9f8 100%);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.trip-iteration-card.selected .trip-iteration-card__header {
+  background: linear-gradient(135deg, #029e9d 0%, #027a79 100%);
+}
+
+.trip-iteration-card__selection-indicator {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid #029e9d;
+  background: #FFFFFF;
+  flex-shrink: 0;
+  margin-right: 16px;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trip-iteration-card.selected .trip-iteration-card__selection-indicator {
+  background: #FFFFFF;
+  border-color: #FFFFFF;
+  transform: scale(1.1);
+}
+
+.trip-iteration-card__selection-indicator-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #029e9d;
+  color: white;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.trip-iteration-card.selected .trip-iteration-card__selection-indicator-check {
+  display: flex;
+}
+
+.trip-iteration-card__title-wrapper {
+  flex: 1;
+}
+
+.trip-iteration-card__subtitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #029e9d;
+  margin: 0 0 6px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: color 0.3s ease;
+}
+
+.trip-iteration-card.selected .trip-iteration-card__subtitle {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.trip-iteration-card__title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #17233e;
+  margin: 0;
+  line-height: 1.3;
+  transition: color 0.3s ease;
+}
+
+.trip-iteration-card.selected .trip-iteration-card__title {
+  color: #FFFFFF;
+}
+
+/* Features Section */
+.trip-iteration-card__features {
+  padding: 24px 20px;
+  background: #FFFFFF;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.trip-iteration-card__feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.trip-iteration-card__feature:last-child {
+  border-bottom: none;
+}
+
+.trip-iteration-card__feature-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trip-iteration-card__feature-text {
+  font-size: 14px;
+  color: #3f3f3f;
+  line-height: 1.6;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Footer Section */
+.trip-iteration-card__footer {
+  padding: 20px;
+  background: linear-gradient(to bottom, #f9f9f9 0%, #ffffff 100%);
+  border-top: 2px solid #f1f1f1;
+}
+
+.trip-iteration-card__price {
+  font-size: 32px;
+  font-weight: 700;
+  color: #029e9d;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.5px;
+}
+
+.trip-iteration-card__price-label {
+  font-size: 13px;
+  color: #777;
+  margin: 0 0 12px 0;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.trip-iteration-card__duration-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #eaf7ff;
+  color: #029e9d;
+  border-radius: 24px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+/* Selection Badge Overlay */
+.trip-iteration-card.selected::before {
+  content: '✓ Selected';
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #029e9d;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(2, 158, 157, 0.4);
+  letter-spacing: 0.5px;
+}
+
+/* Responsive Design */
+@media (max-width: 991px) {
+  .trip-iteration-card {
+    min-height: 540px;
+  }
+
+  .trip-iteration-card__image-section {
+    height: 200px;
+  }
+
+  .trip-iteration-card__title {
+    font-size: 18px;
+  }
+
+  .trip-iteration-card__price {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 767px) {
+  .trip-iteration-card {
+    min-height: 500px;
+    border-radius: 16px;
+  }
+
+  .trip-iteration-card__image-section {
+    height: 180px;
+  }
+
+  .trip-iteration-card__header {
+    padding: 16px;
+  }
+
+  .trip-iteration-card__title {
+    font-size: 17px;
+  }
+
+  .trip-iteration-card__subtitle {
+    font-size: 12px;
+  }
+
+  .trip-iteration-card__features {
+    padding: 20px 16px;
+    gap: 12px;
+  }
+
+  .trip-iteration-card__feature {
+    gap: 10px;
+    padding: 6px 0;
+  }
+
+  .trip-iteration-card__feature-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 18px;
+  }
+
+  .trip-iteration-card__feature-text {
+    font-size: 13px;
+  }
+
+  .trip-iteration-card__footer {
+    padding: 16px;
+  }
+
+  .trip-iteration-card__price {
+    font-size: 26px;
+  }
+
+  .trip-iteration-card__price-label {
+    font-size: 12px;
+  }
+
+  .trip-iteration-card__duration-badge {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}

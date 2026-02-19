@@ -1,0 +1,81 @@
+{
+  "common": {
+    "home": "Kezdőlap",
+    "about": "Rólunk",
+    "tours": "Körutak",
+    "destinations": "Úti célok",
+    "blog": "Blog",
+    "contact": "Kapcsolat",
+    "login": "Bejelentkezés/Regisztráció",
+    "search": "Keresés",
+    "follow": "Követés",
+    "followOnInstagram": "Követés Instagramon",
+    "quickLinks": "Gyors linkek",
+    "categories": "Kategóriák",
+    "travel": "Utazás",
+    "newsletter": "Hírlevél",
+    "privacyPolicy": "Adatvédelmi irányelvek",
+    "termsConditions": "Felhasználási feltételek",
+    "customerService": "Ügyfélszolgálat",
+    "allRightsReserved": "Minden jog fenntartva",
+    "emailAddress": "E-mail cím",
+    "subscribe": "Feliratkozás",
+    "language": "Nyelv"
+  },
+  "header": {
+    "location": "Hollywood, Amerika",
+    "dateFormat": "{{date}}"
+  },
+  "banner": {
+    "exploreWorld": "Fedezze fel a világot",
+    "planDreamTrip": "Kezdje el ma megtervezni álmai utazását!",
+    "bannerDescription": "Hagyja, hogy mesterséges intelligenciánk percek alatt létrehozza az Ön tökéletes utazási tervét. Egyszerűen írja le álmai utazását, és mi kezeljük a többit—a repülőjegyektől az aktivitásokig, mindent az Ön preferenciái szerint személyre szabva.",
+    "camping": "Kemping",
+    "hiking": "Túrázás",
+    "beachTours": "Strand túrák",
+    "surfing": "Szörf",
+    "safari": "Safari",
+    "cycling": "Kerékpározás",
+    "trekings": "Trekking"
+  },
+  "footer": {
+    "aboutDescription": "Az OptionTrip egy mesterséges intelligenciával működő utazás-tervezési platform, amely személyre szabott utazási terveket készít az Ön preferenciái, költségvetése és utazási stílusa szerint. Fejlett mesterséges intelligenciát kombinálunk átfogó utazási adatokkal, hogy egyedi élményeket nyújtsunk, amelyek megfelelnek az Ön álmainak.",
+    "poBox": "Postafiók",
+    "location": "Helyszín",
+    "email": "E-mail",
+    "website": "Weboldal",
+    "newsletterDescription": "Csatlakozzon több mint 200 000 globális olvasóból álló közösségünkhöz, akik hírekkel, promóciókkal és egyéb érdekes tartalmakkal teli e-maileket kapnak.",
+    "copyright": "OptionTrip. Minden jog fenntartva."
+  },
+  "discountAction": {
+    "loveGoing": "Szeresse, hová megy",
+    "exploreLife": "Fedezze fel az életét,",
+    "travelWant": "Utazzon, ahová akar!",
+    "description": "Kezdje el utazását még ma mesterséges intelligenciával működő utazástervezőnkkel. Szerezzen személyre szabott ajánlásokat, exkluzív ajánlatokat és zökkenőmentes foglalásokat—mindent egy helyen. Tökéletes kalandja vár."
+  },
+  "languages": {
+    "en": "Angol",
+    "ru": "Orosz",
+    "de": "Német",
+    "fr": "Francia",
+    "it": "Olasz",
+    "es": "Spanyol",
+    "pl": "Lengyel",
+    "uk": "Ukrán",
+    "tr": "Török",
+    "hu": "Magyar",
+    "sv": "Svéd",
+    "pt": "Portugál",
+    "sr": "Szerb",
+    "ar": "Arab",
+    "zh": "Kínai",
+    "ja": "Japán",
+    "vi": "Vietnámi",
+    "th": "Thai",
+    "ko": "Koreai",
+    "hi": "Hindi",
+    "bn": "Bengáli",
+    "id": "Indonéz"
+  }
+}
+

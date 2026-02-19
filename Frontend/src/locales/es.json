@@ -1,0 +1,81 @@
+{
+  "common": {
+    "home": "Inicio",
+    "about": "Acerca de",
+    "tours": "Tours",
+    "destinations": "Destinos",
+    "blog": "Blog",
+    "contact": "Contáctenos",
+    "login": "Iniciar sesión/Registrarse",
+    "search": "Buscar",
+    "follow": "Seguir",
+    "followOnInstagram": "Seguir en Instagram",
+    "quickLinks": "Enlaces rápidos",
+    "categories": "Categorías",
+    "travel": "Viajes",
+    "newsletter": "Boletín",
+    "privacyPolicy": "Política de privacidad",
+    "termsConditions": "Términos y condiciones",
+    "customerService": "Servicio al cliente",
+    "allRightsReserved": "Todos los derechos reservados",
+    "emailAddress": "Dirección de correo electrónico",
+    "subscribe": "Suscribirse",
+    "language": "Idioma"
+  },
+  "header": {
+    "location": "Hollywood, América",
+    "dateFormat": "{{date}}"
+  },
+  "banner": {
+    "exploreWorld": "Explora el mundo",
+    "planDreamTrip": "¡Comienza a planificar tu viaje soñado hoy!",
+    "bannerDescription": "Deja que nuestra IA cree tu itinerario perfecto en minutos. Simplemente describe tu viaje soñado y nosotros nos encargamos del resto: desde vuelos hasta actividades, todo personalizado según tus preferencias.",
+    "camping": "Camping",
+    "hiking": "Senderismo",
+    "beachTours": "Tours de playa",
+    "surfing": "Surf",
+    "safari": "Safari",
+    "cycling": "Ciclismo",
+    "trekings": "Trekking"
+  },
+  "footer": {
+    "aboutDescription": "OptionTrip es una plataforma de planificación de viajes impulsada por IA que crea itinerarios de viaje personalizados adaptados a tus preferencias, presupuesto y estilo de viaje. Combinamos inteligencia artificial avanzada con datos extensos de viajes para ofrecer experiencias únicas que coincidan con tus sueños.",
+    "poBox": "Apartado postal",
+    "location": "Ubicación",
+    "email": "Correo electrónico",
+    "website": "Sitio web",
+    "newsletterDescription": "Únete a nuestra comunidad de más de 200,000 lectores globales que reciben correos electrónicos llenos de noticias, promociones y otras cosas interesantes.",
+    "copyright": "OptionTrip. Todos los derechos reservados."
+  },
+  "discountAction": {
+    "loveGoing": "Ama a donde vas",
+    "exploreLife": "Explora tu vida,",
+    "travelWant": "¡Viaja a donde quieras!",
+    "description": "Comienza tu viaje hoy con nuestro planificador de viajes impulsado por IA. Obtén recomendaciones personalizadas, ofertas exclusivas y reservas sin complicaciones, todo en un solo lugar. Tu aventura perfecta te espera."
+  },
+  "languages": {
+    "en": "Inglés",
+    "ru": "Ruso",
+    "de": "Alemán",
+    "fr": "Francés",
+    "it": "Italiano",
+    "es": "Español",
+    "pl": "Polaco",
+    "uk": "Ucraniano",
+    "tr": "Turco",
+    "hu": "Húngaro",
+    "sv": "Sueco",
+    "pt": "Portugués",
+    "sr": "Serbio",
+    "ar": "Árabe",
+    "zh": "Chino",
+    "ja": "Japonés",
+    "vi": "Vietnamita",
+    "th": "Tailandés",
+    "ko": "Coreano",
+    "hi": "Hindi",
+    "bn": "Bengalí",
+    "id": "Indonesio"
+  }
+}
+

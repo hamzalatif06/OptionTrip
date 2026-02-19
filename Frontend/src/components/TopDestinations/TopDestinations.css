@@ -1,0 +1,445 @@
+/* Top Destinations Section */
+.top-destinations-section {
+  padding: 80px 0;
+  background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+/* Section Header */
+.top-destinations-section .section-header {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 40px;
+}
+
+.top-destinations-section .section-badge {
+  display: inline-block;
+  padding: 8px 20px;
+  background: linear-gradient(135deg, rgba(2, 158, 157, 0.1) 0%, rgba(253, 199, 3, 0.1) 100%);
+  color: #029e9d;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 30px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.top-destinations-section .section-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: #122D46;
+  margin-bottom: 16px;
+  line-height: 1.2;
+}
+
+.top-destinations-section .section-title .highlight {
+  color: #029e9d;
+}
+
+.top-destinations-section .section-description {
+  font-size: 16px;
+  color: #6c757d;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Filter Tabs */
+.destination-filters {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.filter-btn {
+  padding: 10px 24px;
+  background: #fff;
+  border: 2px solid #e9ecef;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+  border-color: #029e9d;
+  color: #029e9d;
+}
+
+.filter-btn.active {
+  background: linear-gradient(135deg, #029e9d 0%, #028a89 100%);
+  border-color: #029e9d;
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(2, 158, 157, 0.3);
+}
+
+/* Destinations Grid */
+.destinations-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+/* Destination Card */
+.destination-card {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.destination-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.destination-card .card-image {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4/3;
+}
+
+.destination-card .card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.destination-card:hover .card-image img {
+  transform: scale(1.1);
+}
+
+.destination-card .card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 30%, rgba(0, 0, 0, 0.7) 100%);
+  transition: all 0.3s ease;
+}
+
+.destination-card:hover .card-overlay {
+  background: linear-gradient(180deg, transparent 20%, rgba(2, 158, 157, 0.8) 100%);
+}
+
+/* Popular Badge */
+.popular-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #fdc703 0%, #f5b800 100%);
+  color: #122D46;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 20px;
+  z-index: 2;
+  box-shadow: 0 2px 10px rgba(253, 199, 3, 0.4);
+}
+
+.popular-badge i {
+  font-size: 10px;
+}
+
+/* Card Content */
+.destination-card .card-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px;
+  z-index: 2;
+}
+
+.destination-card .card-location .country {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fdc703;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.destination-card .card-location .city {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 4px;
+}
+
+.destination-card .card-location .description {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+}
+
+.destination-card .card-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.destination-card .card-meta .rating,
+.destination-card .card-meta .tours-count {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.destination-card .card-meta .rating i {
+  color: #fdc703;
+}
+
+.destination-card .card-meta .tours-count i {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Featured Card */
+.destination-card.featured {
+  grid-row: span 2;
+}
+
+.destination-card.featured .card-image {
+  aspect-ratio: auto;
+  height: 100%;
+  min-height: 480px;
+}
+
+.destination-card.featured .card-content {
+  padding: 30px;
+}
+
+.destination-card.featured .card-location .city {
+  font-size: 32px;
+}
+
+.destination-card.featured .card-location .description {
+  font-size: 15px;
+  margin-top: 8px;
+}
+
+/* Plan Trip Button */
+.plan-trip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background: #fff;
+  color: #029e9d;
+  border: none;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.destination-card.featured:hover .plan-trip-btn {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.plan-trip-btn:hover {
+  background: #fdc703;
+  color: #122D46;
+  transform: scale(1.05);
+}
+
+.plan-trip-btn i {
+  transition: transform 0.3s ease;
+}
+
+.plan-trip-btn:hover i {
+  transform: translateX(4px);
+}
+
+/* View All Button */
+.view-all-wrapper {
+  text-align: center;
+}
+
+.view-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 32px;
+  background: transparent;
+  color: #029e9d;
+  border: 2px solid #029e9d;
+  border-radius: 30px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.view-all-btn:hover {
+  background: linear-gradient(135deg, #029e9d 0%, #028a89 100%);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 20px rgba(2, 158, 157, 0.3);
+  transform: translateY(-2px);
+}
+
+.view-all-btn i {
+  transition: transform 0.3s ease;
+}
+
+.view-all-btn:hover i {
+  transform: translateX(4px);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .destination-card.featured .card-image {
+    min-height: 420px;
+  }
+
+  .destination-card.featured .card-location .city {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 991px) {
+  .top-destinations-section {
+    padding: 60px 0;
+  }
+
+  .top-destinations-section .section-title {
+    font-size: 30px;
+  }
+
+  .destinations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .destination-card.featured {
+    grid-row: span 1;
+  }
+
+  .destination-card.featured .card-image {
+    min-height: 300px;
+    aspect-ratio: 16/9;
+  }
+
+  .grid-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .plan-trip-btn {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 767px) {
+  .top-destinations-section {
+    padding: 50px 0;
+  }
+
+  .top-destinations-section .section-header {
+    margin-bottom: 30px;
+  }
+
+  .top-destinations-section .section-title {
+    font-size: 26px;
+  }
+
+  .top-destinations-section .section-description {
+    font-size: 14px;
+  }
+
+  .destination-filters {
+    gap: 8px;
+    margin-bottom: 30px;
+  }
+
+  .filter-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  .grid-cards {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .destinations-grid {
+    gap: 16px;
+  }
+
+  .destination-card .card-content {
+    padding: 16px;
+  }
+
+  .destination-card .card-location .city {
+    font-size: 20px;
+  }
+
+  .destination-card.featured .card-content {
+    padding: 20px;
+  }
+
+  .destination-card.featured .card-location .city {
+    font-size: 24px;
+  }
+
+  .destination-card.featured .card-image {
+    min-height: 280px;
+  }
+
+  .plan-trip-btn {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+
+  .view-all-btn {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .destination-filters {
+    justify-content: flex-start;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 10px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .filter-btn {
+    flex-shrink: 0;
+  }
+
+  .destination-card .card-meta {
+    gap: 12px;
+  }
+
+  .destination-card .card-meta .rating,
+  .destination-card .card-meta .tours-count {
+    font-size: 12px;
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "common": {
+    "home": "Ana Sayfa",
+    "about": "Hakkımızda",
+    "tours": "Turlar",
+    "destinations": "Yerler",
+    "blog": "Blog",
+    "contact": "İletişim",
+    "login": "Giriş/Kayıt",
+    "search": "Ara",
+    "follow": "Takip Et",
+    "followOnInstagram": "Instagram'da Takip Et",
+    "quickLinks": "Hızlı Bağlantılar",
+    "categories": "Kategoriler",
+    "travel": "Seyahat",
+    "newsletter": "Bülten",
+    "privacyPolicy": "Gizlilik Politikası",
+    "termsConditions": "Şartlar ve Koşullar",
+    "customerService": "Müşteri Hizmetleri",
+    "allRightsReserved": "Tüm hakları saklıdır",
+    "emailAddress": "E-posta Adresi",
+    "subscribe": "Abone Ol",
+    "language": "Dil"
+  },
+  "header": {
+    "location": "Hollywood, Amerika",
+    "dateFormat": "{{date}}"
+  },
+  "banner": {
+    "exploreWorld": "Dünyayı Keşfedin",
+    "planDreamTrip": "Hayalinizdeki Gezisini Bugün Planlamaya Başlayın!",
+    "bannerDescription": "Yapay zekamızın birkaç dakika içinde mükemmel seyahat planınızı oluşturmasına izin verin. Sadece hayalinizdeki seyahati tarif edin, geri kalanını biz hallederiz—uçuşlardan aktivitelere kadar her şey tercihlerinize göre kişiselleştirilir.",
+    "camping": "Kamp",
+    "hiking": "Yürüyüş",
+    "beachTours": "Plaj Turları",
+    "surfing": "Sörf",
+    "safari": "Safari",
+    "cycling": "Bisiklet",
+    "trekings": "Trekking"
+  },
+  "footer": {
+    "aboutDescription": "OptionTrip, tercihlerinize, bütçenize ve seyahat tarzınıza göre özelleştirilmiş kişiselleştirilmiş seyahat planları oluşturan yapay zeka destekli bir seyahat planlama platformudur. Gelişmiş yapay zekayı kapsamlı seyahat verileriyle birleştirerek, hayallerinize uygun benzersiz deneyimler sunuyoruz.",
+    "poBox": "Posta Kutusu",
+    "location": "Konum",
+    "email": "E-posta",
+    "website": "Web Sitesi",
+    "newsletterDescription": "Haberler, promosyonlar ve diğer ilginç içeriklerle dolu e-postalar alan 200.000'den fazla küresel okuyucu topluluğumuza katılın.",
+    "copyright": "OptionTrip. Tüm hakları saklıdır."
+  },
+  "discountAction": {
+    "loveGoing": "Gittiğiniz Yeri Sevin",
+    "exploreLife": "Hayatınızı Keşfedin,",
+    "travelWant": "İstediğiniz Yere Seyahat Edin!",
+    "description": "Yapay zeka destekli seyahat planlayıcımızla bugün yolculuğunuza başlayın. Kişiselleştirilmiş öneriler, özel teklifler ve sorunsuz rezervasyonlar alın—hepsi tek bir yerde. Mükemmel maceranız bekliyor."
+  },
+  "languages": {
+    "en": "İngilizce",
+    "ru": "Rusça",
+    "de": "Almanca",
+    "fr": "Fransızca",
+    "it": "İtalyanca",
+    "es": "İspanyolca",
+    "pl": "Lehçe",
+    "uk": "Ukraynaca",
+    "tr": "Türkçe",
+    "hu": "Macarca",
+    "sv": "İsveççe",
+    "pt": "Portekizce",
+    "sr": "Sırpça",
+    "ar": "Arapça",
+    "zh": "Çince",
+    "ja": "Japonca",
+    "vi": "Vietnamca",
+    "th": "Tayca",
+    "ko": "Korece",
+    "hi": "Hintçe",
+    "bn": "Bengalce",
+    "id": "Endonezce"
+  }
+}
+

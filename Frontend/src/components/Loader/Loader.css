@@ -1,0 +1,151 @@
+/* Loader Component Styles */
+
+/* Loader GIF sizes */
+.loader-gif {
+  display: block;
+}
+
+.loader-small {
+  width: 24px;
+  height: 24px;
+}
+
+.loader-medium {
+  width: 48px;
+  height: 48px;
+}
+
+.loader-large {
+  width: 80px;
+  height: 80px;
+}
+
+/* Inline loader */
+.loader-inline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+}
+
+/* Fullpage loader */
+.loader-fullpage {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #f4f4f4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loader-fullpage .loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.loader-fullpage .loader-gif {
+  width: 300px;
+  height: 300px;
+}
+
+@media (max-width: 767px) {
+  .loader-fullpage .loader-gif {
+    width: 200px;
+    height: 200px;
+  }
+}
+
+/* Overlay loader */
+.loader-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  border-radius: inherit;
+}
+
+.loader-overlay .loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Loader text */
+.loader-text {
+  font-size: 14px;
+  color: #596C7E;
+  font-weight: 500;
+  margin: 0;
+  text-align: center;
+}
+
+.loader-fullpage .loader-text {
+  font-size: 16px;
+  color: #122D46;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Button loader - for inline button loading states */
+.btn-loader {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-loader .loader-gif {
+  width: 18px;
+  height: 18px;
+}
+
+/* Card loader */
+.card-loader {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Section loader */
+.section-loader {
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Page content loader */
+.page-loader {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

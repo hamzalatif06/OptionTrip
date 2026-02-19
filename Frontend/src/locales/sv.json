@@ -1,0 +1,81 @@
+{
+  "common": {
+    "home": "Hem",
+    "about": "Om oss",
+    "tours": "Turer",
+    "destinations": "Destinationer",
+    "blog": "Blogg",
+    "contact": "Kontakta oss",
+    "login": "Logga in/Registrera",
+    "search": "Sök",
+    "follow": "Följ",
+    "followOnInstagram": "Följ på Instagram",
+    "quickLinks": "Snabblänkar",
+    "categories": "Kategorier",
+    "travel": "Resor",
+    "newsletter": "Nyhetsbrev",
+    "privacyPolicy": "Integritetspolicy",
+    "termsConditions": "Villkor",
+    "customerService": "Kundservice",
+    "allRightsReserved": "Alla rättigheter förbehållna",
+    "emailAddress": "E-postadress",
+    "subscribe": "Prenumerera",
+    "language": "Språk"
+  },
+  "header": {
+    "location": "Hollywood, Amerika",
+    "dateFormat": "{{date}}"
+  },
+  "banner": {
+    "exploreWorld": "Utforska världen",
+    "planDreamTrip": "Börja planera din drömresa idag!",
+    "bannerDescription": "Låt vår AI skapa din perfekta resplan på några minuter. Beskriv helt enkelt din drömresa, så tar vi hand om resten—från flyg till aktiviteter, allt anpassat efter dina preferenser.",
+    "camping": "Camping",
+    "hiking": "Vandring",
+    "beachTours": "Strandturer",
+    "surfing": "Surfing",
+    "safari": "Safari",
+    "cycling": "Cykling",
+    "trekings": "Trekking"
+  },
+  "footer": {
+    "aboutDescription": "OptionTrip är en AI-driven reseplaneringsplattform som skapar personliga reseplaner anpassade efter dina preferenser, budget och resestil. Vi kombinerar avancerad artificiell intelligens med omfattande resedata för att leverera unika upplevelser som matchar dina drömmar.",
+    "poBox": "Postbox",
+    "location": "Plats",
+    "email": "E-post",
+    "website": "Webbplats",
+    "newsletterDescription": "Gå med i vår gemenskap med över 200 000 globala läsare som får e-postmeddelanden fulla av nyheter, kampanjer och andra intressanta saker.",
+    "copyright": "OptionTrip. Alla rättigheter förbehållna."
+  },
+  "discountAction": {
+    "loveGoing": "Älska vart du går",
+    "exploreLife": "Utforska ditt liv,",
+    "travelWant": "Res vart du vill!",
+    "description": "Börja din resa idag med vår AI-drivna reseplanerare. Få personliga rekommendationer, exklusiva erbjudanden och sömlös bokning—allt på ett ställe. Ditt perfekta äventyr väntar."
+  },
+  "languages": {
+    "en": "Engelska",
+    "ru": "Ryska",
+    "de": "Tyska",
+    "fr": "Franska",
+    "it": "Italienska",
+    "es": "Spanska",
+    "pl": "Polska",
+    "uk": "Ukrainska",
+    "tr": "Turkiska",
+    "hu": "Ungerska",
+    "sv": "Svenska",
+    "pt": "Portugisiska",
+    "sr": "Serbiska",
+    "ar": "Arabiska",
+    "zh": "Kinesiska",
+    "ja": "Japanska",
+    "vi": "Vietnamesiska",
+    "th": "Thai",
+    "ko": "Koreanska",
+    "hi": "Hindi",
+    "bn": "Bengaliska",
+    "id": "Indonesiska"
+  }
+}
+

@@ -1,0 +1,81 @@
+{
+  "common": {
+    "home": "Strona główna",
+    "about": "O nas",
+    "tours": "Wycieczki",
+    "destinations": "Miejsca",
+    "blog": "Blog",
+    "contact": "Kontakt",
+    "login": "Zaloguj/Zarejestruj",
+    "search": "Szukaj",
+    "follow": "Obserwuj",
+    "followOnInstagram": "Obserwuj na Instagramie",
+    "quickLinks": "Szybkie linki",
+    "categories": "Kategorie",
+    "travel": "Podróże",
+    "newsletter": "Newsletter",
+    "privacyPolicy": "Polityka prywatności",
+    "termsConditions": "Warunki korzystania",
+    "customerService": "Obsługa klienta",
+    "allRightsReserved": "Wszelkie prawa zastrzeżone",
+    "emailAddress": "Adres e-mail",
+    "subscribe": "Subskrybuj",
+    "language": "Język"
+  },
+  "header": {
+    "location": "Hollywood, Ameryka",
+    "dateFormat": "{{date}}"
+  },
+  "banner": {
+    "exploreWorld": "Odkryj świat",
+    "planDreamTrip": "Zacznij planować swoją wymarzoną podróż już dziś!",
+    "bannerDescription": "Pozwól naszej AI stworzyć Twój idealny plan podróży w kilka minut. Po prostu opisz swoją wymarzoną podróż, a my zajmiemy się resztą—od lotów po aktywności, wszystko spersonalizowane zgodnie z Twoimi preferencjami.",
+    "camping": "Kemping",
+    "hiking": "Wędrówki",
+    "beachTours": "Wycieczki na plażę",
+    "surfing": "Surfing",
+    "safari": "Safari",
+    "cycling": "Kolarstwo",
+    "trekings": "Trekking"
+  },
+  "footer": {
+    "aboutDescription": "OptionTrip to platforma planowania podróży napędzana przez AI, która tworzy spersonalizowane plany podróży dostosowane do Twoich preferencji, budżetu i stylu podróżowania. Łączymy zaawansowaną sztuczną inteligencję z obszernymi danymi o podróżach, aby dostarczać unikalne doświadczenia odpowiadające Twoim marzeniom.",
+    "poBox": "Skrytka pocztowa",
+    "location": "Lokalizacja",
+    "email": "E-mail",
+    "website": "Strona internetowa",
+    "newsletterDescription": "Dołącz do naszej społeczności ponad 200 000 czytelników na całym świecie, którzy otrzymują e-maile z wiadomościami, promocjami i innymi ciekawymi treściami.",
+    "copyright": "OptionTrip. Wszelkie prawa zastrzeżone."
+  },
+  "discountAction": {
+    "loveGoing": "Kochaj dokąd idziesz",
+    "exploreLife": "Odkryj swoje życie,",
+    "travelWant": "Podróżuj dokąd chcesz!",
+    "description": "Rozpocznij swoją podróż już dziś z naszym planerem podróży napędzanym przez AI. Otrzymuj spersonalizowane rekomendacje, ekskluzywne oferty i bezproblemowe rezerwacje—wszystko w jednym miejscu. Twoja idealna przygoda czeka."
+  },
+  "languages": {
+    "en": "Angielski",
+    "ru": "Rosyjski",
+    "de": "Niemiecki",
+    "fr": "Francuski",
+    "it": "Włoski",
+    "es": "Hiszpański",
+    "pl": "Polski",
+    "uk": "Ukraiński",
+    "tr": "Turecki",
+    "hu": "Węgierski",
+    "sv": "Szwedzki",
+    "pt": "Portugalski",
+    "sr": "Serbski",
+    "ar": "Arabski",
+    "zh": "Chiński",
+    "ja": "Japoński",
+    "vi": "Wietnamski",
+    "th": "Tajski",
+    "ko": "Koreański",
+    "hi": "Hindi",
+    "bn": "Bengalski",
+    "id": "Indonezyjski"
+  }
+}
+

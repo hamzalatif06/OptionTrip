@@ -1,0 +1,124 @@
+.trip-type-selector-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.trip-type-input-container {
+  position: relative;
+}
+
+.trip-type-input {
+  width: 100%;
+  padding: 14px 20px;
+  border: 1px solid #C2CAD2;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #596C7E;
+  background-color: #fff;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.trip-type-input:focus {
+  outline: none;
+  border-color: #0A539D;
+  box-shadow: 0 0 0 3px rgba(10, 83, 157, 0.1);
+}
+
+.trip-type-input::placeholder {
+  color: #9FAAB6;
+  font-weight: 400;
+}
+
+.trip-type-input.error {
+  border-color: #F30F89;
+}
+
+/* Suggestions Dropdown */
+.trip-type-suggestions {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #fff;
+  border: 1px solid #C2CAD2;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Suggestion Items */
+.trip-type-suggestion-item {
+  padding: 12px 20px;
+  font-size: 15px;
+  color: #596C7E;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #F0F2F4;
+  font-weight: 500;
+}
+
+.trip-type-suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.trip-type-suggestion-item:hover,
+.trip-type-suggestion-item.focused {
+  background-color: #0A539D;
+  color: #fff;
+}
+
+/* First and last item rounded corners */
+.trip-type-suggestion-item:first-child:hover,
+.trip-type-suggestion-item:first-child.focused {
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+.trip-type-suggestion-item:last-child:hover,
+.trip-type-suggestion-item:last-child.focused {
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+/* Scrollbar styling */
+.trip-type-suggestions::-webkit-scrollbar {
+  width: 8px;
+}
+
+.trip-type-suggestions::-webkit-scrollbar-track {
+  background: #F0F2F4;
+  border-radius: 16px;
+}
+
+.trip-type-suggestions::-webkit-scrollbar-thumb {
+  background: #C2CAD2;
+  border-radius: 16px;
+}
+
+.trip-type-suggestions::-webkit-scrollbar-thumb:hover {
+  background: #9FAAB6;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .trip-type-suggestions {
+    max-height: 200px;
+  }
+
+  .trip-type-suggestion-item {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  .trip-type-input {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+}

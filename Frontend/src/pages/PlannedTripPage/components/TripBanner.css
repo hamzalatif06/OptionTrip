@@ -1,0 +1,228 @@
+/* TripBanner Styles - Matching TripTap Image */
+/* Full-width background with overlay text */
+
+.trip-banner {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #122D46; /* Fallback color if image doesn't load */
+  min-height: 400px;
+  padding: 80px 20px 140px 20px;
+  margin-bottom: -80px; /* Overlap with cards */
+  border-radius: 0 0 24px 24px;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+
+.trip-banner__content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Title */
+.trip-banner__title {
+  font-size: 48px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0;
+  line-height: 1.2;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Description */
+.trip-banner__description {
+  font-size: 18px;
+  line-height: 1.6;
+  color: #FFFFFF;
+  margin: 0;
+  max-width: 900px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Metadata Chips (from TripTap's ChipTabGroup) */
+.trip-banner__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-top: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 50px;
+  padding: 4px;
+  backdrop-filter: blur(10px);
+}
+
+.trip-banner__chip {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.trip-banner__chip:not(:last-child) {
+  border-right: none;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.trip-banner__chip:not(:first-child) {
+  border-left: none;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.trip-banner__chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Loading State (from TripTap's Skeleton pattern) */
+.trip-banner__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.trip-banner__skeleton-title {
+  width: 400px;
+  max-width: 100%;
+  height: 44px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.4) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 8px;
+  animation: shimmer 1.5s infinite;
+}
+
+.trip-banner__skeleton-subtitle {
+  width: 600px;
+  max-width: 100%;
+  height: 24px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.4) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 8px;
+  animation: shimmer 1.5s infinite;
+  animation-delay: 0.2s;
+}
+
+.trip-banner__skeleton-chips {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Error State */
+.trip-banner--error {
+  background: linear-gradient(135deg, #FFE5E5 0%, #FFF0F0 100%);
+}
+
+.trip-banner--error .trip-banner__title {
+  color: #C41E3A;
+}
+
+.trip-banner--error .trip-banner__description {
+  color: #8B1E3F;
+}
+
+/* Responsive Design */
+@media (max-width: 991px) {
+  .trip-banner {
+    padding: 60px 16px 120px 16px;
+    margin-bottom: -60px;
+    border-radius: 0 0 20px 20px;
+  }
+
+  .trip-banner__title {
+    font-size: 36px;
+  }
+
+  .trip-banner__description {
+    font-size: 16px;
+  }
+
+  .trip-banner__chip {
+    font-size: 14px;
+    padding: 10px 20px;
+  }
+}
+
+@media (max-width: 767px) {
+  .trip-banner {
+    padding: 40px 12px 100px 12px;
+    margin-bottom: -50px;
+    border-radius: 0 0 16px 16px;
+  }
+
+  .trip-banner__title {
+    font-size: 28px;
+  }
+
+  .trip-banner__description {
+    font-size: 15px;
+  }
+
+  .trip-banner__chips {
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .trip-banner__chip {
+    font-size: 13px;
+    padding: 10px 16px;
+    border-radius: 0 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.3) !important;
+  }
+
+  .trip-banner__chip:first-child {
+    border-top-left-radius: 50px !important;
+    border-top-right-radius: 50px !important;
+  }
+
+  .trip-banner__chip:last-child {
+    border-bottom-left-radius: 50px !important;
+    border-bottom-right-radius: 50px !important;
+  }
+
+  .trip-banner__skeleton-title {
+    height: 32px;
+  }
+
+  .trip-banner__skeleton-subtitle {
+    height: 20px;
+  }
+}

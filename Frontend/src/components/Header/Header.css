@@ -1,0 +1,329 @@
+/* Header Auth Dropdown Styles */
+
+.register-login {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Auth Dropdown Wrapper */
+.auth-dropdown-wrapper {
+  position: relative;
+}
+
+/* Profile Icon */
+.profile-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 14px;
+}
+
+.profile-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-icon i {
+  font-size: 16px;
+  color: white;
+}
+
+/* Auth Dropdown Toggle Button */
+.auth-dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #122D46;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 8px 16px;
+  border-radius: 8px;
+  position: relative;
+}
+
+.auth-dropdown-toggle:hover {
+  color: #0A539D;
+  background-color: rgba(10, 83, 157, 0.05);
+}
+
+.auth-dropdown-toggle i.icon-user {
+  font-size: 16px;
+}
+
+.auth-dropdown-toggle .dropdown-arrow {
+  font-size: 10px;
+  transition: transform 0.3s ease;
+  margin-left: 2px;
+}
+
+.auth-dropdown-toggle .dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+/* Auth Dropdown Menu */
+.auth-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 180px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  z-index: 1000;
+  animation: dropdownFadeIn 0.2s ease;
+}
+
+/* Add padding area to prevent dropdown from closing when moving cursor */
+.auth-dropdown-menu::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: transparent;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Auth Dropdown Items */
+.auth-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #122D46;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.auth-dropdown-item:hover {
+  background-color: #F8F9FA;
+  color: #0A539D;
+  text-decoration: none;
+}
+
+.auth-dropdown-item i {
+  font-size: 16px;
+  width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Logout Button Specific Styling */
+.auth-dropdown-item.logout-item {
+  color: #dc3545;
+}
+
+.auth-dropdown-item.logout-item:hover {
+  background-color: #fff5f5;
+  color: #c82333;
+}
+
+/* Dropdown Divider */
+.dropdown-divider {
+  height: 1px;
+  background-color: #F0F2F4;
+  margin: 8px 0;
+}
+
+/* If icons don't exist, use fallback styling */
+.auth-dropdown-item i.icon-login::before {
+  content: "→";
+  font-style: normal;
+}
+
+.auth-dropdown-item i.icon-user-add::before {
+  content: "+";
+  font-style: normal;
+  font-weight: bold;
+}
+
+.auth-dropdown-item i.icon-logout::before {
+  content: "←";
+  font-style: normal;
+}
+
+.auth-dropdown-item i.icon-compass::before {
+  content: "⊕";
+  font-style: normal;
+}
+
+/* Contact Button Styling */
+.register-login .nir-btn {
+  padding: 10px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.register-login .nir-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Mobile responsive */
+@media (max-width: 991px) {
+  .register-login {
+    gap: 0.75rem;
+  }
+
+  .auth-dropdown-toggle {
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+
+  .auth-dropdown-toggle i.icon-user {
+    font-size: 14px;
+  }
+
+  .profile-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .profile-icon i {
+    font-size: 14px;
+  }
+
+  .auth-dropdown-menu {
+    min-width: 160px;
+  }
+
+  .auth-dropdown-item {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .register-login .nir-btn {
+    padding: 8px 20px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 767px) {
+  .register-login {
+    gap: 0.5rem;
+  }
+
+  .auth-dropdown-toggle {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+
+  .auth-dropdown-toggle span {
+    display: none;
+  }
+
+  .profile-icon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .profile-icon i {
+    font-size: 13px;
+  }
+
+  .auth-dropdown-menu {
+    min-width: 150px;
+    right: -10px;
+  }
+
+  .auth-dropdown-item {
+    padding: 10px 14px;
+    font-size: 13px;
+    gap: 10px;
+  }
+
+  .register-login .nir-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+}
+
+/* Active state for dropdown items */
+.auth-dropdown-item.active {
+  background-color: rgba(10, 83, 157, 0.1);
+  color: #0A539D;
+  font-weight: 600;
+}
+
+/* Focus styles for accessibility */
+.auth-dropdown-toggle:focus {
+  outline: 2px solid #0A539D;
+  outline-offset: 2px;
+}
+
+.auth-dropdown-item:focus {
+  background-color: #F8F9FA;
+  outline: none;
+}
+
+/* Location Display Styles */
+.location-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.location-display span {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.location-loading {
+  opacity: 0.8;
+  font-style: italic;
+}
+
+@keyframes locationPulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.location-loading {
+  animation: locationPulse 1.5s ease-in-out infinite;
+}
+
+@media (max-width: 767px) {
+  .location-display span {
+    max-width: 120px;
+  }
+}

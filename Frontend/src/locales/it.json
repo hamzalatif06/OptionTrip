@@ -1,0 +1,81 @@
+{
+  "common": {
+    "home": "Home",
+    "about": "Chi siamo",
+    "tours": "Tour",
+    "destinations": "Destinazioni",
+    "blog": "Blog",
+    "contact": "Contattaci",
+    "login": "Accedi/Registrati",
+    "search": "Cerca",
+    "follow": "Segui",
+    "followOnInstagram": "Segui su Instagram",
+    "quickLinks": "Collegamenti rapidi",
+    "categories": "Categorie",
+    "travel": "Viaggi",
+    "newsletter": "Newsletter",
+    "privacyPolicy": "Politica sulla privacy",
+    "termsConditions": "Termini e condizioni",
+    "customerService": "Servizio clienti",
+    "allRightsReserved": "Tutti i diritti riservati",
+    "emailAddress": "Indirizzo email",
+    "subscribe": "Iscriviti",
+    "language": "Lingua"
+  },
+  "header": {
+    "location": "Hollywood, America",
+    "dateFormat": "{{date}}"
+  },
+  "banner": {
+    "exploreWorld": "Esplora il mondo",
+    "planDreamTrip": "Inizia a pianificare il tuo viaggio dei sogni oggi!",
+    "bannerDescription": "Lascia che la nostra IA crei il tuo itinerario perfetto in pochi minuti. Descrivi semplicemente il tuo viaggio dei sogni e noi ci occuperemo del resto—dai voli alle attività, tutto personalizzato in base alle tue preferenze.",
+    "camping": "Campeggio",
+    "hiking": "Escursionismo",
+    "beachTours": "Tour in spiaggia",
+    "surfing": "Surf",
+    "safari": "Safari",
+    "cycling": "Ciclismo",
+    "trekings": "Trekking"
+  },
+  "footer": {
+    "aboutDescription": "OptionTrip è una piattaforma di pianificazione viaggi alimentata dall'IA che crea itinerari di viaggio personalizzati su misura per le tue preferenze, budget e stile di viaggio. Combiniamo intelligenza artificiale avanzata con dati di viaggio estesi per offrire esperienze uniche che corrispondono ai tuoi sogni.",
+    "poBox": "Casella postale",
+    "location": "Posizione",
+    "email": "Email",
+    "website": "Sito web",
+    "newsletterDescription": "Unisciti alla nostra comunità di oltre 200.000 lettori globali che ricevono email piene di notizie, promozioni e altre informazioni interessanti.",
+    "copyright": "OptionTrip. Tutti i diritti riservati."
+  },
+  "discountAction": {
+    "loveGoing": "Ama dove stai andando",
+    "exploreLife": "Esplora la tua vita,",
+    "travelWant": "Viaggia dove vuoi!",
+    "description": "Inizia il tuo viaggio oggi con il nostro pianificatore di viaggi alimentato dall'IA. Ottieni raccomandazioni personalizzate, offerte esclusive e prenotazioni senza problemi—tutto in un unico posto. La tua avventura perfetta ti aspetta."
+  },
+  "languages": {
+    "en": "Inglese",
+    "ru": "Russo",
+    "de": "Tedesco",
+    "fr": "Francese",
+    "it": "Italiano",
+    "es": "Spagnolo",
+    "pl": "Polacco",
+    "uk": "Ucraino",
+    "tr": "Turco",
+    "hu": "Ungherese",
+    "sv": "Svedese",
+    "pt": "Portoghese",
+    "sr": "Serbo",
+    "ar": "Arabo",
+    "zh": "Cinese",
+    "ja": "Giapponese",
+    "vi": "Vietnamita",
+    "th": "Tailandese",
+    "ko": "Coreano",
+    "hi": "Hindi",
+    "bn": "Bengalese",
+    "id": "Indonesiano"
+  }
+}
+

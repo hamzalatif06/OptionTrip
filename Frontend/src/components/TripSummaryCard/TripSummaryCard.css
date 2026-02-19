@@ -1,0 +1,475 @@
+/* Trip Summary Card - OptionTrip Theme - Modern Design */
+
+.trip-summary-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 28px;
+  border: 2px solid #f1f1f1;
+  position: sticky;
+  top: 20px;
+  height: fit-content;
+  box-shadow: 0 8px 24px rgba(23, 35, 62, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.trip-summary-card:hover {
+  box-shadow: 0 12px 32px rgba(2, 158, 157, 0.1);
+}
+
+/* Header Section */
+.trip-summary-card__header {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f1f1f1;
+}
+
+.trip-summary-card__title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #17233e;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+.trip-summary-card__subtitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #029e9d;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Destination Section */
+.trip-summary-card__destination {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f0fffe 0%, #e8f9f8 100%);
+  border-radius: 16px;
+  margin-bottom: 24px;
+  transition: all 0.3s ease;
+}
+
+.trip-summary-card__destination:hover {
+  background: linear-gradient(135deg, #e8f9f8 0%, #d8f5f4 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(2, 158, 157, 0.1);
+}
+
+.trip-summary-card__destination-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #029e9d 0%, #027a79 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(2, 158, 157, 0.25);
+}
+
+.trip-summary-card__destination-icon svg {
+  width: 28px;
+  height: 28px;
+  font-size: 28px;
+}
+
+.trip-summary-card__destination-info h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #17233e;
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+}
+
+.trip-summary-card__destination-info p {
+  font-size: 14px;
+  color: #777;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Section */
+.trip-summary-card__section {
+  margin-bottom: 24px;
+}
+
+.trip-summary-card__section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #17233e;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin: 0 0 16px 0;
+}
+
+/* Details Grid */
+.trip-summary-card__details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.trip-summary-card__detail {
+  background: #f9fffe;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #f1f1f1;
+  transition: all 0.3s ease;
+}
+
+.trip-summary-card__detail:hover {
+  background: #eaf7ff;
+  border-color: #029e9d55;
+  transform: translateY(-2px);
+}
+
+.trip-summary-card__detail-label {
+  font-size: 11px;
+  color: #777;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+
+.trip-summary-card__detail-value {
+  font-size: 14px;
+  color: #17233e;
+  font-weight: 700;
+}
+
+/* Highlights List */
+.trip-summary-card__highlights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trip-summary-card__highlight-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f9fffe;
+  border-radius: 12px;
+  border: 1px solid #f1f1f1;
+  transition: all 0.3s ease;
+}
+
+.trip-summary-card__highlight-item:hover {
+  background: #eaf7ff;
+  border-color: #029e9d55;
+  transform: translateX(4px);
+}
+
+.trip-summary-card__highlight-icon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #029e9d 0%, #027a79 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(2, 158, 157, 0.25);
+}
+
+.trip-summary-card__highlight-text {
+  flex: 1;
+  font-size: 13px;
+  color: #3f3f3f;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.trip-summary-card__highlight-text strong {
+  color: #17233e;
+  font-weight: 700;
+}
+
+/* Cost Summary */
+.trip-summary-card__cost-summary {
+  padding: 24px;
+  background: linear-gradient(to bottom, #f9f9f9 0%, #ffffff 100%);
+  border-radius: 16px;
+  margin-bottom: 24px;
+  border: 2px solid #f1f1f1;
+}
+
+.trip-summary-card__cost-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.trip-summary-card__cost-row:last-child {
+  margin-bottom: 0;
+  padding-top: 16px;
+  border-top: 2px solid #f1f1f1;
+  margin-top: 4px;
+}
+
+.trip-summary-card__cost-label {
+  font-size: 14px;
+  color: #777;
+  font-weight: 500;
+}
+
+.trip-summary-card__cost-value {
+  font-size: 16px;
+  color: #17233e;
+  font-weight: 600;
+}
+
+.trip-summary-card__cost-row:last-child .trip-summary-card__cost-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #17233e;
+}
+
+.trip-summary-card__cost-row:last-child .trip-summary-card__cost-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #029e9d;
+  letter-spacing: -0.5px;
+}
+
+/* Action Buttons */
+.trip-summary-card__action {
+  display: flex;
+  gap: 12px;
+  flex-direction: column;
+}
+
+.trip-summary-card__button {
+  width: 100%;
+  padding: 16px 28px;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
+.trip-summary-card__button--primary {
+  background: linear-gradient(135deg, #029e9d 0%, #027a79 100%);
+  color: #FFFFFF;
+  box-shadow: 0 8px 20px rgba(2, 158, 157, 0.25);
+}
+
+.trip-summary-card__button--primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(2, 158, 157, 0.35);
+}
+
+.trip-summary-card__button--secondary {
+  background: #FFFFFF;
+  color: #029e9d;
+  border: 2px solid #029e9d;
+  box-shadow: 0 4px 12px rgba(2, 158, 157, 0.1);
+}
+
+.trip-summary-card__button--secondary:hover {
+  background: #029e9d;
+  color: #FFFFFF;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(2, 158, 157, 0.25);
+}
+
+.trip-summary-card__button--disabled {
+  background: #C2CAD2;
+  color: #FFFFFF;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+.trip-summary-card__button--disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Empty State */
+.trip-summary-card__empty {
+  text-align: center;
+  padding: 60px 24px;
+  background: linear-gradient(135deg, #f9fffe 0%, #eaf7ff 100%);
+  border-radius: 16px;
+  border: 2px dashed #029e9d55;
+}
+
+.trip-summary-card__empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.6;
+  filter: grayscale(30%);
+}
+
+.trip-summary-card__empty-text {
+  font-size: 15px;
+  color: #777;
+  line-height: 1.6;
+  font-weight: 500;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+/* Responsive Design */
+@media (max-width: 991px) {
+  .trip-summary-card {
+    position: static;
+    top: auto;
+    margin-top: 40px;
+    padding: 24px;
+  }
+
+  .trip-summary-card__title {
+    font-size: 22px;
+  }
+
+  .trip-summary-card__destination-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .trip-summary-card__destination-icon svg {
+    width: 26px;
+    height: 26px;
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 767px) {
+  .trip-summary-card {
+    padding: 20px;
+    margin-top: 32px;
+    border-radius: 16px;
+  }
+
+  .trip-summary-card__header {
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+  }
+
+  .trip-summary-card__title {
+    font-size: 20px;
+  }
+
+  .trip-summary-card__subtitle {
+    font-size: 12px;
+  }
+
+  .trip-summary-card__destination {
+    padding: 16px;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .trip-summary-card__destination-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .trip-summary-card__destination-icon svg {
+    width: 24px;
+    height: 24px;
+    font-size: 24px;
+  }
+
+  .trip-summary-card__destination-info h3 {
+    font-size: 16px;
+  }
+
+  .trip-summary-card__destination-info p {
+    font-size: 13px;
+  }
+
+  .trip-summary-card__details-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .trip-summary-card__detail {
+    padding: 12px;
+  }
+
+  .trip-summary-card__section {
+    margin-bottom: 20px;
+  }
+
+  .trip-summary-card__section-title {
+    margin-bottom: 12px;
+  }
+
+  .trip-summary-card__highlight-item {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .trip-summary-card__highlight-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .trip-summary-card__highlight-text {
+    font-size: 12px;
+  }
+
+  .trip-summary-card__cost-summary {
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .trip-summary-card__cost-label {
+    font-size: 13px;
+  }
+
+  .trip-summary-card__cost-value {
+    font-size: 15px;
+  }
+
+  .trip-summary-card__cost-row:last-child .trip-summary-card__cost-label {
+    font-size: 15px;
+  }
+
+  .trip-summary-card__cost-row:last-child .trip-summary-card__cost-value {
+    font-size: 24px;
+  }
+
+  .trip-summary-card__button {
+    padding: 14px 24px;
+    font-size: 15px;
+  }
+
+  .trip-summary-card__empty {
+    padding: 40px 20px;
+  }
+
+  .trip-summary-card__empty-icon {
+    font-size: 52px;
+  }
+
+  .trip-summary-card__empty-text {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .trip-summary-card__title {
+    font-size: 18px;
+  }
+
+  .trip-summary-card__cost-row:last-child .trip-summary-card__cost-value {
+    font-size: 22px;
+  }
+}

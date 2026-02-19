@@ -1,0 +1,81 @@
+{
+  "common": {
+    "home": "Trang chủ",
+    "about": "Về chúng tôi",
+    "tours": "Tours",
+    "destinations": "Điểm đến",
+    "blog": "Blog",
+    "contact": "Liên hệ",
+    "login": "Đăng nhập/Đăng ký",
+    "search": "Tìm kiếm",
+    "follow": "Theo dõi",
+    "followOnInstagram": "Theo dõi trên Instagram",
+    "quickLinks": "Liên kết nhanh",
+    "categories": "Danh mục",
+    "travel": "Du lịch",
+    "newsletter": "Bản tin",
+    "privacyPolicy": "Chính sách bảo mật",
+    "termsConditions": "Điều khoản và điều kiện",
+    "customerService": "Dịch vụ khách hàng",
+    "allRightsReserved": "Bảo lưu mọi quyền",
+    "emailAddress": "Địa chỉ email",
+    "subscribe": "Đăng ký",
+    "language": "Ngôn ngữ"
+  },
+  "header": {
+    "location": "Hollywood, Mỹ",
+    "dateFormat": "{{date}}"
+  },
+  "banner": {
+    "exploreWorld": "Khám phá thế giới",
+    "planDreamTrip": "Bắt đầu lập kế hoạch cho chuyến đi trong mơ của bạn ngay hôm nay!",
+    "bannerDescription": "Để AI của chúng tôi tạo lịch trình hoàn hảo cho bạn trong vài phút. Chỉ cần mô tả chuyến đi trong mơ của bạn, và chúng tôi sẽ xử lý phần còn lại—từ chuyến bay đến hoạt động, tất cả đều được cá nhân hóa theo sở thích của bạn.",
+    "camping": "Cắm trại",
+    "hiking": "Đi bộ đường dài",
+    "beachTours": "Tours bãi biển",
+    "surfing": "Lướt sóng",
+    "safari": "Safari",
+    "cycling": "Đạp xe",
+    "trekings": "Trekking"
+  },
+  "footer": {
+    "aboutDescription": "OptionTrip là nền tảng lập kế hoạch du lịch được hỗ trợ bởi AI tạo ra các lịch trình du lịch cá nhân hóa phù hợp với sở thích, ngân sách và phong cách du lịch của bạn. Chúng tôi kết hợp trí tuệ nhân tạo tiên tiến với dữ liệu du lịch toàn diện để mang lại những trải nghiệm độc đáo phù hợp với ước mơ của bạn.",
+    "poBox": "Hộp thư",
+    "location": "Vị trí",
+    "email": "Email",
+    "website": "Trang web",
+    "newsletterDescription": "Tham gia cộng đồng hơn 200.000 độc giả toàn cầu của chúng tôi, những người nhận được email chứa đầy tin tức, khuyến mãi và những nội dung thú vị khác.",
+    "copyright": "OptionTrip. Bảo lưu mọi quyền."
+  },
+  "discountAction": {
+    "loveGoing": "Yêu nơi bạn đến",
+    "exploreLife": "Khám phá cuộc sống của bạn,",
+    "travelWant": "Du lịch đến nơi bạn muốn!",
+    "description": "Bắt đầu hành trình của bạn ngay hôm nay với công cụ lập kế hoạch du lịch được hỗ trợ bởi AI của chúng tôi. Nhận đề xuất cá nhân hóa, ưu đãi độc quyền và đặt chỗ liền mạch—tất cả ở một nơi. Cuộc phiêu lưu hoàn hảo của bạn đang chờ đợi."
+  },
+  "languages": {
+    "en": "Tiếng Anh",
+    "ru": "Tiếng Nga",
+    "de": "Tiếng Đức",
+    "fr": "Tiếng Pháp",
+    "it": "Tiếng Ý",
+    "es": "Tiếng Tây Ban Nha",
+    "pl": "Tiếng Ba Lan",
+    "uk": "Tiếng Ukraina",
+    "tr": "Tiếng Thổ Nhĩ Kỳ",
+    "hu": "Tiếng Hungary",
+    "sv": "Tiếng Thụy Điển",
+    "pt": "Tiếng Bồ Đào Nha",
+    "sr": "Tiếng Serbia",
+    "ar": "Tiếng Ả Rập",
+    "zh": "Tiếng Trung",
+    "ja": "Tiếng Nhật",
+    "vi": "Tiếng Việt",
+    "th": "Tiếng Thái",
+    "ko": "Tiếng Hàn",
+    "hi": "Tiếng Hindi",
+    "bn": "Tiếng Bengal",
+    "id": "Tiếng Indonesia"
+  }
+}
+

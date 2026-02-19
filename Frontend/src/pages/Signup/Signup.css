@@ -1,0 +1,294 @@
+/* Signup Page Styles - Full Screen No Scroll */
+
+/* Import base auth styles */
+@import '../Login/Login.css';
+
+/* Signup specific overrides - Ultra Compact */
+.signup-container .auth-form-section {
+  overflow-y: auto;
+  max-height: 100vh;
+  padding: 20px 50px;
+  justify-content: center;
+}
+
+.signup-container .auth-form-wrapper {
+  padding: 0;
+}
+
+/* Ultra compact logo */
+.signup-container .auth-logo {
+  margin-bottom: 16px;
+}
+
+.signup-container .auth-logo img {
+  height: 60px !important;
+}
+
+/* Ultra compact header */
+.signup-container .auth-header {
+  margin-bottom: 14px;
+}
+
+.signup-container .auth-title {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.signup-container .auth-subtitle {
+  font-size: 13px;
+}
+
+/* Ultra compact social buttons */
+.signup-container .auth-social-buttons {
+  margin-bottom: 14px;
+  gap: 8px;
+}
+
+.signup-container .social-button {
+  min-height: 60px;
+  padding: 10px 6px;
+}
+
+.signup-container .social-button-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.signup-container .social-button-text {
+  font-size: 10px;
+}
+
+/* Ultra compact divider */
+.signup-container .auth-divider {
+  margin-bottom: 14px;
+}
+
+.signup-container .auth-divider-text {
+  font-size: 12px;
+}
+
+/* Ultra compact input spacing */
+.signup-container .auth-input-wrapper {
+  margin-bottom: 10px;
+}
+
+.signup-container .auth-input-label {
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.signup-container .auth-input {
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.signup-container .auth-input-container {
+  border-radius: 10px;
+}
+
+/* Terms Wrapper - Ultra compact */
+.auth-terms-wrapper {
+  margin-bottom: 14px;
+}
+
+.auth-terms-checkbox {
+  align-items: flex-start;
+}
+
+.auth-terms-checkbox input[type="checkbox"] {
+  margin-top: 2px;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.auth-terms-checkbox .auth-checkbox-label {
+  line-height: 1.4;
+  font-size: 12px;
+}
+
+/* Ultra compact footer */
+.signup-container .auth-footer {
+  margin-top: 14px;
+  margin-bottom: 14px;
+}
+
+.signup-container .auth-footer-text {
+  font-size: 13px;
+}
+
+/* Make button more compact */
+.signup-container .auth-button {
+  padding: 11px 20px;
+  font-size: 14px;
+  border-radius: 10px;
+}
+
+/* Hide optional phone field to save space */
+.signup-container .phone-field {
+  /* display: none; */
+}
+
+/* Responsive Styles for Signup */
+@media (max-width: 1200px) {
+  .signup-container .auth-form-section {
+    padding: 20px 40px;
+  }
+}
+
+@media (max-width: 991px) {
+  .signup-container .auth-form-section {
+    max-height: 100vh;
+    overflow-y: auto;
+    padding: 25px 30px;
+  }
+
+  .signup-container .auth-form-wrapper {
+    max-width: 480px;
+  }
+
+  .signup-container .social-button {
+    flex-direction: row;
+    min-height: auto;
+    padding: 12px;
+  }
+
+  .signup-container .social-button-text {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 767px) {
+  .signup-container .auth-form-section {
+    padding: 20px 20px;
+  }
+
+  .signup-container .auth-form-wrapper {
+    padding: 0;
+  }
+
+  .signup-container .auth-logo {
+    margin-bottom: 12px;
+  }
+
+  .signup-container .auth-logo img {
+    height: 50px !important;
+  }
+
+  .signup-container .auth-header {
+    margin-bottom: 12px;
+  }
+
+  .signup-container .auth-title {
+    font-size: 20px;
+  }
+
+  .signup-container .auth-subtitle {
+    font-size: 12px;
+  }
+
+  .signup-container .auth-social-buttons {
+    margin-bottom: 12px;
+  }
+
+  .signup-container .auth-divider {
+    margin-bottom: 12px;
+  }
+
+  .auth-terms-wrapper {
+    margin-bottom: 12px;
+  }
+
+  .auth-terms-checkbox .auth-checkbox-label {
+    font-size: 11px;
+  }
+
+  .signup-container .auth-input-wrapper {
+    margin-bottom: 8px;
+  }
+
+  .signup-container .auth-footer {
+    margin-top: 12px;
+    margin-bottom: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .signup-container .auth-form-section {
+    padding: 15px 16px;
+  }
+
+  .signup-container .auth-logo {
+    margin-bottom: 10px;
+  }
+
+  .signup-container .auth-logo img {
+    height: 45px !important;
+  }
+
+  .signup-container .auth-header {
+    margin-bottom: 10px;
+  }
+
+  .signup-container .auth-title {
+    font-size: 18px;
+  }
+}
+
+/* Special handling for small height screens */
+@media (max-height: 800px) {
+  .signup-container .auth-form-section {
+    padding: 15px 50px;
+  }
+
+  .signup-container .auth-logo {
+    margin-bottom: 12px;
+  }
+
+  .signup-container .auth-logo img {
+    height: 50px !important;
+  }
+
+  .signup-container .auth-header {
+    margin-bottom: 10px;
+  }
+
+  .signup-container .auth-social-buttons {
+    margin-bottom: 12px;
+  }
+
+  .signup-container .auth-divider {
+    margin-bottom: 12px;
+  }
+
+  .signup-container .auth-input-wrapper {
+    margin-bottom: 8px;
+  }
+
+  .auth-terms-wrapper {
+    margin-bottom: 12px;
+  }
+
+  .signup-container .auth-footer {
+    margin-top: 12px;
+    margin-bottom: 12px;
+  }
+}
+
+@media (max-height: 700px) {
+  .signup-container .auth-logo img {
+    height: 40px !important;
+  }
+
+  .signup-container .auth-title {
+    font-size: 20px;
+  }
+
+  .signup-container .auth-subtitle {
+    font-size: 12px;
+  }
+
+  .signup-container .social-button {
+    min-height: 50px;
+  }
+}

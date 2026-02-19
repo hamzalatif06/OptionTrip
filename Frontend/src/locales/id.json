@@ -1,0 +1,81 @@
+{
+  "common": {
+    "home": "Beranda",
+    "about": "Tentang Kami",
+    "tours": "Tur",
+    "destinations": "Destinasi",
+    "blog": "Blog",
+    "contact": "Hubungi Kami",
+    "login": "Masuk/Daftar",
+    "search": "Cari",
+    "follow": "Ikuti",
+    "followOnInstagram": "Ikuti di Instagram",
+    "quickLinks": "Tautan Cepat",
+    "categories": "Kategori",
+    "travel": "Perjalanan",
+    "newsletter": "Newsletter",
+    "privacyPolicy": "Kebijakan Privasi",
+    "termsConditions": "Syarat & Ketentuan",
+    "customerService": "Layanan Pelanggan",
+    "allRightsReserved": "Hak Cipta Dilindungi",
+    "emailAddress": "Alamat Email",
+    "subscribe": "Berlangganan",
+    "language": "Bahasa"
+  },
+  "header": {
+    "location": "Hollywood, Amerika",
+    "dateFormat": "{{date}}"
+  },
+  "banner": {
+    "exploreWorld": "Jelajahi Dunia",
+    "planDreamTrip": "Mulai Rencanakan Perjalanan Impian Anda Hari Ini!",
+    "bannerDescription": "Biarkan AI kami membuat rencana perjalanan sempurna Anda dalam hitungan menit. Cukup jelaskan perjalanan impian Anda, dan kami akan menangani sisanya—dari penerbangan hingga aktivitas, semuanya dipersonalisasi sesuai preferensi Anda.",
+    "camping": "Kemah",
+    "hiking": "Pendakian",
+    "beachTours": "Tur Pantai",
+    "surfing": "Selancar",
+    "safari": "Safari",
+    "cycling": "Bersepeda",
+    "trekings": "Trekking"
+  },
+  "footer": {
+    "aboutDescription": "OptionTrip adalah platform perencanaan perjalanan bertenaga AI yang membuat rencana perjalanan yang dipersonalisasi sesuai dengan preferensi, anggaran, dan gaya perjalanan Anda. Kami menggabungkan kecerdasan buatan canggih dengan data perjalanan yang luas untuk memberikan pengalaman unik yang sesuai dengan impian Anda.",
+    "poBox": "Kotak Pos",
+    "location": "Lokasi",
+    "email": "Email",
+    "website": "Situs Web",
+    "newsletterDescription": "Bergabunglah dengan komunitas lebih dari 200.000 pembaca global kami yang menerima email penuh berita, promosi, dan hal-hal menarik lainnya.",
+    "copyright": "OptionTrip. Hak Cipta Dilindungi."
+  },
+  "discountAction": {
+    "loveGoing": "Cintai Tempat yang Anda Tuju",
+    "exploreLife": "Jelajahi Hidup Anda,",
+    "travelWant": "Bepergian Ke Mana Saja yang Anda Inginkan!",
+    "description": "Mulai perjalanan Anda hari ini dengan perencana perjalanan bertenaga AI kami. Dapatkan rekomendasi yang dipersonalisasi, penawaran eksklusif, dan pemesanan yang mulus—semuanya di satu tempat. Petualangan sempurna Anda menunggu."
+  },
+  "languages": {
+    "en": "Bahasa Inggris",
+    "ru": "Bahasa Rusia",
+    "de": "Bahasa Jerman",
+    "fr": "Bahasa Prancis",
+    "it": "Bahasa Italia",
+    "es": "Bahasa Spanyol",
+    "pl": "Bahasa Polandia",
+    "uk": "Bahasa Ukraina",
+    "tr": "Bahasa Turki",
+    "hu": "Bahasa Hongaria",
+    "sv": "Bahasa Swedia",
+    "pt": "Bahasa Portugis",
+    "sr": "Bahasa Serbia",
+    "ar": "Bahasa Arab",
+    "zh": "Bahasa Mandarin",
+    "ja": "Bahasa Jepang",
+    "vi": "Bahasa Vietnam",
+    "th": "Bahasa Thailand",
+    "ko": "Bahasa Korea",
+    "hi": "Bahasa Hindi",
+    "bn": "Bahasa Bengali",
+    "id": "Bahasa Indonesia"
+  }
+}
+

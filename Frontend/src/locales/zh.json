@@ -1,0 +1,81 @@
+{
+  "common": {
+    "home": "首页",
+    "about": "关于我们",
+    "tours": "旅游",
+    "destinations": "目的地",
+    "blog": "博客",
+    "contact": "联系我们",
+    "login": "登录/注册",
+    "search": "搜索",
+    "follow": "关注",
+    "followOnInstagram": "在 Instagram 上关注",
+    "quickLinks": "快速链接",
+    "categories": "类别",
+    "travel": "旅行",
+    "newsletter": "通讯",
+    "privacyPolicy": "隐私政策",
+    "termsConditions": "条款和条件",
+    "customerService": "客户服务",
+    "allRightsReserved": "保留所有权利",
+    "emailAddress": "电子邮件地址",
+    "subscribe": "订阅",
+    "language": "语言"
+  },
+  "header": {
+    "location": "好莱坞，美国",
+    "dateFormat": "{{date}}"
+  },
+  "banner": {
+    "exploreWorld": "探索世界",
+    "planDreamTrip": "今天开始计划您的梦想之旅！",
+    "bannerDescription": "让我们的AI在几分钟内为您创建完美的行程。只需描述您的梦想之旅，我们将处理其余的一切—从航班到活动，一切都根据您的喜好个性化定制。",
+    "camping": "露营",
+    "hiking": "徒步旅行",
+    "beachTours": "海滩之旅",
+    "surfing": "冲浪",
+    "safari": "野生动物园",
+    "cycling": "自行车",
+    "trekings": "徒步旅行"
+  },
+  "footer": {
+    "aboutDescription": "OptionTrip是一个由AI驱动的旅行规划平台，可根据您的偏好、预算和旅行风格创建个性化的旅行行程。我们将先进的人工智能与广泛的旅行数据相结合，提供与您的梦想相匹配的独特体验。",
+    "poBox": "邮箱",
+    "location": "位置",
+    "email": "电子邮件",
+    "website": "网站",
+    "newsletterDescription": "加入我们超过200,000名全球读者的社区，他们收到充满新闻、促销和其他好内容的电子邮件。",
+    "copyright": "OptionTrip。保留所有权利。"
+  },
+  "discountAction": {
+    "loveGoing": "热爱您要去的地方",
+    "exploreLife": "探索您的生活，",
+    "travelWant": "去您想去的地方旅行！",
+    "description": "今天就开始您的旅程，使用我们由AI驱动的旅行规划器。获得个性化推荐、独家优惠和无缝预订—一切尽在一处。您的完美冒险正在等待。"
+  },
+  "languages": {
+    "en": "英语",
+    "ru": "俄语",
+    "de": "德语",
+    "fr": "法语",
+    "it": "意大利语",
+    "es": "西班牙语",
+    "pl": "波兰语",
+    "uk": "乌克兰语",
+    "tr": "土耳其语",
+    "hu": "匈牙利语",
+    "sv": "瑞典语",
+    "pt": "葡萄牙语",
+    "sr": "塞尔维亚语",
+    "ar": "阿拉伯语",
+    "zh": "中文",
+    "ja": "日语",
+    "vi": "越南语",
+    "th": "泰语",
+    "ko": "韩语",
+    "hi": "印地语",
+    "bn": "孟加拉语",
+    "id": "印度尼西亚语"
+  }
+}
+

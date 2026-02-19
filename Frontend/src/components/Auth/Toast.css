@@ -1,0 +1,128 @@
+/* Toast Notification Styles */
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border-left: 4px solid;
+  min-width: 300px;
+  max-width: 500px;
+  animation: toast-slide-in 0.3s ease;
+  font-family: var(--font-primary);
+}
+
+@keyframes toast-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.toast-message {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: #122D46;
+}
+
+.toast-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #596C7E;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.toast-close:hover {
+  color: #122D46;
+}
+
+/* Toast Types */
+.toast-success {
+  border-left-color: #029e9d;
+}
+
+.toast-success .toast-icon {
+  color: #029e9d;
+}
+
+.toast-error {
+  border-left-color: #F30F89;
+}
+
+.toast-error .toast-icon {
+  color: #F30F89;
+}
+
+.toast-warning {
+  border-left-color: #fdc703;
+}
+
+.toast-warning .toast-icon {
+  color: #fdc703;
+}
+
+.toast-info {
+  border-left-color: #029e9d;
+}
+
+.toast-info .toast-icon {
+  color: #029e9d;
+}
+
+/* Toast Container (for positioning multiple toasts) */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.toast-container .toast {
+  pointer-events: all;
+}
+
+/* Responsive Styles */
+@media (max-width: 767px) {
+  .toast {
+    min-width: 280px;
+    max-width: calc(100vw - 40px);
+    padding: 14px 16px;
+  }
+
+  .toast-message {
+    font-size: 14px;
+  }
+
+  .toast-container {
+    top: 16px;
+    right: 16px;
+    left: 16px;
+  }
+}

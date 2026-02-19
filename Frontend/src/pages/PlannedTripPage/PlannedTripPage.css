@@ -1,0 +1,273 @@
+/* PlannedTripPage Styles - Using OptionTrip Theme */
+/* Adapted from TripTap structure, styled with OptionTrip colors */
+
+.planned-trip-page {
+  min-height: 100vh;
+  background: #F8F9FA;
+}
+
+/* Header Styles */
+.planned-trip-header {
+  background: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.planned-trip-header__container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.planned-trip-header__logo {
+  display: flex;
+  align-items: center;
+}
+
+.planned-trip-header__logo img {
+  height: 45px;
+  width: auto;
+}
+
+.planned-trip-header__nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.planned-trip-header__link {
+  font-size: 16px;
+  font-weight: 600;
+  color: #17233e;
+  text-decoration: none;
+  padding: 8px 4px;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.planned-trip-header__link:hover {
+  color: #029e9d;
+}
+
+.planned-trip-header__link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #029e9d 0%, #027a79 100%);
+  transition: width 0.3s ease;
+}
+
+.planned-trip-header__link:hover::after {
+  width: 100%;
+}
+
+/* Responsive Header */
+@media (max-width: 767px) {
+  .planned-trip-header__container {
+    padding: 12px 16px;
+  }
+
+  .planned-trip-header__logo img {
+    height: 36px;
+  }
+
+  .planned-trip-header__nav {
+    gap: 20px;
+  }
+
+  .planned-trip-header__link {
+    font-size: 14px;
+  }
+}
+
+/* Loading State */
+.planned-trip-page__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  gap: 24px;
+}
+
+.planned-trip-page__loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid #E8ECEF;
+  border-top-color: #F30F89;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.planned-trip-page__loading-text {
+  font-size: 18px;
+  color: #596C7E;
+  font-weight: 600;
+}
+
+/* Error State */
+.planned-trip-page__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  padding: 40px 20px;
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.planned-trip-page__error-icon {
+  font-size: 64px;
+  margin-bottom: 24px;
+}
+
+.planned-trip-page__error-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #122D46;
+  margin: 0 0 16px 0;
+}
+
+.planned-trip-page__error-message {
+  font-size: 16px;
+  color: #596C7E;
+  margin: 0 0 32px 0;
+  line-height: 1.6;
+}
+
+.planned-trip-page__error-button {
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #0A539D 0%, #F30F89 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 8px;
+}
+
+.planned-trip-page__error-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(243, 15, 137, 0.3);
+}
+
+.planned-trip-page__error-button--secondary {
+  background: #FFFFFF;
+  color: #0A539D;
+  border: 2px solid #0A539D;
+}
+
+.planned-trip-page__error-button--secondary:hover {
+  background: #0A539D;
+  color: #FFFFFF;
+}
+
+/* Empty State */
+.planned-trip-page__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.planned-trip-page__empty-icon {
+  font-size: 80px;
+  margin-bottom: 24px;
+  opacity: 0.6;
+}
+
+.planned-trip-page__empty-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #122D46;
+  margin: 0 0 12px 0;
+}
+
+.planned-trip-page__empty-text {
+  font-size: 16px;
+  color: #596C7E;
+  margin: 0 0 32px 0;
+}
+
+/* Progressive Loading Progress Bar */
+.planned-trip-page__progress-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+.planned-trip-page__progress {
+  background: linear-gradient(135deg, #EAF4FF 0%, #FFEEF7 100%);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+}
+
+.planned-trip-page__progress-bar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.planned-trip-page__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #F30F89 0%, #0A539D 100%);
+  border-radius: 4px;
+  transition: width 0.5s ease-out;
+}
+
+.planned-trip-page__progress-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #122D46;
+  margin: 0;
+}
+
+/* Skeleton Container */
+.planned-trip-page__skeletons {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px 40px;
+}
+
+/* Responsive Design */
+@media (max-width: 767px) {
+  .planned-trip-page__error-title,
+  .planned-trip-page__empty-title {
+    font-size: 22px;
+  }
+
+  .planned-trip-page__error-message,
+  .planned-trip-page__empty-text {
+    font-size: 15px;
+  }
+
+  .planned-trip-page__error-button {
+    padding: 12px 24px;
+    font-size: 15px;
+  }
+}
