@@ -111,26 +111,15 @@ const Contact = () => {
               <div className="box-shadow bg-white p-4 rounded">
                 <h3 className="mb-4">Contact Information</h3>
                 <ul>
-                  <li className="mb-3">
-                    <i className="icon-location-pin theme me-2"></i>
-                    <strong>Address:</strong><br />
-                    Collins Street, Sydney, Australia
-                  </li>
-                  <li className="mb-3">
-                    <i className="icon-phone theme me-2"></i>
-                    <strong>Phone:</strong><br />
-                    +47-252-254-2542
-                  </li>
+                 
+                 
+                 
                   <li className="mb-3">
                     <i className="icon-envelope theme me-2"></i>
                     <strong>Email:</strong><br />
-                    info@optiontrip.com
+                    optiontripcom@gmail.com
                   </li>
-                  <li className="mb-3">
-                    <i className="icon-clock theme me-2"></i>
-                    <strong>Hours:</strong><br />
-                    Mon-Fri: 10 AM – 5 PM
-                  </li>
+                
                 </ul>
               </div>
             </div>

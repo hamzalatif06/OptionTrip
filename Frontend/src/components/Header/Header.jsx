@@ -178,8 +178,9 @@ const Header = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="white">
-                  <i className="fab fa-twitter" aria-hidden="true"></i>
+                <a href="https://x.com/OptionTripCom" target="_blank" rel="noopener noreferrer" className="white">
+                 
+                 <i className="fab fa-twitter" aria-hidden="true"></i>
                 </a>
               </li>
               <li>
@@ -192,11 +193,7 @@ const Header = () => {
                   <i className="fab fa-youtube" aria-hidden="true"></i>
                 </a>
               </li>
-              <li>
-                <a href="#" className="white">
-                  <i className="fab fa-linkedin" aria-hidden="true"></i>
-                </a>
-              </li>
+             
             </ul>
           </div>
         </div>

@@ -123,7 +123,7 @@ const HeroSection = ({
       icon: <SettingsIcon />,
       data: [
         {
-          label: 'Description',
+          label: 'What you love !',
           value: tripData?.description || 'No preferences specified'
         },
       ],

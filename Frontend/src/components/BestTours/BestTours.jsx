@@ -231,7 +231,7 @@ const BestTours = () => {
                         ) : (
                           <>
                             <i className="fa fa-magic"></i>
-                            <span>Generate Trip</span>
+                            <span>Explore</span>
                           </>
                         )}
                       </button>

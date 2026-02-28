@@ -91,8 +91,9 @@ const authenticatedFetch = async (url, options = {}) => {
         config.headers['Authorization'] = `Bearer ${newToken}`;
         response = await fetch(url, config);
       } else {
-        // Refresh failed, logout user
-        logout();
+        // Refresh failed — clear tokens directly (don't call logout() to avoid recursion)
+        removeAccessToken();
+        removeUser();
         throw new Error('Session expired. Please login again.');
       }
     }
@@ -186,8 +187,14 @@ export const login = async (email, password) => {
  */
 export const logout = async () => {
   try {
-    await authenticatedFetch(`${AUTH_API}/logout`, {
+    const token = getAccessToken();
+    await fetch(`${AUTH_API}/logout`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
+      credentials: 'include',
     });
   } catch (error) {
     console.error('Logout error:', error);

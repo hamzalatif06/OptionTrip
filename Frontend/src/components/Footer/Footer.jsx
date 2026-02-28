@@ -53,9 +53,7 @@ const Footer = () => {
                   {t('footer.aboutDescription')}
                 </p>
                 <ul>
-                  <li className="white"><strong>{t('footer.poBox')}:</strong> +47-252-254-2542</li>
-                  <li className="white"><strong>{t('footer.location')}:</strong> Collins Street, sydney, Australia</li>
-                  <li className="white"><strong>{t('footer.email')}:</strong> <a href="mailto:info@optiontrip.com" className="white">info@optiontrip.com</a></li>
+                  <li className="white"><strong>{t('footer.email')}:</strong> <a href="mailto:info@optiontrip.com" className="white">optiontripcom@gmail.com</a></li>
                   <li className="white"><strong>{t('footer.website')}:</strong> www.OptionTrip.com</li>
                 </ul>
               </div>
@@ -88,19 +86,10 @@ const Footer = () => {
             </div>
             <div className="col-lg-4 col-md-6 col-sm-12 mb-4">
               <div className="footer-links">
-                <h3 className="white">{t('common.newsletter')}</h3>
+                <h3 className="white">{t('Explore')}</h3>
                 <div className="newsletter-form">
-                  <p className="mb-3">{t('footer.newsletterDescription')}</p>
-                  <form onSubmit={handleSubscribe} className="border-0 d-flex align-items-center">
-                    <input 
-                      type="email" 
-                      placeholder={t('common.emailAddress')} 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                    
-                  </form>
+                  <a href="/blog">Our Blog</a>
+                  
                 </div>
               </div>
             </div>
@@ -136,7 +125,7 @@ const Footer = () => {
                   <a href="https://www.facebook.com/optiontrip" target="_blank" rel="noopener noreferrer"><i className="fab fa-facebook" aria-hidden="true"></i></a>
                 </li>
                 <li>
-                  <a href="#"><i className="fab fa-twitter" aria-hidden="true"></i></a>
+                  <a href="https://www.x.com/OptionTripCom" target="_blank" rel="noopener noreferrer"><i className="fab fa-twitter" aria-hidden="true"></i></a>
                 </li>
                 <li>
                   <a href="https://www.instagram.com/option_trip" target="_blank" rel="noopener noreferrer"><i className="fab fa-instagram" aria-hidden="true"></i></a>
@@ -144,9 +133,7 @@ const Footer = () => {
                 <li>
                   <a href="https://www.youtube.com/@optiontrip" target="_blank" rel="noopener noreferrer"><i className="fab fa-youtube" aria-hidden="true"></i></a>
                 </li>
-                <li>
-                  <a href="#"><i className="fab fa-linkedin" aria-hidden="true"></i></a>
-                </li>
+               
               </ul>
             </div>
           </div>
