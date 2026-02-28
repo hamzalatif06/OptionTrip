@@ -290,6 +290,226 @@
   outline: none;
 }
 
+/* ─── Hamburger Button ─────────────────────────────────────────── */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 28px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1100;
+}
+
+.hamburger span {
+  display: block;
+  height: 2.5px;
+  width: 100%;
+  background: #122D46;
+  border-radius: 3px;
+  transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease;
+  transform-origin: center;
+}
+
+/* Animate to X when open */
+.hamburger--open span:nth-child(1) {
+  transform: translateY(8.75px) rotate(45deg);
+}
+.hamburger--open span:nth-child(2) {
+  opacity: 0;
+  width: 0;
+}
+.hamburger--open span:nth-child(3) {
+  transform: translateY(-8.75px) rotate(-45deg);
+}
+
+@media (max-width: 991px) {
+  .hamburger { display: flex; }
+  .navbar-collapse1 { display: none !important; }
+  .register-login { display: none !important; }
+}
+
+/* ─── Overlay ──────────────────────────────────────────────────── */
+.mobile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1200;
+  animation: overlayIn 0.25s ease;
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ─── Side Drawer ──────────────────────────────────────────────── */
+.mobile-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 290px;
+  height: 100dvh;
+  background: #fff;
+  z-index: 1300;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 4px 0 24px rgba(0,0,0,0.12);
+  overflow-y: auto;
+}
+
+.mobile-drawer--open {
+  transform: translateX(0);
+}
+
+/* Drawer Header */
+.mobile-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid #F0F2F4;
+}
+
+.mobile-drawer__header img {
+  height: 36px;
+  width: auto;
+}
+
+.mobile-drawer__close {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  color: #122D46;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.mobile-drawer__close:hover {
+  background: #F0F2F4;
+}
+
+/* Drawer Nav */
+.mobile-drawer__nav {
+  flex: 1;
+  padding: 12px 0;
+}
+
+.mobile-drawer__nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mobile-drawer__nav ul li a {
+  display: block;
+  padding: 13px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #122D46;
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: all 0.2s;
+}
+
+.mobile-drawer__nav ul li a:hover,
+.mobile-drawer__nav ul li.active a {
+  color: #0A539D;
+  background: rgba(10, 83, 157, 0.05);
+  border-left-color: #0A539D;
+}
+
+/* Drawer Auth */
+.mobile-drawer__auth {
+  padding: 16px 20px;
+  border-top: 1px solid #F0F2F4;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mobile-drawer__user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0 12px;
+  font-weight: 600;
+  font-size: 15px;
+  color: #122D46;
+}
+
+.mobile-drawer__auth-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #122D46;
+  text-decoration: none;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background 0.2s, color 0.2s;
+}
+
+.mobile-drawer__auth-item:hover {
+  background: #F0F2F4;
+  color: #0A539D;
+  text-decoration: none;
+}
+
+.mobile-drawer__signup {
+  background: #0A539D;
+  color: #fff !important;
+  justify-content: center;
+  border-radius: 8px;
+  margin-top: 4px;
+}
+
+.mobile-drawer__signup:hover {
+  background: #084a8a !important;
+  color: #fff !important;
+}
+
+.mobile-drawer__logout {
+  color: #dc3545 !important;
+}
+
+.mobile-drawer__logout:hover {
+  background: #fff5f5 !important;
+  color: #c82333 !important;
+}
+
+/* Drawer Social */
+.mobile-drawer__social {
+  display: flex;
+  gap: 16px;
+  padding: 16px 24px;
+  border-top: 1px solid #F0F2F4;
+}
+
+.mobile-drawer__social a {
+  font-size: 18px;
+  color: #6c757d;
+  transition: color 0.2s;
+}
+
+.mobile-drawer__social a:hover {
+  color: #0A539D;
+}
+
+/* ─── Location Display Styles ──────────────────────────────────── */
 /* Location Display Styles */
 .location-display {
   display: inline-flex;

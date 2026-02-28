@@ -160,10 +160,6 @@ const Signup = () => {
                 onClick={() => handleSocialSignup('google')}
               />
               <SocialButton
-                provider="facebook"
-                onClick={() => handleSocialSignup('facebook')}
-              />
-              <SocialButton
                 provider="twitter"
                 onClick={() => handleSocialSignup('twitter')}
               />

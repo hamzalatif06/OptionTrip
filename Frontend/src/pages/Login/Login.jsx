@@ -122,10 +122,6 @@ const Login = () => {
                 onClick={() => handleSocialLogin('google')}
               />
               <SocialButton
-                provider="facebook"
-                onClick={() => handleSocialLogin('facebook')}
-              />
-              <SocialButton
                 provider="twitter"
                 onClick={() => handleSocialLogin('twitter')}
               />

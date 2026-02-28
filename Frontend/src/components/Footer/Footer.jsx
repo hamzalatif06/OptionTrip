@@ -87,10 +87,10 @@ const Footer = () => {
             <div className="col-lg-4 col-md-6 col-sm-12 mb-4">
               <div className="footer-links">
                 <h3 className="white">{t('Explore')}</h3>
-                <div className="newsletter-form">
-                  <a href="/blog">Our Blog</a>
-                  
-                </div>
+                <ul>
+                <li> <a href="/blog">Our Blog</a></li> 
+</ul>
+           
               </div>
             </div>
           </div>

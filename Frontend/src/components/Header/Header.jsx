@@ -328,14 +328,101 @@ const Header = () => {
                 <Link to="/contact" className="nir-btn white">{t('common.contact')}</Link>
               </div>
 
-              <div id="slicknav-mobile" onClick={toggleMenu}>
+              {/* Hamburger */}
+              <button
+                className={`hamburger ${isMenuOpen ? 'hamburger--open' : ''}`}
+                onClick={toggleMenu}
+                aria-label="Toggle menu"
+              >
                 <span></span>
                 <span></span>
                 <span></span>
-              </div>
+              </button>
             </div>
           </div>
         </nav>
+      </div>
+
+      {/* Overlay */}
+      {isMenuOpen && (
+        <div className="mobile-overlay" onClick={toggleMenu}></div>
+      )}
+
+      {/* Side Drawer */}
+      <div className={`mobile-drawer ${isMenuOpen ? 'mobile-drawer--open' : ''}`}>
+        <div className="mobile-drawer__header">
+          <Link to="/" onClick={toggleMenu}>
+            <img src="/images/newLogo.png" alt="OptionTrip" />
+          </Link>
+          <button className="mobile-drawer__close" onClick={toggleMenu} aria-label="Close menu">
+            <i className="fa fa-times"></i>
+          </button>
+        </div>
+
+        <nav className="mobile-drawer__nav">
+          <ul>
+            <li className={isActive('/')}>
+              <Link to="/" onClick={toggleMenu}>{t('common.home')}</Link>
+            </li>
+            <li className={isActive('/about')}>
+              <Link to="/about" onClick={toggleMenu}>{t('common.about')}</Link>
+            </li>
+            <li className={isActive('/destinations')}>
+              <Link to="/destinations" onClick={toggleMenu}>{t('common.destinations')}</Link>
+            </li>
+            <li className={isActive('/tours')}>
+              <Link to="/tours" onClick={toggleMenu}>{t('common.tours')}</Link>
+            </li>
+            <li className={isActive('/blog')}>
+              <Link to="/blog" onClick={toggleMenu}>{t('common.blog')}</Link>
+            </li>
+            <li className={isActive('/contact')}>
+              <Link to="/contact" onClick={toggleMenu}>{t('common.contact')}</Link>
+            </li>
+          </ul>
+        </nav>
+
+        <div className="mobile-drawer__auth">
+          {isAuthenticated ? (
+            <>
+              <div className="mobile-drawer__user">
+                <div className="profile-icon">
+                  {user?.profileImage ? (
+                    <img src={user.profileImage} alt={user.name} />
+                  ) : (
+                    <i className="icon-user"></i>
+                  )}
+                </div>
+                <span>{user?.name}</span>
+              </div>
+              <Link to="/profile" className="mobile-drawer__auth-item" onClick={toggleMenu}>
+                <i className="icon-user"></i> My Profile
+              </Link>
+              <Link to="/my-trips" className="mobile-drawer__auth-item" onClick={toggleMenu}>
+                <i className="icon-compass"></i> My Trips
+              </Link>
+              <button className="mobile-drawer__auth-item mobile-drawer__logout" onClick={() => { handleLogout(); toggleMenu(); }}>
+                <i className="icon-logout"></i> Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="mobile-drawer__auth-item" onClick={toggleMenu}>
+                <i className="icon-login"></i> Login
+              </Link>
+              <Link to="/signup" className="mobile-drawer__auth-item mobile-drawer__signup" onClick={toggleMenu}>
+                <i className="icon-user-add"></i> Sign Up
+              </Link>
+            </>
+          )}
+        </div>
+
+        <div className="mobile-drawer__social">
+          <a href="https://www.facebook.com/optiontrip" target="_blank" rel="noopener noreferrer"><i className="fab fa-facebook"></i></a>
+          <a href="https://x.com/OptionTripCom" target="_blank" rel="noopener noreferrer"><i className="fab fa-twitter"></i></a>
+          <a href="https://www.instagram.com/option_trip" target="_blank" rel="noopener noreferrer"><i className="fab fa-instagram"></i></a>
+          <a href="https://www.youtube.com/@optiontrip" target="_blank" rel="noopener noreferrer"><i className="fab fa-youtube"></i></a>
+        </div>
       </div>
     </header>
   );

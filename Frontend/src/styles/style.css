@@ -427,7 +427,7 @@ img {
 }
 
 .pt-3, .py-3 {
-  padding-top: 1.5rem !important;
+  /* padding-top: 1.5rem !important; */
 }
 
 .pt-4, .py-4 {

@@ -40,6 +40,7 @@
 
 /* Ultra compact social buttons */
 .signup-container .auth-social-buttons {
+  grid-template-columns: repeat(2, 1fr);
   margin-bottom: 14px;
   gap: 8px;
 }
