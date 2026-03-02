@@ -8,7 +8,8 @@ import {
   getMyTrips,
   getUserTrips,
   generateSingleDay,
-  getDayItinerary
+  getDayItinerary,
+  parseTripDescriptionController
 } from '../controllers/tripController.js';
 import {
   validateTripGeneration,
@@ -34,6 +35,9 @@ const router = express.Router();
  * POST /api/trips/:tripId/options/:optionId/generate-day/:dayNumber
  * Returns: Single day itinerary with Google Places data (~3-5 seconds per day)
  */
+
+// Natural language trip description parser (used by smart textarea)
+router.post('/parse-description', parseTripDescriptionController);
 
 // PHASE 1: Generate lightweight trip options (FAST)
 router.post('/generate-options', validateTripGeneration, generateTripOptions);

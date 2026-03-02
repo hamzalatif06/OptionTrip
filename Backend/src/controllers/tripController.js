@@ -1,5 +1,5 @@
 import Trip from '../models/Trip.js';
-import { generateLightweightTripOptions, generateDetailedItinerary, generateSingleDayItinerary } from '../services/openaiService.js';
+import { generateLightweightTripOptions, generateDetailedItinerary, generateSingleDayItinerary, parseTripDescription } from '../services/openaiService.js';
 import { enrichItineraryWithPlaces, enrichSingleDayWithPlaces } from '../services/placesService.js';
 
 /**
@@ -604,5 +604,26 @@ export const getDayItinerary = async (req, res) => {
       message: 'Failed to fetch day itinerary',
       error: error.message
     });
+  }
+};
+
+
+/**
+ * POST /api/trips/parse-description
+ * Parse a natural language trip description into structured trip data
+ */
+export const parseTripDescriptionController = async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text || typeof text !== 'string' || text.trim().length < 5) {
+      return res.status(400).json({ success: false, message: 'text is required (min 5 chars)' });
+    }
+
+    const parsed = await parseTripDescription(text.trim());
+
+    res.status(200).json({ success: true, data: parsed });
+  } catch (error) {
+    console.error('❌ Error parsing trip description:', error);
+    res.status(500).json({ success: false, message: 'Failed to parse description', error: error.message });
   }
 };

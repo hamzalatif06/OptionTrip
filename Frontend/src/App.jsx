@@ -12,6 +12,7 @@ import About from './pages/About';
 import Tours from './pages/Tours';
 import Destinations from './pages/Destinations';
 import Blog from './pages/Blog';
+import BlogDetail from './pages/BlogDetail/BlogDetail';
 import Contact from './pages/Contact';
 import Login from './pages/Login/Login';
 import Signup from './pages/Signup/Signup';
@@ -72,6 +73,7 @@ function App() {
                   <Route path="/tours" element={<Tours />} />
                   <Route path="/destinations" element={<Destinations />} />
                   <Route path="/blog" element={<Blog />} />
+                  <Route path="/blog/:slug" element={<BlogDetail />} />
                   <Route path="/contact" element={<Contact />} />
                 </Routes>
               </Layout>

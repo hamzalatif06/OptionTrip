@@ -7,7 +7,7 @@ import AboutSection from '../components/AboutSection/AboutSection';
 import BestTours from '../components/BestTours/BestTours';
 import LastMinuteDeals from '../components/LastMinuteDeals/LastMinuteDeals';
 import DiscountAction from '../components/DiscountAction/DiscountAction';
-import ProductsSection from '../components/ProductsSection/ProductsSection';
+import FeaturedBlogSection from '../components/FeaturedBlogSection/FeaturedBlogSection';
 // import OfferPackages from '../components/OfferPackages/OfferPackages';
 import OurTeam from '../components/OurTeam/OurTeam';
 import Testimonials from '../components/Testimonials/Testimonials';
@@ -61,7 +61,7 @@ const Home = () => {
       <AboutSection />
       <BestTours />
       <LastMinuteDeals />
-      <ProductsSection />
+      <FeaturedBlogSection />
       <DiscountAction />
       {/* <OfferPackages /> */}
       {/* <OurTeam /> */}

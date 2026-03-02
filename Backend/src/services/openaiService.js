@@ -508,8 +508,77 @@ export const generateSingleDayItinerary = async ({
   }
 };
 
+/**
+ * Parse a natural language trip description into structured trip data
+ * Used by the "What you love" smart textarea feature
+ */
+export const parseTripDescription = async (text) => {
+  const client = getOpenAIClient();
+  if (!client) {
+    throw new Error('OpenAI API key not configured');
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const completion = await client.chat.completions.create({
+    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    messages: [
+      {
+        role: 'system',
+        content: `You are a travel assistant that extracts structured trip information from natural language text.
+Today's date is ${today}.
+
+Extract the following fields from the user's trip description and return ONLY valid JSON (no markdown, no explanation):
+
+{
+  "destination": {
+    "text": "City, Country or region as written",
+    "name": "City or place name only"
+  },
+  "start_date": "YYYY-MM-DD or null",
+  "end_date": "YYYY-MM-DD or null",
+  "duration_days": number or null,
+  "tripType": one of ["Adventure", "Cultural", "Relaxation", "Family", "Romantic", "Business", "Budget", "Luxury"] or null,
+  "guests": {
+    "adults": number or null,
+    "children": number or null,
+    "infants": number or null
+  },
+  "budget": one of ["budget", "moderate", "luxury", "premium"] or null,
+  "activities": ["array", "of", "detected", "interests"] or []
+}
+
+Rules:
+- If a field is not mentioned, return null for it (or [] for arrays)
+- For guests: "family of 4" = 2 adults + 2 children. "couple" = 2 adults. "solo" = 1 adult. "wife and 2 kids" = 2 adults 2 children. "me and my friend" = 2 adults.
+- For budget: "cheap/backpacker/economy" = "budget", "mid-range/moderate/normal" = "moderate", "high-end/luxury/5-star" = "luxury", "ultra-luxury/premium/first-class" = "premium"
+- For tripType: detect from context - mentions of kids/family = "Family", romantic/honeymoon/couple = "Romantic", hiking/climbing/extreme = "Adventure", history/museum/culture = "Cultural", beach/spa/relax = "Relaxation"
+- For duration: if user says "5 days", set duration_days=5 and compute end_date from start_date if available
+- Dates: interpret relative dates (e.g. "next month", "in July") from today's date ${today}
+- activities: extract hobbies/interests like "hiking", "local food", "art galleries", "beaches" etc.`
+      },
+      {
+        role: 'user',
+        content: text
+      }
+    ],
+    temperature: 0.1,
+    max_tokens: 500,
+  });
+
+  const raw = completion.choices[0]?.message?.content?.trim() || '{}';
+  try {
+    return JSON.parse(raw);
+  } catch {
+    // Try to extract JSON from any surrounding text
+    const match = raw.match(/\{[\s\S]*\}/);
+    return match ? JSON.parse(match[0]) : {};
+  }
+};
+
 export default {
   generateLightweightTripOptions,
   generateDetailedItinerary,
-  generateSingleDayItinerary
+  generateSingleDayItinerary,
+  parseTripDescription
 };

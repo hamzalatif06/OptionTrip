@@ -178,7 +178,285 @@
   font-size: 12px;
 }
 
-/* Description Wrapper */
+/* ─── Smart Description Section ─────────────────────────────── */
+.smart-description-section {
+  margin-bottom: 8px;
+}
+
+.smart-description-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #122D46;
+  margin-bottom: 10px;
+}
+
+.sparkle-inline {
+  flex-shrink: 0;
+}
+
+.smart-textarea-wrapper {
+  position: relative;
+  border-radius: 16px;
+  transition: box-shadow 0.25s ease;
+}
+
+.smart-textarea-wrapper textarea {
+  width: 100%;
+  padding: 16px 20px 48px 20px;
+  border: 2px solid #C2CAD2;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #596C7E;
+  background: #fff;
+  resize: none;
+  font-family: inherit;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  min-height: 90px;
+  box-sizing: border-box;
+}
+
+.smart-textarea-wrapper textarea:focus {
+  outline: none;
+  border-color: #0A539D;
+  box-shadow: 0 0 0 3px rgba(10, 83, 157, 0.1);
+}
+
+.smart-textarea-wrapper textarea::placeholder {
+  color: #9FAAB6;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.smart-textarea-wrapper textarea.error {
+  border-color: #F30F89;
+}
+
+.smart-textarea-wrapper.is-parsing textarea {
+  border-color: #0A539D;
+  box-shadow: 0 0 0 3px rgba(10, 83, 157, 0.08);
+}
+
+/* Listening (recording) state — red pulse border */
+.smart-textarea-wrapper.is-listening textarea {
+  border-color: #e53935;
+  box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.12);
+}
+
+/* ── Mic button ────────────────────────────────────────────── */
+.mic-btn {
+  position: absolute;
+  bottom: 12px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #0A539D, #F30F89);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(10, 83, 157, 0.3);
+  /* Large tap target for mobile */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 2;
+}
+
+.mic-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 14px rgba(10, 83, 157, 0.4);
+}
+
+.mic-btn:active {
+  transform: scale(0.95);
+}
+
+/* Active / recording state */
+.mic-btn--active {
+  background: linear-gradient(135deg, #e53935, #c62828);
+  box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.5);
+  animation: mic-pulse-ring 1.4s ease-out infinite;
+}
+
+@keyframes mic-pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.5); }
+  70%  { box-shadow: 0 0 0 10px rgba(229, 57, 53, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0); }
+}
+
+/* ── Sound-wave bars while listening ──────────────────────── */
+.mic-wave-indicator {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 16px;
+}
+
+.mic-wave-indicator span {
+  width: 3px;
+  border-radius: 2px;
+  background: #e53935;
+  animation: mic-wave-bar 0.9s ease-in-out infinite;
+}
+
+.mic-wave-indicator span:nth-child(1) { height: 6px;  animation-delay: 0s; }
+.mic-wave-indicator span:nth-child(2) { height: 12px; animation-delay: 0.15s; }
+.mic-wave-indicator span:nth-child(3) { height: 9px;  animation-delay: 0.3s; }
+.mic-wave-indicator span:nth-child(4) { height: 6px;  animation-delay: 0.45s; }
+
+@keyframes mic-wave-bar {
+  0%, 100% { transform: scaleY(0.5); opacity: 0.6; }
+  50%       { transform: scaleY(1.4); opacity: 1;   }
+}
+
+.mic-live-text {
+  color: #e53935 !important;
+}
+
+/* ── Speech error ──────────────────────────────────────────── */
+.speech-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #e53935;
+  margin-top: 6px;
+  padding: 6px 10px;
+  background: rgba(229, 57, 53, 0.06);
+  border-radius: 8px;
+  border: 1px solid rgba(229, 57, 53, 0.2);
+}
+
+/* Give textarea room for both bottom-left indicator AND bottom-right mic btn */
+.smart-textarea-wrapper textarea {
+  padding-right: 58px !important;
+}
+
+/* AI parsing indicator inside the textarea */
+.ai-parsing-indicator {
+  position: absolute;
+  bottom: 14px;
+  left: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.ai-parsing-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0A539D;
+  letter-spacing: 0.02em;
+}
+
+/* Three-dot pulsing spinner */
+.ai-dot-spinner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ai-dot-spinner span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0A539D, #F30F89);
+  animation: ai-dot-pulse 1.2s ease-in-out infinite;
+}
+
+.ai-dot-spinner span:nth-child(2) { animation-delay: 0.2s; }
+.ai-dot-spinner span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes ai-dot-pulse {
+  0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* AI detected chips bar */
+.ai-detected-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.ai-detected-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0A539D;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ai-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ai-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  background: linear-gradient(135deg, rgba(10,83,157,0.08) 0%, rgba(243,15,137,0.06) 100%);
+  border: 1px solid rgba(10,83,157,0.2);
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #122D46;
+  animation: chip-pop 0.25s ease-out;
+}
+
+@keyframes chip-pop {
+  from { transform: scale(0.85); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+.ai-chip-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* Field-filled visual state — subtle green glow */
+.form-field.field-filled > *:first-child,
+.form-field.field-filled .autocomplete-input,
+.form-field.field-filled select {
+  border-color: #029e9d !important;
+  box-shadow: 0 0 0 2px rgba(2,158,157,0.12) !important;
+}
+
+/* Divider between smart box and manual fields */
+.form-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 22px;
+  color: #9FAAB6;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.form-divider::before,
+.form-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #E8ECEF;
+}
+
+/* Description Wrapper (legacy, kept for compatibility) */
 .description-wrapper {
   position: relative;
 }

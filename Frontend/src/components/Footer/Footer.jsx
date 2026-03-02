@@ -88,7 +88,7 @@ const Footer = () => {
               <div className="footer-links">
                 <h3 className="white">{t('Explore')}</h3>
                 <ul>
-                <li> <a href="/blog">Our Blog</a></li> 
+                <li><a href="https://blog.optiontrip.com" target="_blank" rel="noopener noreferrer">Our Blog</a></li>
 </ul>
            
               </div>

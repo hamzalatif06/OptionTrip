@@ -13,12 +13,22 @@ const DestinationAutocomplete = ({
   const [isLoading, setIsLoading] = useState(false);
   const debouncedInput = useDebounce(inputValue, 200);
 
-  // Sync input value when external value changes (e.g., from TopDestinations)
+  // True when value was set programmatically (AI/nav) without a resolved place_id
+  const autoSelectRef = React.useRef(false);
+  // Prevents dropdown from reopening after a selection triggers a new inputValue update
+  const justSelectedRef = React.useRef(false);
+
+  // Sync input value when external value changes (e.g., from TopDestinations or AI parse)
   useEffect(() => {
     if (value?.text && value.text !== inputValue) {
       setInputValue(value.text);
     }
   }, [value?.text]);
+
+  // Mark that we need auto-selection whenever text is set but place_id is not yet resolved
+  useEffect(() => {
+    autoSelectRef.current = !!(value?.text && !value?.place_id);
+  }, [value?.text, value?.place_id]);
 
   const {
     fetchPredictions,
@@ -30,6 +40,11 @@ const DestinationAutocomplete = ({
   // Fetch predictions when debounced input changes
   useEffect(() => {
     if (debouncedInput.length >= 3) {
+      // Skip re-fetching if the input change was caused by a selection, not user typing
+      if (justSelectedRef.current) {
+        justSelectedRef.current = false;
+        return;
+      }
       setIsLoading(true);
       fetchPredictions(debouncedInput);
       setShowDropdown(true);
@@ -38,16 +53,25 @@ const DestinationAutocomplete = ({
       setShowDropdown(false);
       setIsLoading(false);
     }
-  }, [debouncedInput]); // Remove fetchPredictions and resetPredictionResults from dependencies
+  }, [debouncedInput]);
 
-  // Update loading state when results arrive
+  // Update loading state when results arrive; auto-select top match for AI-filled values
   useEffect(() => {
-    if (predictionResults.length > 0 || debouncedInput.length < 3) {
+    if (predictionResults.length > 0) {
+      setIsLoading(false);
+      if (autoSelectRef.current) {
+        // AI or navigation set text without a place_id — silently pick the best match
+        autoSelectRef.current = false;
+        setShowDropdown(false);
+        handleSelect(predictionResults[0]);
+      }
+    } else if (debouncedInput.length < 3) {
       setIsLoading(false);
     }
   }, [predictionResults, debouncedInput]);
 
   const handleSelect = (prediction) => {
+    justSelectedRef.current = true; // suppress dropdown reopen caused by inputValue update
     handleSuggestionClick(
       prediction.place_id,
       (placeDetails) => {
@@ -60,7 +84,7 @@ const DestinationAutocomplete = ({
         setInputValue(prediction.description);
         setShowDropdown(false);
       },
-      () => {} // setInputValue handled above
+      () => {}
     );
   };
 

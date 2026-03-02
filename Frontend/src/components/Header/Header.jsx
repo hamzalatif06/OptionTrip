@@ -221,18 +221,18 @@ const Header = () => {
                   </li>
                   <li className={`dropdown submenu ${isActive('/destinations')}`}>
                     <Link to="/destinations" className="dropdown-toggle">
-                      {t('common.destinations')} <i className="icon-arrow-down" aria-hidden="true"></i>
+                      {t('common.destinations')}
                     </Link>
                   </li>
                   <li className={`dropdown submenu ${isActive('/tours')}`}>
                     <Link to="/tours" className="dropdown-toggle">
-                      {t('common.tours')} <i className="icon-arrow-down" aria-hidden="true"></i>
+                      {t('common.tours')}
                     </Link>
                   </li>
                   <li className={`dropdown submenu ${isActive('/blog')}`}>
-                    <Link to="/blog" className="dropdown-toggle">
-                      {t('common.blog')} <i className="icon-arrow-down" aria-hidden="true"></i>
-                    </Link>
+                    <a href="https://blog.optiontrip.com" target="_blank" rel="noopener noreferrer" className="dropdown-toggle">
+                      {t('common.blog')}
+                    </a>
                   </li>
                   <li className="search-main">
                     <a href="#search1" className="mt_search">
@@ -374,7 +374,7 @@ const Header = () => {
               <Link to="/tours" onClick={toggleMenu}>{t('common.tours')}</Link>
             </li>
             <li className={isActive('/blog')}>
-              <Link to="/blog" onClick={toggleMenu}>{t('common.blog')}</Link>
+              <a href="https://blog.optiontrip.com" target="_blank" rel="noopener noreferrer" onClick={toggleMenu}>{t('common.blog')}</a>
             </li>
             <li className={isActive('/contact')}>
               <Link to="/contact" onClick={toggleMenu}>{t('common.contact')}</Link>

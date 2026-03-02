@@ -6,6 +6,8 @@ import { getMyTrips } from '../../services/tripsService';
 import { sendMessage as sendChatMessage } from '../../services/chatService';
 import './ViAssistant.css';
 
+const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+
 const ViAssistant = () => {
   const { t } = useTranslation();
   const { isAuthenticated, user } = useAuth();
@@ -18,8 +20,12 @@ const ViAssistant = () => {
   const [currentTrip, setCurrentTrip] = useState(null);
   const [tripPhase, setTripPhase] = useState('before'); // 'before', 'during', 'after'
   const [isLoadingTrips, setIsLoadingTrips] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [speechError, setSpeechError] = useState('');
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const speechBaseRef = useRef('');
 
   // Load user's trips when authenticated
   useEffect(() => {
@@ -133,6 +139,77 @@ const ViAssistant = () => {
     }
 
     return ['Plan a Trip', 'My Trips', 'Travel Tips'];
+  };
+
+  // Stop recognition when chat closes
+  useEffect(() => {
+    if (!isOpen && recognitionRef.current) {
+      recognitionRef.current.abort();
+      recognitionRef.current = null;
+      setIsListening(false);
+    }
+  }, [isOpen]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.abort();
+    };
+  }, []);
+
+  const startListening = () => {
+    if (!SpeechRecognitionAPI) {
+      setSpeechError('Speech recognition is not supported in this browser.');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current?.abort();
+      recognitionRef.current = null;
+      setIsListening(false);
+      return;
+    }
+
+    setSpeechError('');
+    speechBaseRef.current = inputMessage;
+
+    const recognition = new SpeechRecognitionAPI();
+    recognition.lang = navigator.language || 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognitionRef.current = recognition;
+
+    recognition.onstart = () => setIsListening(true);
+
+    recognition.onresult = (e) => {
+      let interim = '';
+      let final = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) final += t;
+        else interim += t;
+      }
+      const base = speechBaseRef.current;
+      setInputMessage(base + (final || interim));
+      if (final) {
+        speechBaseRef.current = base + final;
+      }
+    };
+
+    recognition.onerror = (e) => {
+      if (e.error !== 'aborted') {
+        setSpeechError(e.error === 'not-allowed' ? 'Microphone access denied.' : 'Could not capture speech.');
+      }
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
+
+    recognition.start();
   };
 
   const scrollToBottom = () => {
@@ -441,10 +518,11 @@ const ViAssistant = () => {
   return (
     <>
       {/* Floating Chat Button */}
-      <div className={`vi-button ${isOpen ? 'active' : ''}`} onClick={toggleChat}>
+      <div className={`vi-button ${isOpen ? 'active' : ''}`} onClick={toggleChat} title="Chat with Vi">
         {!isOpen ? (
           <>
             <div className="vi-button-icon">
+              <i className="fas fa-plane vi-btn-plane"></i>
               <span className="vi-logo">Vi</span>
             </div>
             <span className="vi-pulse"></span>
@@ -457,25 +535,28 @@ const ViAssistant = () => {
       {/* Chat Window */}
       {isOpen && (
         <div className="vi-window">
+          {/* Header */}
           <div className="vi-header">
             <div className="vi-header-content">
               <div className="vi-avatar">
-                <span className="vi-logo-small">Vi</span>
+                <i className="fas fa-plane-departure vi-avatar-icon"></i>
               </div>
-              <div className="vi-header-text">
-                <h4>Vi - Your Travel Buddy</h4>
+              <div className="vi-header-info">
+                <span className="vi-header-name">Vi ✈️</span>
                 <span className="vi-status">
                   <span className="status-dot"></span>
-                  {isAuthenticated ? `Hi, ${user?.name?.split(' ')[0] || 'there'}!` : 'Online'}
+                  {isAuthenticated
+                    ? `Hey ${user?.name?.split(' ')[0] || 'there'}, ready to explore? 🌍`
+                    : 'Your friendly travel buddy'}
                 </span>
               </div>
             </div>
             <div className="vi-header-actions">
-              <button className="vi-btn-icon" onClick={clearConversation} title="Start New Conversation">
-                <i className="fas fa-redo"></i>
+              <button className="vi-btn-icon" onClick={clearConversation} title="Start fresh">
+                <i className="fas fa-rotate-right"></i>
               </button>
-              <button className="vi-btn-icon" onClick={toggleChat} title="Minimize">
-                <i className="fas fa-minus"></i>
+              <button className="vi-btn-icon" onClick={toggleChat} title="Close chat">
+                <i className="fas fa-times"></i>
               </button>
             </div>
           </div>
@@ -486,9 +567,9 @@ const ViAssistant = () => {
               <div className="trip-context-content">
                 <i className={`fas ${tripPhase === 'during' ? 'fa-plane' : tripPhase === 'before' ? 'fa-calendar-check' : 'fa-flag-checkered'}`}></i>
                 <span>
-                  {tripPhase === 'before' && `Upcoming: ${currentTrip.destination?.name}`}
-                  {tripPhase === 'during' && `Currently in: ${currentTrip.destination?.name}`}
-                  {tripPhase === 'after' && `Last trip: ${currentTrip.destination?.name}`}
+                  {tripPhase === 'before' && `✈️ Upcoming trip to ${currentTrip.destination?.name}`}
+                  {tripPhase === 'during' && `🌍 You're in ${currentTrip.destination?.name} right now!`}
+                  {tripPhase === 'after' && `🎉 Memories from ${currentTrip.destination?.name}`}
                 </span>
               </div>
             </div>
@@ -498,23 +579,22 @@ const ViAssistant = () => {
           {showDisclaimer && (
             <div className="vi-disclaimer">
               <div className="disclaimer-content">
-                <i className="fas fa-info-circle"></i>
-                <span>
-                  <strong>AI Assistant:</strong> Vi provides general travel guidance. Verify critical information.
-                </span>
+                <i className="fas fa-circle-info"></i>
+                <span>I give general travel tips — always double-check critical info before you go! 😊</span>
               </div>
-              <button className="disclaimer-close" onClick={() => setShowDisclaimer(false)}>
+              <button className="disclaimer-close" onClick={() => setShowDisclaimer(false)} title="Got it">
                 <i className="fas fa-times"></i>
               </button>
             </div>
           )}
 
+          {/* Messages */}
           <div className="vi-messages">
             {messages.map((message) => (
               <div key={message.id} className={`vi-message ${message.sender}`}>
                 {message.sender === 'bot' && (
                   <div className="message-avatar">
-                    <span className="vi-logo-tiny">Vi</span>
+                    <i className="fas fa-plane vi-msg-icon"></i>
                   </div>
                 )}
                 <div className="message-content">
@@ -541,13 +621,11 @@ const ViAssistant = () => {
             {isTyping && (
               <div className="vi-message bot typing">
                 <div className="message-avatar">
-                  <span className="vi-logo-tiny">Vi</span>
+                  <i className="fas fa-plane vi-msg-icon"></i>
                 </div>
                 <div className="message-content">
                   <div className="typing-indicator">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+                    <span></span><span></span><span></span>
                   </div>
                 </div>
               </div>
@@ -555,26 +633,46 @@ const ViAssistant = () => {
             <div ref={messagesEndRef} />
           </div>
 
+          {/* Input */}
           <div className="vi-input-container">
+            {speechError && (
+              <p className="vi-speech-error">
+                <i className="fas fa-circle-exclamation"></i> {speechError}
+              </p>
+            )}
             <form onSubmit={handleSendMessage}>
               <input
                 ref={inputRef}
                 type="text"
-                className="vi-input"
+                className={`vi-input${isListening ? ' vi-input--listening' : ''}`}
                 placeholder={
-                  isAuthenticated
-                    ? "Ask me anything about your trip..."
-                    : "Ask me about travel..."
+                  isListening
+                    ? '🎙️ Listening...'
+                    : isAuthenticated
+                    ? 'Ask me anything! 😊'
+                    : 'Ask me about travel...'
                 }
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 autoFocus
               />
+              {SpeechRecognitionAPI && (
+                <button
+                  type="button"
+                  className={`vi-mic-btn${isListening ? ' vi-mic-btn--active' : ''}`}
+                  onClick={startListening}
+                  title={isListening ? 'Stop' : 'Speak'}
+                  aria-label={isListening ? 'Stop listening' : 'Speak your message'}
+                >
+                  <i className={`fas ${isListening ? 'fa-stop' : 'fa-microphone'}`}></i>
+                </button>
+              )}
               <button type="submit" className="vi-send-btn" disabled={!inputMessage.trim() || isTyping}>
                 <i className="fas fa-paper-plane"></i>
               </button>
             </form>
+            <p className="vi-input-hint">Press Enter to send · Shift+Enter for new line</p>
           </div>
         </div>
       )}

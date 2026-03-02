@@ -429,6 +429,34 @@ export const clearCachedItinerary = (tripId, optionId) => {
   }
 };
 
+/**
+ * Parse a natural language trip description into structured trip data
+ * @param {string} text - The natural language trip description
+ * @returns {Promise} Parsed trip data (destination, dates, guests, budget, tripType, activities)
+ */
+export const parseTripDescription = async (text) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/trips/parse-description`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ text }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error parsing trip description:', error);
+    throw error;
+  }
+};
+
 export default {
   generateTripOptions,
   generateItineraryForOption,
@@ -443,4 +471,5 @@ export default {
   getCachedItinerary,
   setCachedItinerary,
   clearCachedItinerary,
+  parseTripDescription,
 };

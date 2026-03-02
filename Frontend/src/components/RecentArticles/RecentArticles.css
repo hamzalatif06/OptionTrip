@@ -1,3 +1,15 @@
 /* RecentArticles styles imported from main CSS */
 
+/* Skeleton shimmer for article loading state */
+.ra-skeleton-line {
+  background: linear-gradient(90deg, #f0f2f5 25%, #e4e8ec 50%, #f0f2f5 75%);
+  background-size: 200% 100%;
+  animation: ra-shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+  display: block;
+}
 
+@keyframes ra-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
