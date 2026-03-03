@@ -24,24 +24,23 @@ jobs:
         run: |
           npm install
           npm run build
-          tar -czf frontend-build.tar.gz -C dist .
+          tar -czf ../frontend-build.tar.gz -C dist .
       
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
       
-      - name: Upload Frontend Build
+      - name: Upload Frontend Build to Droplet
         run: |
-          # Get droplet IP
-          DROPLET_IP=$(doctl compute droplet get ${{ secrets.DROPLET_ID }} --format PublicIPv4 --no-header)
+          # Encode the tar.gz file as base64 and transfer via SSH command
+          base64 frontend-build.tar.gz > frontend-build.b64
           
-          # Add to known hosts
-          mkdir -p ~/.ssh
-          ssh-keyscan -H $DROPLET_IP >> ~/.ssh/known_hosts
+          # Upload using doctl ssh
+          doctl compute ssh ${{ secrets.DROPLET_ID }} --ssh-command "cat > /tmp/frontend-build.b64" < frontend-build.b64
           
-          # Upload build
-          scp Frontend/frontend-build.tar.gz root@$DROPLET_IP:/tmp/
+          # Decode on the droplet
+          doctl compute ssh ${{ secrets.DROPLET_ID }} --ssh-command "base64 -d /tmp/frontend-build.b64 > /tmp/frontend-build.tar.gz && rm /tmp/frontend-build.b64"
       
       - name: Deploy to Droplet
         run: |
