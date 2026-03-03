@@ -11,36 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: Build Frontend
-        working-directory: ./Frontend
-        run: |
-          npm install
-          npm run build
-          tar -czf ../frontend-build.tar.gz -C dist .
-      
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-      
-      - name: Upload Frontend Build to Droplet
-        run: |
-          # Encode the tar.gz file as base64 and transfer via SSH command
-          base64 frontend-build.tar.gz > frontend-build.b64
-          
-          # Upload using doctl ssh
-          doctl compute ssh ${{ secrets.DROPLET_ID }} --ssh-command "cat > /tmp/frontend-build.b64" < frontend-build.b64
-          
-          # Decode on the droplet
-          doctl compute ssh ${{ secrets.DROPLET_ID }} --ssh-command "base64 -d /tmp/frontend-build.b64 > /tmp/frontend-build.tar.gz && rm /tmp/frontend-build.b64"
       
       - name: Deploy to Droplet
         run: |
@@ -55,11 +29,13 @@ jobs:
             pm2 restart optiontrip-backend
             
             echo '🎨 Deploying Frontend...'
+            cd ~/OptionTrip/Frontend
+            npm install
+            npm run build
             rm -rf /var/www/optiontrip/*
-            tar -xzf /tmp/frontend-build.tar.gz -C /var/www/optiontrip/
+            cp -r dist/* /var/www/optiontrip/
             chown -R www-data:www-data /var/www/optiontrip
             chmod -R 755 /var/www/optiontrip
-            rm /tmp/frontend-build.tar.gz
             
             echo '✅ Deployment complete!'
             pm2 status
