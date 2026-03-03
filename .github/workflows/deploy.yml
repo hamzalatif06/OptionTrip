@@ -11,14 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Install doctl
-        uses: digitalocean/action-doctl@v2
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
         with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-      
-      - name: Deploy to Droplet
-        run: |
-          doctl compute ssh ${{ secrets.DROPLET_ID }} --ssh-command "
+          host: 64.23.237.250
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
             echo '📥 Pulling latest changes...'
             cd ~/OptionTrip
             git pull origin main
@@ -39,4 +38,3 @@ jobs:
             
             echo '✅ Deployment complete!'
             pm2 status
-          "
