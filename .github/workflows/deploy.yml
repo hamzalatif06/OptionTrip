@@ -1,0 +1,40 @@
+name: Deploy Application
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 64.23.237.250
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo '📥 Pulling latest changes...'
+            cd ~/OptionTrip
+            git pull origin main
+            
+            echo '🚀 Deploying Backend...'
+            cd ~/OptionTrip/Backend
+            npm install
+            pm2 restart optiontrip-backend
+            
+            echo '🎨 Deploying Frontend...'
+            cd ~/OptionTrip/Frontend
+            npm install
+            npm run build
+            rm -rf /var/www/optiontrip/*
+            cp -r dist/* /var/www/optiontrip/
+            chown -R www-data:www-data /var/www/optiontrip
+            chmod -R 755 /var/www/optiontrip
+            
+            echo '✅ Deployment complete!'
+            pm2 status
