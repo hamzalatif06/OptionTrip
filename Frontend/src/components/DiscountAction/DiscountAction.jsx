@@ -1,14 +1,30 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import "./DiscountAction.css";
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+const INTRO_VIDEO_ID = 'N_be9PXr5Qc';
+
 const DiscountAction = () => {
   const [showModal, setShowModal] = useState(false);
+  const [latestVideoId, setLatestVideoId] = useState(null);
+  const [hasPlayedOnce, setHasPlayedOnce] = useState(false);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/youtube/latest`)
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => { if (data?.videoId) setLatestVideoId(data.videoId); })
+      .catch(() => {});
+  }, []);
+
+  const currentVideoId = hasPlayedOnce ? (latestVideoId || INTRO_VIDEO_ID) : INTRO_VIDEO_ID;
 
   const handleVideoClick = () => {
     setShowModal(true);
+    setHasPlayedOnce(true);
   };
 
   const closeModal = () => {
@@ -87,7 +103,7 @@ const DiscountAction = () => {
             <iframe
               width="100%"
               height="400"
-              src="https://www.youtube.com/embed/30R3v9hutbI?autoplay=1"
+              src={`https://www.youtube.com/embed/${currentVideoId}?autoplay=1`}
               title="YouTube video"
               frameBorder="0"
               allow="autoplay; encrypted-media"
