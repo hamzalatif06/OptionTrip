@@ -22,11 +22,11 @@ export const generateTripOptions = async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (!destination || !start_date || !end_date || !duration_days || !tripType || !guests || !budget) {
+    if (!destination || !start_date || !end_date || !duration_days) {
       return res.status(400).json({
         success: false,
         message: 'Missing required fields',
-        required: ['destination', 'start_date', 'end_date', 'duration_days', 'tripType', 'guests', 'budget']
+        required: ['destination', 'start_date', 'end_date', 'duration_days']
       });
     }
 
@@ -65,9 +65,9 @@ export const generateTripOptions = async (req, res) => {
         duration_days,
         month_year
       },
-      trip_type: tripType,
-      guests,
-      budget,
+      trip_type: tripType || null,
+      guests: guests || { total: 0, adults: 0, children: 0, infants: 0 },
+      budget: budget || null,
       description,
       options, // Phase 1: lightweight options only
       options_generated: true,

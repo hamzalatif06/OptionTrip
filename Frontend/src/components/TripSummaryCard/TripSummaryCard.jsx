@@ -76,18 +76,22 @@ const TripSummaryCard = ({ tripData, selectedOption, onConfirm }) => {
               {selectedOption.total_days} Days
             </div>
           </div>
-          <div className="trip-summary-card__detail">
-            <div className="trip-summary-card__detail-label">Travelers</div>
-            <div className="trip-summary-card__detail-value">
-              {tripData.guests.total} {tripData.guests.total === 1 ? 'Guest' : 'Guests'}
+          {tripData.guests?.total > 0 && (
+            <div className="trip-summary-card__detail">
+              <div className="trip-summary-card__detail-label">Travelers</div>
+              <div className="trip-summary-card__detail-value">
+                {tripData.guests.total} {tripData.guests.total === 1 ? 'Guest' : 'Guests'}
+              </div>
             </div>
-          </div>
-          <div className="trip-summary-card__detail">
-            <div className="trip-summary-card__detail-label">Budget</div>
-            <div className="trip-summary-card__detail-value">
-              {tripData.budget.charAt(0).toUpperCase() + tripData.budget.slice(1)}
+          )}
+          {tripData.budget && (
+            <div className="trip-summary-card__detail">
+              <div className="trip-summary-card__detail-label">Budget</div>
+              <div className="trip-summary-card__detail-value">
+                {tripData.budget.charAt(0).toUpperCase() + tripData.budget.slice(1)}
+              </div>
             </div>
-          </div>
+          )}
           <div className="trip-summary-card__detail">
             <div className="trip-summary-card__detail-label">Pace</div>
             <div className="trip-summary-card__detail-value">

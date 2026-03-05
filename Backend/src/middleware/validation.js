@@ -52,26 +52,9 @@ export const validateTripGeneration = (req, res, next) => {
     errors.push('duration_days must be between 2 and 10 days');
   }
 
-  // Trip type validation
-  if (!tripType || typeof tripType !== 'string') {
-    errors.push('tripType is required');
-  }
-
-  // Guests validation
-  if (!guests || typeof guests !== 'object') {
-    errors.push('guests is required and must be an object');
-  } else {
-    if (typeof guests.total !== 'number') {
-      errors.push('guests.total is required and must be a number');
-    } else if (guests.total < 1 || guests.total > 10) {
-      errors.push('guests.total must be between 1 and 10');
-    }
-  }
-
-  // Budget validation
-  const validBudgets = ['budget', 'moderate', 'luxury', 'premium'];
-  if (!budget || !validBudgets.includes(budget.toLowerCase())) {
-    errors.push(`budget is required and must be one of: ${validBudgets.join(', ')}`);
+  // Guests validation (optional — only validate max if provided)
+  if (guests && typeof guests === 'object' && typeof guests.total === 'number' && guests.total > 10) {
+    errors.push('guests.total must be 10 or fewer');
   }
 
   // If there are validation errors, return 400

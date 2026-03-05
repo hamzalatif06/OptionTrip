@@ -152,19 +152,17 @@ const tripSchema = new mongoose.Schema({
     month_year: String
   },
   trip_type: {
-    type: String,
-    required: true
+    type: String
   },
   guests: {
     total: {
       type: Number,
-      required: true,
-      min: 1,
+      min: 0,
       max: 10
     },
     adults: {
       type: Number,
-      default: 1
+      default: 0
     },
     children: {
       type: Number,
@@ -178,8 +176,7 @@ const tripSchema = new mongoose.Schema({
   },
   budget: {
     type: String,
-    enum: ['budget', 'moderate', 'luxury', 'premium'],
-    required: true
+    enum: ['budget', 'moderate', 'luxury', 'premium', null, ''],
   },
   description: String,
 

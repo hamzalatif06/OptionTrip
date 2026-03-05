@@ -205,6 +205,9 @@ const createPhase1Prompt = ({
   budget,
   description
 }) => {
+  const resolvedTripType = tripType || 'General';
+  const resolvedBudget   = budget   || 'moderate';
+  const resolvedGuests   = guests   || { total: 1, adults: 1, children: 0, infants: 0 };
   const budgetDescriptions = {
     budget: 'Budget-friendly ($) - affordable activities, local eateries',
     moderate: 'Moderate ($$) - mix of paid and free activities',
@@ -226,12 +229,12 @@ Generate exactly 3 different trip options.
 TRIP CONTEXT:
 - Destination: ${destination.name}
 - Duration: ${duration_days} days (${start_date} to ${end_date})
-- Trip Type: ${tripType}
-- Travelers: ${guests.total} guests (${guests.adults} adults, ${guests.children} children)
-- Budget Level: ${budgetDescriptions[budget]}
+- Trip Type: ${resolvedTripType}
+- Travelers: ${resolvedGuests.total} guests (${resolvedGuests.adults} adults, ${resolvedGuests.children} children)
+- Budget Level: ${budgetDescriptions[resolvedBudget]}
 - Preferences: ${description || 'General sightseeing and experiences'}
 
-ESTIMATED COST RANGE: $${costRanges[budget].min} - $${costRanges[budget].max} total for ${duration_days} days
+ESTIMATED COST RANGE: $${costRanges[resolvedBudget].min} - $${costRanges[resolvedBudget].max} total for ${duration_days} days
 
 IMPORTANT RULES:
 - Do NOT generate daily itineraries
@@ -259,13 +262,13 @@ REQUIRED JSON FORMAT:
       "pace": "moderate",
       "style": "Balanced sightseeing and relaxation",
       "total_days": ${duration_days},
-      "estimated_total_cost": ${Math.round((costRanges[budget].min + costRanges[budget].max) / 2)},
+      "estimated_total_cost": ${Math.round((costRanges[resolvedBudget].min + costRanges[resolvedBudget].max) / 2)},
       "ideal_for": "First-time visitors seeking iconic experiences",
       "highlights": [
         {"icon": "clock", "label": "Pace", "value": "Moderate"},
         {"icon": "star", "label": "Activities", "value": "3 per day"},
         {"icon": "heart", "label": "Style", "value": "Balanced"},
-        {"icon": "users", "label": "Best For", "value": "${tripType}"}
+        {"icon": "users", "label": "Best For", "value": "${resolvedTripType}"}
       ]
     },
     {
@@ -274,7 +277,7 @@ REQUIRED JSON FORMAT:
       "pace": "slow",
       "style": "Slow travel and local immersion",
       "total_days": ${duration_days},
-      "estimated_total_cost": ${costRanges[budget].min + 200},
+      "estimated_total_cost": ${costRanges[resolvedBudget].min + 200},
       "ideal_for": "Travelers who prefer a relaxed pace",
       "highlights": [
         {"icon": "clock", "label": "Pace", "value": "Relaxed"},
@@ -289,7 +292,7 @@ REQUIRED JSON FORMAT:
       "pace": "fast",
       "style": "Adventure and exploration",
       "total_days": ${duration_days},
-      "estimated_total_cost": ${costRanges[budget].max - 200},
+      "estimated_total_cost": ${costRanges[resolvedBudget].max - 200},
       "ideal_for": "Adventurers seeking to see and do it all",
       "highlights": [
         {"icon": "bolt", "label": "Pace", "value": "Fast"},
@@ -318,6 +321,9 @@ const createPhase2Prompt = ({
   description,
   selectedOption
 }) => {
+  const resolvedTripType = tripType || 'General';
+  const resolvedBudget   = budget   || 'moderate';
+  const resolvedGuests   = guests   || { total: 1, adults: 1, children: 0, infants: 0 };
   const budgetDescriptions = {
     budget: 'Budget-friendly ($) - affordable activities, local eateries',
     moderate: 'Moderate ($$) - mix of paid and free activities',
@@ -345,9 +351,9 @@ Generate a detailed day-by-day itinerary for the selected trip option.
 TRIP CONTEXT:
 - Destination: ${destination.name}
 - Duration: ${duration_days} days (${start_date} to ${end_date})
-- Trip Type: ${tripType}
-- Travelers: ${guests.total} guests (${guests.adults} adults, ${guests.children} children)
-- Budget: ${budgetDescriptions[budget]}
+- Trip Type: ${resolvedTripType}
+- Travelers: ${resolvedGuests.total} guests (${resolvedGuests.adults} adults, ${resolvedGuests.children} children)
+- Budget: ${budgetDescriptions[resolvedBudget]}
 - Preferences: ${description || 'General sightseeing'}
 
 SELECTED OPTION:
@@ -361,7 +367,7 @@ CRITICAL RULES:
 - Each activity MUST include "place_name" with a REAL, searchable location in ${destination.name}
 - Do NOT generate images (leave image field empty)
 - Do NOT generate coordinates (leave lat/lng as 0)
-- Activity costs: $${costRanges[budget].min} - $${costRanges[budget].max}
+- Activity costs: $${costRanges[resolvedBudget].min} - $${costRanges[resolvedBudget].max}
 - Match the ${selectedOption.pace} pace and ${selectedOption.style} style
 
 REQUIRED JSON FORMAT:
@@ -436,6 +442,10 @@ export const generateSingleDayItinerary = async ({
     currentDate.setDate(currentDate.getDate() + dayNumber - 1);
     const dateStr = currentDate.toISOString().split('T')[0];
 
+    const resolvedTripType = tripType || 'General';
+    const resolvedBudget   = budget   || 'moderate';
+    const resolvedGuests   = guests   || { total: 1, adults: 1, children: 0, infants: 0 };
+
     const budgetDescriptions = {
       budget: 'Budget-friendly ($) - affordable activities, local eateries',
       moderate: 'Moderate ($$) - mix of paid and free activities',
@@ -463,7 +473,7 @@ export const generateSingleDayItinerary = async ({
         ).join('\n')
       : '';
 
-    const prompt = 'Generate Day ' + dayNumber + ' itinerary for a ' + duration_days + '-day trip.\n\nTRIP CONTEXT:\n- Destination: ' + destination.name + '\n- Day ' + dayNumber + ' Date: ' + dateStr + '\n- Trip Type: ' + tripType + '\n- Travelers: ' + guests.total + ' guests (' + guests.adults + ' adults, ' + guests.children + ' children)\n- Budget: ' + budgetDescriptions[budget] + '\n- Preferences: ' + (description || 'General sightseeing') + '\n\nSELECTED TRIP STYLE:\n- Style: ' + selectedOption.title + ' - ' + selectedOption.description + '\n- Pace: ' + selectedOption.pace + '\n- Activities per day: ' + activitiesPerDay[selectedOption.pace] + previousDaysContext + '\n\nCRITICAL RULES:\n- Generate ONLY Day ' + dayNumber + '\n- Include ' + activitiesPerDay[selectedOption.pace] + ' activities\n- Each activity MUST include "place_name" with a REAL, searchable location in ' + destination.name + '\n- Do NOT repeat places from previous days\n- Activity costs: $' + costRanges[budget].min + ' - $' + costRanges[budget].max + '\n- Match the ' + selectedOption.pace + ' pace\n' + (dayNumber === 1 ? '- This is arrival day - include settling in activities\n' : '') + (dayNumber === duration_days ? '- This is departure day - include wrap-up activities\n' : '') + '\n\nREQUIRED JSON FORMAT:\n{\n  "day": {\n    "day_number": ' + dayNumber + ',\n    "date": "' + dateStr + '",\n    "title": "Day ' + dayNumber + ': [Creative Title]",\n    "summary": "Brief summary of the day",\n    "activities": [\n      {\n        "time": "09:00 AM",\n        "title": "Activity Title",\n        "description": "Detailed description",\n        "place_name": "Real Place Name in ' + destination.name + '",\n        "location": {\n          "name": "' + destination.name + '",\n          "coordinates": {"lat": 0, "lng": 0}\n        },\n        "duration": "2 hours",\n        "cost": 75,\n        "category": "sightseeing",\n        "image": "",\n        "rating": 0,\n        "address": "",\n        "place_id": ""\n      }\n    ],\n    "total_cost": 0\n  }\n}\n\nReturn ONLY the JSON object.';
+    const prompt = 'Generate Day ' + dayNumber + ' itinerary for a ' + duration_days + '-day trip.\n\nTRIP CONTEXT:\n- Destination: ' + destination.name + '\n- Day ' + dayNumber + ' Date: ' + dateStr + '\n- Trip Type: ' + resolvedTripType + '\n- Travelers: ' + resolvedGuests.total + ' guests (' + resolvedGuests.adults + ' adults, ' + resolvedGuests.children + ' children)\n- Budget: ' + budgetDescriptions[resolvedBudget] + '\n- Preferences: ' + (description || 'General sightseeing') + '\n\nSELECTED TRIP STYLE:\n- Style: ' + selectedOption.title + ' - ' + selectedOption.description + '\n- Pace: ' + selectedOption.pace + '\n- Activities per day: ' + activitiesPerDay[selectedOption.pace] + previousDaysContext + '\n\nCRITICAL RULES:\n- Generate ONLY Day ' + dayNumber + '\n- Include ' + activitiesPerDay[selectedOption.pace] + ' activities\n- Each activity MUST include "place_name" with a REAL, searchable location in ' + destination.name + '\n- Do NOT repeat places from previous days\n- Activity costs: $' + costRanges[resolvedBudget].min + ' - $' + costRanges[resolvedBudget].max + '\n- Match the ' + selectedOption.pace + ' pace\n' + (dayNumber === 1 ? '- This is arrival day - include settling in activities\n' : '') + (dayNumber === duration_days ? '- This is departure day - include wrap-up activities\n' : '') + '\n\nREQUIRED JSON FORMAT:\n{\n  "day": {\n    "day_number": ' + dayNumber + ',\n    "date": "' + dateStr + '",\n    "title": "Day ' + dayNumber + ': [Creative Title]",\n    "summary": "Brief summary of the day",\n    "activities": [\n      {\n        "time": "09:00 AM",\n        "title": "Activity Title",\n        "description": "Detailed description",\n        "place_name": "Real Place Name in ' + destination.name + '",\n        "location": {\n          "name": "' + destination.name + '",\n          "coordinates": {"lat": 0, "lng": 0}\n        },\n        "duration": "2 hours",\n        "cost": 75,\n        "category": "sightseeing",\n        "image": "",\n        "rating": 0,\n        "address": "",\n        "place_id": ""\n      }\n    ],\n    "total_cost": 0\n  }\n}\n\nReturn ONLY the JSON object.';
 
     console.log('🚀 Generating Day ' + dayNumber + ' itinerary...');
 

@@ -26,31 +26,19 @@ import hiTranslations from './locales/hi.json';
 import bnTranslations from './locales/bn.json';
 import idTranslations from './locales/id.json';
 
-// RTL languages
+const supportedLngs = ['en','ru','de','fr','it','es','pl','uk','tr','hu','sv','pt','sr','ar','zh','ja','vi','th','ko','hi','bn','id'];
 const rtlLanguages = ['ar'];
 
-// Function to get saved language from localStorage
-const getSavedLanguage = () => {
-  try {
-    const saved = localStorage.getItem('i18nextLng');
-    return saved || 'en';
-  } catch (e) {
-    return 'en';
-  }
-};
-
-// Function to set document direction based on language
+// Only set text direction — do NOT change lang="en" so Google Translate works correctly
 const setDocumentDirection = (lng) => {
-  const html = document.documentElement;
+  const base = (lng || 'en').split('-')[0];
   const body = document.body;
-  
-  if (rtlLanguages.includes(lng)) {
+  const html = document.documentElement;
+  if (rtlLanguages.includes(base)) {
     html.setAttribute('dir', 'rtl');
-    html.setAttribute('lang', lng);
     body.style.direction = 'rtl';
   } else {
     html.setAttribute('dir', 'ltr');
-    html.setAttribute('lang', lng);
     body.style.direction = 'ltr';
   }
 };
@@ -83,12 +71,11 @@ i18n
       bn: { translation: bnTranslations },
       id: { translation: idTranslations },
     },
+    supportedLngs,
+    nonExplicitSupportedLngs: true, // fr-FR → fr, zh-CN → zh
     fallbackLng: 'en',
-    lng: getSavedLanguage(),
     debug: false,
-    interpolation: {
-      escapeValue: false, // React already escapes values
-    },
+    interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
@@ -96,14 +83,11 @@ i18n
     },
   });
 
-// Set initial direction
-setDocumentDirection(i18n.language || getSavedLanguage());
+setDocumentDirection(i18n.language);
 
-// Listen for language changes
 i18n.on('languageChanged', (lng) => {
   setDocumentDirection(lng);
   localStorage.setItem('i18nextLng', lng);
 });
 
 export default i18n;
-

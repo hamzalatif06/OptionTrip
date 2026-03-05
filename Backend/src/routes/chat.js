@@ -4,21 +4,29 @@
  */
 
 import express from 'express';
-import { sendMessage, getChatHistory, getStatus } from '../controllers/chatController.js';
+import {
+  sendMessage,
+  getChatHistory,
+  getStatus,
+  createConversation,
+  getConversations,
+  getConversation,
+  deleteConversation
+} from '../controllers/chatController.js';
 import { authenticate, optionalAuthenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
 /**
  * @route   POST /api/chat/message
- * @desc    Send a message to Vi assistant
+ * @desc    Send a message to Vi assistant (saves to DB if authenticated)
  * @access  Public (enhanced with user context if authenticated)
  */
 router.post('/message', optionalAuthenticate, sendMessage);
 
 /**
  * @route   GET /api/chat/history
- * @desc    Get chat conversation history
+ * @desc    Legacy history endpoint
  * @access  Private
  */
 router.get('/history', authenticate, getChatHistory);
@@ -29,5 +37,13 @@ router.get('/history', authenticate, getChatHistory);
  * @access  Public
  */
 router.get('/status', getStatus);
+
+/**
+ * Conversation management routes
+ */
+router.post('/conversations', authenticate, createConversation);
+router.get('/conversations', authenticate, getConversations);
+router.get('/conversations/:conversationId', authenticate, getConversation);
+router.delete('/conversations/:conversationId', authenticate, deleteConversation);
 
 export default router;

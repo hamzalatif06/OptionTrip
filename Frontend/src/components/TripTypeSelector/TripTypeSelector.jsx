@@ -148,7 +148,7 @@ const TripTypeSelector = ({ value = '', onChange, error }) => {
 
   return (
     <div className="trip-type-selector-wrapper">
-      <label htmlFor="tripType">Trip type</label>
+      <label htmlFor="tripType">Trip type <span style={{ fontWeight: 400, opacity: 0.6, fontSize: '0.85em' }}>(optional)</span></label>
       <div className="trip-type-input-container">
         <input
           ref={inputRef}

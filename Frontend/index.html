@@ -9,8 +9,31 @@
     <!-- FontAwesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>Option Trip - Travel Tour Booking</title>
+
+    <!-- Google Translate Element — hidden widget, auto-translates all page text -->
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+          pageLanguage: 'en',
+          autoDisplay: false,
+          layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+        }, 'google_translate_element');
+      }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
+
+    <!-- Suppress the Google Translate toolbar banner -->
+    <style>
+      body { top: 0 !important; }
+      .goog-te-banner-frame { display: none !important; }
+      .skiptranslate { display: none !important; }
+      #google_translate_element { display: none !important; }
+    </style>
   </head>
   <body>
+    <!-- Hidden Google Translate widget mount point -->
+    <div id="google_translate_element"></div>
+
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>

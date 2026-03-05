@@ -82,7 +82,7 @@ const GuestSelector = ({
 
   return (
     <div className="guest-selector-wrapper">
-      <label htmlFor="guests">Guests</label>
+      <label htmlFor="guests">Guests <span style={{ fontWeight: 400, opacity: 0.6, fontSize: '0.85em' }}>(optional)</span></label>
       <div className="guest-selector-container">
         <input
           type="text"

@@ -21,13 +21,14 @@ import TripIterationsPage from './pages/TripIterationsPage/TripIterationsPage';
 import PlannedTripPage from './pages/PlannedTripPage/PlannedTripPage';
 import MyTripsPage from './pages/MyTripsPage/MyTripsPage';
 import ProfilePage from './pages/ProfilePage/ProfilePage';
+import AutoTranslate from './components/AutoTranslate/AutoTranslate';
 
 function App() {
   useEffect(() => {
     // Hide preloader after page load
     const preloader = document.getElementById('preloader');
     const status = document.getElementById('status');
-    
+
     if (preloader && status) {
       setTimeout(() => {
         preloader.style.display = 'none';
@@ -39,6 +40,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <AutoTranslate />
         <div className="App">
           <ToastContainer
             position="top-right"
@@ -86,4 +88,3 @@ function App() {
 }
 
 export default App;
-

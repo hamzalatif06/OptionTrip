@@ -311,11 +311,7 @@ const TripPlannerForm = () => {
     } else if (formData.duration_days < 2 || formData.duration_days > 10) {
       newErrors.dates = 'Duration must be between 2 and 10 days';
     }
-    if (!formData.tripType)          newErrors.tripType = 'Trip type is required';
-    if (formData.guests.total === 0) newErrors.guests   = 'Please select at least 1 guest';
-    else if (formData.guests.total > 10) newErrors.guests = 'Maximum 10 guests allowed';
-    if (!formData.budget)      newErrors.budget      = 'Budget is required';
-    if (!formData.description) newErrors.description = 'Description is required';
+    if (formData.guests.total > 10) newErrors.guests = 'Maximum 10 guests allowed';
 
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
 
@@ -492,7 +488,7 @@ const TripPlannerForm = () => {
 
         {/* Budget */}
         <div className={`form-field${formData.budget ? ' field-filled' : ''}`}>
-          <label htmlFor="budget">Budget</label>
+          <label htmlFor="budget">Budget <span style={{ fontWeight: 400, opacity: 0.6, fontSize: '0.85em' }}>(optional)</span></label>
           <div className="select-wrapper">
             <select id="budget" name="budget" value={formData.budget} onChange={handleInputChange} className={errors.budget ? 'error' : ''}>
               <option value="">Select budget</option>
