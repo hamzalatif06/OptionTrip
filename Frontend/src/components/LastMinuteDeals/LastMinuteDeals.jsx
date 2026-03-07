@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import useCurrency from '../../hooks/useCurrency';
 import './LastMinuteDeals.css';
 
 const LastMinuteDeals = () => {
+  const { formatPrice } = useCurrency();
   const largeDeals = [
     { country: 'Norway', title: 'Norway Lake', days: 6, rating: 5, reviews: 16, price: 180, image: '/images/trending/trendingb-2.jpg' },
     { country: 'Egpyt', title: 'Pyramid Land', days: 6, rating: 5, reviews: 16, price: 180, image: '/images/trending/trending-large.jpg' },
@@ -48,11 +50,11 @@ const LastMinuteDeals = () => {
                       </div>
                       <div className="entry-meta d-flex align-items-center justify-content-between">
                         <div className="entry-author d-flex align-items-center">
-                          <p className="mb-0 white"><span className="theme1 fw-bold fs-5"> ${deal.price}.00</span> | Per person</p>
+                          <p className="mb-0 white"><span className="theme1 fw-bold fs-5"> {formatPrice(deal.price)}</span> | Per person</p>
                         </div>
                         <div className="entry-author">
                           <i className="icon-calendar white"></i>
-                          <span className="fw-bold white"> {deal.days} Days Tours</span>
+                          <span className="fw-bold white"> {deal.days}-Day Tour</span>
                         </div>
                       </div>
                     </div>
@@ -74,7 +76,7 @@ const LastMinuteDeals = () => {
                         <div className="trend-meta bg-theme white px-3 py-2 rounded">
                           <div className="entry-author">
                             <i className="icon-calendar"></i>
-                            <span className="fw-bold"> {deal.days} Days Tours</span>
+                            <span className="fw-bold"> {deal.days}-Day Tour</span>
                           </div>
                         </div>
                         <h5 className="theme mb-1"><i className="flaticon-location-pin"></i> {deal.country}</h5>
@@ -88,7 +90,7 @@ const LastMinuteDeals = () => {
                         <p className="border-b pb-2 mb-2">Experience breathtaking landscapes, rich cultural heritage, and unforgettable adventures in this stunning destination.</p>
                         <div className="entry-meta">
                           <div className="entry-author d-flex align-items-center">
-                            <p className="mb-0"><span className="theme fw-bold fs-5"> ${deal.price}.00</span> | Per person</p>
+                            <p className="mb-0"><span className="theme fw-bold fs-5"> {formatPrice(deal.price)}</span> | Per person</p>
                           </div>
                         </div>
                       </div>

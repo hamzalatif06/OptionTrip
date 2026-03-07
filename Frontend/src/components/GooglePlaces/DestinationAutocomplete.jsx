@@ -105,7 +105,13 @@ const DestinationAutocomplete = ({
 
   return (
     <div className="autocomplete-wrapper">
-      <label htmlFor="destination">Destination</label>
+      <label htmlFor="destination">
+        Destination
+        <span className="field-tooltip-wrapper">
+          <span className="field-tooltip-icon">?</span>
+          <span className="field-tooltip-text">Enter a country, city, region, landmark, or continent.<br/>Examples: Italy, Paris, Mediterranean, Alps, Bali.</span>
+        </span>
+      </label>
       <div className="autocomplete-input-container">
         <input
           type="text"
@@ -123,6 +129,25 @@ const DestinationAutocomplete = ({
           <div className="autocomplete-spinner"></div>
         )}
       </div>
+
+      {/* Popular destination chips */}
+      {!inputValue && (
+        <div className="example-chips" style={{ marginTop: '8px' }}>
+          {['Paris', 'Tokyo', 'Bali', 'Rome', 'Dubai', 'Barcelona', 'Santorini', 'New York'].map((dest) => (
+            <button
+              key={dest}
+              type="button"
+              className="example-chip"
+              onClick={() => {
+                setInputValue(dest);
+                onChange({ text: dest, place_id: '', name: dest, geometry: null });
+              }}
+            >
+              {dest}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Dropdown suggestions */}
       {showDropdown && !isLoading && (

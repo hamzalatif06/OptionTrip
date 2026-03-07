@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import useCurrency from '../../../hooks/useCurrency';
 import './ActivitiesSection.css';
 import ActivityCard from '../../../components/ActivityCard/ActivityCard';
 import AuthModal from '../../../components/AuthModal/AuthModal';
@@ -25,6 +26,7 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
   const [isSaved, setIsSaved] = useState(false);
   const [localDaysData, setLocalDaysData] = useState([]);
   const { isAuthenticated } = useAuth();
+  const { formatPrice } = useCurrency();
 
   // Sync local state with prop data
   React.useEffect(() => {
@@ -320,7 +322,7 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
                   Total Day Cost
                 </span>
                 <span className="activities-section__day-footer-value">
-                  ${currentDayData.total_cost?.toLocaleString() || 0}
+                  {formatPrice(currentDayData.total_cost || 0)}
                 </span>
               </div>
             </div>

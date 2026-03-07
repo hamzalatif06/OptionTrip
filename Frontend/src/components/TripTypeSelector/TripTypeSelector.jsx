@@ -148,7 +148,13 @@ const TripTypeSelector = ({ value = '', onChange, error }) => {
 
   return (
     <div className="trip-type-selector-wrapper">
-      <label htmlFor="tripType">Trip type <span style={{ fontWeight: 400, opacity: 0.6, fontSize: '0.85em' }}>(optional)</span></label>
+      <label htmlFor="tripType">
+        Trip type <span style={{ fontWeight: 400, opacity: 0.6, fontSize: '0.85em' }}>(optional)</span>
+        <span className="field-tooltip-wrapper">
+          <span className="field-tooltip-icon">?</span>
+          <span className="field-tooltip-text">Trip type describes the style of travel.<br/>Examples: vacation, honeymoon, cruise, hiking trip, adventure travel, beach holiday, family trip, city break.</span>
+        </span>
+      </label>
       <div className="trip-type-input-container">
         <input
           ref={inputRef}

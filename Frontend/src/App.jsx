@@ -1,6 +1,13 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+}
 import { AuthProvider } from './contexts/AuthContext';
+import { LocaleProvider } from './contexts/LocaleContext';
 import { ToastContainer } from 'react-toastify';
 import './i18n'; // Initialize i18n
 import './App.css';
@@ -38,8 +45,10 @@ function App() {
   }, []);
 
   return (
+    <LocaleProvider>
     <AuthProvider>
       <Router>
+        <ScrollToTop />
         <AutoTranslate />
         <div className="App">
           <ToastContainer
@@ -84,6 +93,7 @@ function App() {
         </div>
       </Router>
     </AuthProvider>
+    </LocaleProvider>
   );
 }
 

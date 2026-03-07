@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import useCurrency from '../../hooks/useCurrency';
 import './OfferPackages.css';
 
 const OfferPackages = () => {
+  const { formatPrice } = useCurrency();
   const offers = [
     { location: 'Croatia', title: 'Piazza Castello', days: 9, rating: 5, reviews: 12, price: 170, discount: '20% OFF', image: '/images/trending/trending3.jpg' },
     { location: 'Greece', title: 'Santorini, Oia', days: 9, rating: 5, reviews: 38, price: 180, discount: '30% OFF', image: '/images/trending/trending1.jpg' },
@@ -37,7 +39,7 @@ const OfferPackages = () => {
                     <div className="trend-meta bg-theme white px-3 py-2 rounded">
                       <div className="entry-author">
                         <i className="icon-calendar"></i>
-                        <span className="fw-bold"> {offer.days} Days Tours</span>
+                        <span className="fw-bold"> {offer.days}-Day Tour</span>
                       </div>
                     </div>
                     <h5 className="theme mb-1"><i className="flaticon-location-pin"></i> {offer.location}</h5>
@@ -51,7 +53,7 @@ const OfferPackages = () => {
                     <p className="border-b pb-2 mb-2">Enjoy premium accommodations, expert guides, and carefully curated experiences in this exclusive destination.</p>
                     <div className="entry-meta">
                       <div className="entry-author d-flex align-items-center">
-                        <p className="mb-0"><span className="theme fw-bold fs-5"> ${offer.price}.00</span> | Per person</p>
+                        <p className="mb-0"><span className="theme fw-bold fs-5"> {formatPrice(offer.price)}</span> | Per person</p>
                       </div>
                     </div>
                   </div>

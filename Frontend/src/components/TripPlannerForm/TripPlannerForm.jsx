@@ -425,6 +425,29 @@ const TripPlannerForm = () => {
           </div>
         )}
 
+        {/* Example chips */}
+        <div className="example-chips">
+          {[
+            'Warm beach in May',
+            'Romantic honeymoon in Italy',
+            '5-day food trip in Spain',
+            'Mountain hiking in Switzerland',
+            'Hidden islands in Greece',
+          ].map((example) => (
+            <button
+              key={example}
+              type="button"
+              className="example-chip"
+              onClick={() => {
+                setFormData(prev => ({ ...prev, description: example }));
+                triggerParse(example);
+              }}
+            >
+              {example}
+            </button>
+          ))}
+        </div>
+
         {/* AI detected chips */}
         {detectedChips.length > 0 && (
           <div className="ai-detected-bar">
@@ -444,12 +467,14 @@ const TripPlannerForm = () => {
       </div>
 
       <div className="form-divider">
-        <span>confirm or adjust details</span>
+        <span>Step 2 — Confirm or adjust your details</span>
       </div>
+
+      <p className="form-required-note"><span className="form-required-star">*</span> Required fields</p>
 
       <div className="form-grid">
         {/* Destination */}
-        <div className={`form-field${formData.destination?.text ? ' field-filled' : ''}`}>
+        <div className={`form-field${formData.destination?.text ? ' field-filled' : ''}`} data-required>
           <AutocompleteContextProvider map_id="map">
             <DestinationAutocomplete
               value={formData.destination}
@@ -464,7 +489,7 @@ const TripPlannerForm = () => {
         </div>
 
         {/* Dates */}
-        <div className={`form-field${formData.start_date && formData.end_date ? ' field-filled' : ''}`}>
+        <div className={`form-field${formData.start_date && formData.end_date ? ' field-filled' : ''}`} data-required>
           <DateRangePickerComponent
             selectedDates={[formData.start_date, formData.end_date]}
             onDateRangeChange={handleDateRangeChange}
@@ -511,14 +536,13 @@ const TripPlannerForm = () => {
         )}
         <button type="submit" className={`search-button${isSubmitting ? ' loading' : ''}`} disabled={isSubmitting}>
           {isSubmitting ? (
-            <><span className="btn-spinner"></span><span>Generating...</span></>
+            <><span className="btn-spinner"></span><span>Building your trip...</span></>
           ) : (
             <>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="search-icon">
-                <path d="M9 17C13.4183 17 17 13.4183 17 9C17 4.58172 13.4183 1 9 1C4.58172 1 1 4.58172 1 9C1 13.4183 4.58172 17 9 17Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M19 19L14.65 14.65" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <span>Show My Option Trip</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
-              <span>Explore</span>
             </>
           )}
         </button>

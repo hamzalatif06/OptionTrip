@@ -109,7 +109,13 @@ const DateRangePickerComponent = ({
 
   return (
     <div className="date-range-picker-wrapper">
-      <label htmlFor="dates">Dates</label>
+      <label htmlFor="dates">
+        Dates
+        <span className="field-tooltip-wrapper">
+          <span className="field-tooltip-icon">?</span>
+          <span className="field-tooltip-text">You can choose exact travel dates or select a general period such as a specific month.</span>
+        </span>
+      </label>
       <div className="date-range-input-container">
         <input
           type="text"

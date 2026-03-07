@@ -2,144 +2,166 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../LanguageSwitcher/LanguageSwitcher';
+import CurrencySwitcher from '../CurrencySwitcher/CurrencySwitcher';
+import CountrySwitcher from '../CountrySwitcher/CountrySwitcher';
 import './Footer.css';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
+  const [subscribed, setSubscribed] = useState(false);
   const { t } = useTranslation();
 
   const handleSubscribe = (e) => {
     e.preventDefault();
-    console.log('Subscribe:', email);
-    setEmail('');
+    if (email.trim()) {
+      setSubscribed(true);
+      setEmail('');
+    }
   };
 
   return (
-    <footer className="pt-20 pb-4" style={{backgroundImage: `url(/images/background_pattern.png)`}}>
-      <div className="section-shape top-0" style={{backgroundImage: `url(/images/shape8.png)`}}></div>
-      
-      <div className="insta-main pb-10">
+    <>
+      {/* ── Email Subscription Strip ──────────────────────────── */}
+      <div className="footer-subscribe-strip">
         <div className="container">
-          <div className="insta-inner">
-            <div className="follow-button">
-              <h5 className="m-0 rounded">
-                <a href="https://www.instagram.com/option_trip" target="_blank" rel="noopener noreferrer" className="white text-decoration-none">
-                  <i className="fab fa-instagram"></i> {t('common.followOnInstagram')}
-                </a>
-              </h5>
+          <div className="footer-subscribe-inner">
+            <div className="footer-subscribe-text">
+              <h4 className="footer-subscribe-title">Stay Inspired</h4>
+              <p className="footer-subscribe-subtitle">Get travel ideas and updates from Option Trip.</p>
             </div>
-            <div className="row attract-slider">
-              {[3, 4, 5, 1, 7, 8, 2, 6, 9].map((num) => (
-                <div key={num} className="col-md-3 col-sm-6">
-                  <div className="insta-image rounded">
-                    <a href="https://www.instagram.com/option_trip" target="_blank" rel="noopener noreferrer">
-                      <img src={`/images/insta/ins-${num}.jpg`} alt={`Instagram ${num}`} />
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {subscribed ? (
+              <p className="footer-subscribe-success">✓ You're subscribed! Check your inbox soon.</p>
+            ) : (
+              <form className="footer-subscribe-form" onSubmit={handleSubscribe}>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email address"
+                  className="footer-subscribe-input"
+                  required
+                />
+                <button type="submit" className="footer-subscribe-btn">Subscribe</button>
+              </form>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="footer-upper pb-4">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-4 col-md-6 col-sm-12 mb-4 pe-4">
-              <div className="footer-about">
-                <img src="/images/logo-white.png" alt="OptionTrip" />
-                <p className="mt-3 mb-3 white">
-                  {t('footer.aboutDescription')}
+      {/* ── Main Footer ───────────────────────────────────────── */}
+      <footer className="footer-main" style={{ backgroundImage: `url(/images/background_pattern.png)` }}>
+
+        {/* Five-column links section */}
+        <div className="footer-columns">
+          <div className="container">
+            <div className="footer-columns-grid">
+
+              {/* Col 1 — About */}
+              <div className="footer-col footer-col--about">
+                <img src="/images/logo-white.png" alt="Option Trip" className="footer-logo" />
+                <p className="footer-about-desc">
+                  Option Trip is an AI-powered travel planning platform that helps users create personalized trips using intelligent recommendations.
                 </p>
-                <ul>
-                  <li className="white"><strong>{t('footer.email')}:</strong> <a href="mailto:info@optiontrip.com" className="white">optiontripcom@gmail.com</a></li>
-                  <li className="white"><strong>{t('footer.website')}:</strong> www.OptionTrip.com</li>
+                <ul className="footer-contact-list">
+                  <li>
+                    <i className="fab fa-envelope footer-contact-icon"></i>
+                    <a href="mailto:optiontripcom@gmail.com">optiontripcom@gmail.com</a>
+                  </li>
+                  <li>
+                    <i className="fas fa-globe footer-contact-icon"></i>
+                    <a href="https://www.optiontrip.com" target="_blank" rel="noopener noreferrer">www.OptionTrip.com</a>
+                  </li>
                 </ul>
-              </div>
-            </div>
-            <div className="col-lg-2 col-md-6 col-sm-12 mb-4">
-              <div className="footer-links">
-                <h3 className="white">{t('common.quickLinks')}</h3>
-                <ul>
-                  <li><Link to="/about">{t('common.about')}</Link></li>
-                
-                  <li><a href="#privacy">{t('common.privacyPolicy')}</a></li>
-                  <li><a href="#terms">{t('common.termsConditions')}</a></li>
-                  <li><a href="#service">{t('common.customerService')}</a></li>
-              
-                </ul>
-              </div>
-            </div>
-            <div className="col-lg-2 col-md-6 col-sm-12 mb-4">
-              <div className="footer-links">
-                <h3 className="white">{t('common.categories')}</h3>
-                <ul>
-                  <li><Link to="/tours">{t('common.travel')}</Link></li>
-                 
-              
-                  <li><Link to="/destinations">{t('common.destinations')}</Link></li>
-               
-          
-                </ul>
-              </div>
-            </div>
-            <div className="col-lg-4 col-md-6 col-sm-12 mb-4">
-              <div className="footer-links">
-                <h3 className="white">{t('Explore')}</h3>
-                <ul>
-                <li><a href="https://blog.optiontrip.com" target="_blank" rel="noopener noreferrer">Our Blog</a></li>
-</ul>
-           
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div className="footer-payment">
-        <div className="container">
-          <div className="row footer-pay align-items-center justify-content-between text-lg-start text-center">
-           
-            <div className="col-lg-4 footer-payment-nav mb-4">
-              <ul className="d-flex align-items-center">
-                <li className="me-2 w-75">
-                  <LanguageSwitcher />
-                </li>
-              
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
+                {/* Trust block */}
+                <div className="footer-trust-block">
+                  <ul className="footer-trust-list">
+                    <li><i className="fas fa-robot"></i> AI-powered travel planning</li>
+                    <li><i className="fas fa-route"></i> Personalized travel routes</li>
+                    <li><i className="fas fa-star"></i> Smart travel recommendations</li>
+                  </ul>
+                  <p className="footer-powered-by">Powered by <strong>VI TravelBuddy</strong></p>
+                </div>
+              </div>
 
-      <div className="footer-copyright">
-        <div className="container">
-          <div className="copyright-inner rounded p-3 d-md-flex align-items-center justify-content-between">
-            <div className="copyright-text">
-              <p className="m-0 white">2025 {t('footer.copyright')}</p>
-            </div>
-            <div className="social-links">
-              <ul>
-                <li>
-                  <a href="https://www.facebook.com/optiontrip" target="_blank" rel="noopener noreferrer"><i className="fab fa-facebook" aria-hidden="true"></i></a>
-                </li>
-                <li>
-                  <a href="https://www.x.com/OptionTripCom" target="_blank" rel="noopener noreferrer"><i className="fab fa-twitter" aria-hidden="true"></i></a>
-                </li>
-                <li>
-                  <a href="https://www.instagram.com/option_trip" target="_blank" rel="noopener noreferrer"><i className="fab fa-instagram" aria-hidden="true"></i></a>
-                </li>
-                <li>
-                  <a href="https://www.youtube.com/@optiontrip" target="_blank" rel="noopener noreferrer"><i className="fab fa-youtube" aria-hidden="true"></i></a>
-                </li>
-               
-              </ul>
+              {/* Col 2 — Company */}
+              <div className="footer-col">
+                <h4 className="footer-col-title">Company</h4>
+                <ul className="footer-col-links">
+                  <li><Link to="/about">About Option Trip</Link></li>
+                  <li><Link to="/#how-it-works">How It Works</Link></li>
+                  <li><Link to="/#vi">TravelBuddy (VI)</Link></li>
+                  <li><a href="https://blog.optiontrip.com" target="_blank" rel="noopener noreferrer">Blog</a></li>
+                  <li><a href="mailto:optiontripcom@gmail.com">Contact Us</a></li>
+                </ul>
+              </div>
+
+              {/* Col 3 — Travel */}
+              <div className="footer-col">
+                <h4 className="footer-col-title">Travel</h4>
+                <ul className="footer-col-links">
+                  <li><Link to="/destinations">Explore Destinations</Link></li>
+                  <li><Link to="/tours">Trip Ideas</Link></li>
+                  <li><Link to="/tours">Travel Map</Link></li>
+                  <li><Link to="/tours">Popular Routes</Link></li>
+                  <li><Link to="/tours">Travel Tips</Link></li>
+                </ul>
+              </div>
+
+              {/* Col 4 — Support */}
+              <div className="footer-col">
+                <h4 className="footer-col-title">Support</h4>
+                <ul className="footer-col-links">
+                  <li><a href="mailto:optiontripcom@gmail.com">Help Center</a></li>
+                  <li><a href="mailto:optiontripcom@gmail.com">Contact Support</a></li>
+                  <li><a href="mailto:optiontripcom@gmail.com">Travel Questions</a></li>
+                  <li><a href="mailto:optiontripcom@gmail.com">Feedback</a></li>
+                </ul>
+              </div>
+
+              {/* Col 5 — Legal */}
+              <div className="footer-col">
+                <h4 className="footer-col-title">Legal</h4>
+                <ul className="footer-col-links">
+                  <li><a href="#privacy">Privacy Policy</a></li>
+                  <li><a href="#terms">Terms of Service</a></li>
+                  <li><a href="#cookies">Cookie Policy</a></li>
+                  <li><a href="#data">Data Protection</a></li>
+                </ul>
+              </div>
+
             </div>
           </div>
         </div>
-      </div>
-    </footer>
+
+        {/* Locale bar */}
+        <div className="footer-locale-section">
+          <div className="container">
+            <div className="footer-locale-bar">
+              <div className="footer-locale-item"><LanguageSwitcher /></div>
+              <div className="footer-locale-item"><CurrencySwitcher /></div>
+              <div className="footer-locale-item"><CountrySwitcher /></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom bar */}
+        <div className="footer-bottom">
+          <div className="container">
+            <div className="footer-bottom-inner">
+              <p className="footer-copyright-text">© 2026 Option Trip. All rights reserved.</p>
+              <div className="footer-social">
+                <a href="https://www.facebook.com/optiontrip" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i className="fab fa-facebook"></i></a>
+                <a href="https://www.x.com/OptionTripCom" target="_blank" rel="noopener noreferrer" aria-label="X / Twitter"><i className="fab fa-twitter"></i></a>
+                <a href="https://www.instagram.com/option_trip" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i className="fab fa-instagram"></i></a>
+                <a href="https://www.youtube.com/@optiontrip" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><i className="fab fa-youtube"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </footer>
+    </>
   );
 };
 

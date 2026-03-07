@@ -1,3 +1,332 @@
-/* Footer styles imported from main CSS */
+/* ═══════════════════════════════════════════════════════════
+   FOOTER — Option Trip
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Email subscription strip ───────────────────────────── */
+.footer-subscribe-strip {
+  background: linear-gradient(135deg, #0A539D 0%, #029e9d 100%);
+  padding: 48px 0;
+}
+
+.footer-subscribe-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.footer-subscribe-title {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.footer-subscribe-subtitle {
+  color: rgba(255,255,255,0.85);
+  font-size: 15px;
+  margin: 0;
+}
+
+.footer-subscribe-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.footer-subscribe-input {
+  flex: 1;
+  min-width: 240px;
+  max-width: 360px;
+  padding: 12px 18px;
+  border-radius: 50px;
+  border: none;
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+}
+
+.footer-subscribe-btn {
+  padding: 12px 28px;
+  border-radius: 50px;
+  border: 2px solid #fff;
+  background: transparent;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.footer-subscribe-btn:hover {
+  background: #fff;
+  color: #0A539D;
+}
+
+.footer-subscribe-success {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* ── Main footer body ────────────────────────────────────── */
+.footer-main {
+  background-color: #0f1e32;
+  background-blend-mode: overlay;
+  padding-top: 60px;
+}
+
+/* ── Five-column grid ────────────────────────────────────── */
+.footer-columns {
+  padding-bottom: 48px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.footer-columns-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  gap: 40px;
+}
+
+/* ── Individual column ───────────────────────────────────── */
+.footer-col-title {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 18px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.footer-col-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.footer-col-links li a {
+  color: rgba(255,255,255,0.65);
+  font-size: 14px;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-col-links li a:hover {
+  color: #029e9d;
+}
+
+/* ── About column ────────────────────────────────────────── */
+.footer-logo {
+  height: 36px;
+  width: auto;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.footer-about-desc {
+  color: rgba(255,255,255,0.65);
+  font-size: 14px;
+  line-height: 1.65;
+  margin: 0 0 18px;
+}
+
+.footer-contact-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer-contact-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-contact-icon {
+  color: #029e9d;
+  font-size: 13px;
+  width: 14px;
+  flex-shrink: 0;
+}
+
+.footer-contact-list a {
+  color: rgba(255,255,255,0.65);
+  font-size: 14px;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-contact-list a:hover {
+  color: #029e9d;
+}
+
+/* ── Trust block ─────────────────────────────────────────── */
+.footer-trust-block {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 18px;
+}
+
+.footer-trust-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footer-trust-list li {
+  color: rgba(255,255,255,0.55);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-trust-list li i {
+  color: #029e9d;
+  font-size: 12px;
+  width: 14px;
+}
+
+.footer-powered-by {
+  color: rgba(255,255,255,0.45);
+  font-size: 12px;
+  margin: 0;
+}
+
+.footer-powered-by strong {
+  color: rgba(255,255,255,0.7);
+}
+
+/* ── Locale bar ──────────────────────────────────────────── */
+.footer-locale-section {
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.footer-locale-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.footer-locale-item {
+  flex: 1;
+  min-width: 160px;
+  max-width: 220px;
+}
+
+/* ── Bottom bar ──────────────────────────────────────────── */
+.footer-bottom {
+  padding: 20px 0;
+}
+
+.footer-bottom-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.footer-copyright-text {
+  color: rgba(255,255,255,0.45);
+  font-size: 13px;
+  margin: 0;
+}
+
+.footer-social {
+  display: flex;
+  gap: 14px;
+}
+
+.footer-social a {
+  color: rgba(255,255,255,0.45);
+  font-size: 16px;
+  transition: color 0.2s;
+}
+
+.footer-social a:hover {
+  color: #029e9d;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 1199px) {
+  .footer-columns-grid {
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 28px;
+  }
+
+  .footer-col--about {
+    grid-column: 1 / -1;
+  }
+
+  .footer-col--about .footer-about-desc,
+  .footer-col--about .footer-trust-block {
+    max-width: 520px;
+  }
+}
+
+@media (max-width: 767px) {
+  .footer-subscribe-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .footer-subscribe-form {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .footer-subscribe-input {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .footer-columns-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+
+  .footer-col--about {
+    grid-column: 1 / -1;
+  }
+
+  .footer-locale-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .footer-locale-item {
+    max-width: 100%;
+  }
+
+  .footer-bottom-inner {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-columns-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
 

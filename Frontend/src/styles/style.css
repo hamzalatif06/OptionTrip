@@ -5521,16 +5521,6 @@ section.comingsoon .comingsoon-content .counter-box span {
   width: 250px;
   box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
 }
-.insta-main .insta-inner .follow-button h5:after {
-  content: "";
-  position: absolute;
-  left: -5px;
-  top: -5px;
-  right: -5px;
-  bottom: -5px;
-  border: 1px solid #fff;
-  border-radius: 10px;
-}
 .insta-main .insta-inner .insta-image, .insta-main .insta-inner .insta-image a img {
   transition: all ease-in-out 0.5s;
   overflow: hidden;

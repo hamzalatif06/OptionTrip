@@ -1,5 +1,6 @@
 import React from 'react';
 import RoomIcon from '@mui/icons-material/Room';
+import useCurrency from '../../hooks/useCurrency';
 import './TripSummaryCard.css';
 
 const iconMap = {
@@ -12,6 +13,7 @@ const iconMap = {
 };
 
 const TripSummaryCard = ({ tripData, selectedOption, onConfirm }) => {
+  const { formatPrice } = useCurrency();
   if (!selectedOption) {
     return (
       <div className="trip-summary-card">
@@ -121,19 +123,19 @@ const TripSummaryCard = ({ tripData, selectedOption, onConfirm }) => {
         <div className="trip-summary-card__cost-row">
           <span className="trip-summary-card__cost-label">Activities & Experiences</span>
           <span className="trip-summary-card__cost-value">
-            ${Math.round(selectedOption.estimated_total_cost * 0.7).toLocaleString()}
+            {formatPrice(Math.round(selectedOption.estimated_total_cost * 0.7))}
           </span>
         </div>
         <div className="trip-summary-card__cost-row">
           <span className="trip-summary-card__cost-label">Estimated Add-ons</span>
           <span className="trip-summary-card__cost-value">
-            ${Math.round(selectedOption.estimated_total_cost * 0.3).toLocaleString()}
+            {formatPrice(Math.round(selectedOption.estimated_total_cost * 0.3))}
           </span>
         </div>
         <div className="trip-summary-card__cost-row">
           <span className="trip-summary-card__cost-label">Total Estimated Cost</span>
           <span className="trip-summary-card__cost-value">
-            ${selectedOption.estimated_total_cost.toLocaleString()}
+            {formatPrice(selectedOption.estimated_total_cost)}
           </span>
         </div>
       </div>

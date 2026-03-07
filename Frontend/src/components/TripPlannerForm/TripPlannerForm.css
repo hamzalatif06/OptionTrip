@@ -475,46 +475,88 @@
   z-index: 1;
 }
 
+/* ── Required field note ─────────────────────────────────── */
+.form-required-note {
+  font-size: 12px;
+  color: #9FAAB6;
+  margin: -12px 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.form-required-star {
+  color: #e53935;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* Required field indicator — red dot on the label */
+[data-required] label::after {
+  content: ' *';
+  color: #e53935;
+  font-weight: 700;
+}
+
 /* Search Button */
 .form-actions {
   display: flex;
-  justify-content: flex-end;
-  margin-top: 10px;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
 }
 
 .search-button {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 14px 28px;
-  background: linear-gradient(135deg, #029e9d 0%, #027a79 100%);
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 18px 36px;
+  background: linear-gradient(135deg, #0A539D 0%, #029e9d 100%);
   color: white;
   border: none;
-  border-radius: 50px;
-  font-size: 18px;
+  border-radius: 16px;
+  font-size: 19px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 180px;
-  justify-content: center;
-  box-shadow: 0 4px 15px rgba(2, 158, 157, 0.3);
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 24px rgba(10, 83, 157, 0.35);
+  letter-spacing: 0.01em;
 }
 
 .search-button:hover {
-  background: linear-gradient(135deg, #027a79 0%, #025857 100%);
+  background: linear-gradient(135deg, #083f7a 0%, #027a79 100%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(2, 158, 157, 0.4);
+  box-shadow: 0 10px 32px rgba(10, 83, 157, 0.45);
 }
 
 .search-button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 10px rgba(2, 158, 157, 0.25);
+  box-shadow: 0 4px 14px rgba(10, 83, 157, 0.25);
 }
 
 .search-button:disabled {
   cursor: not-allowed;
   transform: none;
   opacity: 0.85;
+}
+
+/* Reassurance subtext under button */
+.form-cta-subtext {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: #9FAAB6;
+  margin: 0;
+  font-weight: 500;
+}
+
+.form-cta-subtext svg {
+  flex-shrink: 0;
+  color: #029e9d;
 }
 
 .search-button.loading {
@@ -609,6 +651,99 @@
   .form-field select {
     padding: 12px 16px;
   }
+}
+
+/* ── Tooltip icon on field labels ──────────────────────────── */
+.field-tooltip-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.field-tooltip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #C2CAD2;
+  color: #596C7E;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: default;
+  line-height: 1;
+  transition: background 0.2s;
+}
+
+.field-tooltip-wrapper:hover .field-tooltip-icon {
+  background: #0A539D;
+  color: #fff;
+}
+
+.field-tooltip-text {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 240px;
+  background: #122D46;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  padding: 9px 12px;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  pointer-events: none;
+  white-space: normal;
+  z-index: 100;
+}
+
+.field-tooltip-text::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #122D46;
+}
+
+.field-tooltip-wrapper:hover .field-tooltip-text {
+  display: block;
+}
+
+/* ── Example chips under the smart textarea ────────────────── */
+.example-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.example-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 13px;
+  border: 1px solid #C2CAD2;
+  border-radius: 50px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  color: #596C7E;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  font-family: inherit;
+}
+
+.example-chip:hover {
+  border-color: #0A539D;
+  color: #0A539D;
+  background: rgba(10, 83, 157, 0.05);
 }
 
 /* Autocomplete Styles */

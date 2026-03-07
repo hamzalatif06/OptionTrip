@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import useCurrency from '../../hooks/useCurrency';
 import './ActivityCard.css';
 
 // Material-UI Icons (matching TripTap icon system)
@@ -36,6 +37,7 @@ const ActivityCard = ({
   onOpenGoogleDirections,
   isEditable = true,
 }) => {
+  const { formatPrice } = useCurrency();
   // Get activity icon based on category (MUI Icons)
   const getActivityIcon = (category) => {
     const iconSize = { fontSize: { xl: 24, lg: 20, xs: 16 } };
@@ -210,23 +212,18 @@ const ActivityCard = ({
   const activityHeader = generateSubtitle;
   const activityName = activity.title || activity.name || activity.place_name || 'Activity';
   const activityRating = activity.rating || null;
-  const activityCost = activity.cost !== undefined && activity.cost !== null
-    ? (typeof activity.cost === 'number' ? `$${activity.cost}` : activity.cost)
-    : null;
+  const activityCost = activity.cost !== undefined && activity.cost !== null ? activity.cost : null;
   const activityDescription = activity.description || '';
   const businessCategories = generateTags;
   const activityTime = activity.time || '';
   const hasBooking = activity.has_booking || false;
 
-  // Format cost display
+  // Format cost display with selected currency
   const formatCost = (cost) => {
     if (cost === null || cost === undefined) return null;
-    if (typeof cost === 'string' && cost.startsWith('$')) return cost;
-    if (typeof cost === 'number') {
-      if (cost === 0) return 'Free';
-      return `$${cost}`;
-    }
-    return cost;
+    const num = typeof cost === 'number' ? cost : parseFloat(String(cost).replace(/[^0-9.]/g, ''));
+    if (isNaN(num)) return String(cost);
+    return formatPrice(num);
   };
 
   // Calculate distance from search center

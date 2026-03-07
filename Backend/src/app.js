@@ -19,6 +19,7 @@ import tripsRouter from "./routes/trips.js";
 import authRoutes from "./routes/authRoutes.js";
 import chatRoutes from "./routes/chat.js";
 import youtubeRouter from "./routes/youtube.js";
+import translateRouter from "./routes/translate.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { corsOptions } from "./middleware/security.js";
 import "./config/passport.js";
@@ -104,6 +105,7 @@ app.use("/api/products", productsRouter);
 app.use("/api/trips", tripsRouter);
 app.use("/api/chat", chatRoutes);
 app.use("/api/youtube", youtubeRouter);
+app.use("/api/translate", translateRouter);
 
 // 404 Handler - must be after all routes
 app.use(notFoundHandler);

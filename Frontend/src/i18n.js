@@ -29,7 +29,7 @@ import idTranslations from './locales/id.json';
 const supportedLngs = ['en','ru','de','fr','it','es','pl','uk','tr','hu','sv','pt','sr','ar','zh','ja','vi','th','ko','hi','bn','id'];
 const rtlLanguages = ['ar'];
 
-// Only set text direction — do NOT change lang="en" so Google Translate works correctly
+// Set text direction based on language
 const setDocumentDirection = (lng) => {
   const base = (lng || 'en').split('-')[0];
   const body = document.body;
@@ -88,6 +88,35 @@ setDocumentDirection(i18n.language);
 i18n.on('languageChanged', (lng) => {
   setDocumentDirection(lng);
   localStorage.setItem('i18nextLng', lng);
+});
+
+// ── LibreTranslate: patch any key missing at runtime ─────────────────────
+// missingKey fires synchronously; we return the English fallback immediately
+// and inject the LibreTranslate result into the bundle on the next render.
+i18n.on('missingKey', (_lngs, ns, key, fallbackValue) => {
+  const lang = (i18n.language || 'en').split('-')[0];
+  if (lang === 'en' || !fallbackValue) return;
+
+  const pendingKey = `__lt_pending__${lang}__${key}`;
+  if (sessionStorage.getItem(pendingKey)) return;
+  sessionStorage.setItem(pendingKey, '1');
+
+  import('./services/translateService.js').then(({ translateText }) => {
+    translateText(String(fallbackValue), lang)
+      .then(translated => {
+        if (!translated || translated === fallbackValue) return;
+        const bundle = i18n.getResourceBundle(lang, ns) || {};
+        const parts = key.split('.');
+        let node = bundle;
+        for (let i = 0; i < parts.length - 1; i++) {
+          if (!node[parts[i]]) node[parts[i]] = {};
+          node = node[parts[i]];
+        }
+        node[parts[parts.length - 1]] = translated;
+        i18n.addResourceBundle(lang, ns, bundle, true, true);
+      })
+      .finally(() => sessionStorage.removeItem(pendingKey));
+  });
 });
 
 export default i18n;

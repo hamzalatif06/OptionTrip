@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { generateTripOptions } from '../../services/tripsService';
 import { toast } from 'react-toastify';
+import useCurrency from '../../hooks/useCurrency';
 import './BestTours.css';
 
 const BestTours = () => {
   const navigate = useNavigate();
+  const { formatPrice } = useCurrency();
   const [guestCounts, setGuestCounts] = useState({});
   const [loadingTour, setLoadingTour] = useState(null);
 
@@ -183,7 +185,7 @@ const BestTours = () => {
                     <div className="trend-meta bg-theme white px-3 py-2 rounded">
                       <div className="entry-author">
                         <i className="icon-calendar"></i>
-                        <span className="fw-bold"> {tour.days} Days Tours</span>
+                        <span className="fw-bold"> {tour.days}-Day Tour</span>
                       </div>
                     </div>
                     <h5 className="theme mb-1"><i className="flaticon-location-pin"></i> {tour.location}</h5>
@@ -197,7 +199,7 @@ const BestTours = () => {
                     <p className="border-b pb-2 mb-2">{tour.description}</p>
                     <div className="entry-meta mb-3">
                       <div className="entry-author d-flex align-items-center">
-                        <p className="mb-0"><span className="theme fw-bold fs-5"> ${tour.price}.00</span> | Per person</p>
+                        <p className="mb-0"><span className="theme fw-bold fs-5"> {formatPrice(tour.price)}</span> | Per person</p>
                       </div>
                     </div>
 
@@ -230,7 +232,7 @@ const BestTours = () => {
                           </>
                         ) : (
                           <>
-                            <i className="fa fa-magic"></i>
+                            <i className="fas fa-plane-departure" style={{transform: 'rotate(-20deg)'}}></i>
                             <span>Explore</span>
                           </>
                         )}

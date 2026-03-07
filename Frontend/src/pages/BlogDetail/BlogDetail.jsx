@@ -124,16 +124,6 @@ const BlogDetail = () => {
 
   return (
     <div className="blog-detail">
-      {/* Breadcrumb */}
-      <div className="blog-detail__breadcrumb">
-        <div className="container">
-          <Link to="/">Home</Link>
-          <span className="blog-detail__breadcrumb-sep">›</span>
-          <Link to="/blog">Blog</Link>
-          <span className="blog-detail__breadcrumb-sep">›</span>
-          <span>{categoryName}</span>
-        </div>
-      </div>
 
       <div className="blog-detail__container">
         {/* Category tag */}

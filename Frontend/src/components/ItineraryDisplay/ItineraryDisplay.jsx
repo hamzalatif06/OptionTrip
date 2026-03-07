@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import ActivityCard from '../ActivityCard/ActivityCard';
+import useCurrency from '../../hooks/useCurrency';
 import './ItineraryDisplay.css';
 
 const ItineraryDisplay = ({ itinerary, searchCenter }) => {
   const [activeDay, setActiveDay] = useState(0);
+  const { formatPrice } = useCurrency();
 
   if (!itinerary || itinerary.length === 0) {
     return (
@@ -87,7 +89,7 @@ const ItineraryDisplay = ({ itinerary, searchCenter }) => {
               Total Day Cost
             </span>
             <span className="itinerary-display__day-footer-value">
-              ${currentDay.total_cost?.toLocaleString() || 0}
+              {formatPrice(currentDay.total_cost || 0)}
             </span>
           </div>
         </div>

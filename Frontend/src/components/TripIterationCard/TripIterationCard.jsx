@@ -1,7 +1,9 @@
 import React from 'react';
+import useCurrency from '../../hooks/useCurrency';
 import './TripIterationCard.css';
 
 const TripIterationCard = ({ option, isSelected, onSelect, destination }) => {
+  const { formatPrice } = useCurrency();
   const handleClick = () => {
     onSelect(option.option_id);
   };
@@ -273,7 +275,7 @@ const TripIterationCard = ({ option, isSelected, onSelect, destination }) => {
       {/* Price Footer - Similar to TripTap's price section */}
       <div className="trip-iteration-card__footer">
         <p className="trip-iteration-card__price">
-          ${option.estimated_total_cost?.toLocaleString() || '0'}
+          {formatPrice(option.estimated_total_cost) || '—'}
         </p>
         <p className="trip-iteration-card__price-label">
           Total estimated cost
