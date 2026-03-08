@@ -1,35 +1,29 @@
 /**
- * LibreTranslate proxy controller
- * - Server-side in-memory cache (avoids duplicate API calls)
- * - Graceful fallback: always returns original text on error
- * - Supports single string or array of strings
+ * Translation proxy controller
+ * Uses Google Translate unofficial API (client=gtx) — no API key required.
+ * Server-side in-memory cache avoids duplicate calls.
+ * Graceful fallback: always returns original text on error.
  */
 
 const cache = new Map(); // `${source}:${target}:${text}` → translatedText
 
-const LIBRE_URL = () => process.env.LIBRETRANSLATE_URL || 'https://libretranslate.com';
-const LIBRE_KEY = () => process.env.LIBRETRANSLATE_API_KEY || '';
-
-const callLibre = async (text, source, target) => {
+const callGoogle = async (text, source, target) => {
   const cacheKey = `${source}:${target}:${text}`;
   if (cache.has(cacheKey)) return cache.get(cacheKey);
 
-  const body = { q: text, source, target, format: 'text' };
-  if (LIBRE_KEY()) body.api_key = LIBRE_KEY();
+  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source}&tl=${target}&dt=t&q=${encodeURIComponent(text)}`;
 
-  const response = await fetch(`${LIBRE_URL()}/translate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+  const response = await fetch(url, {
+    headers: { 'User-Agent': 'Mozilla/5.0' }
   });
 
   if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`LibreTranslate ${response.status}: ${err}`);
+    throw new Error(`Google Translate HTTP ${response.status}`);
   }
 
   const data = await response.json();
-  const translated = data.translatedText || text;
+  // Response: [[[translated_chunk, original_chunk], ...], ...]
+  const translated = (data[0] || []).map(item => item[0] || '').join('').trim() || text;
   cache.set(cacheKey, translated);
   return translated;
 };
@@ -52,9 +46,8 @@ export const translateText = async (req, res) => {
   const texts = Array.isArray(q) ? q : [q];
 
   try {
-    // Parallelize all translations (LibreTranslate handles one string per call)
     const results = await Promise.all(
-      texts.map(text => callLibre(text, source, target).catch(() => text))
+      texts.map(text => callGoogle(text, source, target).catch(() => text))
     );
 
     return res.json(Array.isArray(q)
@@ -62,8 +55,7 @@ export const translateText = async (req, res) => {
       : { translatedText: results[0] }
     );
   } catch (err) {
-    console.error('[translate] LibreTranslate error:', err.message);
-    // Graceful fallback — return originals
+    console.error('[translate] Error:', err.message);
     return res.json(Array.isArray(q)
       ? { translatedTexts: texts }
       : { translatedText: texts[0] }

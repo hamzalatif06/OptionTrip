@@ -1,48 +1,55 @@
 /**
- * AutoTranslate — full-page LibreTranslate integration
+ * AutoTranslate — full-page translation like Google Translate
  *
- * Translates ALL visible text on the page (hardcoded JSX + dynamic content)
- * by operating directly on DOM text nodes, just like Google Translate.
+ * Translates:
+ *   • All visible text nodes (paragraphs, headings, buttons, labels…)
+ *   • placeholder, title, and aria-label attributes on form elements
  *
- * How it works:
- * 1. On language change → collect every text node in document.body
- * 2. Store each node's original English text in a WeakMap
- * 3. Batch-translate all unique strings via /api/translate (cached)
- * 4. Write translated text back into the DOM nodes
- * 5. MutationObserver watches for React re-renders that restore English text
- *    → debounced re-translation ensures translated state persists
- * 6. On switch back to English → restore originals from WeakMap
+ * Two-phase approach:
+ *   Phase 1 (sync):  Apply all localStorage-cached translations instantly
+ *   Phase 2 (async): Fetch uncached strings from Google Translate API
  *
- * Also handles i18n JSON missing-key auto-translation for t() calls.
+ * MutationObserver + follow-up timers catch async-rendered sections.
  */
 
 import { useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { translateBatch, translateMissingKeys } from '../../services/translateService';
+import { translateBatch, getCached } from '../../services/translateService';
 
-// Tags whose text content should never be translated
+const CHUNK_SIZE = 40;
+
+// Tags whose inner text content should never be translated
 const SKIP_TAGS = new Set([
   'SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'INPUT',
   'SELECT', 'CODE', 'PRE', 'SVG', 'MATH',
 ]);
 
-// CSS class substrings that indicate "do not translate"
-const SKIP_CLASS_HINTS = ['notranslate', 'language-switcher', 'currency-switcher', 'country-switcher'];
+// CSS class substrings that mark "do not translate" containers
+const SKIP_CLASS_HINTS = [
+  'notranslate', 'language-switcher', 'currency-switcher',
+  'country-switcher', 'header-lang',
+];
+
+// Attributes to translate on form elements
+const TRANSLATABLE_ATTRS = ['placeholder', 'title', 'aria-label'];
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
 
 const shouldSkipNode = (node) => {
-  const parent = node.parentElement;
-  if (!parent) return true;
-  if (SKIP_TAGS.has(parent.tagName)) return true;
-  if (parent.closest('[data-notranslate]')) return true;
-  const cls = parent.className || '';
-  if (typeof cls === 'string' && SKIP_CLASS_HINTS.some(h => cls.includes(h))) return true;
+  let el = node.parentElement;
+  while (el && el !== document.body) {
+    if (SKIP_TAGS.has(el.tagName)) return true;
+    if (el.hasAttribute('data-notranslate')) return true;
+    const cls = el.className;
+    if (typeof cls === 'string' && SKIP_CLASS_HINTS.some(h => cls.includes(h))) return true;
+    el = el.parentElement;
+  }
   return false;
 };
 
 const isTranslatableText = (text) => {
-  const t = text.trim();
-  if (t.length < 2) return false;
-  // Skip pure numbers / symbols
+  const t = text?.trim();
+  if (!t || t.length < 2) return false;
   if (/^[\d\s.,+\-$€£¥%:/()\[\]{}@#!?*&^~`|\\<>=]+$/.test(t)) return false;
   return true;
 };
@@ -59,191 +66,259 @@ const collectTextNodes = (root) => {
   return nodes;
 };
 
-const CHUNK_SIZE = 60; // strings per /api/translate call
+/** Collect all elements that have at least one translatable attribute */
+const collectAttrElements = (root) => {
+  const results = [];
+  const all = root.querySelectorAll(
+    TRANSLATABLE_ATTRS.map(a => `[${a}]`).join(',')
+  );
+  all.forEach(el => {
+    const attrMap = {};
+    TRANSLATABLE_ATTRS.forEach(attr => {
+      const val = el.getAttribute(attr);
+      if (val && isTranslatableText(val)) attrMap[attr] = val;
+    });
+    if (Object.keys(attrMap).length > 0) results.push({ el, attrMap });
+  });
+  return results;
+};
+
+// Debounce with guaranteed maxWait — fires even during rapid continuous mutations
+const makeDebounced = (fn, delay, maxWait) => {
+  let timer = null;
+  let firstAt = null;
+  return () => {
+    const now = Date.now();
+    if (!firstAt) firstAt = now;
+    clearTimeout(timer);
+    if (now - firstAt >= maxWait) {
+      firstAt = null; fn();
+    } else {
+      timer = setTimeout(() => { firstAt = null; fn(); }, delay);
+    }
+  };
+};
+
+// ── Component ──────────────────────────────────────────────────────────────────
 
 const AutoTranslate = () => {
   const { i18n } = useTranslation();
 
-  // WeakMap: text node → original English text
-  const nodeOriginals = useRef(new WeakMap());
-  // Map: `lang:text` → translated text
-  const translationCache = useRef(new Map());
-
-  const observerRef = useRef(null);
-  const debounceRef = useRef(null);
-  const isTranslating = useRef(false);
+  const nodeOriginals  = useRef(new WeakMap()); // text node → original string
+  const attrOriginals  = useRef(new WeakMap()); // element   → { attr: original }
+  const localCache     = useRef(new Map());     // `${lang}:${text}` → translated
+  const versionRef     = useRef(0);
+  const observerRef    = useRef(null);
+  const followUpTimers = useRef([]);
   const currentLangRef = useRef('en');
+  const debouncedFnRef = useRef(null);
 
-  // ── i18n bundle: translate missing keys via LibreTranslate ──────────────
-  const patchI18nBundle = useCallback(async (lang) => {
+  // ── Phase 1: apply cached translations instantly (no await) ───────────────
+  const applyCached = useCallback((lang, nodes, attrEls) => {
     if (lang === 'en') return;
-    try {
-      const [{ default: enBundle }, targetMod] = await Promise.all([
-        import('../../locales/en.json'),
-        import(`../../locales/${lang}.json`).catch(() => ({ default: {} })),
-      ]);
-      const targetBundle = targetMod.default || targetMod;
-      const missing = await translateMissingKeys(enBundle, targetBundle, lang);
-      if (Object.keys(missing).length === 0) return;
 
-      const unflatten = (flat) => {
-        const result = {};
-        for (const [dotKey, value] of Object.entries(flat)) {
-          const parts = dotKey.split('.');
-          let cur = result;
-          for (let i = 0; i < parts.length - 1; i++) {
-            if (!cur[parts[i]]) cur[parts[i]] = {};
-            cur = cur[parts[i]];
-          }
-          cur[parts[parts.length - 1]] = value;
+    // Text nodes
+    nodes.forEach(node => {
+      const orig = nodeOriginals.current.get(node);
+      if (!orig) return;
+      const key = `${lang}:${orig}`;
+      let result = localCache.current.get(key) ?? getCached(orig, lang);
+      if (result) {
+        localCache.current.set(key, result);
+        if (result !== node.textContent) node.textContent = result;
+      }
+    });
+
+    // Attributes
+    attrEls.forEach(({ el, attrMap }) => {
+      const origMap = attrOriginals.current.get(el) || {};
+      Object.keys(attrMap).forEach(attr => {
+        const orig = origMap[attr] || attrMap[attr];
+        const key  = `${lang}:${orig}`;
+        let result = localCache.current.get(key) ?? getCached(orig, lang);
+        if (result) {
+          localCache.current.set(key, result);
+          if (el.getAttribute(attr) !== result) el.setAttribute(attr, result);
         }
-        return result;
-      };
+      });
+    });
+  }, []);
 
-      const existing = i18n.getResourceBundle(lang, 'translation') || {};
-      const merged = deepMerge(existing, unflatten(missing));
-      i18n.addResourceBundle(lang, 'translation', merged, true, true);
-    } catch {
-      // silently ignore — graceful degradation
-    }
-  }, [i18n]);
-
-  // ── DOM translation ──────────────────────────────────────────────────────
+  // ── Full translation pass ──────────────────────────────────────────────────
   const translateDOM = useCallback(async (lang) => {
-    if (isTranslating.current) return;
-    isTranslating.current = true;
+    const myVersion = ++versionRef.current;
 
     try {
-      const nodes = collectTextNodes(document.body);
+      const nodes   = collectTextNodes(document.body);
+      const attrEls = collectAttrElements(document.body);
 
+      // ── Restore English ──────────────────────────────────────────────────
       if (lang === 'en') {
-        // Restore original English text
         nodes.forEach(node => {
-          if (nodeOriginals.current.has(node)) {
-            const orig = nodeOriginals.current.get(node);
-            if (node.textContent !== orig) node.textContent = orig;
-          }
+          const orig = nodeOriginals.current.get(node);
+          if (orig && node.textContent !== orig) node.textContent = orig;
+        });
+        attrEls.forEach(({ el }) => {
+          const origMap = attrOriginals.current.get(el);
+          if (!origMap) return;
+          Object.entries(origMap).forEach(([attr, orig]) => {
+            if (el.getAttribute(attr) !== orig) el.setAttribute(attr, orig);
+          });
         });
         return;
       }
 
-      // Record original text before any translation
+      // ── Store originals (English) on first encounter ─────────────────────
       nodes.forEach(node => {
         if (!nodeOriginals.current.has(node)) {
           nodeOriginals.current.set(node, node.textContent);
         }
       });
+      attrEls.forEach(({ el, attrMap }) => {
+        if (!attrOriginals.current.has(el)) {
+          // Store the current attribute values as originals
+          const origMap = {};
+          Object.keys(attrMap).forEach(attr => {
+            origMap[attr] = el.getAttribute(attr);
+          });
+          attrOriginals.current.set(el, origMap);
+        }
+      });
 
-      // Collect unique originals that are not yet cached
-      const originalsSet = new Set(
-        nodes
-          .map(n => nodeOriginals.current.get(n))
-          .filter(t => t && isTranslatableText(t))
-      );
-      const uncached = [...originalsSet].filter(
-        t => !translationCache.current.has(`${lang}:${t}`)
-      );
+      // ── Phase 1: apply cache instantly ──────────────────────────────────
+      applyCached(lang, nodes, attrEls);
+      if (versionRef.current !== myVersion) return;
 
-      // Batch translate in chunks
+      // ── Phase 2: collect uncached strings ───────────────────────────────
+      const seen     = new Set();
+      const uncached = [];
+
+      const maybeAdd = (text) => {
+        if (!text || !isTranslatableText(text)) return;
+        if (!localCache.current.has(`${lang}:${text}`) && !seen.has(text)) {
+          seen.add(text);
+          uncached.push(text);
+        }
+      };
+
+      nodes.forEach(node => maybeAdd(nodeOriginals.current.get(node)));
+      attrEls.forEach(({ el }) => {
+        const origMap = attrOriginals.current.get(el) || {};
+        Object.values(origMap).forEach(maybeAdd);
+      });
+
+      // ── Fetch from Google Translate in chunks ────────────────────────────
       for (let i = 0; i < uncached.length; i += CHUNK_SIZE) {
-        const chunk = uncached.slice(i, i + CHUNK_SIZE);
-        const translated = await translateBatch(chunk, lang);
+        if (versionRef.current !== myVersion) return;
+        const chunk   = uncached.slice(i, i + CHUNK_SIZE);
+        const results = await translateBatch(chunk, lang);
+        if (versionRef.current !== myVersion) return;
         chunk.forEach((text, idx) => {
-          translationCache.current.set(`${lang}:${text}`, translated[idx] || text);
+          if (results[idx]) localCache.current.set(`${lang}:${text}`, results[idx]);
         });
       }
 
-      // Apply translations to DOM
-      nodes.forEach(node => {
-        const orig = nodeOriginals.current.get(node);
-        if (!orig) return;
-        const translated = translationCache.current.get(`${lang}:${orig}`);
-        if (translated && translated !== node.textContent) {
-          node.textContent = translated;
-        }
-      });
-    } catch (err) {
-      console.warn('[AutoTranslate] DOM translation error:', err.message);
-    } finally {
-      isTranslating.current = false;
-    }
-  }, []);
+      if (versionRef.current !== myVersion) return;
 
-  // ── MutationObserver: re-translate after React re-renders ───────────────
+      // ── Apply all translations ───────────────────────────────────────────
+      // Re-collect to catch nodes that appeared during the await
+      const freshNodes   = collectTextNodes(document.body);
+      const freshAttrEls = collectAttrElements(document.body);
+
+      freshNodes.forEach(node => {
+        if (!nodeOriginals.current.has(node)) {
+          nodeOriginals.current.set(node, node.textContent);
+        }
+        const orig   = nodeOriginals.current.get(node);
+        const result = orig && localCache.current.get(`${lang}:${orig}`);
+        if (result && result !== node.textContent) node.textContent = result;
+      });
+
+      freshAttrEls.forEach(({ el, attrMap }) => {
+        if (!attrOriginals.current.has(el)) {
+          const origMap = {};
+          Object.keys(attrMap).forEach(attr => { origMap[attr] = el.getAttribute(attr); });
+          attrOriginals.current.set(el, origMap);
+        }
+        const origMap = attrOriginals.current.get(el);
+        Object.keys(origMap).forEach(attr => {
+          const orig   = origMap[attr];
+          const result = orig && localCache.current.get(`${lang}:${orig}`);
+          if (result && el.getAttribute(attr) !== result) el.setAttribute(attr, result);
+        });
+      });
+
+    } catch (err) {
+      console.warn('[AutoTranslate]', err.message);
+    }
+  }, [applyCached]);
+
+  // ── MutationObserver ────────────────────────────────────────────────────────
   const startObserver = useCallback(() => {
     if (observerRef.current) return;
 
-    observerRef.current = new MutationObserver((mutations) => {
-      const lang = currentLangRef.current;
-      if (lang === 'en') return;
+    debouncedFnRef.current = makeDebounced(
+      () => translateDOM(currentLangRef.current),
+      350,
+      1500
+    );
 
-      // Check if any mutation added real app content (not our own changes)
-      const hasNewContent = mutations.some(m =>
+    observerRef.current = new MutationObserver((mutations) => {
+      if (currentLangRef.current === 'en') return;
+      const hasNew = mutations.some(m =>
         [...m.addedNodes].some(n =>
           n.nodeType === Node.ELEMENT_NODE || n.nodeType === Node.TEXT_NODE
         )
       );
-      if (!hasNewContent) return;
-
-      clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        translateDOM(lang);
-      }, 400);
+      if (hasNew) debouncedFnRef.current?.();
     });
 
-    observerRef.current.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
+    observerRef.current.observe(document.body, { childList: true, subtree: true });
   }, [translateDOM]);
 
   const stopObserver = useCallback(() => {
     observerRef.current?.disconnect();
     observerRef.current = null;
-    clearTimeout(debounceRef.current);
+    debouncedFnRef.current = null;
   }, []);
 
-  // ── Main effect ──────────────────────────────────────────────────────────
+  const clearFollowUps = useCallback(() => {
+    followUpTimers.current.forEach(clearTimeout);
+    followUpTimers.current = [];
+  }, []);
+
+  // ── Language change handler ─────────────────────────────────────────────────
   useEffect(() => {
     const handleLanguageChange = async (lng) => {
       const lang = (lng || 'en').split('-')[0];
       currentLangRef.current = lang;
 
       stopObserver();
+      clearFollowUps();
 
-      // Run i18n bundle patching and DOM translation in parallel
-      await Promise.all([
-        patchI18nBundle(lang),
-        translateDOM(lang),
-      ]);
+      await translateDOM(lang);
+      if (lang === 'en') return;
 
-      // Start observer after initial translation so React re-renders get re-translated
-      if (lang !== 'en') startObserver();
+      // Follow-up passes catch async-rendered sections
+      [1000, 3000].forEach(delay => {
+        const t = setTimeout(() => translateDOM(lang), delay);
+        followUpTimers.current.push(t);
+      });
+
+      startObserver();
     };
 
-    // Run for current language on mount
     handleLanguageChange(i18n.language);
 
     i18n.on('languageChanged', handleLanguageChange);
     return () => {
       i18n.off('languageChanged', handleLanguageChange);
       stopObserver();
+      clearFollowUps();
     };
-  }, [i18n, patchI18nBundle, translateDOM, startObserver, stopObserver]);
+  }, [i18n, translateDOM, startObserver, stopObserver, clearFollowUps]);
 
   return null;
-};
-
-const deepMerge = (source, target) => {
-  const result = { ...source };
-  for (const [k, v] of Object.entries(target)) {
-    if (typeof v === 'object' && v !== null && typeof result[k] === 'object') {
-      result[k] = deepMerge(result[k], v);
-    } else {
-      result[k] = v;
-    }
-  }
-  return result;
 };
 
 export default AutoTranslate;

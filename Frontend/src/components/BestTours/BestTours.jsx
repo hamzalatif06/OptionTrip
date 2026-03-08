@@ -191,15 +191,13 @@ const BestTours = () => {
                     <h5 className="theme mb-1"><i className="flaticon-location-pin"></i> {tour.location}</h5>
                     <h3 className="mb-1"><span className="tour-title-link">{tour.title}</span></h3>
                     <div className="rating-main d-flex align-items-center pb-2">
-                      <div className="rating">
-                        {renderStars(tour.rating)}
-                      </div>
-                      <span className="ms-2">({tour.reviews})</span>
+                      <div className="rating">{renderStars(tour.rating)}</div>
                     </div>
-                    <p className="border-b pb-2 mb-2">{tour.description}</p>
+                    <p className="border-b pb-2 mb-2 tour-desc">{tour.description}</p>
                     <div className="entry-meta mb-3">
-                      <div className="entry-author d-flex align-items-center">
-                        <p className="mb-0"><span className="theme fw-bold fs-5"> {formatPrice(tour.price)}</span> | Per person</p>
+                      <div className="d-flex align-items-center justify-content-between">
+                        <p className="mb-0"><span className="theme fw-bold fs-5">{formatPrice(tour.price)}</span><span className="text-muted ms-1" style={{fontSize:'12px'}}>/person</span></p>
+                        <span className="text-muted" style={{fontSize:'12px'}}>({tour.reviews} reviews)</span>
                       </div>
                     </div>
 

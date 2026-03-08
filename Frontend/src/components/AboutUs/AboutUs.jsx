@@ -30,7 +30,7 @@ const AboutUs = () => {
     <section className="about-us pb-6 pt-6" style={{backgroundImage: `url(/images/shape4.png)`, backgroundPosition: 'center'}}>
       <div className="container">
         <div className="section-title mb-6 w-50 mx-auto text-center">
-          <h4 className="mb-1 theme1">3 Step of The Perfect Tour</h4>
+          <h4 className="mb-1 theme1">3 Steps to the Perfect Tour</h4>
           <h2 className="mb-1">Find <span className="theme">Travel Perfection</span></h2>
           <p>Planning your perfect trip is simple with our AI-powered platform. Just three easy steps to your personalized travel experience.</p>
         </div>

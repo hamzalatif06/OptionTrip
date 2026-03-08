@@ -6,9 +6,9 @@ import './OfferPackages.css';
 const OfferPackages = () => {
   const { formatPrice } = useCurrency();
   const offers = [
-    { location: 'Croatia', title: 'Piazza Castello', days: 9, rating: 5, reviews: 12, price: 170, discount: '20% OFF', image: '/images/trending/trending3.jpg' },
-    { location: 'Greece', title: 'Santorini, Oia', days: 9, rating: 5, reviews: 38, price: 180, discount: '30% OFF', image: '/images/trending/trending1.jpg' },
-    { location: 'Maldives', title: 'Hurawalhi Island', days: 9, rating: 5, reviews: 18, price: 260, discount: '15% OFF', image: '/images/trending/trending2.jpg' }
+    { location: 'Croatia', title: 'Piazza Castello', days: 9, rating: 5, reviews: 12, price: 170, discount: '20% OFF', image: '/images/trending/trending3.jpg', tag: 'Medieval old town & crystal Adriatic waters' },
+    { location: 'Greece', title: 'Santorini, Oia', days: 9, rating: 5, reviews: 38, price: 180, discount: '30% OFF', image: '/images/trending/trending1.jpg', tag: 'Iconic blue domes & Aegean sunsets' },
+    { location: 'Maldives', title: 'Hurawalhi Island', days: 9, rating: 5, reviews: 18, price: 260, discount: '15% OFF', image: '/images/trending/trending2.jpg', tag: 'Overwater villas & pristine coral reefs' }
   ];
 
   const renderStars = (rating) => {
@@ -22,7 +22,7 @@ const OfferPackages = () => {
       <div className="container">
         <div className="section-title mb-6 w-75 mx-auto text-center">
           <h4 className="mb-1 theme1">Top Offers</h4>
-          <h2 className="mb-1">Special <span className="theme">Offers & Discount </span> Packages</h2>
+          <h2 className="mb-1">Special <span className="theme">Offers & Discount</span> Packages</h2>
           <p>Take advantage of our exclusive offers and discounts on premium travel packages. Limited-time deals on unforgettable experiences.</p>
         </div>
         <div className="trend-box">
@@ -50,10 +50,11 @@ const OfferPackages = () => {
                       </div>
                       <span className="ms-2">({offer.reviews})</span>
                     </div>
-                    <p className="border-b pb-2 mb-2">Enjoy premium accommodations, expert guides, and carefully curated experiences in this exclusive destination.</p>
+                    <p className="border-b pb-2 mb-2 tour-desc" style={{fontSize:'13px',color:'#64748b'}}>{offer.tag}</p>
                     <div className="entry-meta">
-                      <div className="entry-author d-flex align-items-center">
-                        <p className="mb-0"><span className="theme fw-bold fs-5"> {formatPrice(offer.price)}</span> | Per person</p>
+                      <div className="d-flex align-items-center justify-content-between">
+                        <p className="mb-0"><span className="theme fw-bold fs-5">{formatPrice(offer.price)}</span><span className="text-muted ms-1" style={{fontSize:'12px'}}>/person</span></p>
+                        <span className="text-muted" style={{fontSize:'12px'}}>({offer.reviews} reviews)</span>
                       </div>
                     </div>
                   </div>

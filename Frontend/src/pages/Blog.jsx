@@ -78,7 +78,7 @@ const Blog = () => {
       <section className="blog-listing-section">
         <div className="container">
           <div className="section-title mb-6 w-75 mx-auto text-center">
-            <h4 className="mb-1 theme1">Our Blogs Offers</h4>
+            <h4 className="mb-1 theme1">From Our Blog</h4>
             <h2 className="mb-1">
               Recent <span className="theme">Articles &amp; Posts</span>
             </h2>

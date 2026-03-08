@@ -131,6 +131,18 @@
   }
 }
 
+/* Clamped description — consistent card height */
+.tour-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.5;
+  min-height: 3em;  /* 2 lines × 1.5 line-height */
+  font-size: 13.5px;
+  color: #64748b;
+}
+
 /* Responsive */
 @media (max-width: 576px) {
   .tour-quick-book {

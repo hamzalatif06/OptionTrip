@@ -1,11 +1,5 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-
-function ScrollToTop() {
-  const { pathname } = useLocation();
-  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
-  return null;
-}
 import { AuthProvider } from './contexts/AuthContext';
 import { LocaleProvider } from './contexts/LocaleContext';
 import { ToastContainer } from 'react-toastify';
@@ -29,6 +23,12 @@ import PlannedTripPage from './pages/PlannedTripPage/PlannedTripPage';
 import MyTripsPage from './pages/MyTripsPage/MyTripsPage';
 import ProfilePage from './pages/ProfilePage/ProfilePage';
 import AutoTranslate from './components/AutoTranslate/AutoTranslate';
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+}
 
 function App() {
   useEffect(() => {

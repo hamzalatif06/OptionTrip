@@ -12,10 +12,10 @@ const LastMinuteDeals = () => {
   ];
 
   const smallDeals = [
-    { country: 'Spain', title: 'Barcelona city beach', days: 4, rating: 5, reviews: 21, price: 220, image: '/images/trending/trending1.jpg' },
-    { country: 'Indonesia', title: 'Bali Province', days: 7, rating: 5, reviews: 11, price: 210, image: '/images/trending/trending2.jpg' },
-    { country: 'Russia', title: 'Red City Land', days: 3, rating: 5, reviews: 25, price: 120, image: '/images/trending/trending3.jpg' },
-    { country: 'Bangladesh', title: "Cox's bazar Beach", days: 5, rating: 5, reviews: 32, price: 100, image: '/images/trending/trending4.jpg' }
+    { country: 'Spain', title: 'Barcelona City Beach', days: 4, rating: 5, reviews: 21, price: 220, image: '/images/trending/trending1.jpg', tag: 'Sun, tapas & Gaudí architecture' },
+    { country: 'Indonesia', title: 'Bali Province', days: 7, rating: 5, reviews: 11, price: 210, image: '/images/trending/trending2.jpg', tag: 'Rice terraces, temples & surf' },
+    { country: 'Russia', title: 'Red City Land', days: 3, rating: 5, reviews: 25, price: 120, image: '/images/trending/trending3.jpg', tag: 'History, art & Soviet grandeur' },
+    { country: 'Bangladesh', title: "Cox's Bazar Beach", days: 5, rating: 5, reviews: 32, price: 100, image: '/images/trending/trending4.jpg', tag: 'World\'s longest natural sea beach' }
   ];
 
   const renderStars = (rating) => {
@@ -50,7 +50,7 @@ const LastMinuteDeals = () => {
                       </div>
                       <div className="entry-meta d-flex align-items-center justify-content-between">
                         <div className="entry-author d-flex align-items-center">
-                          <p className="mb-0 white"><span className="theme1 fw-bold fs-5"> {formatPrice(deal.price)}</span> | Per person</p>
+                          <p className="mb-0 white"><span className="theme1 fw-bold fs-5">{formatPrice(deal.price)}</span><span className="ms-1 white" style={{fontSize:'12px',opacity:0.85}}>/person</span></p>
                         </div>
                         <div className="entry-author">
                           <i className="icon-calendar white"></i>
@@ -87,10 +87,11 @@ const LastMinuteDeals = () => {
                           </div>
                           <span className="ms-2">({deal.reviews})</span>
                         </div>
-                        <p className="border-b pb-2 mb-2">Experience breathtaking landscapes, rich cultural heritage, and unforgettable adventures in this stunning destination.</p>
+                        <p className="border-b pb-2 mb-2 tour-desc" style={{fontSize:'13px',color:'#64748b'}}>{deal.tag}</p>
                         <div className="entry-meta">
-                          <div className="entry-author d-flex align-items-center">
-                            <p className="mb-0"><span className="theme fw-bold fs-5"> {formatPrice(deal.price)}</span> | Per person</p>
+                          <div className="d-flex align-items-center justify-content-between">
+                            <p className="mb-0"><span className="theme fw-bold fs-5">{formatPrice(deal.price)}</span><span className="text-muted ms-1" style={{fontSize:'12px'}}>/person</span></p>
+                            <span className="text-muted" style={{fontSize:'12px'}}>({deal.reviews} reviews)</span>
                           </div>
                         </div>
                       </div>

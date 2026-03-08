@@ -1,20 +1,25 @@
 /**
- * LibreTranslate frontend service
- * - In-memory cache for the session (instant repeat lookups)
- * - localStorage cache persisted across page loads
- * - Graceful fallback: returns original text on any error
+ * Translation Service
+ *
+ * Calls Google Translate's free client=gtx endpoint directly from the browser.
+ * - No backend proxy needed → faster, no extra failure point
+ * - localStorage cache persists across sessions (instant load on repeat visits)
+ * - In-memory Map for zero-latency repeat lookups within a session
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const LS_KEY = 'ot_lt_cache';
+const GOOGLE_URL = 'https://translate.googleapis.com/translate_a/single';
+const LS_KEY = 'ot_translate_cache';
+const MAX_CACHE = 3000;
 
-// In-memory cache: `${source}:${target}:${text}` → translated
+// ── Cache ────────────────────────────────────────────────────────────────────
+
+// In-memory: `${source}:${target}:${text}` → translated
 const memCache = new Map();
 
-// Load localStorage cache into memory on startup
+// Load localStorage into memory on startup
 try {
   const stored = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
-  Object.entries(stored).forEach(([k, v]) => memCache.set(k, v));
+  for (const [k, v] of Object.entries(stored)) memCache.set(k, v);
 } catch {
   // ignore
 }
@@ -22,41 +27,47 @@ try {
 const persistCache = () => {
   try {
     const obj = {};
-    // Only persist entries from the last session (keep cache small)
-    let count = 0;
+    let n = 0;
     for (const [k, v] of memCache) {
       obj[k] = v;
-      if (++count > 2000) break; // cap at 2000 entries
+      if (++n >= MAX_CACHE) break;
     }
     localStorage.setItem(LS_KEY, JSON.stringify(obj));
   } catch {
-    // ignore quota errors
+    // quota exceeded — clear old cache and retry
+    try {
+      localStorage.removeItem(LS_KEY);
+    } catch {}
   }
 };
 
+// ── Google Translate call ─────────────────────────────────────────────────────
+
+const callGoogle = async (text, source, target) => {
+  const url = `${GOOGLE_URL}?client=gtx&sl=${encodeURIComponent(source)}&tl=${encodeURIComponent(target)}&dt=t&q=${encodeURIComponent(text)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Google Translate HTTP ${res.status}`);
+  const data = await res.json();
+  // Response: [ [ [translated_chunk, original], ... ], null, source ]
+  return (data[0] || []).map(item => (item[0] || '')).join('').trim() || text;
+};
+
+// ── Public API ────────────────────────────────────────────────────────────────
+
 /**
- * Translate a single string from source to target language.
- * Returns the original text if translation fails or language is 'en'.
+ * Translate a single string. Returns original on error.
  */
 export const translateText = async (text, targetLang, sourceLang = 'en') => {
-  if (!text?.trim()) return text;
+  const t = text?.trim();
+  if (!t) return text;
   const target = (targetLang || 'en').split('-')[0];
   if (target === sourceLang || target === 'en') return text;
 
-  const key = `${sourceLang}:${target}:${text}`;
+  const key = `${sourceLang}:${target}:${t}`;
   if (memCache.has(key)) return memCache.get(key);
 
   try {
-    const res = await fetch(`${API_BASE}/api/translate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q: text, source: sourceLang, target }),
-    });
-
-    if (!res.ok) return text;
-
-    const data = await res.json();
-    const translated = data.translatedText || text;
+    const translated = await callGoogle(t, sourceLang, target);
     memCache.set(key, translated);
     persistCache();
     return translated;
@@ -66,99 +77,89 @@ export const translateText = async (text, targetLang, sourceLang = 'en') => {
 };
 
 /**
- * Translate multiple strings in a single backend call.
- * Returns the original array on any failure.
+ * Translate multiple strings in parallel.
+ * Cached strings resolve instantly; only uncached strings hit the network.
  */
 export const translateBatch = async (texts, targetLang, sourceLang = 'en') => {
   if (!texts?.length) return texts;
   const target = (targetLang || 'en').split('-')[0];
   if (target === sourceLang || target === 'en') return texts;
 
-  // Split into cached vs uncached
   const results = new Array(texts.length);
-  const uncachedIndices = [];
-  const uncachedTexts = [];
+  const toFetch = [];   // { idx, text }
 
-  texts.forEach((text, i) => {
-    const key = `${sourceLang}:${target}:${text}`;
+  for (let i = 0; i < texts.length; i++) {
+    const t = texts[i]?.trim();
+    const key = `${sourceLang}:${target}:${t}`;
     if (memCache.has(key)) {
       results[i] = memCache.get(key);
     } else {
-      uncachedIndices.push(i);
-      uncachedTexts.push(text);
+      toFetch.push({ idx: i, text: t });
     }
-  });
+  }
 
-  if (uncachedTexts.length > 0) {
-    try {
-      const res = await fetch(`${API_BASE}/api/translate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ q: uncachedTexts, source: sourceLang, target }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const translated = data.translatedTexts || uncachedTexts;
-        translated.forEach((t, i) => {
-          const origIndex = uncachedIndices[i];
-          results[origIndex] = t;
-          memCache.set(`${sourceLang}:${target}:${texts[origIndex]}`, t);
-        });
-        persistCache();
-      } else {
-        // Fallback for uncached
-        uncachedIndices.forEach((origIdx, i) => {
-          results[origIdx] = uncachedTexts[i];
-        });
-      }
-    } catch {
-      uncachedIndices.forEach((origIdx, i) => {
-        results[origIdx] = uncachedTexts[i];
-      });
-    }
+  if (toFetch.length > 0) {
+    // Translate uncached strings in parallel
+    await Promise.all(
+      toFetch.map(async ({ idx, text }) => {
+        try {
+          const translated = await callGoogle(text, sourceLang, target);
+          const key = `${sourceLang}:${target}:${text}`;
+          memCache.set(key, translated);
+          results[idx] = translated;
+        } catch {
+          results[idx] = texts[idx]; // fallback to original
+        }
+      })
+    );
+    persistCache();
   }
 
   return results;
 };
 
 /**
- * Translate all keys from the English i18n bundle that are missing
- * in the target language bundle. Returns a flat object of key → translated value.
+ * Get a cached translation without any API call.
+ * Returns null if not cached.
+ */
+export const getCached = (text, targetLang, sourceLang = 'en') => {
+  const t = text?.trim();
+  if (!t) return null;
+  const target = (targetLang || 'en').split('-')[0];
+  const key = `${sourceLang}:${target}:${t}`;
+  return memCache.has(key) ? memCache.get(key) : null;
+};
+
+/**
+ * Returns true if the cache has every string in the list for this language.
+ */
+export const isFullyCached = (texts, targetLang, sourceLang = 'en') => {
+  const target = (targetLang || 'en').split('-')[0];
+  return texts.every(t => memCache.has(`${sourceLang}:${target}:${t?.trim()}`));
+};
+
+/**
+ * Translate missing i18n keys.
  */
 export const translateMissingKeys = async (enBundle, targetBundle, targetLang) => {
   const target = (targetLang || 'en').split('-')[0];
   if (target === 'en') return {};
 
-  // Flatten nested JSON object to dot-notation keys
-  const flatten = (obj, prefix = '') => {
-    return Object.entries(obj).reduce((acc, [k, v]) => {
-      const fullKey = prefix ? `${prefix}.${k}` : k;
-      if (typeof v === 'object' && v !== null) {
-        Object.assign(acc, flatten(v, fullKey));
-      } else {
-        acc[fullKey] = String(v);
-      }
+  const flatten = (obj, prefix = '') =>
+    Object.entries(obj).reduce((acc, [k, v]) => {
+      const full = prefix ? `${prefix}.${k}` : k;
+      if (typeof v === 'object' && v !== null) Object.assign(acc, flatten(v, full));
+      else acc[full] = String(v);
       return acc;
     }, {});
-  };
 
   const flatEn = flatten(enBundle);
   const flatTarget = flatten(targetBundle);
+  const missingKeys = Object.keys(flatEn).filter(k => !flatTarget[k] || flatTarget[k] === flatEn[k]);
+  if (!missingKeys.length) return {};
 
-  // Find keys present in English but missing or empty in target
-  const missingKeys = Object.keys(flatEn).filter(
-    k => !flatTarget[k] || flatTarget[k] === flatEn[k]
-  );
-
-  if (missingKeys.length === 0) return {};
-
-  const enValues = missingKeys.map(k => flatEn[k]);
-  const translated = await translateBatch(enValues, target);
-
+  const translated = await translateBatch(missingKeys.map(k => flatEn[k]), target);
   const result = {};
-  missingKeys.forEach((k, i) => {
-    result[k] = translated[i];
-  });
+  missingKeys.forEach((k, i) => { result[k] = translated[i]; });
   return result;
 };

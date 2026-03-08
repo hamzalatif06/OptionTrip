@@ -21,8 +21,8 @@ const Testimonials = () => {
     <section className="testimonial pt-9" style={{backgroundImage: `url(/images/testimonial.png)`}}>
       <div className="container">
         <div className="section-title mb-6 text-center w-75 mx-auto">
-          <h4 className="mb-1 theme1">Our Testimonails</h4>
-          <h2 className="mb-1">Good Reviews By <span className="theme">Clients</span></h2>
+          <h4 className="mb-1 theme1">Our Testimonials</h4>
+          <h2 className="mb-1">Loved by <span className="theme">Our Travelers</span></h2>
           <p>Discover how our AI-powered trip planner has transformed travel experiences for thousands of satisfied customers worldwide.</p>
         </div>
         <div className="row align-items-center">
