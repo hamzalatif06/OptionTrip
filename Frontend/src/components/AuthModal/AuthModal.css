@@ -225,6 +225,9 @@
 
 /* Submit Button */
 .auth-modal__submit {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -233,17 +236,34 @@
   background: linear-gradient(135deg, #029e9d 0%, #027a79 100%);
   color: #fff;
   border: none;
-  border-radius: 10px;
+  border-radius: 5px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all ease-in-out 0.5s;
   margin-top: 8px;
 }
 
+.auth-modal__submit::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 100%;
+  background: #fdc703;
+  transition: all ease-in-out 0.5s;
+  z-index: -1;
+}
+
+.auth-modal__submit:hover:not(:disabled)::before {
+  width: 100%;
+}
+
 .auth-modal__submit:hover:not(:disabled) {
+  color: #fff !important;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(2, 158, 157, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .auth-modal__submit:disabled {

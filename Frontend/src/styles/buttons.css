@@ -1,0 +1,120 @@
+/* ──────────────────────────────────────────────────────
+   Shared button styles — same hover effect as header
+   Contact Us (.nir-btn): yellow fill slides in + lift
+   ────────────────────────────────────────────────────── */
+
+/* Primary gradient button */
+.btn-main {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  background: linear-gradient(135deg, #0A539D, #029e9d);
+  color: #fff !important;
+  padding: 14px 40px;
+  border-radius: 5px;
+  font-weight: 700;
+  font-size: 16px;
+  text-decoration: none !important;
+  overflow: hidden;
+  transition: all ease-in-out 0.5s;
+  border: none;
+  cursor: pointer;
+}
+.btn-main::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 100%;
+  background: #fdc703;
+  transition: all ease-in-out 0.5s;
+  z-index: -1;
+}
+.btn-main:hover::before { width: 100%; }
+.btn-main:hover {
+  color: #fff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  text-decoration: none !important;
+}
+
+/* White button (for use on dark/gradient backgrounds) */
+.btn-white {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  background: #fff;
+  color: #029e9d !important;
+  padding: 14px 40px;
+  border-radius: 5px;
+  font-weight: 700;
+  font-size: 16px;
+  text-decoration: none !important;
+  overflow: hidden;
+  transition: all ease-in-out 0.5s;
+  border: none;
+  cursor: pointer;
+}
+.btn-white::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 100%;
+  background: #fdc703;
+  transition: all ease-in-out 0.5s;
+  z-index: -1;
+}
+.btn-white:hover::before { width: 100%; }
+.btn-white:hover {
+  color: #fff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  text-decoration: none !important;
+}
+
+/* Outline button (transparent bg, teal border) */
+.btn-outline {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  background: transparent;
+  color: #fff;
+  padding: 14px 40px;
+  border-radius: 5px;
+  font-weight: 700;
+  font-size: 16px;
+  text-decoration: none !important;
+  overflow: hidden;
+  transition: all ease-in-out 0.5s;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+}
+.btn-outline::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 100%;
+  background: #fdc703;
+  transition: all ease-in-out 0.5s;
+  z-index: -1;
+}
+.btn-outline:hover::before { width: 100%; }
+.btn-outline:hover {
+  color: #fff !important;
+  border-color: #fdc703;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  text-decoration: none !important;
+}
+
+/* Small variant — combine with any of the above */
+.btn-sm-page {
+  padding: 9px 20px !important;
+  font-size: 14px !important;
+  border-radius: 5px !important;
+}

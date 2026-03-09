@@ -50,8 +50,11 @@
 }
 
 .footer-subscribe-btn {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
   padding: 12px 28px;
-  border-radius: 50px;
+  border-radius: 5px;
   border: 2px solid #fff;
   background: transparent;
   color: #fff;
@@ -59,13 +62,31 @@
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
-  transition: background 0.2s, color 0.2s;
+  transition: all ease-in-out 0.5s;
   white-space: nowrap;
 }
 
+.footer-subscribe-btn::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 100%;
+  background: #fdc703;
+  transition: all ease-in-out 0.5s;
+  z-index: -1;
+}
+
+.footer-subscribe-btn:hover::before {
+  width: 100%;
+}
+
 .footer-subscribe-btn:hover {
-  background: #fff;
-  color: #0A539D;
+  color: #fff !important;
+  border-color: #fdc703;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .footer-subscribe-success {

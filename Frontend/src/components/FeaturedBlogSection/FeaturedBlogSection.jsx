@@ -137,14 +137,7 @@ const FeaturedBlogSection = () => {
 
         {/* CTA */}
         <div className="text-center mt-5">
-          <a
-            href="https://blog.optiontrip.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="nir-btn"
-          >
-            View All Articles
-          </a>
+          <Link to="/blog" className="nir-btn">View All Articles</Link>
         </div>
       </div>
     </section>

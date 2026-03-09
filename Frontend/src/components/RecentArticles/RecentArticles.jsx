@@ -125,14 +125,7 @@ const RecentArticles = () => {
         {/* View More */}
         {!loading && posts.length > 0 && (
           <div className="text-center mt-4">
-            <a
-              href="https://blog.optiontrip.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="nir-btn"
-            >
-              View All Posts
-            </a>
+            <Link to="/blog" className="nir-btn">View All Posts</Link>
           </div>
         )}
       </div>

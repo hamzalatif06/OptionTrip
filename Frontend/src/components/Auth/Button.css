@@ -6,11 +6,11 @@
   justify-content: center;
   gap: 10px;
   border: none;
-  border-radius: 12px;
+  border-radius: 5px;
   font-family: var(--font-primary);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all ease-in-out 0.5s;
   text-align: center;
   white-space: nowrap;
   position: relative;
@@ -27,12 +27,29 @@
   background: linear-gradient(135deg, #F30F89 0%, #d00d75 100%);
   color: #fff;
   box-shadow: 0 4px 12px rgba(243, 15, 137, 0.2);
+  z-index: 1;
+}
+
+.auth-button-primary::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 100%;
+  background: #fdc703;
+  transition: all ease-in-out 0.5s;
+  z-index: -1;
+}
+
+.auth-button-primary:hover:not(:disabled)::before {
+  width: 100%;
 }
 
 .auth-button-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #d00d75 0%, #b00c65 100%);
-  box-shadow: 0 6px 16px rgba(243, 15, 137, 0.3);
+  color: #fff !important;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .auth-button-primary:active:not(:disabled) {
@@ -72,7 +89,7 @@
 .auth-button-small {
   padding: 8px 16px;
   font-size: 14px;
-  border-radius: 10px;
+  border-radius: 5px;
 }
 
 .auth-button-medium {
@@ -83,7 +100,7 @@
 .auth-button-large {
   padding: 16px 32px;
   font-size: 16px;
-  border-radius: 14px;
+  border-radius: 5px;
 }
 
 /* Full Width */

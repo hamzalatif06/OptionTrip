@@ -93,7 +93,11 @@ const LanguageSwitcher = () => {
         aria-label={t('common.language')}
         aria-expanded={isOpen}
       >
-        <span>{currentLanguage.name}</span>
+        <span className="language-switcher-icon">🌐</span>
+        <span className="language-switcher-label">
+          <span className="language-switcher-sub">Language</span>
+          <span className="language-switcher-value">{currentLanguage.name}</span>
+        </span>
         <svg
           className={`language-switcher-arrow ${isOpen ? 'open' : ''}`}
           width="12"

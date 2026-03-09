@@ -508,28 +508,47 @@
 }
 
 .search-button {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   width: 100%;
-  padding: 18px 36px;
+  padding: 8px 15px;
   background: linear-gradient(135deg, #0A539D 0%, #029e9d 100%);
   color: white;
   border: none;
-  border-radius: 16px;
-  font-size: 19px;
+  border-radius: 5px;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all ease-in-out 0.5s;
   box-shadow: 0 6px 24px rgba(10, 83, 157, 0.35);
   letter-spacing: 0.01em;
 }
 
+.search-button::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 100%;
+  background: #fdc703;
+  transition: all ease-in-out 0.5s;
+  z-index: -1;
+}
+
+.search-button:hover::before {
+  width: 100%;
+}
+
 .search-button:hover {
-  background: linear-gradient(135deg, #083f7a 0%, #027a79 100%);
+  color: #fff !important;
   transform: translateY(-2px);
-  box-shadow: 0 10px 32px rgba(10, 83, 157, 0.45);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .search-button:active {
@@ -729,15 +748,15 @@
   display: inline-flex;
   align-items: center;
   padding: 5px 13px;
-  border: 1px solid #C2CAD2;
   border-radius: 50px;
-  background: #fff;
-  font-size: 13px;
+  background-color: #EAF4FF  !important;
+  font-size: 12px;
+  font-family: poppins !important;
   font-weight: 500;
-  color: #596C7E;
+  color: #0A539D !important;
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s, background 0.2s;
   font-family: inherit;
+  
 }
 
 .example-chip:hover {

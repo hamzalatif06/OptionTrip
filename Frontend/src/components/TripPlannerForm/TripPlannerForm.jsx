@@ -448,20 +448,6 @@ const TripPlannerForm = () => {
           ))}
         </div>
 
-        {/* AI detected chips */}
-        {detectedChips.length > 0 && (
-          <div className="ai-detected-bar">
-            <span className="ai-detected-label">AI detected:</span>
-            <div className="ai-chips">
-              {detectedChips.map((chip, i) => (
-                <span key={i} className="ai-chip">
-                  <span className="ai-chip-icon">{chip.icon}</span>
-                  {chip.label}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
 
         {errors.description && <span className="error-message">{errors.description}</span>}
       </div>

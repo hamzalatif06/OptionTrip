@@ -89,8 +89,8 @@ const Footer = () => {
                 <h4 className="footer-col-title">Company</h4>
                 <ul className="footer-col-links">
                   <li><Link to="/about">About Option Trip</Link></li>
-                  <li><Link to="/#how-it-works">How It Works</Link></li>
-                  <li><Link to="/#vi">TravelBuddy (VI)</Link></li>
+                  <li><Link to="/how-it-works">How It Works</Link></li>
+                  <li><Link to="/travel-buddy">TravelBuddy (VI)</Link></li>
                   <li><a href="https://blog.optiontrip.com" target="_blank" rel="noopener noreferrer">Blog</a></li>
                   <li><a href="mailto:optiontripcom@gmail.com">Contact Us</a></li>
                 </ul>
@@ -101,10 +101,10 @@ const Footer = () => {
                 <h4 className="footer-col-title">Travel</h4>
                 <ul className="footer-col-links">
                   <li><Link to="/destinations">Explore Destinations</Link></li>
-                  <li><Link to="/tours">Trip Ideas</Link></li>
-                  <li><Link to="/tours">Travel Map</Link></li>
-                  <li><Link to="/tours">Popular Routes</Link></li>
-                  <li><Link to="/tours">Travel Tips</Link></li>
+                  <li><Link to="/trip-ideas">Trip Ideas</Link></li>
+                  <li><Link to="/travel-map">Travel Map</Link></li>
+                  <li><Link to="/popular-routes">Popular Routes</Link></li>
+                  <li><Link to="/travel-tips">Travel Tips</Link></li>
                 </ul>
               </div>
 
@@ -112,7 +112,7 @@ const Footer = () => {
               <div className="footer-col">
                 <h4 className="footer-col-title">Support</h4>
                 <ul className="footer-col-links">
-                  <li><a href="mailto:optiontripcom@gmail.com">Help Center</a></li>
+                  <li><Link to="/help-center">Help Center</Link></li>
                   <li><a href="mailto:optiontripcom@gmail.com">Contact Support</a></li>
                   <li><a href="mailto:optiontripcom@gmail.com">Travel Questions</a></li>
                   <li><a href="mailto:optiontripcom@gmail.com">Feedback</a></li>
@@ -123,10 +123,10 @@ const Footer = () => {
               <div className="footer-col">
                 <h4 className="footer-col-title">Legal</h4>
                 <ul className="footer-col-links">
-                  <li><a href="#privacy">Privacy Policy</a></li>
-                  <li><a href="#terms">Terms of Service</a></li>
-                  <li><a href="#cookies">Cookie Policy</a></li>
-                  <li><a href="#data">Data Protection</a></li>
+                  <li><Link to="/privacy-policy">Privacy Policy</Link></li>
+                  <li><Link to="/terms">Terms of Service</Link></li>
+                  <li><Link to="/cookie-policy">Cookie Policy</Link></li>
+                  <li><Link to="/data-protection">Data Protection</Link></li>
                 </ul>
               </div>
 

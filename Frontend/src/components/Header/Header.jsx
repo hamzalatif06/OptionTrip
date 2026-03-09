@@ -236,7 +236,7 @@ const Header = () => {
             <div className="navbar-flex d-flex align-items-center justify-content-between w-100 pb-3 pt-3">
               <div className="navbar-header">
                 <Link className="navbar-brand" to="/">
-                  <img src="/images/newLogo.png" alt="OptionTrip" style={{ height: '87px' }} />
+                  <img src="/images/newLogo.png" alt="OptionTrip" style={{ height: '70px' }} />
                 </Link>
               </div>
 

@@ -7,6 +7,7 @@ import './i18n'; // Initialize i18n
 import './App.css';
 import 'react-toastify/dist/ReactToastify.css';
 import './styles/toast-custom.css';
+import './styles/buttons.css';
 import Layout from './components/Layout/Layout';
 import Home from './pages/Home';
 import About from './pages/About';
@@ -23,6 +24,17 @@ import PlannedTripPage from './pages/PlannedTripPage/PlannedTripPage';
 import MyTripsPage from './pages/MyTripsPage/MyTripsPage';
 import ProfilePage from './pages/ProfilePage/ProfilePage';
 import AutoTranslate from './components/AutoTranslate/AutoTranslate';
+import TravelBuddyPage from './pages/TravelBuddyPage';
+import HowItWorksPage from './pages/HowItWorksPage';
+import TripIdeasPage from './pages/TripIdeasPage';
+import TravelMapPage from './pages/TravelMapPage';
+import PopularRoutesPage from './pages/PopularRoutesPage';
+import TravelTipsPage from './pages/TravelTipsPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
+import CookiePolicyPage from './pages/CookiePolicyPage';
+import DataProtectionPage from './pages/DataProtectionPage';
+import HelpCenterPage from './pages/HelpCenterPage';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -86,6 +98,25 @@ function App() {
                   <Route path="/blog" element={<Blog />} />
                   <Route path="/blog/:slug" element={<BlogDetail />} />
                   <Route path="/contact" element={<Contact />} />
+
+                  {/* Company */}
+                  <Route path="/travel-buddy" element={<TravelBuddyPage />} />
+                  <Route path="/how-it-works" element={<HowItWorksPage />} />
+
+                  {/* Travel */}
+                  <Route path="/trip-ideas" element={<TripIdeasPage />} />
+                  <Route path="/travel-map" element={<TravelMapPage />} />
+                  <Route path="/popular-routes" element={<PopularRoutesPage />} />
+                  <Route path="/travel-tips" element={<TravelTipsPage />} />
+
+                  {/* Legal */}
+                  <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                  <Route path="/terms" element={<TermsOfServicePage />} />
+                  <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+                  <Route path="/data-protection" element={<DataProtectionPage />} />
+
+                  {/* Support */}
+                  <Route path="/help-center" element={<HelpCenterPage />} />
                 </Routes>
               </Layout>
             } />

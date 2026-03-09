@@ -8,17 +8,17 @@
 
 .footer-select-btn {
   width: 100%;
-  padding: 10px 36px 10px 12px;
+  padding: 8px 35px 8px 12px;
   background: rgba(255,255,255,0.08);
   border: 1px solid rgba(255,255,255,0.22);
-  border-radius: 6px;
+  border-radius: 4px;
   color: #fff;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 10px;
   text-align: left;
-  min-height: 48px;
+  min-height: 40px;
   transition: background 0.2s, border-color 0.2s;
   position: relative;
 }
