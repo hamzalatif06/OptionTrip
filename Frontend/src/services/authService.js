@@ -106,18 +106,15 @@ const authenticatedFetch = async (url, options = {}) => {
 };
 
 /**
- * Register new user
+ * Initiate registration — sends OTP to email
  * @param {Object} userData - { name, email, password, phoneNumber }
- * @returns {Promise} { user, accessToken }
+ * @returns {Promise} { email }
  */
 export const register = async (userData) => {
   try {
     const response = await fetch(`${AUTH_API}/signup`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       credentials: 'include',
       body: JSON.stringify(userData),
     });
@@ -128,17 +125,67 @@ export const register = async (userData) => {
       throw new Error(data.message || data.error?.message || 'Registration failed');
     }
 
-    // Store token and user data
-    if (data.data.accessToken) {
-      setAccessToken(data.data.accessToken);
+    return data.data; // { email }
+  } catch (error) {
+    console.error('Registration error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Verify OTP and complete registration
+ * @param {string} email
+ * @param {string} otp
+ * @returns {Promise} { user, accessToken }
+ */
+export const verifyOtp = async (email, otp) => {
+  try {
+    const response = await fetch(`${AUTH_API}/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email, otp }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'OTP verification failed');
     }
-    if (data.data.user) {
-      setUser(data.data.user);
-    }
+
+    if (data.data.accessToken) setAccessToken(data.data.accessToken);
+    if (data.data.user) setUser(data.data.user);
 
     return data.data;
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('OTP verification error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Resend OTP email
+ * @param {string} email
+ * @returns {Promise} { message }
+ */
+export const resendOtp = async (email) => {
+  try {
+    const response = await fetch(`${AUTH_API}/resend-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to resend OTP');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Resend OTP error:', error);
     throw error;
   }
 };
@@ -491,6 +538,8 @@ export const unlinkProvider = async (provider) => {
 export default {
   // Authentication
   register,
+  verifyOtp,
+  resendOtp,
   login,
   logout,
   refreshAccessToken,

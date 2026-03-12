@@ -9,7 +9,13 @@ import './Signup.css';
 
 const Signup = () => {
   const navigate = useNavigate();
-  const { register, loginWithOAuth } = useAuth();
+  const { register, verifyOtp, resendOtp, loginWithOAuth } = useAuth();
+  const [step, setStep] = useState('form'); // 'form' | 'otp'
+  const [pendingEmail, setPendingEmail] = useState('');
+  const [otpValue, setOtpValue] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpError, setOtpError] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -86,9 +92,7 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setLoading(true);
 
@@ -103,11 +107,11 @@ const Signup = () => {
 
       const result = await register(userData);
 
-      if (result.success) {
-        setTimeout(() => {
-          navigate('/');
-        }, 500);
-      } else {
+      if (result.success && result.requiresOtp) {
+        setPendingEmail(result.email);
+        setStep('otp');
+        startResendCooldown();
+      } else if (!result.success) {
         setErrors({ general: result.error });
       }
     } catch (error) {
@@ -118,6 +122,40 @@ const Signup = () => {
     }
   };
 
+  const startResendCooldown = () => {
+    setResendCooldown(60);
+    const interval = setInterval(() => {
+      setResendCooldown(prev => {
+        if (prev <= 1) { clearInterval(interval); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const handleOtpSubmit = async (e) => {
+    e.preventDefault();
+    if (otpValue.length !== 6) {
+      setOtpError('Please enter the 6-digit code');
+      return;
+    }
+    setOtpLoading(true);
+    setOtpError('');
+    const result = await verifyOtp(pendingEmail, otpValue);
+    if (result.success) {
+      navigate('/');
+    } else {
+      setOtpError(result.error || 'Invalid OTP');
+      setOtpLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
+    setOtpError('');
+    const result = await resendOtp(pendingEmail);
+    if (result.success) startResendCooldown();
+  };
+
   const handleSocialSignup = (provider) => {
     try {
       loginWithOAuth(provider);
@@ -126,6 +164,92 @@ const Signup = () => {
       showErrorToast(`Failed to signup with ${provider}`);
     }
   };
+
+  if (step === 'otp') {
+    return (
+      <div className="auth-page">
+        <div className="auth-container signup-container">
+          <div className="auth-form-section">
+            <div className="auth-form-wrapper">
+              <div className="auth-logo">
+                <img src="/images/newLogo.png" alt="OptionTrip" />
+              </div>
+
+              <div className="auth-header">
+                <h1 className="auth-title">Check your email</h1>
+                <p className="auth-subtitle">
+                  We sent a 6-digit code to <strong>{pendingEmail}</strong>
+                </p>
+              </div>
+
+              <form onSubmit={handleOtpSubmit} className="auth-form">
+                <div className="otp-input-wrapper">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={otpValue}
+                    onChange={e => {
+                      setOtpError('');
+                      setOtpValue(e.target.value.replace(/\D/g, '').slice(0, 6));
+                    }}
+                    placeholder="000000"
+                    className="otp-input"
+                    autoFocus
+                  />
+                  {otpError && <p className="auth-input-error" style={{ marginTop: 8 }}>{otpError}</p>}
+                </div>
+
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="large"
+                  fullWidth
+                  loading={otpLoading}
+                >
+                  Verify Email
+                </Button>
+              </form>
+
+              <div className="otp-resend-row">
+                <span className="auth-footer-text">Didn&apos;t receive it?</span>
+                <button
+                  type="button"
+                  className={`otp-resend-btn${resendCooldown > 0 ? ' disabled' : ''}`}
+                  onClick={handleResendOtp}
+                  disabled={resendCooldown > 0}
+                >
+                  {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}
+                </button>
+              </div>
+
+              <div className="auth-footer">
+                <button
+                  type="button"
+                  className="auth-link"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                  onClick={() => { setStep('form'); setOtpValue(''); setOtpError(''); }}
+                >
+                  ← Back to sign up
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Side - Illustration (reused) */}
+          <div className="auth-illustration-section">
+            <div className="auth-illustration-content">
+              <div className="auth-illustration-pattern"></div>
+              <div className="auth-illustration-text">
+                <h2>Almost there!</h2>
+                <p>Verify your email to start planning extraordinary trips</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-page">

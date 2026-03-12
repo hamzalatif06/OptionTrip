@@ -17,16 +17,55 @@ class AuthController {
       phoneNumber
     });
 
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      data: { email: result.email }
+    });
+  });
+
+  /**
+   * Verify OTP and complete registration
+   * POST /api/auth/verify-otp
+   */
+  verifyOtp = asyncHandler(async (req, res) => {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ success: false, message: 'Email and OTP are required' });
+    }
+
+    const result = await authService.verifyOtp(email, otp.toString().trim());
+
     // Set refresh token as HTTP-only cookie
     res.cookie('refreshToken', result.tokens.refreshToken, setCookieOptions());
 
     res.status(201).json({
       success: true,
-      message: 'User registered successfully',
+      message: 'Email verified successfully. Welcome aboard!',
       data: {
         user: result.user,
         accessToken: result.tokens.accessToken
       }
+    });
+  });
+
+  /**
+   * Resend OTP
+   * POST /api/auth/resend-otp
+   */
+  resendOtp = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required' });
+    }
+
+    const result = await authService.resendOtp(email);
+
+    res.status(200).json({
+      success: true,
+      message: result.message
     });
   });
 

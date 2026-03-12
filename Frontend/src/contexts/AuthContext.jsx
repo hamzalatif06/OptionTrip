@@ -63,12 +63,34 @@ export const AuthProvider = ({ children }) => {
   const handleRegister = async (userData) => {
     try {
       const data = await authService.register(userData);
-      setUser(data.user);
-      setIsAuthenticated(true);
-      showSuccessToast('Registration successful! Welcome aboard! 🎉');
-      return { success: true, user: data.user };
+      // Registration only sends OTP — not logged in yet
+      return { success: true, requiresOtp: true, email: data.email };
     } catch (error) {
       showErrorToast(error.message || 'Registration failed. Please try again.');
+      return { success: false, error: error.message };
+    }
+  };
+
+  const handleVerifyOtp = async (email, otp) => {
+    try {
+      const data = await authService.verifyOtp(email, otp);
+      setUser(data.user);
+      setIsAuthenticated(true);
+      showSuccessToast('Email verified! Welcome aboard!');
+      return { success: true, user: data.user };
+    } catch (error) {
+      showErrorToast(error.message || 'OTP verification failed.');
+      return { success: false, error: error.message };
+    }
+  };
+
+  const handleResendOtp = async (email) => {
+    try {
+      await authService.resendOtp(email);
+      showSuccessToast('New OTP sent to your email.');
+      return { success: true };
+    } catch (error) {
+      showErrorToast(error.message || 'Failed to resend OTP.');
       return { success: false, error: error.message };
     }
   };
@@ -184,6 +206,8 @@ export const AuthProvider = ({ children }) => {
 
     // Auth methods
     register: handleRegister,
+    verifyOtp: handleVerifyOtp,
+    resendOtp: handleResendOtp,
     login: handleLogin,
     logout: handleLogout,
 

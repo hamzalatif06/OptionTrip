@@ -1,43 +1,117 @@
+import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
+import OtpVerification from '../models/OtpVerification.js';
 import tokenService from './tokenService.js';
+import { sendOtpEmail } from './emailService.js';
 
 class AuthService {
   /**
-   * Register new user with email and password
+   * Send OTP to email for registration verification
    * @param {Object} userData - { name, email, password, phoneNumber }
-   * @returns {Object} { user, tokens }
+   * @returns {Object} { email, message }
    */
   async register(userData) {
     const { name, email, password, phoneNumber } = userData;
 
-    // Check if user already exists
+    // Check if a verified user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       throw new Error('User with this email already exists');
     }
 
-    // Create new user
+    // Generate 6-digit OTP — use 6 bcrypt rounds (OTP is short-lived, speed matters)
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpHash = await bcrypt.hash(otp, 6);
+
+    // Upsert OTP record
+    await OtpVerification.findOneAndDelete({ email });
+    await OtpVerification.create({
+      email,
+      otpHash,
+      userData: { name, password, phoneNumber }
+    });
+
+    // Fire email in background — don't block the HTTP response
+    sendOtpEmail(email, name, otp).catch(err =>
+      console.error('OTP email send failed:', err)
+    );
+
+    return { email, message: 'OTP sent to your email address' };
+  }
+
+  /**
+   * Verify OTP and complete registration
+   * @param {string} email
+   * @param {string} otp
+   * @returns {Object} { user, tokens }
+   */
+  async verifyOtp(email, otp) {
+    const record = await OtpVerification.findOne({ email });
+
+    if (!record) {
+      throw new Error('OTP expired or not found. Please sign up again.');
+    }
+
+    if (record.attempts >= 5) {
+      await OtpVerification.findOneAndDelete({ email });
+      throw new Error('Too many failed attempts. Please sign up again.');
+    }
+
+    const isValid = await bcrypt.compare(otp, record.otpHash);
+    if (!isValid) {
+      record.attempts += 1;
+      await record.save();
+      const remaining = 5 - record.attempts;
+      throw new Error(`Invalid OTP. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`);
+    }
+
+    // OTP valid — create the user
+    const { name, password, phoneNumber } = record.userData;
+
     const user = new User({
       name,
       email,
-      passwordHash: password, // Will be hashed by pre-save middleware
+      passwordHash: password,
       phoneNumber,
       authProviders: ['local'],
-      emailVerified: false
+      emailVerified: true
     });
 
     await user.save();
 
+    // Clean up OTP record
+    await OtpVerification.findOneAndDelete({ email });
+
     // Generate tokens
     const tokens = await tokenService.generateTokenPair(user);
 
-    // Remove password from response
-    const userObject = user.toJSON();
+    return { user: user.toJSON(), tokens };
+  }
 
-    return {
-      user: userObject,
-      tokens
-    };
+  /**
+   * Resend OTP for a pending registration
+   * @param {string} email
+   * @returns {Object} { message }
+   */
+  async resendOtp(email) {
+    const record = await OtpVerification.findOne({ email });
+    if (!record) {
+      throw new Error('No pending registration found for this email. Please sign up again.');
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpHash = await bcrypt.hash(otp, 6);
+
+    record.otpHash = otpHash;
+    record.attempts = 0;
+    record.createdAt = new Date();
+    await record.save();
+
+    sendOtpEmail(email, record.userData.name, otp).catch(err =>
+      console.error('Resend OTP email failed:', err)
+    );
+
+    return { message: 'New OTP sent to your email address' };
   }
 
   /**

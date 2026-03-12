@@ -788,3 +788,177 @@
 [dir="rtl"] .vi-message.user { flex-direction: row; }
 [dir="rtl"] .vi-message.bot  .message-content { border-radius: 20px 20px 5px 20px; }
 [dir="rtl"] .vi-message.user .message-content { border-radius: 20px 20px 20px 5px; }
+
+/* ══════════════════════════════════════════════════════════════
+   VOICE FEATURE STYLES
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Mic button ─────────────────────────────────────────────── */
+.vi-mic-btn {
+  position: relative;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(2, 158, 157, 0.12);
+  color: #029e9d;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.15s;
+  font-size: 14px;
+}
+.vi-mic-btn:hover:not(:disabled) { background: rgba(2, 158, 157, 0.22); transform: scale(1.06); }
+.vi-mic-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.vi-mic-btn--recording {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #ef4444 !important;
+  animation: vi-mic-pulse-bg 1.4s ease-in-out infinite;
+}
+
+@keyframes vi-mic-pulse-bg {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.35); }
+  50%       { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+}
+
+/* Ripple ring on recording mic */
+.vi-mic-pulse {
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 2px solid rgba(239, 68, 68, 0.5);
+  animation: vi-mic-ring 1.4s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes vi-mic-ring {
+  0%   { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* ── Voice mode button (phone icon in header) ───────────────── */
+.vi-voice-mode-btn { color: #029e9d; }
+.vi-voice-mode-btn.active {
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #ef4444 !important;
+}
+.vi-voice-mode-btn.active:hover { background: rgba(239, 68, 68, 0.22) !important; }
+
+/* ── Status dot states ──────────────────────────────────────── */
+.status-dot.speaking {
+  background: #f59e0b !important;
+  animation: vi-pulse-ring 1s ease-in-out infinite !important;
+}
+.status-dot.recording {
+  background: #ef4444 !important;
+  animation: vi-pulse-ring 0.8s ease-in-out infinite !important;
+}
+
+/* ── Speaking animation in avatar ──────────────────────────── */
+.vi-speaking-animation {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 22px;
+  padding: 0 4px;
+}
+.vi-speaking-animation span {
+  width: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to top, #029e9d, #0A539D);
+  animation: vi-speak-bar 0.8s ease-in-out infinite;
+}
+.vi-speaking-animation span:nth-child(1) { height: 8px;  animation-delay: 0s; }
+.vi-speaking-animation span:nth-child(2) { height: 14px; animation-delay: 0.1s; }
+.vi-speaking-animation span:nth-child(3) { height: 20px; animation-delay: 0.2s; }
+.vi-speaking-animation span:nth-child(4) { height: 14px; animation-delay: 0.3s; }
+.vi-speaking-animation span:nth-child(5) { height: 8px;  animation-delay: 0.4s; }
+
+@keyframes vi-speak-bar {
+  0%, 100% { transform: scaleY(0.4); opacity: 0.6; }
+  50%       { transform: scaleY(1.0); opacity: 1; }
+}
+
+/* ── Voice mode banner ──────────────────────────────────────── */
+.vi-voice-banner {
+  background: linear-gradient(135deg, rgba(2,158,157,0.08), rgba(10,83,157,0.08));
+  border-bottom: 1px solid rgba(2, 158, 157, 0.15);
+  padding: 12px 16px;
+}
+.vi-voice-banner__content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.vi-voice-orb {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #029e9d, #0A539D);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 16px;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+.vi-voice-orb--listening {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  animation: vi-orb-pulse 1.2s ease-in-out infinite;
+}
+.vi-voice-orb--speaking {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  animation: vi-orb-pulse 0.8s ease-in-out infinite;
+}
+@keyframes vi-orb-pulse {
+  0%, 100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(2,158,157,0.3); }
+  50%       { transform: scale(1.08); box-shadow: 0 0 0 8px rgba(2,158,157,0); }
+}
+.vi-voice-banner__label {
+  font-size: 13px;
+  color: #555;
+  font-weight: 500;
+}
+
+/* ── Listen button on bot messages ─────────────────────────── */
+.vi-listen-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  padding: 4px 10px;
+  border: 1px solid rgba(2, 158, 157, 0.35);
+  border-radius: 20px;
+  background: transparent;
+  color: #029e9d;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  line-height: 1;
+}
+.vi-listen-btn:hover {
+  background: rgba(2, 158, 157, 0.1);
+  border-color: #029e9d;
+}
+.vi-listen-btn--playing {
+  background: rgba(239, 68, 68, 0.08) !important;
+  border-color: #ef4444 !important;
+  color: #ef4444 !important;
+}
+.vi-listen-btn i { font-size: 10px; }
+
+/* ── Voice status label (below input) ──────────────────────── */
+.vi-speech-status {
+  color: #029e9d !important;
+}
+
+/* ── Disabled text input in voice mode ─────────────────────── */
+.vi-input:disabled {
+  background: rgba(0,0,0,0.04);
+  cursor: not-allowed;
+  opacity: 0.7;
+}

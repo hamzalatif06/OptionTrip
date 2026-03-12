@@ -11,14 +11,9 @@ import {
 } from '../../services/chatService';
 import './ViAssistant.css';
 
-const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-
-const formatDate = (dateString) => {
-  if (!dateString) return '';
-  return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-};
 
 const formatRelativeTime = (dateString) => {
   if (!dateString) return '';
@@ -58,14 +53,20 @@ const ViAssistant = () => {
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen]               = useState(false);
 
-  // Speech
-  const [isListening, setIsListening]     = useState(false);
-  const [speechError, setSpeechError]     = useState('');
+  // ── Voice state ──────────────────────────────────────────────────────────────
+  const [isRecording, setIsRecording]   = useState(false);   // MediaRecorder active
+  const [isSpeaking, setIsSpeaking]     = useState(false);   // TTS audio is playing
+  const [isVoiceMode, setIsVoiceMode]   = useState(false);   // full voice-conversation mode
+  const [voiceStatus, setVoiceStatus]   = useState('');      // status label under mic
+  const [playingMsgId, setPlayingMsgId] = useState(null);    // which msg's audio is playing
+  const [speechError, setSpeechError]   = useState('');
 
-  const messagesEndRef  = useRef(null);
-  const inputRef        = useRef(null);
-  const recognitionRef  = useRef(null);
-  const speechBaseRef   = useRef('');
+  const messagesEndRef   = useRef(null);
+  const inputRef         = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef   = useRef([]);
+  const audioRef         = useRef(null);          // current playing <audio> element
+  const stopTimeoutRef   = useRef(null);
 
   // ── Trip loading ────────────────────────────────────────────────────────────
 
@@ -118,23 +119,18 @@ const ViAssistant = () => {
     }
   }, [isAuthenticated]);
 
-  // On open: load conversations and restore latest (if authenticated)
   useEffect(() => {
     if (!isOpen) return;
     if (isAuthenticated) {
-      loadConversations().then(async () => {
-        // Will be handled after conversations state updates
-      });
+      loadConversations();
     } else if (messages.length === 0) {
       setMessages([makeWelcomeMessage()]);
     }
   }, [isOpen]);
 
-  // After conversations load, restore latest conversation or show welcome
   useEffect(() => {
     if (!isOpen || !isAuthenticated) return;
     if (conversations.length > 0 && messages.length === 0 && !activeConversationId) {
-      // Restore latest conversation
       loadConversationMessages(conversations[0].conversation_id);
     } else if (conversations.length === 0 && messages.length === 0) {
       setMessages([makeWelcomeMessage()]);
@@ -167,7 +163,7 @@ const ViAssistant = () => {
     if (convId === activeConversationId) return;
     setMessages([]);
     loadConversationMessages(convId);
-    setIsSidebarOpen(false); // close sidebar on mobile after selecting
+    setIsSidebarOpen(false);
   };
 
   const handleNewConversation = () => {
@@ -229,92 +225,231 @@ const ViAssistant = () => {
     return ['Plan a Trip', 'My Trips', 'Travel Tips'];
   };
 
-  // ── Speech ──────────────────────────────────────────────────────────────────
+  // ── Voice: TTS speak ─────────────────────────────────────────────────────────
 
+  /**
+   * Play TTS for a given text via backend /api/voice/speak
+   * @param {string} text
+   * @param {number|null} msgId  — ID of the message being played (for button state)
+   */
+  const speakText = async (text, msgId = null) => {
+    // Stop any currently playing audio
+    stopAudio();
+
+    try {
+      setIsSpeaking(true);
+      setPlayingMsgId(msgId);
+      setVoiceStatus('Speaking...');
+
+      const response = await fetch(`${API_BASE}/api/voice/speak`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, voice: 'nova' }),
+      });
+
+      if (!response.ok) throw new Error('TTS failed');
+
+      const arrayBuffer = await response.arrayBuffer();
+      const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
+      const url  = URL.createObjectURL(blob);
+
+      const audio = new Audio(url);
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        setIsSpeaking(false);
+        setPlayingMsgId(null);
+        setVoiceStatus('');
+        URL.revokeObjectURL(url);
+        audioRef.current = null;
+
+        // In voice mode: start listening again after TTS finishes
+        if (isVoiceMode) {
+          setTimeout(() => startRecording(), 800);
+        }
+      };
+
+      audio.onerror = () => {
+        setIsSpeaking(false);
+        setPlayingMsgId(null);
+        setVoiceStatus('');
+        audioRef.current = null;
+      };
+
+      await audio.play();
+    } catch (err) {
+      console.error('TTS error:', err);
+      setIsSpeaking(false);
+      setPlayingMsgId(null);
+      setVoiceStatus('');
+    }
+  };
+
+  const stopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    setIsSpeaking(false);
+    setPlayingMsgId(null);
+  };
+
+  // ── Voice: Whisper STT ───────────────────────────────────────────────────────
+
+  const startRecording = async () => {
+    if (isRecording) { stopRecording(); return; }
+
+    setSpeechError('');
+    setVoiceStatus('Listening...');
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunksRef.current = [];
+
+      // Prefer webm/opus, fall back to whatever is supported
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/webm')
+        ? 'audio/webm'
+        : '';
+
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        setIsRecording(false);
+        setVoiceStatus('Transcribing...');
+
+        const blob = new Blob(audioChunksRef.current, { type: mimeType || 'audio/webm' });
+        audioChunksRef.current = [];
+
+        await transcribeAndSend(blob, mimeType || 'audio/webm');
+      };
+
+      recorder.start();
+      setIsRecording(true);
+
+      // Auto-stop after 30 seconds
+      stopTimeoutRef.current = setTimeout(() => stopRecording(), 30000);
+    } catch (err) {
+      console.error('Mic error:', err);
+      setSpeechError(err.name === 'NotAllowedError' ? 'Microphone access denied.' : 'Could not access microphone.');
+      setVoiceStatus('');
+    }
+  };
+
+  const stopRecording = () => {
+    clearTimeout(stopTimeoutRef.current);
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+  };
+
+  const transcribeAndSend = async (audioBlob, mimeType) => {
+    try {
+      const formData = new FormData();
+      formData.append('audio', audioBlob, `recording.${mimeType.includes('ogg') ? 'ogg' : 'webm'}`);
+
+      const response = await fetch(`${API_BASE}/api/voice/transcribe`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.text) {
+        setSpeechError('Could not understand audio. Please try again.');
+        setVoiceStatus('');
+        return;
+      }
+
+      setVoiceStatus('');
+      const transcribedText = data.text.trim();
+
+      if (isVoiceMode) {
+        // In voice mode: auto-send the transcription
+        await sendVoiceMessage(transcribedText);
+      } else {
+        // Normal mode: put transcription in input field
+        setInputMessage(transcribedText);
+        inputRef.current?.focus();
+      }
+    } catch (err) {
+      console.error('Transcription error:', err);
+      setSpeechError('Transcription failed. Please try again.');
+      setVoiceStatus('');
+    }
+  };
+
+  // ── Voice Mode ───────────────────────────────────────────────────────────────
+
+  const toggleVoiceMode = () => {
+    if (isVoiceMode) {
+      // Turn off voice mode
+      stopRecording();
+      stopAudio();
+      setIsVoiceMode(false);
+      setVoiceStatus('');
+    } else {
+      // Turn on voice mode — start listening immediately
+      setIsVoiceMode(true);
+      startRecording();
+    }
+  };
+
+  // Cleanup on close
   useEffect(() => {
-    if (!isOpen && recognitionRef.current) {
-      recognitionRef.current.abort();
-      recognitionRef.current = null;
-      setIsListening(false);
+    if (!isOpen) {
+      stopRecording();
+      stopAudio();
+      setIsVoiceMode(false);
+      setVoiceStatus('');
     }
   }, [isOpen]);
 
-  useEffect(() => () => recognitionRef.current?.abort(), []);
-
-  const startListening = () => {
-    if (!SpeechRecognitionAPI) { setSpeechError('Speech recognition not supported.'); return; }
-    if (isListening) {
-      recognitionRef.current?.abort();
-      recognitionRef.current = null;
-      setIsListening(false);
-      return;
-    }
-    setSpeechError('');
-    speechBaseRef.current = inputMessage;
-    const recognition = new SpeechRecognitionAPI();
-    recognition.lang = navigator.language || 'en-US';
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognitionRef.current = recognition;
-    recognition.onstart  = () => setIsListening(true);
-    recognition.onresult = (e) => {
-      let interim = '', final = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) final += t; else interim += t;
-      }
-      const base = speechBaseRef.current;
-      setInputMessage(base + (final || interim));
-      if (final) speechBaseRef.current = base + final;
-    };
-    recognition.onerror = (e) => {
-      if (e.error !== 'aborted') setSpeechError(e.error === 'not-allowed' ? 'Microphone access denied.' : 'Could not capture speech.');
-      setIsListening(false);
-      recognitionRef.current = null;
-    };
-    recognition.onend = () => { setIsListening(false); recognitionRef.current = null; };
-    recognition.start();
-  };
+  useEffect(() => () => {
+    stopRecording();
+    stopAudio();
+    clearTimeout(stopTimeoutRef.current);
+  }, []);
 
   // ── Messaging ───────────────────────────────────────────────────────────────
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isTyping]);
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!inputMessage.trim() || isTyping) return;
-
-    const userText = inputMessage.trim();
+  /**
+   * Core send logic — shared between text form submit and voice mode
+   */
+  const dispatchMessage = async (userText) => {
     setMessages(prev => [...prev, { id: Date.now(), text: userText, sender: 'user', timestamp: new Date() }]);
-    setInputMessage('');
     setIsTyping(true);
 
     setTimeout(async () => {
+      let botText = null;
+      let botMsg  = null;
       try {
         const token    = isAuthenticated ? getAccessToken() : null;
         const response = await sendChatMessage(userText, token, currentTrip?.trip_id, activeConversationId);
 
         if (response.success && response.data) {
           const { message, type, quickReplies, conversationId } = response.data;
+          botText = message;
+          botMsg  = { id: Date.now() + 1, text: message, sender: 'bot', timestamp: new Date(), type: type || 'general', quickReplies: quickReplies?.length > 0 ? quickReplies : undefined };
 
-          setMessages(prev => [...prev, {
-            id: Date.now() + 1,
-            text: message,
-            sender: 'bot',
-            timestamp: new Date(),
-            type: type || 'general',
-            quickReplies: quickReplies?.length > 0 ? quickReplies : undefined
-          }]);
+          setMessages(prev => [...prev, botMsg]);
 
-          // Update active conversation and refresh sidebar list
           if (conversationId) {
             if (conversationId !== activeConversationId) {
               setActiveConversationId(conversationId);
-              // Refresh list to show new conversation
               const listResp = await getConversations(token);
               if (listResp.success) setConversations(listResp.data.conversations || []);
             } else {
-              // Update last_message_at on existing convo in sidebar
               setConversations(prev => prev.map(c =>
                 c.conversation_id === conversationId
                   ? { ...c, last_message_at: new Date().toISOString() }
@@ -324,21 +459,31 @@ const ViAssistant = () => {
           }
         }
       } catch (err) {
-        // Local fallback
-        console.log('API failed, using local fallback:', err.message);
         const localResp = localFallback(userText);
-        setMessages(prev => [...prev, {
-          id: Date.now() + 1,
-          text: localResp.text,
-          sender: 'bot',
-          timestamp: new Date(),
-          type: localResp.type,
-          quickReplies: localResp.quickReplies
-        }]);
+        botText = localResp.text;
+        botMsg  = { id: Date.now() + 1, text: localResp.text, sender: 'bot', timestamp: new Date(), type: localResp.type, quickReplies: localResp.quickReplies };
+        setMessages(prev => [...prev, botMsg]);
       } finally {
         setIsTyping(false);
+        // Auto-play TTS in voice mode
+        if (botText && isVoiceMode) {
+          await speakText(botText, botMsg?.id ?? null);
+        }
       }
     }, 600);
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!inputMessage.trim() || isTyping) return;
+    const text = inputMessage.trim();
+    setInputMessage('');
+    await dispatchMessage(text);
+  };
+
+  const sendVoiceMessage = async (text) => {
+    if (!text || isTyping) return;
+    await dispatchMessage(text);
   };
 
   const localFallback = (text) => {
@@ -381,6 +526,12 @@ const ViAssistant = () => {
         </React.Fragment>
       );
     });
+
+  const micBtnClass = [
+    'vi-mic-btn',
+    isRecording ? 'vi-mic-btn--recording' : '',
+    isVoiceMode  ? 'vi-mic-btn--voice-mode' : '',
+  ].filter(Boolean).join(' ');
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
@@ -466,19 +617,37 @@ const ViAssistant = () => {
                   </button>
                 )}
                 <div className="vi-avatar">
-                  <i className="fas fa-plane-departure vi-avatar-icon"></i>
+                  {isSpeaking ? (
+                    <div className="vi-speaking-animation">
+                      <span/><span/><span/><span/><span/>
+                    </div>
+                  ) : (
+                    <i className="fas fa-plane-departure vi-avatar-icon"></i>
+                  )}
                 </div>
                 <div className="vi-header-info">
                   <span className="vi-header-name">Vi ✈️</span>
                   <span className="vi-status">
-                    <span className="status-dot"></span>
-                    {isAuthenticated
+                    <span className={`status-dot${isSpeaking ? ' speaking' : isRecording ? ' recording' : ''}`}></span>
+                    {isSpeaking
+                      ? 'Vi is speaking...'
+                      : isRecording
+                      ? '🎙️ Listening...'
+                      : isAuthenticated
                       ? `Hey ${user?.name?.split(' ')[0] || 'there'}, ready to explore? 🌍`
                       : 'Your friendly travel buddy'}
                   </span>
                 </div>
               </div>
               <div className="vi-header-actions">
+                {/* Voice Mode toggle */}
+                <button
+                  className={`vi-btn-icon vi-voice-mode-btn${isVoiceMode ? ' active' : ''}`}
+                  onClick={toggleVoiceMode}
+                  title={isVoiceMode ? 'Exit voice mode' : 'Voice mode'}
+                >
+                  <i className={`fas ${isVoiceMode ? 'fa-phone-slash' : 'fa-phone'}`}></i>
+                </button>
                 <button className="vi-btn-icon" onClick={clearConversation} title="New conversation">
                   <i className="fas fa-rotate-right"></i>
                 </button>
@@ -487,6 +656,20 @@ const ViAssistant = () => {
                 </button>
               </div>
             </div>
+
+            {/* Voice Mode Banner */}
+            {isVoiceMode && (
+              <div className="vi-voice-banner">
+                <div className="vi-voice-banner__content">
+                  <div className={`vi-voice-orb${isRecording ? ' vi-voice-orb--listening' : isSpeaking ? ' vi-voice-orb--speaking' : ''}`}>
+                    <i className={`fas ${isSpeaking ? 'fa-volume-high' : 'fa-microphone'}`}></i>
+                  </div>
+                  <span className="vi-voice-banner__label">
+                    {isRecording ? 'Listening... tap mic to stop' : isSpeaking ? 'Vi is responding...' : 'Voice mode active — tap mic to speak'}
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Trip Context Banner */}
             {isAuthenticated && currentTrip && (
@@ -526,6 +709,8 @@ const ViAssistant = () => {
                   )}
                   <div className="message-content">
                     <p>{renderMessageText(message.text)}</p>
+
+                    {/* Quick replies */}
                     {message.quickReplies && (
                       <div className="quick-replies">
                         {message.quickReplies.map((reply, idx) => (
@@ -535,6 +720,19 @@ const ViAssistant = () => {
                         ))}
                       </div>
                     )}
+
+                    {/* Listen button — only on bot messages */}
+                    {message.sender === 'bot' && (
+                      <button
+                        className={`vi-listen-btn${playingMsgId === message.id ? ' vi-listen-btn--playing' : ''}`}
+                        onClick={() => playingMsgId === message.id ? stopAudio() : speakText(message.text, message.id)}
+                        title={playingMsgId === message.id ? 'Stop audio' : 'Listen to this message'}
+                      >
+                        <i className={`fas ${playingMsgId === message.id ? 'fa-stop' : 'fa-volume-high'}`}></i>
+                        <span>{playingMsgId === message.id ? 'Stop' : 'Listen'}</span>
+                      </button>
+                    )}
+
                     <span className="message-time">
                       {message.timestamp instanceof Date
                         ? message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -556,35 +754,48 @@ const ViAssistant = () => {
 
             {/* Input */}
             <div className="vi-input-container">
-              {speechError && (
-                <p className="vi-speech-error"><i className="fas fa-circle-exclamation"></i> {speechError}</p>
+              {(speechError || voiceStatus) && (
+                <p className={`vi-speech-error${voiceStatus && !speechError ? ' vi-speech-status' : ''}`}>
+                  <i className={`fas ${speechError ? 'fa-circle-exclamation' : 'fa-circle-info'}`}></i>
+                  {speechError || voiceStatus}
+                </p>
               )}
               <form onSubmit={handleSendMessage}>
                 <input
                   ref={inputRef}
                   type="text"
-                  className={`vi-input${isListening ? ' vi-input--listening' : ''}`}
-                  placeholder={isListening ? '🎙️ Listening...' : isAuthenticated ? 'Ask me anything! 😊' : 'Ask me about travel...'}
+                  className={`vi-input${isRecording ? ' vi-input--listening' : ''}`}
+                  placeholder={
+                    isRecording ? '🎙️ Recording — click mic to stop...'
+                    : isVoiceMode ? '🔊 Voice mode active'
+                    : isAuthenticated ? 'Ask me anything! 😊'
+                    : 'Ask me about travel...'
+                  }
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  autoFocus
+                  disabled={isVoiceMode}
                 />
-                {SpeechRecognitionAPI && (
-                  <button
-                    type="button"
-                    className={`vi-mic-btn${isListening ? ' vi-mic-btn--active' : ''}`}
-                    onClick={startListening}
-                    title={isListening ? 'Stop' : 'Speak'}
-                  >
-                    <i className={`fas ${isListening ? 'fa-stop' : 'fa-microphone'}`}></i>
-                  </button>
-                )}
-                <button type="submit" className="vi-send-btn" disabled={!inputMessage.trim() || isTyping}>
+                {/* Mic button — Whisper-powered */}
+                <button
+                  type="button"
+                  className={micBtnClass}
+                  onClick={isRecording ? stopRecording : startRecording}
+                  title={isRecording ? 'Stop recording' : 'Record voice message'}
+                  disabled={isSpeaking}
+                >
+                  <i className={`fas ${isRecording ? 'fa-stop' : 'fa-microphone'}`}></i>
+                  {isRecording && <span className="vi-mic-pulse"></span>}
+                </button>
+                <button type="submit" className="vi-send-btn" disabled={!inputMessage.trim() || isTyping || isVoiceMode}>
                   <i className="fas fa-paper-plane"></i>
                 </button>
               </form>
-              <p className="vi-input-hint">Press Enter to send · Shift+Enter for new line</p>
+              <p className="vi-input-hint">
+                {isVoiceMode
+                  ? 'Voice mode — click phone icon in header to exit'
+                  : 'Press Enter to send · 🎙️ mic for voice input'}
+              </p>
             </div>
 
           </div>{/* end vi-chat-main */}

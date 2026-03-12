@@ -293,3 +293,56 @@
     min-height: 50px;
   }
 }
+
+/* OTP Verification Step */
+.otp-input-wrapper {
+  margin-bottom: 20px;
+}
+
+.otp-input {
+  width: 100%;
+  text-align: center;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 14px;
+  padding: 18px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.2s;
+  color: #0A539D;
+  background: #f7faff;
+  box-sizing: border-box;
+}
+
+.otp-input:focus {
+  border-color: #0A539D;
+  background: #fff;
+}
+
+.otp-resend-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.otp-resend-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #0A539D;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 0;
+  text-decoration: underline;
+  transition: opacity 0.2s;
+}
+
+.otp-resend-btn.disabled {
+  color: #999;
+  cursor: not-allowed;
+  text-decoration: none;
+}
