@@ -11,6 +11,8 @@ import HotelIcon from '@mui/icons-material/Hotel';
 import MapIcon from '@mui/icons-material/Map';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ExploreIcon from '@mui/icons-material/Explore';
+import FlightTab from './FlightTab';
+import HotelTab from './HotelTab';
 
 /**
  * ActivitiesSection - Main itinerary section with tab navigation
@@ -359,15 +361,9 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
         {/* Tab Panels (from TripTap's FormTabPanel_V2) */}
         <div className="activities-section__tab-content">
           {activeTab === 0 && renderItineraryTab()}
-          {activeTab === 1 && (
-            <div className="activities-section__coming-soon">
-              <p>Hotels coming soon</p>
-            </div>
-          )}
+          {activeTab === 1 && <HotelTab tripData={tripData} />}
           {activeTab === 2 && (
-            <div className="activities-section__coming-soon">
-              <p>Flights coming soon</p>
-            </div>
+            <FlightTab tripData={tripData} />
           )}
           {activeTab === 3 && (
             <div className="activities-section__coming-soon">

@@ -1,0 +1,500 @@
+.ht-root {
+  padding: 32px 24px 48px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── Search card ──────────────────────────────────────────────────────────── */
+.ht-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 28px 28px 24px;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.07);
+  border: 1px solid #e8ecef;
+}
+
+/* ── City row ─────────────────────────────────────────────────────────────── */
+.ht-city-row {
+  margin-bottom: 16px;
+}
+
+/* ── Options row ──────────────────────────────────────────────────────────── */
+.ht-options-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ── Generic field ────────────────────────────────────────────────────────── */
+.ht-field {
+  position: relative;
+  border: 1.5px solid #dde1e7;
+  border-radius: 12px;
+  padding: 10px 14px 8px;
+  background: #ffffff;
+  min-width: 140px;
+  flex: 1;
+  transition: border-color 0.2s ease;
+}
+
+.ht-field--city {
+  min-width: 100%;
+  flex: none;
+}
+
+.ht-field:focus-within {
+  border-color: #029e9d;
+  box-shadow: 0 0 0 3px rgba(2, 158, 157, 0.1);
+}
+
+.ht-field--error {
+  border-color: #ef4444 !important;
+  box-shadow: none !important;
+}
+
+.ht-field__label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #029e9d;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 4px;
+}
+
+.ht-field__input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  font-weight: 500;
+  color: #17233e;
+  background: transparent;
+  padding: 0;
+}
+
+.ht-field__input::placeholder {
+  color: #a0aec0;
+  font-weight: 400;
+}
+
+.ht-field__input[type="date"] {
+  color: #17233e;
+}
+
+.ht-field__err {
+  display: block;
+  font-size: 10px;
+  color: #ef4444;
+  margin-top: 3px;
+}
+
+.ht-field__sub {
+  display: block;
+  font-size: 11px;
+  color: #029e9d;
+  font-weight: 600;
+  margin-top: 3px;
+}
+
+/* ── Autocomplete ─────────────────────────────────────────────────────────── */
+.ht-field--autocomplete {
+  overflow: visible;
+}
+
+.ht-ac-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ht-city-icon {
+  flex-shrink: 0;
+}
+
+.ht-ac-wrap .ht-field__input {
+  flex: 1;
+}
+
+.ht-ac-spin {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(2, 158, 157, 0.25);
+  border-top-color: #029e9d;
+  border-radius: 50%;
+  animation: ht-spin 0.75s linear infinite;
+  flex-shrink: 0;
+}
+
+.ht-ac-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1.5px solid #dde1e7;
+  border-radius: 12px;
+  padding: 6px 0;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.13);
+  z-index: 300;
+  list-style: none;
+  margin: 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.ht-ac-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.ht-ac-item:hover {
+  background: #f0fdfc;
+}
+
+.ht-ac-code {
+  font-size: 12px;
+  font-weight: 700;
+  color: #029e9d;
+  background: rgba(2, 158, 157, 0.1);
+  padding: 2px 7px;
+  border-radius: 5px;
+  flex-shrink: 0;
+  min-width: 38px;
+  text-align: center;
+}
+
+.ht-ac-name {
+  font-size: 13px;
+  color: #334155;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Guests dropdown ──────────────────────────────────────────────────────── */
+.ht-field--guests {
+  position: relative;
+}
+
+.ht-field__pax-btn {
+  display: flex;
+  align-items: center;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: #17233e;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.ht-pax-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  background: #ffffff;
+  border: 1.5px solid #dde1e7;
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+  z-index: 200;
+  min-width: 200px;
+}
+
+.ht-pax-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.ht-pax-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #17233e;
+}
+
+.ht-pax-counter {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ht-pax-counter button {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid #dde1e7;
+  background: #f8f9fa;
+  font-size: 16px;
+  font-weight: 700;
+  color: #029e9d;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ht-pax-counter button:hover {
+  background: #029e9d;
+  color: #ffffff;
+  border-color: #029e9d;
+}
+
+.ht-pax-counter span {
+  font-size: 15px;
+  font-weight: 700;
+  color: #17233e;
+  min-width: 20px;
+  text-align: center;
+}
+
+.ht-pax-done {
+  width: 100%;
+  background: #029e9d;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 9px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.ht-pax-done:hover {
+  background: #027b7a;
+}
+
+/* ── Search button ────────────────────────────────────────────────────────── */
+.ht-search-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #f1f4f9;
+}
+
+.ht-search-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  background: linear-gradient(135deg, #029e9d 0%, #027b7a 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 50px;
+  padding: 14px 40px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.25s ease;
+  min-width: 180px;
+}
+
+.ht-search-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #027b7a 0%, #025655 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(2, 158, 157, 0.4);
+}
+
+.ht-search-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.ht-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: ht-spin 0.75s linear infinite;
+}
+
+@keyframes ht-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Results ──────────────────────────────────────────────────────────────── */
+.ht-results {
+  margin-top: 32px;
+}
+
+.ht-results__header {
+  margin-bottom: 20px;
+}
+
+.ht-results__header h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #122d46;
+  margin: 0 0 4px;
+}
+
+.ht-results__header p {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* ── Skeleton ─────────────────────────────────────────────────────────────── */
+.ht-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.ht-skeleton__card {
+  display: flex;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e8ecef;
+  overflow: hidden;
+  height: 140px;
+}
+
+.ht-skeleton__img {
+  flex-shrink: 0;
+  width: 190px;
+  background: #e2e8f0;
+}
+
+.ht-skeleton__body {
+  flex: 1;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+}
+
+.ht-skeleton__line {
+  height: 13px;
+  background: #e2e8f0;
+  border-radius: 6px;
+}
+
+.ht-skeleton__line--title {
+  height: 17px;
+  width: 65%;
+}
+
+.ht-skeleton__line--short {
+  width: 40%;
+}
+
+.ht-skeleton__cta {
+  flex-shrink: 0;
+  width: 160px;
+  background: #e2e8f0;
+}
+
+.pulse {
+  animation: ht-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes ht-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+/* ── Error ────────────────────────────────────────────────────────────────── */
+.ht-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  margin: 20px 0;
+}
+
+/* ── Empty ────────────────────────────────────────────────────────────────── */
+.ht-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #64748b;
+}
+
+.ht-empty__icon {
+  font-size: 48px;
+  margin-bottom: 14px;
+}
+
+.ht-empty h3 {
+  font-size: 1.2rem;
+  color: #334155;
+  margin: 0 0 8px;
+}
+
+.ht-empty p {
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ── Affiliate redirect info ──────────────────────────────────────────────── */
+.ht-redirect-info {
+  margin-top: 12px;
+  text-align: right;
+}
+
+.ht-redirect-note {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0 0 3px;
+}
+
+.ht-affiliate-disclaimer {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .ht-root {
+    padding: 20px 16px 40px;
+  }
+
+  .ht-card {
+    padding: 20px 16px;
+  }
+
+  .ht-options-row {
+    gap: 10px;
+  }
+
+  .ht-field {
+    min-width: calc(50% - 6px);
+  }
+
+  .ht-search-row {
+    justify-content: stretch;
+  }
+
+  .ht-search-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .ht-field {
+    min-width: 100%;
+  }
+}

@@ -1,0 +1,233 @@
+.flight-card {
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: stretch;
+  margin-bottom: 16px;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.flight-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.13);
+}
+
+/* Main body */
+.flight-card__body {
+  flex: 1;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Each leg (outbound / return) */
+.flight-leg {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.flight-leg--return {
+  padding-top: 12px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+/* Carrier badge */
+.flight-leg__carrier {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 52px;
+}
+
+.carrier-badge {
+  background: #f0fdf4;
+  color: #029e9d;
+  border: 1.5px solid #029e9d;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.flight-number {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* Route row */
+.flight-leg__route {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.route-point {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 52px;
+}
+
+.route-point--right {
+  align-items: flex-end;
+}
+
+.route-time {
+  font-size: 20px;
+  font-weight: 700;
+  color: #122d46;
+  line-height: 1.1;
+}
+
+.route-iata {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.route-date {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* Middle segment */
+.route-middle {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.route-duration {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.route-line {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+
+.route-line__bar {
+  flex: 1;
+  height: 1.5px;
+  background: #cbd5e1;
+}
+
+.route-line__plane {
+  font-size: 14px;
+  color: #029e9d;
+  margin: 0 4px;
+}
+
+.route-stops {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.route-stops.nonstop {
+  color: #16a34a;
+}
+
+.route-stops.has-stops {
+  color: #f59e0b;
+}
+
+/* CTA panel */
+.flight-card__cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px 24px;
+  background: #f8fafc;
+  border-left: 1px solid #e2e8f0;
+  min-width: 150px;
+}
+
+.flight-price {
+  text-align: center;
+}
+
+.price-amount {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  color: #029e9d;
+  line-height: 1.2;
+}
+
+.price-label {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.flight-book-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #029e9d 0%, #027b7a 100%);
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+  text-align: center;
+  width: 100%;
+}
+
+.flight-book-btn:hover {
+  background: linear-gradient(135deg, #027b7a 0%, #025655 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(2, 158, 157, 0.35);
+  color: #ffffff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .flight-card {
+    flex-direction: column;
+  }
+
+  .flight-card__cta {
+    flex-direction: row;
+    border-left: none;
+    border-top: 1px solid #e2e8f0;
+    justify-content: space-between;
+    padding: 14px 20px;
+  }
+
+  .flight-book-btn {
+    width: auto;
+    padding: 10px 24px;
+  }
+
+  .route-time {
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 480px) {
+  .flight-leg {
+    flex-wrap: wrap;
+  }
+
+  .route-middle {
+    min-width: 80px;
+  }
+}

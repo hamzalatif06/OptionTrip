@@ -1,0 +1,136 @@
+.flight-search-section {
+  padding: 40px 0 20px;
+  background: #f8f9fa;
+}
+
+.flight-search-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px 36px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Trip type toggle */
+.trip-type-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.trip-type-btn {
+  padding: 8px 20px;
+  border-radius: 50px;
+  border: 2px solid #029e9d;
+  background: transparent;
+  color: #029e9d;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trip-type-btn.active,
+.trip-type-btn:hover {
+  background: #029e9d;
+  color: #ffffff;
+}
+
+/* Labels */
+.fsf-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+/* Inputs */
+.fsf-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #122d46;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.fsf-input:focus {
+  border-color: #029e9d;
+  box-shadow: 0 0 0 3px rgba(2, 158, 157, 0.12);
+}
+
+.fsf-input.is-error {
+  border-color: #ef4444;
+}
+
+.fsf-input[type="date"] {
+  color: #122d46;
+}
+
+.fsf-error {
+  font-size: 11px;
+  color: #ef4444;
+  margin: 4px 0 0;
+}
+
+/* Arrow decoration */
+.fsf-arrow {
+  color: #029e9d;
+  font-size: 18px;
+}
+
+/* Search button */
+.fsf-search-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #029e9d 0%, #027b7a 100%);
+  color: #ffffff;
+  border: none;
+  padding: 11px 20px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.fsf-search-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #027b7a 0%, #025655 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(2, 158, 157, 0.35);
+}
+
+.fsf-search-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Spinner (reused from BestTours pattern) */
+.btn-spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: fsf-spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes fsf-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+  .flight-search-card {
+    padding: 24px 20px;
+  }
+}

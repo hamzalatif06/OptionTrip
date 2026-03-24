@@ -1,0 +1,220 @@
+.hc-card {
+  display: flex;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e8ecef;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  margin-bottom: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hc-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.11);
+}
+
+/* ── Image ────────────────────────────────────────────────────────────────── */
+.hc-card__img-wrap {
+  flex-shrink: 0;
+  width: 190px;
+  min-height: 160px;
+  background: #f1f5f9;
+  overflow: hidden;
+}
+
+.hc-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.hc-card__img-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0fdfc, #e0f2fe);
+}
+
+/* ── Body ─────────────────────────────────────────────────────────────────── */
+.hc-card__body {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.hc-card__info {
+  flex: 1;
+  padding: 20px 20px 20px 22px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Hotel name ───────────────────────────────────────────────────────────── */
+.hc-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #122d46;
+  margin: 0;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* ── Stars + rating ───────────────────────────────────────────────────────── */
+.hc-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.hc-stars {
+  display: flex;
+  gap: 1px;
+}
+
+.hc-star {
+  font-size: 14px;
+  color: #d1d5db;
+}
+
+.hc-star--filled {
+  color: #f59e0b;
+}
+
+.hc-rating-badge {
+  background: #029e9d;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  line-height: 1.4;
+}
+
+.hc-rating-max {
+  opacity: 0.75;
+  font-weight: 400;
+}
+
+.hc-reviews {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* ── Location ─────────────────────────────────────────────────────────────── */
+.hc-location {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: #64748b;
+  margin-top: auto;
+}
+
+/* ── CTA panel ────────────────────────────────────────────────────────────── */
+.hc-card__cta {
+  flex-shrink: 0;
+  width: 160px;
+  background: linear-gradient(160deg, #029e9d 0%, #027b7a 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 20px 16px;
+  text-align: center;
+}
+
+.hc-price {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.hc-price__from {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.hc-price__amount {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.hc-price__per {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.hc-book-btn {
+  display: block;
+  width: 100%;
+  background: #ffffff;
+  color: #029e9d;
+  border-radius: 8px;
+  padding: 9px 0;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  text-align: center;
+  margin-top: 4px;
+  transition: all 0.2s ease;
+}
+
+.hc-book-btn:hover {
+  background: #f0fdfc;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+}
+
+.hc-affiliate-note {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .hc-card {
+    flex-direction: column;
+  }
+
+  .hc-card__img-wrap {
+    width: 100%;
+    height: 180px;
+  }
+
+  .hc-card__body {
+    flex-direction: column;
+  }
+
+  .hc-card__cta {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    border-radius: 0;
+    padding: 14px 20px;
+  }
+
+  .hc-price {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 4px;
+  }
+}

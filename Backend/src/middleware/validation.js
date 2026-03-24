@@ -117,8 +117,117 @@ const isValidDate = (dateString) => {
   return date instanceof Date && !isNaN(date);
 };
 
+/**
+ * Validate flight search request
+ */
+export const validateFlightSearch = (req, res, next) => {
+  const { originCode, destinationCode, departureDate, returnDate, adults } = req.body;
+  const errors = [];
+
+  // IATA airport code: 2–3 uppercase letters (e.g. JFK, LHR, DXB)
+  const iataRegex = /^[A-Za-z]{2,3}$/;
+
+  if (!originCode || !iataRegex.test(originCode)) {
+    errors.push('originCode is required and must be a valid 2-3 letter IATA airport code (e.g. JFK)');
+  }
+
+  if (!destinationCode || !iataRegex.test(destinationCode)) {
+    errors.push('destinationCode is required and must be a valid 2-3 letter IATA airport code (e.g. LAX)');
+  }
+
+  if (originCode && destinationCode && originCode.toUpperCase() === destinationCode.toUpperCase()) {
+    errors.push('originCode and destinationCode must be different');
+  }
+
+  if (!departureDate) {
+    errors.push('departureDate is required');
+  } else if (!isValidDate(departureDate)) {
+    errors.push('departureDate must be a valid date in YYYY-MM-DD format');
+  } else {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (new Date(departureDate) < today) {
+      errors.push('departureDate cannot be in the past');
+    }
+  }
+
+  if (returnDate) {
+    if (!isValidDate(returnDate)) {
+      errors.push('returnDate must be a valid date in YYYY-MM-DD format');
+    } else if (departureDate && new Date(returnDate) <= new Date(departureDate)) {
+      errors.push('returnDate must be after departureDate');
+    }
+  }
+
+  const adultsNum = Number(adults);
+  if (!adults && adults !== 0) {
+    errors.push('adults is required');
+  } else if (!Number.isInteger(adultsNum) || adultsNum < 1 || adultsNum > 9) {
+    errors.push('adults must be an integer between 1 and 9');
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errors,
+    });
+  }
+
+  next();
+};
+
+/**
+ * Validate hotel search request (query params)
+ * GET /api/hotels/search?cityCode=PAR&checkIn=...&checkOut=...&adults=2
+ */
+export const validateHotelSearch = (req, res, next) => {
+  const { cityCode, checkIn, checkOut, adults } = req.query;
+  const errors = [];
+
+  const codeRegex = /^[A-Za-z]{2,3}$/;
+  if (!cityCode || !codeRegex.test(cityCode.trim())) {
+    errors.push('cityCode is required and must be a valid 2-3 letter IATA city code (e.g. PAR)');
+  }
+
+  if (!checkIn) {
+    errors.push('checkIn is required');
+  } else if (!isValidDate(checkIn)) {
+    errors.push('checkIn must be a valid date in YYYY-MM-DD format');
+  } else {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (new Date(checkIn) < today) {
+      errors.push('checkIn cannot be in the past');
+    }
+  }
+
+  if (!checkOut) {
+    errors.push('checkOut is required');
+  } else if (!isValidDate(checkOut)) {
+    errors.push('checkOut must be a valid date in YYYY-MM-DD format');
+  } else if (checkIn && isValidDate(checkIn) && new Date(checkOut) <= new Date(checkIn)) {
+    errors.push('checkOut must be after checkIn');
+  }
+
+  const adultsNum = Number(adults);
+  if (!adults && adults !== 0) {
+    errors.push('adults is required');
+  } else if (!Number.isInteger(adultsNum) || adultsNum < 1 || adultsNum > 9) {
+    errors.push('adults must be an integer between 1 and 9');
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({ success: false, message: 'Validation failed', errors });
+  }
+
+  next();
+};
+
 export default {
   validateTripGeneration,
   validateTripId,
-  validateOptionSelection
+  validateOptionSelection,
+  validateFlightSearch,
+  validateHotelSearch,
 };

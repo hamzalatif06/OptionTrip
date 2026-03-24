@@ -22,6 +22,8 @@ import youtubeRouter from "./routes/youtube.js";
 import translateRouter from "./routes/translate.js";
 import contactRouter from "./routes/contact.js";
 import voiceRouter from "./routes/voice.js";
+import flightsRouter from "./routes/flights.js";
+import hotelsRouter from "./routes/hotels.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { corsOptions } from "./middleware/security.js";
 import "./config/passport.js";
@@ -110,6 +112,8 @@ app.use("/api/youtube", youtubeRouter);
 app.use("/api/translate", translateRouter);
 app.use("/api/contact", contactRouter);
 app.use("/api/voice", voiceRouter);
+app.use("/api/flights", flightsRouter);
+app.use("/api/hotels", hotelsRouter);
 
 // 404 Handler - must be after all routes
 app.use(notFoundHandler);
