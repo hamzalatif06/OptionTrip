@@ -4,6 +4,34 @@
   margin: 0 auto;
 }
 
+/* ── Coming Soon ──────────────────────────────────── */
+.ht-coming-soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+}
+
+.ht-coming-soon__icon {
+  font-size: 56px;
+  margin-bottom: 20px;
+}
+
+.ht-coming-soon__title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #122d46;
+  margin-bottom: 10px;
+}
+
+.ht-coming-soon__sub {
+  font-size: 15px;
+  color: #64748b;
+  max-width: 340px;
+}
+
 /* ── Search card ──────────────────────────────────────────────────────────── */
 .ht-card {
   background: #ffffff;

@@ -4,17 +4,14 @@
 }
 
 .flight-search-card {
-  background: #ffffff;
+  background: #fff;
   border-radius: 16px;
   padding: 32px 36px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
 }
 
-/* Trip type toggle */
-.trip-type-toggle {
-  display: flex;
-  gap: 8px;
-}
+/* ── Trip type toggle ─────────────────────────────── */
+.trip-type-toggle { display: flex; gap: 8px; }
 
 .trip-type-btn {
   padding: 8px 20px;
@@ -25,65 +22,220 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
 
 .trip-type-btn.active,
-.trip-type-btn:hover {
-  background: #029e9d;
-  color: #ffffff;
+.trip-type-btn:hover { background: #029e9d; color: #fff; }
+
+/* ── Form row ─────────────────────────────────────── */
+.fsf-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
 }
 
-/* Labels */
+.fsf-col           { display: flex; flex-direction: column; gap: 0; }
+.fsf-col--airport  { flex: 2; min-width: 180px; }
+.fsf-col--date     { flex: 1.2; min-width: 140px; }
+.fsf-col--pax      { flex: 0.6; min-width: 80px; }
+.fsf-col--btn      { flex: 1.2; min-width: 150px; }
+
+/* ── Shared label ─────────────────────────────────── */
 .fsf-label {
   display: block;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 6px;
 }
 
-/* Inputs */
+/* ── Shared input ─────────────────────────────────── */
 .fsf-input {
   width: 100%;
   padding: 10px 14px;
   border: 1.5px solid #e2e8f0;
   border-radius: 8px;
-  font-size: 15px;
+  font-size: 14px;
   color: #122d46;
   background: #fff;
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s;
 }
 
-.fsf-input:focus {
+.fsf-input:focus  { border-color: #029e9d; box-shadow: 0 0 0 3px rgba(2,158,157,0.12); }
+.fsf-input.is-error { border-color: #ef4444; }
+
+/* ── Autocomplete wrapper ─────────────────────────── */
+.fsf-ac-wrap { position: relative; }
+.fsf-ac-wrap--error .fsf-ac-field { border-color: #ef4444 !important; }
+
+.fsf-ac-field {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+}
+
+.fsf-ac-field:focus-within {
   border-color: #029e9d;
-  box-shadow: 0 0 0 3px rgba(2, 158, 157, 0.12);
+  box-shadow: 0 0 0 3px rgba(2,158,157,0.12);
 }
 
-.fsf-input.is-error {
-  border-color: #ef4444;
-}
-
-.fsf-input[type="date"] {
-  color: #122d46;
-}
-
-.fsf-error {
-  font-size: 11px;
-  color: #ef4444;
-  margin: 4px 0 0;
-}
-
-/* Arrow decoration */
-.fsf-arrow {
+.fsf-ac-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
   color: #029e9d;
-  font-size: 18px;
+  margin-left: 12px;
 }
 
-/* Search button */
+.fsf-input--ac {
+  border: none !important;
+  box-shadow: none !important;
+  padding: 10px 8px;
+  flex: 1;
+  font-size: 14px;
+  min-width: 0;
+}
+
+.fsf-input--ac:focus { box-shadow: none !important; }
+
+.fsf-ac-spinner {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(2,158,157,0.25);
+  border-top-color: #029e9d;
+  border-radius: 50%;
+  animation: fsf-spin 0.7s linear infinite;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.fsf-ac-clear {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0 10px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.fsf-ac-clear:hover { color: #ef4444; }
+
+.fsf-ac-badge {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 100px;
+  margin-right: 8px;
+  flex-shrink: 0;
+  letter-spacing: 0.04em;
+}
+
+/* ── Dropdown ─────────────────────────────────────── */
+.fsf-ac-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.12);
+  list-style: none;
+  margin: 0; padding: 6px 0;
+  z-index: 1000;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.fsf-ac-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.12s;
+  gap: 10px;
+}
+
+.fsf-ac-item:hover { background: #f0fdfa; }
+
+.fsf-ac-item__left {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.fsf-ac-item__left svg { flex-shrink: 0; margin-top: 3px; }
+
+.fsf-ac-item__name {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.fsf-ac-item__airport {
+  display: block;
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.fsf-ac-item__country {
+  display: block;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.fsf-ac-item__iata {
+  font-size: 13px;
+  font-weight: 800;
+  color: #029e9d;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+  background: #f0fdfa;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+/* ── Swap button ──────────────────────────────────── */
+.fsf-swap-col {
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 2px;
+  flex-shrink: 0;
+}
+
+.fsf-swap-btn {
+  width: 36px; height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #029e9d;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.fsf-swap-btn:hover {
+  background: #f0fdfa;
+  border-color: #029e9d;
+}
+
+/* ── Search button ────────────────────────────────── */
 .fsf-search-btn {
   width: 100%;
   display: flex;
@@ -91,46 +243,49 @@
   justify-content: center;
   gap: 8px;
   background: linear-gradient(135deg, #029e9d 0%, #027b7a 100%);
-  color: #ffffff;
+  color: #fff;
   border: none;
   padding: 11px 20px;
   border-radius: 8px;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s;
   white-space: nowrap;
 }
 
 .fsf-search-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #027b7a 0%, #025655 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(2, 158, 157, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(2,158,157,0.35);
 }
 
-.fsf-search-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+.fsf-search-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.fsf-error {
+  font-size: 11px;
+  color: #ef4444;
+  margin: 4px 0 0;
 }
 
-/* Spinner (reused from BestTours pattern) */
+/* ── Spinner ──────────────────────────────────────── */
 .btn-spinner {
-  width: 15px;
-  height: 15px;
-  border: 2px solid rgba(255, 255, 255, 0.35);
+  width: 15px; height: 15px;
+  border: 2px solid rgba(255,255,255,0.35);
   border-top-color: #fff;
   border-radius: 50%;
   animation: fsf-spin 0.8s linear infinite;
   flex-shrink: 0;
 }
 
-@keyframes fsf-spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes fsf-spin { to { transform: rotate(360deg); } }
 
-/* Responsive */
+/* ── Responsive ───────────────────────────────────── */
 @media (max-width: 991px) {
-  .flight-search-card {
-    padding: 24px 20px;
-  }
+  .flight-search-card { padding: 24px 20px; }
+  .fsf-col--airport   { flex: 1 1 100%; }
+  .fsf-col--date      { flex: 1 1 calc(50% - 6px); }
+  .fsf-col--pax       { flex: 1 1 calc(50% - 6px); }
+  .fsf-col--btn       { flex: 1 1 100%; }
+  .fsf-swap-col       { display: none; }
 }

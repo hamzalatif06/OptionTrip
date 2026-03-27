@@ -105,8 +105,9 @@ export const searchHotels = async ({ cityCode, checkIn, checkOut, adults, limit 
   const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
 
   if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new Error(`Hotellook API error (${res.status}): ${body}`);
+    // Hotellook cache endpoint is deprecated — return empty so frontend falls back to Booking.com
+    console.log(`ℹ️  Hotellook returned ${res.status} for ${cityCode} — falling back to Booking.com redirect`);
+    return [];
   }
 
   const data = await res.json();

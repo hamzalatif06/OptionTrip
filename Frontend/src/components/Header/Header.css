@@ -72,6 +72,81 @@
   transform: rotate(180deg);
 }
 
+/* ─── Bookings nav dropdown ─────────────────────────────────────── */
+.nav-bookings {
+  position: relative;
+}
+
+.nav-bookings__toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.nav-bookings__toggle:hover {
+  color: #029e9d;
+}
+
+.nav-bookings__arrow {
+  font-size: 9px;
+  transition: transform 0.2s ease;
+  display: inline-block;
+}
+
+.nav-bookings__arrow.open {
+  transform: rotate(180deg);
+}
+
+.nav-bookings__dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+  min-width: 160px;
+  padding: 6px 0;
+  list-style: none;
+  margin: 0;
+  z-index: 9999;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+.nav-bookings__dropdown li a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nav-bookings__dropdown li a:hover {
+  background: #f0fdfa;
+  color: #029e9d;
+}
+
+.nav-bookings__dropdown li a i {
+  width: 16px;
+  text-align: center;
+  color: #029e9d;
+}
+
+/* ─── ─────────────────────────────────────────────────────────── */
+
 .header-lang__dropdown {
   position: fixed;
   width: 185px;

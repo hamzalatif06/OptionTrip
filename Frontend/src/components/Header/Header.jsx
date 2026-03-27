@@ -33,6 +33,7 @@ const LANGUAGES = [
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen]           = useState(false);
   const [isAuthDropdownOpen, setIsAuthDropdownOpen] = useState(false);
+
   const [isLangOpen, setIsLangOpen]           = useState(false);
   const [userLocation, setUserLocation]       = useState(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
@@ -112,6 +113,7 @@ const Header = () => {
   const openAuthDropdown    = () => { clearTimeout(closeTimeout.current); setIsAuthDropdownOpen(true); };
   const closeAuthDropdown   = () => { closeTimeout.current = setTimeout(() => setIsAuthDropdownOpen(false), 150); };
   const closeAuthDropdownImmediately = () => { clearTimeout(closeTimeout.current); setIsAuthDropdownOpen(false); };
+
 
   const handleLogout = async () => {
     try { await logout(); closeAuthDropdownImmediately(); navigate('/'); }
@@ -254,6 +256,19 @@ const Header = () => {
                   <li className={`dropdown submenu ${isActive('/tours')}`}>
                     <Link to="/tours" className="dropdown-toggle">{t('common.tours')}</Link>
                   </li>
+                  <li className="dropdown submenu">
+                    <a href="#bookings" className="dropdown-toggle" onClick={(e) => e.preventDefault()}>
+                      Bookings
+                    </a>
+                    <ul className="dropdown-menu">
+                      <li>
+                        <Link to="/flights"><i className="fa fa-plane"></i> Flights</Link>
+                      </li>
+                      <li>
+                        <Link to="/hotels"><i className="fa fa-building"></i> Hotels</Link>
+                      </li>
+                    </ul>
+                  </li>
                   <li className={`dropdown submenu ${isActive('/blog')}`}>
                     <a href="https://blog.optiontrip.com" target="_blank" rel="noopener noreferrer" className="dropdown-toggle">
                       {t('common.blog')}
@@ -347,6 +362,8 @@ const Header = () => {
             <li className={isActive('/about')}><Link to="/about" onClick={toggleMenu}>{t('common.about')}</Link></li>
             <li className={isActive('/destinations')}><Link to="/destinations" onClick={toggleMenu}>{t('common.destinations')}</Link></li>
             <li className={isActive('/tours')}><Link to="/tours" onClick={toggleMenu}>{t('common.tours')}</Link></li>
+            <li className={isActive('/flights')}><Link to="/flights" onClick={toggleMenu}><i className="fa fa-plane"></i> Flights</Link></li>
+            <li className={isActive('/hotels')}><Link to="/hotels" onClick={toggleMenu}><i className="fa fa-building"></i> Hotels</Link></li>
             <li>
               <a href="https://blog.optiontrip.com" target="_blank" rel="noopener noreferrer" onClick={toggleMenu}>{t('common.blog')}</a>
             </li>

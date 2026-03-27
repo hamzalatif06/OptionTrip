@@ -1,27 +1,55 @@
 import React, { useState } from 'react';
 import FlightSearchForm from '../components/FlightSearchForm/FlightSearchForm';
-import FlightCard from '../components/FlightCard/FlightCard';
-import { searchFlights } from '../services/flightService';
+import FlightCardGF from '../components/FlightCard/FlightCardGF';
+import { searchFlightsGoogle } from '../services/flightService';
 import './FlightSearch.css';
 
+const TP_MARKER = '370056';
+
+const buildAviasalesUrl = ({ originCode, destinationCode, departureDate, returnDate, adults }) => {
+  const fmt = (d) => { const [, mm, dd] = d.split('-'); return `${dd}${mm}`; };
+  let path = `${originCode}${fmt(departureDate)}${destinationCode}`;
+  if (returnDate) path += `${destinationCode}${fmt(returnDate)}${originCode}`;
+  path += String(adults || 1);
+  return `https://www.aviasales.com/search/${path}?marker=${TP_MARKER}`;
+};
+
+// Skeleton card shown while loading
+const SkeletonCard = () => (
+  <div className="fcgf-skeleton">
+    <div className="fcgf-skeleton__logo pulse" />
+    <div className="fcgf-skeleton__body">
+      <div className="fcgf-skeleton__line pulse" />
+      <div className="fcgf-skeleton__line fcgf-skeleton__line--short pulse" />
+    </div>
+    <div className="fcgf-skeleton__price pulse" />
+  </div>
+);
+
 const FlightSearch = () => {
-  const [flights, setFlights] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [searched, setSearched] = useState(false);
+  const [flights,    setFlights]    = useState([]);
+  const [isLoading,  setIsLoading]  = useState(false);
+  const [error,      setError]      = useState('');
+  const [searched,   setSearched]   = useState(false);
   const [lastSearch, setLastSearch] = useState(null);
 
   const handleSearch = async (params) => {
     setIsLoading(true);
     setError('');
+    setFlights([]);
     setSearched(true);
     setLastSearch(params);
     try {
-      const result = await searchFlights(params);
+      const result = await searchFlightsGoogle({
+        originCode:      params.originCode,
+        destinationCode: params.destinationCode,
+        departureDate:   params.departureDate,
+        returnDate:      params.returnDate || null,
+        adults:          params.adults,
+      });
       setFlights(result.flights || []);
     } catch (err) {
-      setError(err.message || 'Something went wrong. Please try again.');
-      setFlights([]);
+      setError(err.message || 'Search failed');
     } finally {
       setIsLoading(false);
     }
@@ -36,7 +64,7 @@ const FlightSearch = () => {
             <h4 className="mb-2 theme1">Search & Compare</h4>
             <h1 className="mb-3">Find Your <span className="theme">Perfect Flight</span></h1>
             <p className="flight-hero__subtitle">
-              Search real-time flights powered by Amadeus. Compare prices, pick your seats, and book instantly.
+              Real-time flights from Google Flights. Compare prices and book via Aviasales — your Travelpayouts affiliate.
             </p>
           </div>
         </div>
@@ -50,37 +78,57 @@ const FlightSearch = () => {
         <section className="flight-results-section">
           <div className="container">
 
-            {/* Loading skeleton */}
+            {/* Loading skeletons */}
             {isLoading && (
-              <div className="flight-loading">
-                <div className="flight-loading__spinner"></div>
-                <p>Searching for the best flights…</p>
+              <div>
+                <div className="flight-loading">
+                  <div className="flight-loading__spinner" />
+                  <p>Searching real-time flights…</p>
+                </div>
+                {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
               </div>
             )}
 
             {/* Error */}
             {!isLoading && error && (
-              <div className="flight-error">
-                <i className="fa fa-exclamation-circle me-2"></i>
-                {error}
+              <div className="flight-empty">
+                <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>✈️</div>
+                <h3>Search failed</h3>
+                <p style={{ marginBottom: 16 }}>{error}</p>
+                <a
+                  href={buildAviasalesUrl(lastSearch)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="fsf-search-btn"
+                  style={{ textDecoration: 'none', display: 'inline-flex' }}
+                >
+                  Search on Aviasales ↗
+                </a>
               </div>
             )}
 
-            {/* Empty state */}
+            {/* No results */}
             {!isLoading && !error && flights.length === 0 && (
               <div className="flight-empty">
-                <i className="fa fa-plane-slash flight-empty__icon"></i>
+                <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>✈️</div>
                 <h3>No flights found</h3>
                 <p>
-                  No flights were found for{' '}
-                  <strong>{lastSearch?.originCode} → {lastSearch?.destinationCode}</strong>{' '}
-                  on <strong>{lastSearch?.departureDate}</strong>.
-                  <br />Try different dates or nearby airports.
+                  No results for <strong>{lastSearch?.originCode} → {lastSearch?.destinationCode}</strong> on{' '}
+                  <strong>{lastSearch?.departureDate}</strong>. Try different dates.
                 </p>
+                <a
+                  href={buildAviasalesUrl(lastSearch)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="fsf-search-btn"
+                  style={{ textDecoration: 'none', display: 'inline-flex', marginTop: 16 }}
+                >
+                  Search on Aviasales ↗
+                </a>
               </div>
             )}
 
-            {/* Results list */}
+            {/* Results */}
             {!isLoading && !error && flights.length > 0 && (
               <>
                 <div className="flight-results-header">
@@ -90,10 +138,12 @@ const FlightSearch = () => {
                       {' '}— {lastSearch?.originCode} → {lastSearch?.destinationCode}
                     </span>
                   </h2>
-                  <p className="flight-results-note">Prices per person · Click "Book Now" to complete your booking</p>
+                  <p className="flight-results-note">
+                    Prices per person · Powered by Google Flights · Book via Aviasales (affiliate)
+                  </p>
                 </div>
                 {flights.map(flight => (
-                  <FlightCard key={flight.id} flight={flight} />
+                  <FlightCardGF key={flight.id} flight={flight} />
                 ))}
               </>
             )}

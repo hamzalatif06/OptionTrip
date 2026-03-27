@@ -11,4 +11,8 @@ export const TP_CONFIG = {
   autocompleteUrl:'https://autocomplete.travelpayouts.com/places2',
   photoBase:      'https://photo.hotellook.com/image_v2/limit',
   bookBase:       'https://search.hotellook.com',
+  aviasalesBase:  'https://api.travelpayouts.com/aviasales/v3/prices_for_dates',
+  aviasalesBook:  'https://www.aviasales.com',
+  aviasalesFallback: 'https://aviasales.tpm.lv/6oZw8XRa',
+  tripFallback:      'https://trip.tpm.lv/Ec7YXhpA',
 };

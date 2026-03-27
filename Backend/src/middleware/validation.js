@@ -224,10 +224,39 @@ export const validateHotelSearch = (req, res, next) => {
   next();
 };
 
+/**
+ * Validate Travelpayouts flight search (GET query params)
+ * GET /api/flights/tp-search?origin=LHR&destination=DXB&departureAt=2026-04-01
+ */
+export const validateTPFlightSearch = (req, res, next) => {
+  const { origin, destination, departureAt } = req.query;
+  const errors = [];
+  const iataRe = /^[A-Za-z]{2,3}$/;
+
+  if (!origin || !iataRe.test(origin)) {
+    errors.push('origin must be a 2-3 letter IATA code (e.g. LHR)');
+  }
+  if (!destination || !iataRe.test(destination)) {
+    errors.push('destination must be a 2-3 letter IATA code (e.g. DXB)');
+  }
+  if (origin && destination && origin.toUpperCase() === destination.toUpperCase()) {
+    errors.push('origin and destination must differ');
+  }
+  if (!departureAt || !/^\d{4}-\d{2}-\d{2}$/.test(departureAt)) {
+    errors.push('departureAt must be in YYYY-MM-DD format');
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({ success: false, message: errors.join('; ') });
+  }
+  next();
+};
+
 export default {
   validateTripGeneration,
   validateTripId,
   validateOptionSelection,
   validateFlightSearch,
   validateHotelSearch,
+  validateTPFlightSearch,
 };

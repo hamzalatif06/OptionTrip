@@ -1,36 +1,162 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { searchAirports } from '../../services/flightService';
 import './FlightSearchForm.css';
 
 const today = new Date().toISOString().split('T')[0];
 
-const FlightSearchForm = ({ onSearch, isLoading }) => {
-  const [form, setForm] = useState({
-    tripType: 'one-way',
-    originCode: '',
-    destinationCode: '',
-    departureDate: '',
-    returnDate: '',
-    adults: 1,
-    children: 0,
-  });
-  const [errors, setErrors] = useState({});
+/* ── Debounce hook ─────────────────────────────────────────────── */
+function useDebounce(value, delay) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return debounced;
+}
 
-  const set = (field, value) => {
-    setForm(prev => ({ ...prev, [field]: value }));
-    setErrors(prev => ({ ...prev, [field]: '' }));
+/* ── Airport autocomplete input ────────────────────────────────── */
+const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect, error }) => {
+  const [query,       setQuery]       = useState(value || '');
+  const [suggestions, setSuggestions] = useState([]);
+  const [loading,     setLoading]     = useState(false);
+  const [open,        setOpen]        = useState(false);
+  const [selected,    setSelected]    = useState(!!iataCode);
+  const wrapRef   = useRef(null);
+  const debounced = useDebounce(query, 300);
+
+  // Sync when parent resets (e.g. swap)
+  useEffect(() => {
+    setQuery(value || '');
+    setSelected(!!iataCode);
+  }, [value, iataCode]);
+
+  // Fetch suggestions
+  useEffect(() => {
+    if (selected || debounced.length < 2) { setSuggestions([]); setOpen(false); return; }
+    setLoading(true);
+    searchAirports(debounced).then(results => {
+      setSuggestions(results.slice(0, 7));
+      setOpen(results.length > 0);
+      setLoading(false);
+    });
+  }, [debounced, selected]);
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e) => { if (!wrapRef.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleChange = (e) => {
+    setQuery(e.target.value);
+    setSelected(false);
+    onChange('', e.target.value);
+  };
+
+  const handleSelect = (airport) => {
+    const display = `${airport.cityName || airport.name} (${airport.iataCode})`;
+    setQuery(display);
+    setSelected(true);
+    setOpen(false);
+    setSuggestions([]);
+    onSelect(airport.iataCode, display);
+  };
+
+  const handleClear = () => {
+    setQuery('');
+    setSelected(false);
+    setSuggestions([]);
+    setOpen(false);
+    onChange('', '');
+  };
+
+  return (
+    <div className={`fsf-ac-wrap${error ? ' fsf-ac-wrap--error' : ''}`} ref={wrapRef}>
+      <label className="fsf-label">{label}</label>
+      <div className="fsf-ac-field">
+        <svg className="fsf-ac-icon" viewBox="0 0 24 24" fill="none">
+          <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="currentColor"/>
+        </svg>
+        <input
+          className="fsf-input fsf-input--ac"
+          type="text"
+          placeholder={placeholder}
+          value={query}
+          onChange={handleChange}
+          onFocus={() => { if (!selected && suggestions.length > 0) setOpen(true); }}
+          autoComplete="off"
+          spellCheck={false}
+        />
+        {loading && <span className="fsf-ac-spinner" />}
+        {query && !loading && (
+          <button type="button" className="fsf-ac-clear" onClick={handleClear} tabIndex={-1}>✕</button>
+        )}
+        {selected && iataCode && (
+          <span className="fsf-ac-badge">{iataCode}</span>
+        )}
+      </div>
+
+      {open && suggestions.length > 0 && (
+        <ul className="fsf-ac-dropdown">
+          {suggestions.map(airport => (
+            <li
+              key={airport.iataCode}
+              className="fsf-ac-item"
+              onMouseDown={() => handleSelect(airport)}
+            >
+              <div className="fsf-ac-item__left">
+                <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
+                  <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="#029e9d"/>
+                </svg>
+                <div>
+                  <span className="fsf-ac-item__name">{airport.cityName || airport.name}</span>
+                  {airport.name !== airport.cityName && airport.name && (
+                    <span className="fsf-ac-item__airport">{airport.name}</span>
+                  )}
+                  {airport.countryName && (
+                    <span className="fsf-ac-item__country">{airport.countryName}</span>
+                  )}
+                </div>
+              </div>
+              <span className="fsf-ac-item__iata">{airport.iataCode}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {error && <p className="fsf-error">{error}</p>}
+    </div>
+  );
+};
+
+/* ── Main form ─────────────────────────────────────────────────── */
+const FlightSearchForm = ({ onSearch, isLoading }) => {
+  const [tripType,      setTripType]      = useState('one-way');
+  const [originCode,    setOriginCode]    = useState('');
+  const [originDisplay, setOriginDisplay] = useState('');
+  const [destCode,      setDestCode]      = useState('');
+  const [destDisplay,   setDestDisplay]   = useState('');
+  const [departureDate, setDepartureDate] = useState('');
+  const [returnDate,    setReturnDate]    = useState('');
+  const [adults,        setAdults]        = useState(1);
+  const [children,      setChildren]      = useState(0);
+  const [errors,        setErrors]        = useState({});
+
+  const clearError = (field) => setErrors(p => ({ ...p, [field]: '' }));
+
+  const handleSwap = () => {
+    setOriginCode(destCode);      setOriginDisplay(destDisplay);
+    setDestCode(originCode);      setDestDisplay(originDisplay);
   };
 
   const validate = () => {
     const errs = {};
-    if (!form.originCode.trim()) errs.originCode = 'Enter departure airport code (e.g. JFK)';
-    else if (!/^[A-Za-z]{2,3}$/.test(form.originCode.trim())) errs.originCode = 'Must be a 2-3 letter IATA code';
-    if (!form.destinationCode.trim()) errs.destinationCode = 'Enter destination airport code (e.g. LAX)';
-    else if (!/^[A-Za-z]{2,3}$/.test(form.destinationCode.trim())) errs.destinationCode = 'Must be a 2-3 letter IATA code';
-    if (form.originCode && form.destinationCode && form.originCode.toUpperCase() === form.destinationCode.toUpperCase()) {
-      errs.destinationCode = 'Origin and destination must differ';
-    }
-    if (!form.departureDate) errs.departureDate = 'Select departure date';
-    if (form.tripType === 'round-trip' && !form.returnDate) errs.returnDate = 'Select return date';
+    if (!originCode)  errs.origin      = 'Select a departure airport';
+    if (!destCode)    errs.destination = 'Select a destination airport';
+    if (originCode && destCode && originCode === destCode) errs.destination = 'Origin and destination must differ';
+    if (!departureDate) errs.departureDate = 'Select departure date';
+    if (tripType === 'round-trip' && !returnDate) errs.returnDate = 'Select return date';
     return errs;
   };
 
@@ -39,12 +165,12 @@ const FlightSearchForm = ({ onSearch, isLoading }) => {
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     onSearch({
-      originCode: form.originCode.trim().toUpperCase(),
-      destinationCode: form.destinationCode.trim().toUpperCase(),
-      departureDate: form.departureDate,
-      returnDate: form.tripType === 'round-trip' ? form.returnDate : undefined,
-      adults: Number(form.adults),
-      children: Number(form.children),
+      originCode,
+      destinationCode: destCode,
+      departureDate,
+      returnDate: tripType === 'round-trip' ? returnDate : undefined,
+      adults:   Number(adults),
+      children: Number(children),
     });
   };
 
@@ -52,14 +178,15 @@ const FlightSearchForm = ({ onSearch, isLoading }) => {
     <section className="flight-search-section">
       <div className="container">
         <div className="flight-search-card">
+
           {/* Trip type toggle */}
           <div className="trip-type-toggle mb-4">
             {['one-way', 'round-trip'].map(type => (
               <button
                 key={type}
                 type="button"
-                className={`trip-type-btn${form.tripType === type ? ' active' : ''}`}
-                onClick={() => set('tripType', type)}
+                className={`trip-type-btn${tripType === type ? ' active' : ''}`}
+                onClick={() => setTripType(type)}
               >
                 {type === 'one-way' ? 'One-way' : 'Round Trip'}
               </button>
@@ -67,112 +194,94 @@ const FlightSearchForm = ({ onSearch, isLoading }) => {
           </div>
 
           <form onSubmit={handleSubmit}>
-            <div className="row g-3 align-items-end">
-              {/* Origin */}
-              <div className="col-lg-2 col-md-6">
-                <label className="fsf-label">From</label>
-                <input
-                  className={`fsf-input${errors.originCode ? ' is-error' : ''}`}
-                  type="text"
-                  placeholder="e.g. JFK"
-                  value={form.originCode}
-                  onChange={e => set('originCode', e.target.value)}
-                  maxLength={3}
+            <div className="fsf-row">
+
+              {/* From */}
+              <div className="fsf-col fsf-col--airport">
+                <AirportInput
+                  label="From"
+                  placeholder="City or airport (e.g. London, JFK)"
+                  value={originDisplay}
+                  iataCode={originCode}
+                  onChange={(code, display) => { setOriginCode(code); setOriginDisplay(display); clearError('origin'); }}
+                  onSelect={(code, display) => { setOriginCode(code); setOriginDisplay(display); clearError('origin'); }}
+                  error={errors.origin}
                 />
-                {errors.originCode && <p className="fsf-error">{errors.originCode}</p>}
               </div>
 
-              {/* Swap arrow (decorative) */}
-              <div className="col-lg-1 col-md-12 text-center d-none d-lg-flex align-items-center justify-content-center" style={{paddingBottom: errors.originCode || errors.destinationCode ? '24px' : '8px'}}>
-                <i className="fa fa-arrow-right fsf-arrow"></i>
+              {/* Swap button */}
+              <div className="fsf-swap-col">
+                <button type="button" className="fsf-swap-btn" onClick={handleSwap} title="Swap airports">
+                  <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+                    <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
               </div>
 
-              {/* Destination */}
-              <div className="col-lg-2 col-md-6">
-                <label className="fsf-label">To</label>
-                <input
-                  className={`fsf-input${errors.destinationCode ? ' is-error' : ''}`}
-                  type="text"
-                  placeholder="e.g. LAX"
-                  value={form.destinationCode}
-                  onChange={e => set('destinationCode', e.target.value)}
-                  maxLength={3}
+              {/* To */}
+              <div className="fsf-col fsf-col--airport">
+                <AirportInput
+                  label="To"
+                  placeholder="City or airport (e.g. Dubai, CDG)"
+                  value={destDisplay}
+                  iataCode={destCode}
+                  onChange={(code, display) => { setDestCode(code); setDestDisplay(display); clearError('destination'); }}
+                  onSelect={(code, display) => { setDestCode(code); setDestDisplay(display); clearError('destination'); }}
+                  error={errors.destination}
                 />
-                {errors.destinationCode && <p className="fsf-error">{errors.destinationCode}</p>}
               </div>
 
-              {/* Departure Date */}
-              <div className="col-lg-2 col-md-6">
+              {/* Departure */}
+              <div className="fsf-col fsf-col--date">
                 <label className="fsf-label">Departure</label>
                 <input
                   className={`fsf-input${errors.departureDate ? ' is-error' : ''}`}
-                  type="date"
-                  min={today}
-                  value={form.departureDate}
-                  onChange={e => set('departureDate', e.target.value)}
+                  type="date" min={today}
+                  value={departureDate}
+                  onChange={e => { setDepartureDate(e.target.value); clearError('departureDate'); }}
                 />
                 {errors.departureDate && <p className="fsf-error">{errors.departureDate}</p>}
               </div>
 
-              {/* Return Date (round-trip only) */}
-              {form.tripType === 'round-trip' && (
-                <div className="col-lg-2 col-md-6">
+              {/* Return (round-trip only) */}
+              {tripType === 'round-trip' && (
+                <div className="fsf-col fsf-col--date">
                   <label className="fsf-label">Return</label>
                   <input
                     className={`fsf-input${errors.returnDate ? ' is-error' : ''}`}
-                    type="date"
-                    min={form.departureDate || today}
-                    value={form.returnDate}
-                    onChange={e => set('returnDate', e.target.value)}
+                    type="date" min={departureDate || today}
+                    value={returnDate}
+                    onChange={e => { setReturnDate(e.target.value); clearError('returnDate'); }}
                   />
                   {errors.returnDate && <p className="fsf-error">{errors.returnDate}</p>}
                 </div>
               )}
 
               {/* Adults */}
-              <div className="col-lg-1 col-md-3">
+              <div className="fsf-col fsf-col--pax">
                 <label className="fsf-label">Adults</label>
-                <input
-                  className="fsf-input"
-                  type="number"
-                  min={1} max={9}
-                  value={form.adults}
-                  onChange={e => set('adults', e.target.value)}
-                />
+                <select className="fsf-input" value={adults} onChange={e => setAdults(e.target.value)}>
+                  {[1,2,3,4,5,6,7,8,9].map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
               </div>
 
               {/* Children */}
-              <div className="col-lg-1 col-md-3">
+              <div className="fsf-col fsf-col--pax">
                 <label className="fsf-label">Children</label>
-                <input
-                  className="fsf-input"
-                  type="number"
-                  min={0} max={8}
-                  value={form.children}
-                  onChange={e => set('children', e.target.value)}
-                />
+                <select className="fsf-input" value={children} onChange={e => setChildren(e.target.value)}>
+                  {[0,1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
               </div>
 
-              {/* Search Button */}
-              <div className={`col-lg-${form.tripType === 'round-trip' ? '1' : '2'} col-md-6`}>
-                <button
-                  type="submit"
-                  className="fsf-search-btn"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <span className="btn-spinner"></span>
-                      Searching…
-                    </>
-                  ) : (
-                    <>
-                      <i className="fa fa-search"></i>
-                      Search
-                    </>
-                  )}
+              {/* Search */}
+              <div className="fsf-col fsf-col--btn">
+                <button type="submit" className="fsf-search-btn" disabled={isLoading}>
+                  {isLoading
+                    ? <><span className="btn-spinner" /> Searching…</>
+                    : <><i className="fa fa-search" /> Search Flights</>}
                 </button>
               </div>
+
             </div>
           </form>
         </div>

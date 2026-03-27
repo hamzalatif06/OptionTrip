@@ -1,13 +1,19 @@
 import express from 'express';
-import { searchFlights, getAirports } from '../controllers/flightController.js';
-import { validateFlightSearch } from '../middleware/validation.js';
+import { searchFlights, getAirports, searchFlightsTravelpayouts, searchFlightsGoogleHandler } from '../controllers/flightController.js';
+import { validateFlightSearch, validateTPFlightSearch } from '../middleware/validation.js';
 
 const router = express.Router();
 
 // GET /api/flights/airports?keyword=Paris
 router.get('/airports', getAirports);
 
-// POST /api/flights/search
+// GET /api/flights/google-search?origin=LAX&destination=JFK&departureDate=2026-04-15&adults=1
+router.get('/google-search', searchFlightsGoogleHandler);
+
+// POST /api/flights/search  (Amadeus - legacy)
 router.post('/search', validateFlightSearch, searchFlights);
+
+// GET /api/flights/tp-search  (Travelpayouts cache - legacy)
+router.get('/tp-search', validateTPFlightSearch, searchFlightsTravelpayouts);
 
 export default router;

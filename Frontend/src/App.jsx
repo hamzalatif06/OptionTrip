@@ -36,6 +36,7 @@ import CookiePolicyPage from './pages/CookiePolicyPage';
 import DataProtectionPage from './pages/DataProtectionPage';
 import HelpCenterPage from './pages/HelpCenterPage';
 import FlightSearch from './pages/FlightSearch';
+import HotelSearch from './pages/HotelSearch';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -116,8 +117,9 @@ function App() {
                   <Route path="/cookie-policy" element={<CookiePolicyPage />} />
                   <Route path="/data-protection" element={<DataProtectionPage />} />
 
-                  {/* Flights */}
+                  {/* Bookings */}
                   <Route path="/flights" element={<FlightSearch />} />
+                  <Route path="/hotels"  element={<HotelSearch />} />
 
                   {/* Support */}
                   <Route path="/help-center" element={<HelpCenterPage />} />
