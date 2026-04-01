@@ -17,16 +17,31 @@ export const getAirports = async (req, res) => {
     if (!keyword || keyword.trim().length < 2) {
       return res.status(400).json({ success: false, message: 'keyword must be at least 2 characters' });
     }
-    const params = new URLSearchParams({ term: keyword.trim(), locale: 'en', 'types[]': 'airport' });
-    const apiRes = await fetch(`https://autocomplete.travelpayouts.com/places2?${params.toString()}`);
+    // Include airports AND cities so users can search by city name (e.g. "Dubai", "London")
+    const qs = `term=${encodeURIComponent(keyword.trim())}&locale=en&types[]=airport&types[]=city`;
+    const apiRes = await fetch(`https://autocomplete.travelpayouts.com/places2?${qs}`);
     if (!apiRes.ok) return res.json({ success: true, data: { locations: [] } });
     const raw = await apiRes.json();
-    const locations = raw.map((item) => ({
-      iataCode:    item.code,
-      name:        item.name,
-      cityName:    item.city_name || item.name,
-      countryName: item.country_name || '',
-    }));
+
+    // Prefer airports over cities when both share the same code; deduplicate
+    const seen = new Set();
+    const locations = raw
+      .filter(item => item.code)
+      .sort((a, b) => (a.type === 'airport' ? -1 : 1)) // airports first
+      .reduce((acc, item) => {
+        if (!seen.has(item.code)) {
+          seen.add(item.code);
+          acc.push({
+            iataCode:    item.code,
+            name:        item.name,
+            cityName:    item.city_name || item.name,
+            countryName: item.country_name || '',
+          });
+        }
+        return acc;
+      }, [])
+      .slice(0, 10);
+
     res.json({ success: true, data: { locations } });
   } catch (error) {
     console.error('❌ Airport search error:', error.message);

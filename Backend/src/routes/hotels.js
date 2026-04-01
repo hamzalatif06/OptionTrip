@@ -1,13 +1,20 @@
 import express from 'express';
-import { getHotelLocations, searchHotels } from '../controllers/hotelController.js';
-import { validateHotelSearch } from '../middleware/validation.js';
+import {
+  getHotelLocations,
+  searchHotels,
+  getHotelDetailsHandler,
+  getRoomListHandler,
+  getHotelPhotosHandler,
+  getReviewScoresHandler,
+} from '../controllers/hotelController.js';
 
 const router = express.Router();
 
-// GET /api/hotels/locations?term=Paris
 router.get('/locations', getHotelLocations);
-
-// GET /api/hotels/search?cityCode=PAR&checkIn=2026-05-01&checkOut=2026-05-07&adults=2
-router.get('/search', validateHotelSearch, searchHotels);
+router.get('/search',    searchHotels);
+router.get('/details',   getHotelDetailsHandler);
+router.get('/rooms',     getRoomListHandler);
+router.get('/photos',    getHotelPhotosHandler);
+router.get('/reviews',   getReviewScoresHandler);
 
 export default router;
