@@ -1,11 +1,14 @@
 import express from 'express';
-import { searchFlights, getAirports, searchFlightsTravelpayouts, searchFlightsGoogleHandler } from '../controllers/flightController.js';
+import { searchFlights, getAirports, searchFlightsTravelpayouts, searchFlightsGoogleHandler, getCheapPriceHandler } from '../controllers/flightController.js';
 import { validateFlightSearch, validateTPFlightSearch } from '../middleware/validation.js';
 
 const router = express.Router();
 
 // GET /api/flights/airports?keyword=Paris
 router.get('/airports', getAirports);
+
+// GET /api/flights/cheap-price?origin=KHI&destination=DXB&departDate=2026-05-01
+router.get('/cheap-price', getCheapPriceHandler);
 
 // GET /api/flights/google-search?origin=LAX&destination=JFK&departureDate=2026-04-15&adults=1
 router.get('/google-search', searchFlightsGoogleHandler);

@@ -170,6 +170,68 @@
   line-height: 1.7;
 }
 
+/* ── Pagination ────────────────────────────────────────────────────────────── */
+.fs-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #f0f4f8;
+  margin-bottom: 40px;
+}
+
+.fs-page-btn {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1.5px solid #e8ecf0;
+  background: #fff;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+}
+
+.fs-page-btn:hover:not(:disabled) {
+  border-color: #029e9d;
+  color: #029e9d;
+  background: #f0fdfc;
+}
+
+.fs-page-btn--active {
+  background: linear-gradient(135deg, #029e9d, #027b7a);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(2, 158, 157, 0.35);
+}
+
+.fs-page-btn--active:hover {
+  background: linear-gradient(135deg, #029e9d, #027b7a) !important;
+  color: #fff !important;
+}
+
+.fs-page-btn--nav { color: #64748b; }
+
+.fs-page-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.fs-page-ellipsis {
+  font-size: 14px;
+  color: #94a3b8;
+  min-width: 28px;
+  text-align: center;
+  user-select: none;
+}
+
 /* ── Responsive ────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .flight-hero__content h1 {

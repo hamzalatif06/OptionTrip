@@ -1,7 +1,163 @@
 .ft-root {
-  padding: 32px 24px 48px;
+  padding: 24px 24px 48px;
   max-width: 1200px;
   margin: 0 auto;
+}
+
+/* ── Discounted Flights section ───────────────────────────────────────────── */
+.ft-suggested {
+  margin-bottom: 40px;
+}
+
+/* Banner header */
+.ft-disc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  background: linear-gradient(135deg, #012f3e 0%, #014d5c 50%, #029e9d 100%);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* subtle decorative plane watermark */
+.ft-disc-header::after {
+  content: '✈';
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-20deg);
+  font-size: 110px;
+  color: rgba(255,255,255,0.04);
+  pointer-events: none;
+  line-height: 1;
+}
+
+.ft-disc-header__left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ft-disc-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.ft-disc-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 3px;
+  letter-spacing: -0.01em;
+}
+
+.ft-disc-subtitle {
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+  margin: 0;
+  max-width: 340px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Price pill */
+.ft-disc-price-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.ft-disc-price-pill__from {
+  font-size: 10px;
+  color: rgba(255,255,255,0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.ft-disc-price-pill__amount {
+  font-size: 28px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+}
+
+.ft-disc-price-pill__tag {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 100px;
+  letter-spacing: 0.03em;
+}
+
+.ft-suggested__sub {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0 0 14px;
+}
+
+.ft-suggested__empty {
+  font-size: 13px;
+  color: #94a3b8;
+  padding: 14px 18px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px dashed #e2e8f0;
+  text-align: center;
+}
+
+.ft-auto-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  color: #64748b;
+  font-size: 14px;
+  border: 1px solid #e8ecef;
+}
+
+.ft-auto-error {
+  font-size: 13px;
+  color: #94a3b8;
+  padding: 14px 18px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e8ecef;
+  text-align: center;
+}
+
+/* ── Manual section ───────────────────────────────────────────────────────── */
+.ft-manual-section {
+  border-top: 2px dashed #e8ecef;
+  padding-top: 28px;
+}
+
+.ft-manual-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  margin: 0 0 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 /* ── Trip-type toggle ─────────────────────────────────────────────────────── */
@@ -487,6 +643,69 @@
 .ft-empty p {
   font-size: 14px;
   margin: 0;
+}
+
+/* ── Pagination ───────────────────────────────────────────────────────────── */
+.ft-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f4f8;
+}
+
+.ft-page-btn {
+  min-width: 38px;
+  height: 38px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1.5px solid #e8ecf0;
+  background: #fff;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+}
+
+.ft-page-btn:hover:not(:disabled) {
+  border-color: #029e9d;
+  color: #029e9d;
+  background: #f0fdfc;
+}
+
+.ft-page-btn--active {
+  background: linear-gradient(135deg, #029e9d, #027b7a);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(2, 158, 157, 0.35);
+}
+
+.ft-page-btn--active:hover {
+  background: linear-gradient(135deg, #029e9d, #027b7a) !important;
+  color: #fff !important;
+}
+
+.ft-page-btn--nav {
+  color: #64748b;
+}
+
+.ft-page-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.ft-page-ellipsis {
+  font-size: 14px;
+  color: #94a3b8;
+  min-width: 28px;
+  text-align: center;
+  user-select: none;
 }
 
 /* ── Responsive ───────────────────────────────────────────────────────────── */

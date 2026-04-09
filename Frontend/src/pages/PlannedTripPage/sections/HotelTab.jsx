@@ -3,6 +3,33 @@ import { searchHotelLocations, searchHotels } from '../../../services/hotelServi
 import HotelCard from '../../../components/HotelCard/HotelCard';
 import './HotelTab.css';
 
+const PAGE_SIZE = 8;
+
+const Pagination = ({ page, total, onChange }) => {
+  const pages = Array.from({ length: total }, (_, i) => i + 1);
+  const getVisible = () => {
+    if (total <= 7) return pages;
+    if (page <= 4) return [...pages.slice(0, 5), '…', total];
+    if (page >= total - 3) return [1, '…', ...pages.slice(total - 5)];
+    return [1, '…', page - 1, page, page + 1, '…', total];
+  };
+  return (
+    <div className="ht-pagination">
+      <button className="ht-page-btn ht-page-btn--nav" onClick={() => onChange(page - 1)} disabled={page === 1}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </button>
+      {getVisible().map((p, i) =>
+        p === '…'
+          ? <span key={`ellipsis-${i}`} className="ht-page-ellipsis">…</span>
+          : <button key={p} className={`ht-page-btn${p === page ? ' ht-page-btn--active' : ''}`} onClick={() => onChange(p)}>{p}</button>
+      )}
+      <button className="ht-page-btn ht-page-btn--nav" onClick={() => onChange(page + 1)} disabled={page === total}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </button>
+    </div>
+  );
+};
+
 function useDebounce(value, delay) {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
@@ -55,6 +82,7 @@ const HotelTab = ({ tripData }) => {
   const [searchError, setSearchError] = useState(null);
   const [searched,    setSearched]    = useState(false);
   const [lastCityName, setLastCityName] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -131,6 +159,7 @@ const HotelTab = ({ tripData }) => {
         adults: form.adults, cityName: cityQuery,
       });
       setHotels(result.hotels || []);
+      setCurrentPage(1);
       setSearched(true);
     } catch (err) {
       setSearchError(err.message || 'Search failed');
@@ -285,20 +314,27 @@ const HotelTab = ({ tripData }) => {
               <h3>No hotels found</h3>
               <p>No results for <strong>{lastCityName}</strong>. Try different dates or a nearby city.</p>
             </div>
-          ) : (
-            <>
-              <div className="ht-results__header">
-                <h3>{hotels.length} hotel{hotels.length !== 1 ? 's' : ''} found</h3>
-                <p>
-                  {lastCityName}
-                  {nights > 0 ? ` · ${nights} night${nights !== 1 ? 's' : ''}` : ''}
-                  {` · ${form.adults} adult${form.adults !== 1 ? 's' : ''}`}
-                  {' · '}Prices in USD
-                </p>
-              </div>
-              {hotels.map(hotel => <HotelCard key={hotel.hotelId} hotel={hotel} />)}
-            </>
-          )}
+          ) : (() => {
+            const totalPages = Math.ceil(hotels.length / PAGE_SIZE);
+            const paginated  = hotels.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+            return (
+              <>
+                <div className="ht-results__header">
+                  <h3>{hotels.length} hotel{hotels.length !== 1 ? 's' : ''} found</h3>
+                  <p>
+                    {lastCityName}
+                    {nights > 0 ? ` · ${nights} night${nights !== 1 ? 's' : ''}` : ''}
+                    {` · ${form.adults} adult${form.adults !== 1 ? 's' : ''}`}
+                    {' · '}Prices in USD
+                  </p>
+                </div>
+                {paginated.map(hotel => <HotelCard key={hotel.hotelId} hotel={hotel} />)}
+                {totalPages > 1 && (
+                  <Pagination page={currentPage} total={totalPages} onChange={setCurrentPage} />
+                )}
+              </>
+            );
+          })()}
         </div>
       )}
     </div>

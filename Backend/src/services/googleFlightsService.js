@@ -39,6 +39,29 @@ const durationText = (d) => {
   return d.text || '';
 };
 
+// Parse price to a clean per-person integer.
+// google-flights2 returns the TOTAL price for all passengers, so divide by adults.
+const parsePrice = (raw, adults = 1) => {
+  const val = raw.price ?? null;
+  if (val === null || val === undefined) return null;
+  const n = typeof val === 'string' ? parseFloat(val.replace(/[^0-9.]/g, '')) : Number(val);
+  if (isNaN(n) || n <= 0) return null;
+  return Math.round(n / Math.max(1, adults));
+};
+
+// Extract key amenities from the extensions array
+const parseAmenities = (extensions = []) => {
+  const result = { wifi: false, power: false, video: false, usb: false };
+  for (const ext of extensions) {
+    const s = String(ext).toLowerCase();
+    if (s.includes('wi-fi'))                 result.wifi  = true;
+    if (s.includes('power'))                 result.power = true;
+    if (s.includes('usb'))                   result.usb   = true;
+    if (s.includes('video') || s.includes('entertainment')) result.video = true;
+  }
+  return result;
+};
+
 // Normalise a raw API itinerary into a clean object
 const normalise = (raw, { origin, destination, departureDate, returnDate, adults }) => {
   const segs = raw.flights || [];
@@ -65,16 +88,19 @@ const normalise = (raw, { origin, destination, departureDate, returnDate, adults
     destination:   last.arrival_airport?.airport_code   || destination,
     originName:    first.departure_airport?.airport_name || '',
     destName:      last.arrival_airport?.airport_name   || '',
-    stops:         raw.stops ?? Math.max(0, segs.length - 1),
+    stops:         segs.length > 1 ? segs.length - 1 : (raw.stops ?? 0),
     layovers,
     airline:       airlines.join(' · '),
     airlineLogo:   first.airline_logo || raw.airline_logo || '',
     flightNumber:  segs.map(s => s.flight_number).filter(Boolean).join(', '),
     aircraft:      first.aircraft || '',
-    price:         raw.price ?? null,
+    price:         parsePrice(raw, adults),
     currency:      'USD',
     bags:          raw.bags || { carry_on: 0, checked: 0 },
     legroom:       first.legroom || '',
+    seatType:      first.seat   || '',   // e.g. "Above average legroom"
+    amenities:     parseAmenities(first.extensions || []),
+    co2:           raw.carbon_emissions?.difference_percent ?? null,
     bookingUrl:    buildBookingUrl({ origin, destination, departureDate, returnDate, adults }),
   };
 };

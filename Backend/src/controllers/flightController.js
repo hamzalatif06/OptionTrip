@@ -4,7 +4,7 @@
  */
 
 import { searchFlights as amadeusSearchFlights } from '../services/amadeusService.js';
-import { searchFlights as tpSearchFlights } from '../services/travelpayoutsFlightService.js';
+import { searchFlights as tpSearchFlights, getCheapPrice } from '../services/travelpayoutsFlightService.js';
 import { searchFlightsGoogle } from '../services/googleFlightsService.js';
 
 /**
@@ -102,6 +102,22 @@ export const searchFlights = async (req, res) => {
       message: 'Failed to search flights',
       error: error.message,
     });
+  }
+};
+
+/**
+ * GET /api/flights/cheap-price?origin=KHI&destination=DXB&departDate=2026-05-01
+ * Returns cheapest cached TP price for a route/month (instant, no heavy search).
+ */
+export const getCheapPriceHandler = async (req, res) => {
+  try {
+    const { origin, destination, departDate } = req.query;
+    if (!origin || !destination || !departDate)
+      return res.status(400).json({ success: false, message: 'origin, destination and departDate required' });
+    const result = await getCheapPrice({ origin, destination, departDate });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 

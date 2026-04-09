@@ -105,6 +105,15 @@ export const searchFlightsGoogle = async ({
  * @param {{ origin: string, destination: string, departureAt: string, returnAt?: string, limit?: number }}
  * @returns {Promise<{ flights: Array, count: number }>}
  */
+export const getCheapPrice = async ({ origin, destination, departDate }) => {
+  try {
+    const params = new URLSearchParams({ origin, destination, departDate });
+    const res  = await fetch(`${API_URL}/api/flights/cheap-price?${params}`);
+    const data = await res.json();
+    return data.success ? data.data : null;
+  } catch { return null; }
+};
+
 export const searchFlightsTP = async ({ origin, destination, departureAt, returnAt, limit }) => {
   const params = new URLSearchParams({ origin, destination, departureAt });
   if (returnAt) params.append('returnAt', returnAt);

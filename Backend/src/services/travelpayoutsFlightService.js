@@ -46,6 +46,38 @@ function normalizeResult(item) {
 }
 
 /**
+ * Get cheapest cached price for a route/month from Travelpayouts.
+ * Instant response — no heavy computation, pure cache lookup.
+ *
+ * @param {{ origin: string, destination: string, departDate: string }}  departDate = YYYY-MM-DD
+ * @returns {Promise<{ price: number, airline: string, departureAt: string, transfers: number } | null>}
+ */
+export async function getCheapPrice({ origin, destination, departDate }) {
+  try {
+    const month = departDate.substring(0, 7); // YYYY-MM
+    const params = new URLSearchParams({
+      origin:       origin.toUpperCase(),
+      destination:  destination.toUpperCase(),
+      depart_date:  month,
+      currency:     'usd',
+      token:        TP_CONFIG.token,
+    });
+    const res  = await fetch(`https://api.travelpayouts.com/v1/prices/cheap?${params}`);
+    if (!res.ok) return null;
+    const json = await res.json();
+    if (!json.success) return null;
+    const destData = json.data?.[destination.toUpperCase()];
+    if (!destData) return null;
+    const prices = Object.values(destData);
+    if (!prices.length) return null;
+    // Return the cheapest option
+    return prices.reduce((best, p) => (!best || p.price < best.price) ? p : best, null);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Search for flights via Travelpayouts Aviasales API.
  * Results are cached for 15 minutes.
  *

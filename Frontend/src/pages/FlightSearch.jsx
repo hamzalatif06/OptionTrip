@@ -26,18 +26,47 @@ const SkeletonCard = () => (
   </div>
 );
 
+const PAGE_SIZE = 8;
+
+const Pagination = ({ page, total, onChange }) => {
+  const pages = Array.from({ length: total }, (_, i) => i + 1);
+  const getVisible = () => {
+    if (total <= 7) return pages;
+    if (page <= 4) return [...pages.slice(0, 5), '…', total];
+    if (page >= total - 3) return [1, '…', ...pages.slice(total - 5)];
+    return [1, '…', page - 1, page, page + 1, '…', total];
+  };
+  return (
+    <div className="fs-pagination">
+      <button className="fs-page-btn fs-page-btn--nav" onClick={() => onChange(page - 1)} disabled={page === 1}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </button>
+      {getVisible().map((p, i) =>
+        p === '…'
+          ? <span key={`e-${i}`} className="fs-page-ellipsis">…</span>
+          : <button key={p} className={`fs-page-btn${p === page ? ' fs-page-btn--active' : ''}`} onClick={() => onChange(p)}>{p}</button>
+      )}
+      <button className="fs-page-btn fs-page-btn--nav" onClick={() => onChange(page + 1)} disabled={page === total}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </button>
+    </div>
+  );
+};
+
 const FlightSearch = () => {
-  const [flights,    setFlights]    = useState([]);
-  const [isLoading,  setIsLoading]  = useState(false);
-  const [error,      setError]      = useState('');
-  const [searched,   setSearched]   = useState(false);
-  const [lastSearch, setLastSearch] = useState(null);
+  const [flights,      setFlights]      = useState([]);
+  const [isLoading,    setIsLoading]    = useState(false);
+  const [error,        setError]        = useState('');
+  const [searched,     setSearched]     = useState(false);
+  const [lastSearch,   setLastSearch]   = useState(null);
+  const [currentPage,  setCurrentPage]  = useState(1);
 
   const handleSearch = async (params) => {
     setIsLoading(true);
     setError('');
     setFlights([]);
     setSearched(true);
+    setCurrentPage(1);
     setLastSearch(params);
     try {
       const result = await searchFlightsGoogle({
@@ -129,24 +158,29 @@ const FlightSearch = () => {
             )}
 
             {/* Results */}
-            {!isLoading && !error && flights.length > 0 && (
-              <>
-                <div className="flight-results-header">
-                  <h2 className="flight-results-title">
-                    {flights.length} flight{flights.length !== 1 ? 's' : ''} found
-                    <span className="flight-results-route">
-                      {' '}— {lastSearch?.originCode} → {lastSearch?.destinationCode}
-                    </span>
-                  </h2>
-                  <p className="flight-results-note">
-                    Prices per person · Powered by Google Flights · Book via Aviasales (affiliate)
-                  </p>
-                </div>
-                {flights.map(flight => (
-                  <FlightCardGF key={flight.id} flight={flight} />
-                ))}
-              </>
-            )}
+            {!isLoading && !error && flights.length > 0 && (() => {
+              const totalPages = Math.ceil(flights.length / PAGE_SIZE);
+              const paginated  = flights.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+              return (
+                <>
+                  <div className="flight-results-header">
+                    <h2 className="flight-results-title">
+                      {flights.length} flight{flights.length !== 1 ? 's' : ''} found
+                      <span className="flight-results-route">
+                        {' '}— {lastSearch?.originCode} → {lastSearch?.destinationCode}
+                      </span>
+                    </h2>
+                    <p className="flight-results-note">
+                      Prices per person · Powered by Google Flights · Book via Aviasales (affiliate)
+                    </p>
+                  </div>
+                  {paginated.map(flight => <FlightCardGF key={flight.id} flight={flight} />)}
+                  {totalPages > 1 && (
+                    <Pagination page={currentPage} total={totalPages} onChange={setCurrentPage} />
+                  )}
+                </>
+              );
+            })()}
           </div>
         </section>
       )}
