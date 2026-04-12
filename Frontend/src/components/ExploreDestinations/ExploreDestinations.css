@@ -1,0 +1,249 @@
+/* ── Explore Anywhere section ───────────────────────────────────────────────── */
+.explore-section {
+  padding: 48px 0 72px;
+  background: #f8fafc;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────────── */
+.explore-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  gap: 16px;
+}
+
+.explore-header__left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.explore-header__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #012f3e 0%, #029e9d 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.explore-header__title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #122d46;
+  margin: 0 0 3px;
+  letter-spacing: -0.02em;
+}
+
+.explore-header__sub {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+.explore-header__loading {
+  font-size: 13px;
+  color: #029e9d;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: exploreLoadPulse 1.2s ease-in-out infinite;
+  white-space: nowrap;
+}
+
+.explore-header__loading::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(2, 158, 157, 0.25);
+  border-top-color: #029e9d;
+  border-radius: 50%;
+  animation: exploreSpin 0.8s linear infinite;
+}
+
+@keyframes exploreSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes exploreLoadPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+/* ── Destination grid ───────────────────────────────────────────────────────── */
+.explore-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+
+/* ── Destination card ───────────────────────────────────────────────────────── */
+.explore-card {
+  position: relative;
+  border: none;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: 16px;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  text-align: left;
+}
+
+.explore-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18);
+}
+
+.explore-card:hover .explore-card__img {
+  transform: scale(1.08);
+}
+
+/* ── Card image ─────────────────────────────────────────────────────────────── */
+.explore-card__img-wrap {
+  position: absolute;
+  inset: 0;
+}
+
+.explore-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+  display: block;
+}
+
+.explore-card__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.05) 40%,
+    rgba(0, 0, 0, 0.65) 100%
+  );
+}
+
+/* ── IATA badge ─────────────────────────────────────────────────────────────── */
+.explore-card__iata {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 4px 9px;
+  border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* ── Card bottom info ───────────────────────────────────────────────────────── */
+.explore-card__info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 14px 14px;
+}
+
+.explore-card__city {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 1px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+.explore-card__country {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 8px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.35);
+}
+
+.explore-card__price {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  background: rgba(2, 158, 157, 0.88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 4px 10px;
+  border-radius: 8px;
+  width: fit-content;
+}
+
+.explore-card__price-from {
+  font-size: 10px;
+  color: rgba(255,255,255,0.8);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.explore-card__price-amount {
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+.explore-card__price--na {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.14);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.22);
+  width: fit-content;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 1200px) {
+  .explore-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .explore-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .explore-section {
+    padding: 32px 0 48px;
+  }
+
+  .explore-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .explore-header__title {
+    font-size: 1.1rem;
+  }
+
+  .explore-card__city {
+    font-size: 13px;
+  }
+}

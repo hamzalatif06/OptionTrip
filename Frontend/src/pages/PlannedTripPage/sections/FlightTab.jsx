@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { searchAirports, searchFlightsGoogle, getCheapPrice } from '../../../services/flightService';
-import FlightCardGF from '../../../components/FlightCard/FlightCardGF';
+import { searchAirports, searchFlightsDuffel, searchFlightsGoogle, searchFlightsTP, searchFlights as searchFlightsAmadeus, getCheapPrice } from '../../../services/flightService';
+import FlightCardGF     from '../../../components/FlightCard/FlightCardGF';
+import FlightCardTP     from '../../../components/FlightCard/FlightCardTP';
+import FlightCard       from '../../../components/FlightCard/FlightCard';
+import FlightCardDuffel from '../../../components/FlightCard/FlightCardDuffel';
+import FlightFilters, { DEFAULT_FILTERS, applyFilters } from '../../../components/FlightFilters/FlightFilters';
 import './FlightTab.css';
 
 const CABIN_OPTIONS = ['Economy', 'Premium Economy', 'Business', 'First'];
@@ -121,9 +125,17 @@ const FlightTab = ({ tripData }) => {
   const [showPassengers, setShowPassengers] = useState(false);
   const [errors,       setErrors]       = useState({});
   const [isLoading,    setIsLoading]    = useState(false);
-  const [flights,      setFlights]      = useState([]);
+  // Manual search source: 'duffel' | 'gf' | 'tp' | 'amadeus' | null
+  const [source,        setSource]       = useState(null);
+  const [duffelFlights, setDuffelFlights]= useState([]);   // Duffel
+  const [topFlights,    setTopFlights]   = useState([]);   // GF top
+  const [otherFlights,  setOtherFlights] = useState([]);   // GF other
+  const [tpFlights,     setTpFlights]    = useState([]);   // TP
+  const [amadFlights,   setAmadFlights]  = useState([]);   // Amadeus
+  const [flights,      setFlights]      = useState([]);   // auto-fetch (GF combined)
   const [searchError,  setSearchError]  = useState(null);
   const [searched,     setSearched]     = useState(false);
+  const [filters,      setFilters]      = useState(DEFAULT_FILTERS);
 
   // Auto-fetch state
   const [autoFetching,  setAutoFetching]  = useState(false);
@@ -240,17 +252,110 @@ const FlightTab = ({ tripData }) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
-    setIsLoading(true); setSearchError(null); setFlights([]); setSearched(false); setShowPassengers(false);
+
+    setIsLoading(true);
+    setSearchError(null);
+    setSource(null);
+    setDuffelFlights([]);
+    setTopFlights([]); setOtherFlights([]);
+    setTpFlights([]); setAmadFlights([]);
+    setSearched(false);
+    setShowPassengers(false);
+    setFilters(DEFAULT_FILTERS);
+
     try {
-      const result = await searchFlightsGoogle({
-        originCode: origin.code, destinationCode: dest.code,
-        departureDate: form.departureDate,
-        returnDate: tripType === 'round-trip' ? form.returnDate || null : null,
-        adults: form.adults,
-      });
-      setFlights(result.flights || []);
+      const returnDate = tripType === 'round-trip' ? form.returnDate || null : null;
+
+      /* ── Stage 0: Duffel ──────────────────────────────────── */
+      let duffelResult = null;
+      try {
+        duffelResult = await searchFlightsDuffel({
+          originCode:      origin.code,
+          destinationCode: dest.code,
+          departureDate:   form.departureDate,
+          returnDate,
+          adults:          form.adults,
+        });
+      } catch { /* fall through */ }
+
+      if (duffelResult?.flights?.length > 0) {
+        setSource('duffel');
+        setDuffelFlights(duffelResult.flights);
+        setManualPage(1);
+        setSearched(true);
+        return;
+      }
+
+      /* ── Stage 1: Google Flights ──────────────────────────── */
+      let gfResult = null;
+      try {
+        gfResult = await searchFlightsGoogle({
+          originCode:      origin.code,
+          destinationCode: dest.code,
+          departureDate:   form.departureDate,
+          returnDate,
+          adults:          form.adults,
+        });
+      } catch { /* fall through */ }
+
+      const gfCount = (gfResult?.topFlights?.length || 0) + (gfResult?.otherFlights?.length || 0);
+
+      if (gfCount >= 5) {
+        setSource('gf');
+        setTopFlights(gfResult.topFlights || []);
+        setOtherFlights(gfResult.otherFlights || []);
+        setManualPage(1);
+        setSearched(true);
+        return;
+      }
+
+      /* ── Stage 2: Travelpayouts ───────────────────────────── */
+      let tpResult = null;
+      try {
+        tpResult = await searchFlightsTP({
+          origin:      origin.code,
+          destination: dest.code,
+          departureAt: form.departureDate,
+          returnAt:    returnDate,
+          limit:       30,
+        });
+      } catch { /* fall through */ }
+
+      if (tpResult?.flights?.length > 0) {
+        setSource('tp');
+        setTpFlights(tpResult.flights);
+        setManualPage(1);
+        setSearched(true);
+        return;
+      }
+
+      /* ── Stage 3: Amadeus ─────────────────────────────────── */
+      let amadResult = null;
+      try {
+        amadResult = await searchFlightsAmadeus({
+          originCode:      origin.code,
+          destinationCode: dest.code,
+          departureDate:   form.departureDate,
+          returnDate,
+          adults:          form.adults,
+        });
+      } catch { /* fall through */ }
+
+      if (amadResult?.flights?.length > 0) {
+        setSource('amadeus');
+        setAmadFlights(amadResult.flights);
+        setManualPage(1);
+        setSearched(true);
+        return;
+      }
+
+      /* ── All empty — show whatever GF returned ────────────── */
+      setSource('gf');
+      setTopFlights(gfResult?.topFlights || []);
+      setOtherFlights(gfResult?.otherFlights || []);
       setManualPage(1);
       setSearched(true);
+
     } catch (err) {
       setSearchError(err.message || 'Search failed.');
       setSearched(true);
@@ -430,29 +535,179 @@ const FlightTab = ({ tripData }) => {
                 Search on Aviasales ↗
               </a>
             </div>
-          ) : flights.length === 0 ? (
-            <div className="ft-empty">
-              <div className="ft-empty__icon">✈️</div>
-              <h3>No flights found</h3>
-              <p>Try different dates or nearby airports.</p>
-              <a href={buildAviasalesUrl()} target="_blank" rel="noopener noreferrer"
-                className="ft-search-btn" style={{ display: 'inline-flex', marginTop: 12, textDecoration: 'none' }}>
-                Search on Aviasales ↗
-              </a>
-            </div>
           ) : (() => {
-            const totalPages = Math.ceil(flights.length / PAGE_SIZE);
-            const paginated  = flights.slice((manualPage - 1) * PAGE_SIZE, manualPage * PAGE_SIZE);
+            const allRaw = source === 'duffel'
+              ? duffelFlights
+              : source === 'gf'
+                ? [...topFlights, ...otherFlights]
+                : source === 'tp'
+                  ? tpFlights
+                  : amadFlights;
+
+            if (allRaw.length === 0) return (
+              <div className="ft-empty">
+                <div className="ft-empty__icon">✈️</div>
+                <h3>No flights found</h3>
+                <p>Try different dates or nearby airports.</p>
+                <a href={buildAviasalesUrl()} target="_blank" rel="noopener noreferrer"
+                  className="ft-search-btn" style={{ display: 'inline-flex', marginTop: 12, textDecoration: 'none' }}>
+                  Search on Aviasales ↗
+                </a>
+              </div>
+            );
+
+            // Duffel, GF, TP share compatible field names — Amadeus uses a different schema
+            const filterable = source !== 'amadeus';
+            const filtered   = filterable ? applyFilters(allRaw, filters) : allRaw;
+            const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+            const safePage   = Math.min(manualPage, Math.max(1, totalPages));
+            const route      = `${origin?.code || ''} → ${dest?.code || ''}`;
+
+            const sourceLabel = {
+              duffel: 'Duffel real-time fares · Changeable/Refundable shown',
+              gf:     'Google Flights · Book via Aviasales',
+              tp:     'Travelpayouts cached fares · Book via Aviasales',
+              amadeus:'Amadeus real-time fares',
+            }[source] || '';
+
             return (
               <>
                 <div className="ft-results__header">
-                  <h3>{flights.length} flight{flights.length !== 1 ? 's' : ''} found</h3>
-                  <p>{origin?.name || origin?.code} → {dest?.name || dest?.code} · {form.departureDate} · Book via Aviasales</p>
+                  <h3>{filtered.length} flight{filtered.length !== 1 ? 's' : ''} found</h3>
+                  <p>{origin?.name || origin?.code} → {dest?.name || dest?.code} · {form.departureDate} · {sourceLabel}</p>
                 </div>
-                {paginated.map(f => <FlightCardGF key={f.id} flight={f} />)}
-                {totalPages > 1 && (
-                  <Pagination page={manualPage} total={totalPages} onChange={setManualPage} />
-                )}
+
+                <div className="ft-results-layout">
+                  {filterable && (
+                    <FlightFilters
+                      flights={allRaw}
+                      filters={filters}
+                      onChange={f => { setFilters(f); setManualPage(1); }}
+                    />
+                  )}
+
+                  <div className="ft-results-col">
+
+                    {/* ── Duffel ── */}
+                    {source === 'duffel' && (() => {
+                      const filtDuffel = applyFilters(duffelFlights, filters);
+                      const pSlice     = filtDuffel.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+                      return (
+                        <>
+                          <div className="ft-section-header ft-section-header--top">
+                            <div className="ft-section-header__icon">
+                              <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="currentColor"/></svg>
+                            </div>
+                            <div>
+                              <div className="ft-section-header__title">Duffel Flights</div>
+                              <div className="ft-section-header__sub">Real-time fares · {route}</div>
+                            </div>
+                            <span className="ft-section-header__badge">{duffelFlights.length}</span>
+                          </div>
+                          {pSlice.length === 0
+                            ? <p className="ft-suggested__empty">No flights match your filters.</p>
+                            : pSlice.map(f => <FlightCardDuffel key={f.id} flight={f} />)
+                          }
+                        </>
+                      );
+                    })()}
+
+                    {/* ── Google Flights ── */}
+                    {source === 'gf' && (() => {
+                      const filtTop   = applyFilters(topFlights,  filters);
+                      const filtOther = applyFilters(otherFlights, filters);
+                      const allFilt   = [...filtTop, ...filtOther];
+                      const pSlice    = allFilt.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+                      const pTop      = pSlice.filter(f => filtTop.includes(f));
+                      const pOther    = pSlice.filter(f => filtOther.includes(f));
+                      return (
+                        <>
+                          {pTop.length > 0 && (
+                            <>
+                              <div className="ft-section-header ft-section-header--top">
+                                <div className="ft-section-header__icon">
+                                  <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/></svg>
+                                </div>
+                                <div>
+                                  <div className="ft-section-header__title">Top Flights</div>
+                                  <div className="ft-section-header__sub">Best value & fastest — {route}</div>
+                                </div>
+                                <span className="ft-section-header__badge">{filtTop.length}</span>
+                              </div>
+                              {pTop.map(f => <FlightCardGF key={f.id} flight={f} />)}
+                            </>
+                          )}
+                          {pOther.length > 0 && (
+                            <>
+                              <div className="ft-section-header ft-section-header--other">
+                                <div className="ft-section-header__icon">
+                                  <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                </div>
+                                <div>
+                                  <div className="ft-section-header__title">Other Flights</div>
+                                  <div className="ft-section-header__sub">More options — {route}</div>
+                                </div>
+                                <span className="ft-section-header__badge">{filtOther.length}</span>
+                              </div>
+                              {pOther.map(f => <FlightCardGF key={f.id} flight={f} />)}
+                            </>
+                          )}
+                          {allFilt.length === 0 && (
+                            <p className="ft-suggested__empty">No flights match your filters.</p>
+                          )}
+                        </>
+                      );
+                    })()}
+
+                    {/* ── Travelpayouts ── */}
+                    {source === 'tp' && (() => {
+                      const filtTP = applyFilters(tpFlights, filters);
+                      const pSlice = filtTP.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+                      return (
+                        <>
+                          <div className="ft-section-header ft-section-header--top">
+                            <div className="ft-section-header__icon">
+                              <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="currentColor"/></svg>
+                            </div>
+                            <div>
+                              <div className="ft-section-header__title">Travelpayouts Flights</div>
+                              <div className="ft-section-header__sub">Cached best fares · {route}</div>
+                            </div>
+                            <span className="ft-section-header__badge">{tpFlights.length}</span>
+                          </div>
+                          {pSlice.length === 0
+                            ? <p className="ft-suggested__empty">No flights match your filters.</p>
+                            : pSlice.map(f => <FlightCardTP key={f.id} flight={f} />)
+                          }
+                        </>
+                      );
+                    })()}
+
+                    {/* ── Amadeus ── */}
+                    {source === 'amadeus' && (() => {
+                      const pSlice = amadFlights.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+                      return (
+                        <>
+                          <div className="ft-section-header ft-section-header--other">
+                            <div className="ft-section-header__icon">
+                              <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="currentColor"/></svg>
+                            </div>
+                            <div>
+                              <div className="ft-section-header__title">Amadeus Flights</div>
+                              <div className="ft-section-header__sub">Real-time fares · {route}</div>
+                            </div>
+                            <span className="ft-section-header__badge">{amadFlights.length}</span>
+                          </div>
+                          {pSlice.map((f, i) => <FlightCard key={f.id || i} flight={f} />)}
+                        </>
+                      );
+                    })()}
+
+                    {totalPages > 1 && filtered.length > 0 && (
+                      <Pagination page={safePage} total={totalPages} onChange={setManualPage} />
+                    )}
+                  </div>
+                </div>
               </>
             );
           })()}

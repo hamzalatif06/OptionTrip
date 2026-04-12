@@ -4,8 +4,9 @@
  */
 
 import { searchFlights as amadeusSearchFlights } from '../services/amadeusService.js';
-import { searchFlights as tpSearchFlights, getCheapPrice } from '../services/travelpayoutsFlightService.js';
+import { searchFlights as tpSearchFlights, getCheapPrice, getExploreDestinations } from '../services/travelpayoutsFlightService.js';
 import { searchFlightsGoogle } from '../services/googleFlightsService.js';
+import { searchFlightsDuffel } from '../services/duffelService.js';
 
 /**
  * GET /api/flights/airports?keyword=Paris
@@ -133,7 +134,9 @@ export const searchFlightsGoogleHandler = async (req, res) => {
       return res.status(400).json({ success: false, message: 'origin, destination and departureDate are required' });
     }
 
-    const flights = await searchFlightsGoogle({
+    console.log(`🌐 Google Flights search: ${origin} → ${destination} on ${departureDate}`);
+
+    const { topFlights, otherFlights } = await searchFlightsGoogle({
       origin,
       destination,
       departureDate,
@@ -142,13 +145,21 @@ export const searchFlightsGoogleHandler = async (req, res) => {
       travelClass,
     });
 
+    const flights = [...(topFlights || []), ...(otherFlights || [])];
+
+    if (flights.length === 0) {
+      console.warn(`⚠️  Google Flights: 0 results for ${origin} → ${destination} on ${departureDate} — frontend will fall back to TP`);
+    } else {
+      console.log(`✅ Google Flights: ${topFlights.length} top + ${otherFlights.length} other = ${flights.length} total`);
+    }
+
     res.json({
       success: true,
       message: flights.length > 0 ? 'Flights found' : 'No flights found',
-      data: { flights, count: flights.length },
+      data: { topFlights: topFlights || [], otherFlights: otherFlights || [], flights, count: flights.length },
     });
   } catch (error) {
-    console.error('❌ Google Flights search error:', error.message);
+    console.error(`❌ Google Flights error (${req.query.origin} → ${req.query.destination}): ${error.message} — frontend will fall back to TP`);
     res.status(502).json({ success: false, message: error.message });
   }
 };
@@ -185,5 +196,55 @@ export const searchFlightsTravelpayouts = async (req, res) => {
       message: 'Flight search failed',
       error: error.message,
     });
+  }
+};
+
+/**
+ * GET /api/flights/duffel-search?origin=LHR&destination=DXB&departureDate=2026-04-15&adults=1[&returnDate=...&travelClass=economy]
+ * Returns real-time flights via Duffel API, normalised to FlightCardDuffel shape.
+ */
+export const searchFlightsDuffelHandler = async (req, res) => {
+  try {
+    const { origin, destination, departureDate, returnDate, adults = 1, travelClass = 'economy' } = req.query;
+
+    if (!origin || !destination || !departureDate) {
+      return res.status(400).json({ success: false, message: 'origin, destination and departureDate are required' });
+    }
+
+    console.log(`🛫  Duffel search handler: ${origin} → ${destination} on ${departureDate}`);
+
+    const flights = await searchFlightsDuffel({
+      origin,
+      destination,
+      departureDate,
+      returnDate:  returnDate || null,
+      adults:      Number(adults),
+      travelClass,
+    });
+
+    res.json({
+      success: true,
+      message: flights.length > 0 ? 'Flights found' : 'No flights found',
+      data:    { flights, count: flights.length },
+    });
+  } catch (error) {
+    console.error(`❌ Duffel error (${req.query.origin} → ${req.query.destination}): ${error.message}`);
+    res.status(502).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * GET /api/flights/explore?origin=LHE
+ * Returns cheapest prices from origin to all known destinations.
+ */
+export const exploreDestinationsHandler = async (req, res) => {
+  try {
+    const { origin } = req.query;
+    if (!origin) return res.status(400).json({ success: false, message: 'origin is required' });
+    const prices = await getExploreDestinations(origin);
+    res.json({ success: true, data: { prices } });
+  } catch (error) {
+    console.error('❌ Explore destinations error:', error.message);
+    res.status(502).json({ success: false, message: error.message });
   }
 };

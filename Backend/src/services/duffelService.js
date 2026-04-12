@@ -1,0 +1,193 @@
+/**
+ * Duffel Flights Service
+ * Real-time flight search via Duffel API (https://duffel.com)
+ * Normalises offers to a shape compatible with FlightCardDuffel.
+ */
+
+const DUFFEL_API_KEY = process.env.DUFFEL_API_KEY || '';
+const DUFFEL_BASE    = 'https://api.duffel.com';
+const TP_MARKER      = process.env.TRAVELPAYOUTS_MARKER || '370056';
+
+/* ── Helpers ─────────────────────────────────────────────────────────────── */
+
+/** "PT2H30M" → "2h 30m" */
+const parseDuration = (iso) => {
+  if (!iso) return '';
+  const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+  if (!m) return iso;
+  const h   = parseInt(m[1] || '0', 10);
+  const min = parseInt(m[2] || '0', 10);
+  if (h && min) return `${h}h ${min}m`;
+  if (h) return `${h}h`;
+  if (min) return `${min}m`;
+  return iso;
+};
+
+/** "PT2H30M" → 150 (minutes) */
+const parseDurationMinutes = (iso) => {
+  if (!iso) return null;
+  const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+  if (!m) return null;
+  return parseInt(m[1] || '0', 10) * 60 + parseInt(m[2] || '0', 10);
+};
+
+/** "2026-04-15T08:30:00" → "08:30" */
+const extractTime = (iso) => {
+  if (!iso) return '';
+  const t = String(iso).split('T')[1];
+  return t ? t.slice(0, 5) : '';
+};
+
+/** Build Aviasales affiliate booking URL (same pattern as GF / TP) */
+const buildBookingUrl = ({ origin, destination, departureDate, returnDate, adults }) => {
+  const fmt = (d) => { const [, mm, dd] = d.split('-'); return `${dd}${mm}`; };
+  let path = `${origin}${fmt(departureDate)}${destination}`;
+  if (returnDate) path += `${destination}${fmt(returnDate)}${origin}`;
+  path += String(Math.max(1, adults));
+  return `https://www.aviasales.com/search/${path}?marker=${TP_MARKER}`;
+};
+
+/* ── Normaliser ──────────────────────────────────────────────────────────── */
+
+const normalise = (offer, { origin, destination, departureDate, returnDate, adults }) => {
+  // For one-way use slice[0]; round-trip would have slice[0]=outbound, slice[1]=return
+  const slice    = offer.slices?.[0] || {};
+  const segs     = slice.segments  || [];
+  const first    = segs[0]         || {};
+  const last     = segs[segs.length - 1] || first;
+
+  // Unique operating carriers
+  const airlines = [
+    ...new Set(
+      segs.map(s => s.marketing_carrier?.name || offer.owner?.name).filter(Boolean)
+    ),
+  ];
+
+  // Cabin class from first passenger of first segment
+  const cabinClass = first.passengers?.[0]?.cabin_class_marketing_name || '';
+
+  // Baggage from first passenger of first segment
+  const baggages  = first.passengers?.[0]?.baggages || [];
+  const carryOn   = baggages
+    .filter(b => b.type === 'carry_on')
+    .reduce((sum, b) => sum + (b.quantity || 0), 0);
+  const checked   = baggages
+    .filter(b => b.type === 'checked')
+    .reduce((sum, b) => sum + (b.quantity || 0), 0);
+
+  // Price per person (Duffel total_amount = total for all passengers)
+  const total = parseFloat(offer.total_amount || '0');
+  const price = adults > 0 ? Math.round(total / adults) : Math.round(total);
+
+  // Stops along layover airports
+  const layovers = segs.slice(0, -1).map((seg) => ({
+    id:   seg.destination?.iata_code || '',
+    name: seg.destination?.name     || '',
+  }));
+
+  return {
+    id:                offer.id || `duffel-${Date.now()}-${Math.random()}`,
+    departureTime:     extractTime(first.departing_at),
+    arrivalTime:       extractTime(last.arriving_at),
+    departureDateTime: first.departing_at   || '',
+    duration:          parseDuration(slice.duration),
+    durationMinutes:   parseDurationMinutes(slice.duration),
+    origin:            first.origin?.iata_code      || origin,
+    destination:       last.destination?.iata_code  || destination,
+    originName:        first.origin?.name            || '',
+    destName:          last.destination?.name        || '',
+    stops:             Math.max(0, segs.length - 1),
+    layovers,
+    airline:           airlines.join(' · ') || offer.owner?.name || '',
+    airlineLogo:       offer.owner?.logo_symbol_url || first.marketing_carrier?.logo_symbol_url || '',
+    flightNumber:      segs
+      .map(s => `${s.marketing_carrier?.iata_code || ''}${s.marketing_carrier_flight_number || ''}`)
+      .filter(Boolean)
+      .join(', '),
+    aircraft:          first.aircraft?.name || '',
+    cabinClass,
+    price,
+    currency:          offer.total_currency || 'USD',
+    changeable:        offer.conditions?.change_before_departure?.allowed  ?? null,
+    refundable:        offer.conditions?.refund_before_departure?.allowed  ?? null,
+    bags:              { carry_on: carryOn, checked },
+    bookingUrl:        buildBookingUrl({ origin, destination, departureDate, returnDate, adults }),
+    source:            'duffel',
+  };
+};
+
+/* ── Public search function ───────────────────────────────────────────────── */
+
+/**
+ * Search real-time flights via Duffel API.
+ *
+ * @param {{ origin, destination, departureDate, returnDate?, adults, travelClass? }}
+ * @returns {Promise<Array>} normalised flight objects sorted by price
+ */
+export const searchFlightsDuffel = async ({
+  origin,
+  destination,
+  departureDate,
+  returnDate  = null,
+  adults      = 1,
+  travelClass = 'economy',
+}) => {
+  if (!DUFFEL_API_KEY) throw new Error('DUFFEL_API_KEY not configured');
+
+  const passengers = Array.from({ length: Math.max(1, adults) }, () => ({ type: 'adult' }));
+  const slices = [
+    { origin: origin.toUpperCase(), destination: destination.toUpperCase(), departure_date: departureDate },
+  ];
+  if (returnDate) {
+    slices.push({
+      origin:         destination.toUpperCase(),
+      destination:    origin.toUpperCase(),
+      departure_date: returnDate,
+    });
+  }
+
+  const body = {
+    data: {
+      slices,
+      passengers,
+      cabin_class: travelClass.toLowerCase(),
+    },
+  };
+
+  console.log(`🛫  Duffel search: ${origin} → ${destination} on ${departureDate}`);
+
+  const res = await fetch(`${DUFFEL_BASE}/air/offer_requests?return_offers=true`, {
+    method:  'POST',
+    headers: {
+      'Authorization':  `Bearer ${DUFFEL_API_KEY}`,
+      'Duffel-Version': 'v2',
+      'Content-Type':   'application/json',
+      'Accept':         'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Duffel API error (${res.status}): ${text}`);
+  }
+
+  const data   = await res.json();
+  const offers = data.data?.offers || [];
+
+  const ctx = {
+    origin:        origin.toUpperCase(),
+    destination:   destination.toUpperCase(),
+    departureDate,
+    returnDate,
+    adults,
+  };
+
+  const flights = offers
+    .map(o => normalise(o, ctx))
+    .filter(f => f.price > 0)
+    .sort((a, b) => a.price - b.price);
+
+  console.log(`✅ Duffel: ${flights.length} offers for ${origin}→${destination}`);
+  return flights;
+};

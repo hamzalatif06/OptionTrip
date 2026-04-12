@@ -15,7 +15,7 @@ function useDebounce(value, delay) {
 }
 
 /* ── Airport autocomplete input ────────────────────────────────── */
-const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect, error }) => {
+const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect, error, onExploreAnywhere }) => {
   const [query,       setQuery]       = useState(value || '');
   const [suggestions, setSuggestions] = useState([]);
   const [loading,     setLoading]     = useState(false);
@@ -32,14 +32,14 @@ const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect,
 
   // Fetch suggestions
   useEffect(() => {
-    if (selected || debounced.length < 2) { setSuggestions([]); setOpen(false); return; }
+    if (selected || debounced.length < 2) { setSuggestions([]); if (!onExploreAnywhere) setOpen(false); return; }
     setLoading(true);
     searchAirports(debounced).then(results => {
       setSuggestions(results.slice(0, 7));
-      setOpen(results.length > 0);
+      setOpen(true);
       setLoading(false);
     });
-  }, [debounced, selected]);
+  }, [debounced, selected]); // eslint-disable-line
 
   // Close on outside click
   useEffect(() => {
@@ -71,6 +71,14 @@ const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect,
     onChange('', '');
   };
 
+  const handleFocus = () => {
+    // Always open dropdown on focus when Explore Anywhere option is available
+    if (onExploreAnywhere) setOpen(true);
+    else if (!selected && suggestions.length > 0) setOpen(true);
+  };
+
+  const showDropdown = open && (onExploreAnywhere || suggestions.length > 0);
+
   return (
     <div className={`fsf-ac-wrap${error ? ' fsf-ac-wrap--error' : ''}`} ref={wrapRef}>
       <label className="fsf-label">{label}</label>
@@ -84,7 +92,7 @@ const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect,
           placeholder={placeholder}
           value={query}
           onChange={handleChange}
-          onFocus={() => { if (!selected && suggestions.length > 0) setOpen(true); }}
+          onFocus={handleFocus}
           autoComplete="off"
           spellCheck={false}
         />
@@ -97,8 +105,27 @@ const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect,
         )}
       </div>
 
-      {open && suggestions.length > 0 && (
+      {showDropdown && (
         <ul className="fsf-ac-dropdown">
+
+          {/* ── Explore Anywhere option ── */}
+          {onExploreAnywhere && (
+            <li className="fsf-ac-item fsf-ac-item--explore" onMouseDown={(e) => { e.preventDefault(); setOpen(false); onExploreAnywhere(); }}>
+              <div className="fsf-ac-item__left">
+                <svg viewBox="0 0 24 24" fill="none" width="16" height="16" className="fsf-explore-icon">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+                <div>
+                  <span className="fsf-ac-item__name fsf-explore-label">Explore Anywhere</span>
+                  <span className="fsf-ac-item__airport">Discover cheapest destinations</span>
+                </div>
+              </div>
+              <span className="fsf-explore-arrow">→</span>
+            </li>
+          )}
+
+          {/* ── Airport suggestions ── */}
           {suggestions.map(airport => (
             <li
               key={airport.iataCode}
@@ -131,7 +158,7 @@ const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect,
 };
 
 /* ── Main form ─────────────────────────────────────────────────── */
-const FlightSearchForm = ({ onSearch, isLoading }) => {
+const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, originError, onOriginErrorClear, onExploreAnywhere }) => {
   const [tripType,      setTripType]      = useState('one-way');
   const [originCode,    setOriginCode]    = useState('');
   const [originDisplay, setOriginDisplay] = useState('');
@@ -142,6 +169,24 @@ const FlightSearchForm = ({ onSearch, isLoading }) => {
   const [adults,        setAdults]        = useState(1);
   const [children,      setChildren]      = useState(0);
   const [errors,        setErrors]        = useState({});
+
+  // Sync origin when Explore auto-detects user location
+  useEffect(() => {
+    if (prefillOrigin?.code && prefillOrigin?.display) {
+      setOriginCode(prefillOrigin.code);
+      setOriginDisplay(prefillOrigin.display);
+      setErrors(p => ({ ...p, origin: '' }));
+    }
+  }, [prefillOrigin]); // eslint-disable-line
+
+  // Sync destination when an Explore card is clicked
+  useEffect(() => {
+    if (prefillDest?.code && prefillDest?.display) {
+      setDestCode(prefillDest.code);
+      setDestDisplay(prefillDest.display);
+      setErrors(p => ({ ...p, destination: '' }));
+    }
+  }, [prefillDest]); // eslint-disable-line
 
   const clearError = (field) => setErrors(p => ({ ...p, [field]: '' }));
 
@@ -180,7 +225,7 @@ const FlightSearchForm = ({ onSearch, isLoading }) => {
         <div className="flight-search-card">
 
           {/* Trip type toggle */}
-          <div className="trip-type-toggle mb-4">
+          <div className="trip-type-toggle">
             {['one-way', 'round-trip'].map(type => (
               <button
                 key={type}
@@ -203,9 +248,15 @@ const FlightSearchForm = ({ onSearch, isLoading }) => {
                   placeholder="City or airport (e.g. London, JFK)"
                   value={originDisplay}
                   iataCode={originCode}
-                  onChange={(code, display) => { setOriginCode(code); setOriginDisplay(display); clearError('origin'); }}
-                  onSelect={(code, display) => { setOriginCode(code); setOriginDisplay(display); clearError('origin'); }}
-                  error={errors.origin}
+                  onChange={(code, display) => {
+                    setOriginCode(code); setOriginDisplay(display);
+                    clearError('origin'); onOriginErrorClear?.();
+                  }}
+                  onSelect={(code, display) => {
+                    setOriginCode(code); setOriginDisplay(display);
+                    clearError('origin'); onOriginErrorClear?.();
+                  }}
+                  error={errors.origin || originError}
                 />
               </div>
 
@@ -228,6 +279,7 @@ const FlightSearchForm = ({ onSearch, isLoading }) => {
                   onChange={(code, display) => { setDestCode(code); setDestDisplay(display); clearError('destination'); }}
                   onSelect={(code, display) => { setDestCode(code); setDestDisplay(display); clearError('destination'); }}
                   error={errors.destination}
+                  onExploreAnywhere={onExploreAnywhere}
                 />
               </div>
 

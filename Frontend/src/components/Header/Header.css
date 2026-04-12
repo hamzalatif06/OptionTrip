@@ -1,3 +1,9 @@
+/* ─── Navbar height ─────────────────────────────────────────────── */
+.navbar-flex {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
 /* ─── Top bar right section ────────────────────────────────────── */
 .header-right {
   display: flex;

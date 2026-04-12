@@ -1,0 +1,323 @@
+/* ── Filter sidebar ─────────────────────────────────────────────────────────── */
+.flf-aside {
+  width: 260px;
+  flex-shrink: 0;
+}
+
+/* ── Mobile toggle (hidden on desktop) ─────────────────────────────────────── */
+.flf-mobile-toggle {
+  display: none;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.flf-badge {
+  background: #029e9d;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 100px;
+  margin-left: 2px;
+}
+
+.flf-chevron {
+  margin-left: auto;
+  transition: transform 0.2s ease;
+  color: #94a3b8;
+}
+
+.flf-chevron--up {
+  transform: rotate(180deg);
+}
+
+/* ── Panel ──────────────────────────────────────────────────────────────────── */
+.flf-panel {
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  position: sticky;
+  top: 88px;
+}
+
+/* ── Panel header ───────────────────────────────────────────────────────────── */
+.flf-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.flf-header__title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #122d46;
+  letter-spacing: -0.01em;
+}
+
+.flf-reset {
+  font-size: 12px;
+  font-weight: 600;
+  color: #029e9d;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.flf-reset:hover { color: #027b7a; }
+
+/* ── Section ────────────────────────────────────────────────────────────────── */
+.flf-section {
+  padding: 14px 18px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.flf-section:last-child { border-bottom: none; }
+
+.flf-section__label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+
+/* ── Stops pills ────────────────────────────────────────────────────────────── */
+.flf-stops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.flf-stop-pill {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  white-space: nowrap;
+}
+
+.flf-stop-pill:hover {
+  border-color: #029e9d;
+  color: #029e9d;
+}
+
+.flf-stop-pill--active {
+  background: linear-gradient(135deg, #029e9d, #027b7a);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(2, 158, 157, 0.3);
+}
+
+/* ── Price range ────────────────────────────────────────────────────────────── */
+.flf-price-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.flf-price-dash {
+  font-size: 14px;
+  color: #94a3b8;
+  padding-bottom: 8px;
+}
+
+.flf-price-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.flf-price-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.flf-price-input {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #334155;
+  background: #f8fafc;
+  outline: none;
+  transition: border-color 0.15s ease;
+  -moz-appearance: textfield;
+}
+
+.flf-price-input::-webkit-inner-spin-button,
+.flf-price-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+.flf-price-input:focus { border-color: #029e9d; background: #fff; }
+
+/* ── Airlines ───────────────────────────────────────────────────────────────── */
+.flf-airlines {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.flf-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.flf-checkbox {
+  width: 15px;
+  height: 15px;
+  accent-color: #029e9d;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.flf-checkbox-label {
+  font-size: 13px;
+  color: #475569;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Departure time grid ────────────────────────────────────────────────────── */
+.flf-time-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.flf-time-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 6px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.flf-time-pill:hover {
+  border-color: #029e9d;
+}
+
+.flf-time-pill--active {
+  background: linear-gradient(135deg, #029e9d, #027b7a);
+  border-color: transparent;
+  box-shadow: 0 2px 6px rgba(2, 158, 157, 0.3);
+}
+
+.flf-time-pill__name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 1px;
+}
+
+.flf-time-pill--active .flf-time-pill__name,
+.flf-time-pill--active .flf-time-pill__sub {
+  color: #fff;
+}
+
+.flf-time-pill__sub {
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* ── Duration slider ────────────────────────────────────────────────────────── */
+.flf-slider {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to right,
+    #029e9d 0%,
+    #029e9d var(--slider-pct, 100%),
+    #e2e8f0 var(--slider-pct, 100%),
+    #e2e8f0 100%
+  );
+  outline: none;
+  cursor: pointer;
+  margin-bottom: 6px;
+}
+
+.flf-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2.5px solid #029e9d;
+  box-shadow: 0 1px 4px rgba(2, 158, 157, 0.35);
+  cursor: pointer;
+}
+
+.flf-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2.5px solid #029e9d;
+  cursor: pointer;
+}
+
+.flf-slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .flf-aside {
+    width: 100%;
+  }
+
+  .flf-mobile-toggle {
+    display: flex;
+  }
+
+  .flf-panel {
+    position: static;
+    display: none;
+  }
+
+  .flf-panel--open {
+    display: block;
+    margin-bottom: 16px;
+  }
+}

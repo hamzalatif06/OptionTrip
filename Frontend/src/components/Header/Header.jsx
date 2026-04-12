@@ -235,7 +235,7 @@ const Header = () => {
       <div className="header_menu" id="header_menu">
         <nav className="navbar navbar-default">
           <div className="container">
-            <div className="navbar-flex d-flex align-items-center justify-content-between w-100 pb-3 pt-3">
+            <div className="navbar-flex d-flex align-items-center justify-content-between w-100">
               <div className="navbar-header">
                 <Link className="navbar-brand" to="/">
                   <img src="/images/newLogo.png" alt="OptionTrip" style={{ height: '70px' }} />
@@ -262,10 +262,10 @@ const Header = () => {
                     </a>
                     <ul className="dropdown-menu">
                       <li>
-                        <Link to="/flights"><i className="fa fa-plane"></i> Flights</Link>
+                        <Link to="/flights">Flights <i className="fa fa-plane"></i></Link>
                       </li>
                       <li>
-                        <Link to="/hotels"><i className="fa fa-building"></i> Hotels</Link>
+                        <Link to="/hotels">Hotels <i className="fa fa-building"></i></Link>
                       </li>
                     </ul>
                   </li>

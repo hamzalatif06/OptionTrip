@@ -46,6 +46,11 @@
   margin: 0 auto;
 }
 
+/* Full-width container for the hotel search form only */
+.hotel-search-form-section .container {
+  max-width: none !important;
+}
+
 /* ── Form section ── */
 .hotel-search-form-section {
   padding: 40px 0 24px;

@@ -96,7 +96,22 @@ export const searchFlightsGoogle = async ({
   const data = await res.json();
 
   if (!data.success) throw new Error(data.message || 'Flight search failed');
-  return data.data; // { flights, count }
+  return data.data; // { topFlights, otherFlights, flights, count }
+};
+
+/**
+ * Explore Anywhere — cheapest fares from one origin to all destinations.
+ * @param {string} origin  IATA code
+ * @returns {Promise<Object>}  { IATA: { price, airline, transfers } }
+ */
+export const exploreDestinations = async (origin) => {
+  try {
+    const res  = await fetch(`${API_URL}/api/flights/explore?origin=${encodeURIComponent(origin)}`);
+    const data = await res.json();
+    return data.success ? (data.data?.prices || {}) : {};
+  } catch {
+    return {};
+  }
 };
 
 /**
@@ -112,6 +127,36 @@ export const getCheapPrice = async ({ origin, destination, departDate }) => {
     const data = await res.json();
     return data.success ? data.data : null;
   } catch { return null; }
+};
+
+/**
+ * Search real-time flights via Duffel API (Stage 0 — highest priority).
+ *
+ * @param {{ originCode, destinationCode, departureDate, returnDate?, adults, travelClass? }}
+ * @returns {Promise<{ flights: Array, count: number }>}
+ */
+export const searchFlightsDuffel = async ({
+  originCode,
+  destinationCode,
+  departureDate,
+  returnDate  = null,
+  adults      = 1,
+  travelClass = 'economy',
+}) => {
+  const params = new URLSearchParams({
+    origin:      originCode.trim().toUpperCase(),
+    destination: destinationCode.trim().toUpperCase(),
+    departureDate,
+    adults:      String(adults),
+    travelClass,
+  });
+  if (returnDate) params.append('returnDate', returnDate);
+
+  const res  = await fetch(`${API_URL}/api/flights/duffel-search?${params.toString()}`);
+  const data = await res.json();
+
+  if (!data.success) throw new Error(data.message || 'Duffel flight search failed');
+  return data.data; // { flights, count }
 };
 
 export const searchFlightsTP = async ({ origin, destination, departureAt, returnAt, limit }) => {

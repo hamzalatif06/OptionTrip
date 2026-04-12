@@ -1,20 +1,41 @@
 /* ── Hero ──────────────────────────────────────────────────────────────────── */
+/* Full-width container for the flight search form only */
+.flight-search-section .container {
+  max-width: none !important;
+}
+
 .flight-hero {
-  padding: 80px 0 48px;
-  background: linear-gradient(160deg, #f0fdfa 0%, #e0f2fe 100%);
+  padding: 200px 0 80px;
+  position: relative;
+  background:
+    linear-gradient(160deg, rgba(1, 30, 48, 0.62) 0%, rgba(2, 158, 157, 0.45) 100%),
+    url('/images/flights/FlightsBackgound.jpg') center center / cover no-repeat;
+}
+
+.flight-hero__content h4.theme1 {
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 13px;
 }
 
 .flight-hero__content h1 {
-  font-size: 2.6rem;
-  font-weight: 800;
-  color: #122d46;
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
+}
+
+.flight-hero__content .theme {
+  color: #5ef5f4;
 }
 
 .flight-hero__subtitle {
   font-size: 16px;
-  color: #596c7e;
+  color: rgba(255, 255, 255, 0.82);
   max-width: 540px;
   margin: 0 auto;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
 }
 
 /* ── Results section ───────────────────────────────────────────────────────── */
@@ -170,6 +191,72 @@
   line-height: 1.7;
 }
 
+/* ── Flight section headers (Top / Other) ─────────────────────────────────── */
+.fs-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 12px;
+  padding: 13px 18px;
+  margin: 24px 0 12px;
+  gap: 12px;
+}
+
+.fs-section-header--top {
+  background: linear-gradient(135deg, #012f3e 0%, #014d5c 50%, #029e9d 100%);
+}
+
+.fs-section-header--other {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+}
+
+.fs-section-header__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fs-section-header__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: rgba(255,255,255,0.13);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.fs-section-header__title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 1px;
+  letter-spacing: -0.01em;
+}
+
+.fs-section-header__sub {
+  font-size: 11px;
+  color: rgba(255,255,255,0.55);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 340px;
+}
+
+.fs-section-header__badge {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 100px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* ── Pagination ────────────────────────────────────────────────────────────── */
 .fs-pagination {
   display: flex;
@@ -232,13 +319,31 @@
   user-select: none;
 }
 
+/* ── Results layout (filters + results) ────────────────────────────────────── */
+.fs-results-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.fs-results-col {
+  flex: 1;
+  min-width: 0;
+}
+
 /* ── Responsive ────────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .fs-results-layout {
+    flex-direction: column;
+  }
+}
+
 @media (max-width: 768px) {
   .flight-hero__content h1 {
-    font-size: 1.8rem;
+    font-size: 2rem;
   }
 
   .flight-hero {
-    padding: 60px 0 36px;
+    padding: 72px 0 48px;
   }
 }

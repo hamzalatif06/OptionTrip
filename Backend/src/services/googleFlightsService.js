@@ -172,11 +172,10 @@ export const searchFlightsGoogle = async ({
   const ctx = { origin: origin.toUpperCase(), destination: destination.toUpperCase(), departureDate, returnDate, adults };
 
   // API returns either data.topFlights or data.itineraries.topFlights depending on version
-  const itins  = data.data?.itineraries || data.data || {};
-  const top    = (itins.topFlights   || []).map(f => normalise(f, ctx));
-  const other  = (itins.otherFlights || []).map(f => normalise(f, ctx));
-  const all    = [...top, ...other].filter(f => f.price !== null);
+  const itins      = data.data?.itineraries || data.data || {};
+  const topFlights  = (itins.topFlights   || []).map(f => normalise(f, ctx)).filter(f => f.price !== null);
+  const otherFlights = (itins.otherFlights || []).map(f => normalise(f, ctx)).filter(f => f.price !== null);
 
-  console.log(`✅ Google Flights: ${all.length} result(s) for ${origin}→${destination}`);
-  return all;
+  console.log(`✅ Google Flights: ${topFlights.length} top + ${otherFlights.length} other = ${topFlights.length + otherFlights.length} total for ${origin}→${destination}`);
+  return { topFlights, otherFlights };
 };
