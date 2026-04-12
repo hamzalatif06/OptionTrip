@@ -138,12 +138,14 @@ const FlightTab = ({ tripData }) => {
   const [filters,      setFilters]      = useState(DEFAULT_FILTERS);
 
   // Auto-fetch state
-  const [autoFetching,  setAutoFetching]  = useState(false);
-  const [autoFlights,   setAutoFlights]   = useState([]);
-  const [autoError,     setAutoError]     = useState(null);
-  const [cheapPrice,    setCheapPrice]    = useState(null); // { price, airline, transfers }
-  const [autoOrigin,    setAutoOrigin]    = useState(null);
-  const [autoDest,      setAutoDest]      = useState(null);
+  const [autoFetching,      setAutoFetching]      = useState(false);
+  const [autoFlights,       setAutoFlights]       = useState([]);
+  const [autoDuffelFlights, setAutoDuffelFlights] = useState([]);
+  const [autoSource,        setAutoSource]        = useState(null); // 'duffel' | 'gf'
+  const [autoError,         setAutoError]         = useState(null);
+  const [cheapPrice,        setCheapPrice]        = useState(null); // { price, airline, transfers }
+  const [autoOrigin,        setAutoOrigin]        = useState(null);
+  const [autoDest,          setAutoDest]          = useState(null);
   const autoFetched = useRef(false);
 
   // Pagination
@@ -199,15 +201,43 @@ const FlightTab = ({ tripData }) => {
       setForm(p => ({ ...p, departureDate, returnDate: returnDate || '' }));
       if (returnDate) setTripType('round-trip');
 
-      // 4. Fetch TP cheap price (instant) + Google Flights (detailed) in parallel
-      const [tpResult, gfResult] = await Promise.allSettled([
-        getCheapPrice({ origin: oCode, destination: dCode, departDate: departureDate }),
-        searchFlightsGoogle({ originCode: oCode, destinationCode: dCode, departureDate, returnDate, adults: defaultAdults }),
-      ]);
+      // 4. Fetch TP cheap price (instant) in parallel while we try Duffel
+      getCheapPrice({ origin: oCode, destination: dCode, departDate: departureDate })
+        .then(v => { if (v) setCheapPrice(v); })
+        .catch(() => {});
 
-      if (tpResult.status === 'fulfilled' && tpResult.value) setCheapPrice(tpResult.value);
-      if (gfResult.status === 'fulfilled') { setAutoFlights(gfResult.value?.flights || []); setAutoPage(1); }
-      else setAutoError('Could not load suggested flights. Use the form below to search manually.');
+      // 5. Stage 0 — try Duffel for real-time fares
+      let usedDuffel = false;
+      try {
+        const duffelResult = await searchFlightsDuffel({
+          originCode:      oCode,
+          destinationCode: dCode,
+          departureDate,
+          returnDate,
+          adults:          defaultAdults,
+        });
+        if (duffelResult?.flights?.length > 0) {
+          setAutoDuffelFlights(duffelResult.flights);
+          setAutoSource('duffel');
+          setAutoPage(1);
+          usedDuffel = true;
+        }
+      } catch { /* fall through to GF */ }
+
+      // 6. Stage 1 — fall back to Google Flights
+      if (!usedDuffel) {
+        try {
+          const gfResult = await searchFlightsGoogle({
+            originCode: oCode, destinationCode: dCode,
+            departureDate, returnDate, adults: defaultAdults,
+          });
+          setAutoFlights(gfResult?.flights || []);
+          setAutoSource('gf');
+          setAutoPage(1);
+        } catch {
+          setAutoError('Could not load suggested flights. Use the form below to search manually.');
+        }
+      }
     } catch (err) {
       setAutoError(err.message || 'Auto-fetch failed.');
     } finally {
@@ -409,16 +439,21 @@ const FlightTab = ({ tripData }) => {
           <div className="ft-auto-error">{autoError}</div>
         )}
 
-        {!autoFetching && !autoError && autoFlights.length > 0 && (() => {
-          const totalPages = Math.ceil(autoFlights.length / PAGE_SIZE);
-          const paginated  = autoFlights.slice((autoPage - 1) * PAGE_SIZE, autoPage * PAGE_SIZE);
+        {!autoFetching && !autoError && (autoSource === 'duffel' ? autoDuffelFlights : autoFlights).length > 0 && (() => {
+          const list       = autoSource === 'duffel' ? autoDuffelFlights : autoFlights;
+          const totalPages = Math.ceil(list.length / PAGE_SIZE);
+          const paginated  = list.slice((autoPage - 1) * PAGE_SIZE, autoPage * PAGE_SIZE);
+          const sourceTag  = autoSource === 'duffel' ? 'Duffel real-time fares' : 'Book via Aviasales';
           return (
             <>
               <p className="ft-suggested__sub">
                 Based on your location · {tripData?.dates?.start_date || 'Upcoming'} · {defaultAdults} adult{defaultAdults !== 1 ? 's' : ''}
-                {' · '}Book via Aviasales · {autoFlights.length} flights found
+                {' · '}{sourceTag} · {list.length} flights found
               </p>
-              {paginated.map(f => <FlightCardGF key={f.id} flight={f} />)}
+              {autoSource === 'duffel'
+                ? paginated.map(f => <FlightCardDuffel key={f.id} flight={f} />)
+                : paginated.map(f => <FlightCardGF     key={f.id} flight={f} />)
+              }
               {totalPages > 1 && (
                 <Pagination page={autoPage} total={totalPages} onChange={setAutoPage} />
               )}
@@ -426,7 +461,7 @@ const FlightTab = ({ tripData }) => {
           );
         })()}
 
-        {!autoFetching && !autoError && autoFlights.length === 0 && autoFetched.current && (
+        {!autoFetching && !autoError && autoDuffelFlights.length === 0 && autoFlights.length === 0 && autoFetched.current && (
           <p className="ft-suggested__empty">No discounted flights found. Try the search form below.</p>
         )}
       </div>
