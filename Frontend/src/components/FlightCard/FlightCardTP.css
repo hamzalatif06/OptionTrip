@@ -1,14 +1,20 @@
 .ftc-card {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  flex-direction: column;
   background: #ffffff;
   border-radius: 14px;
   border: 1px solid #e8ecef;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  padding: 18px 22px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.10), 0 1px 4px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
   margin-bottom: 14px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ftc-card__main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 22px;
 }
 
 .ftc-card:hover {
@@ -189,9 +195,9 @@
 }
 
 .ftc-book-btn:hover {
-  background: linear-gradient(135deg, #027b7a 0%, #025655 100%);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(2, 158, 157, 0.35);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3);
 }
 
 .ftc-note {
@@ -202,7 +208,7 @@
 
 /* ── Responsive ────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .ftc-card {
+  .ftc-card__main {
     flex-wrap: wrap;
     padding: 16px;
     gap: 12px;
@@ -218,4 +224,31 @@
     margin-left: auto;
     min-width: unset;
   }
+
+  .ftc-return-row {
+    padding: 7px 16px;
+  }
+}
+
+/* ── Return leg row ── */
+.ftc-return-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f0fdfa;
+  border-top: 1px solid #ccfbf1;
+  padding: 7px 22px;
+  gap: 8px;
+}
+
+.ftc-return-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #029e9d;
+}
+
+.ftc-return-time {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
 }

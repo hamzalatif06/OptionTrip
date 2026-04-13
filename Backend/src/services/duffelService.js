@@ -79,8 +79,18 @@ const normalise = (offer, { origin, destination, departureDate, returnDate, adul
   const total = parseFloat(offer.total_amount || '0');
   const price = adults > 0 ? Math.round(total / adults) : Math.round(total);
 
-  // Stops along layover airports
+  // Stops along layover airports (outbound)
   const layovers = segs.slice(0, -1).map((seg) => ({
+    id:   seg.destination?.iata_code || '',
+    name: seg.destination?.name     || '',
+  }));
+
+  // ── Return leg (slice[1]) ─────────────────────────────────────────────────
+  const returnSlice = offer.slices?.[1] || null;
+  const rSegs       = returnSlice?.segments || [];
+  const rFirst      = rSegs[0] || {};
+  const rLast       = rSegs[rSegs.length - 1] || rFirst;
+  const returnLayovers = rSegs.slice(0, -1).map(seg => ({
     id:   seg.destination?.iata_code || '',
     name: seg.destination?.name     || '',
   }));
@@ -113,6 +123,19 @@ const normalise = (offer, { origin, destination, departureDate, returnDate, adul
     bags:              { carry_on: carryOn, checked },
     bookingUrl:        buildBookingUrl({ origin, destination, departureDate, returnDate, adults }),
     source:            'duffel',
+    // Return leg fields
+    isRoundTrip:           !!returnSlice,
+    returnOrigin:          rFirst.origin?.iata_code          || '',
+    returnDestination:     rLast.destination?.iata_code      || '',
+    returnDepartureTime:   extractTime(rFirst.departing_at)  || '',
+    returnArrivalTime:     extractTime(rLast.arriving_at)    || '',
+    returnDuration:        parseDuration(returnSlice?.duration) || '',
+    returnDurationMinutes: parseDurationMinutes(returnSlice?.duration),
+    returnStops:           rSegs.length > 1 ? rSegs.length - 1 : 0,
+    returnLayovers,
+    returnFlightNumber:    rSegs
+      .map(s => `${s.marketing_carrier?.iata_code || ''}${s.marketing_carrier_flight_number || ''}`)
+      .filter(Boolean).join(', '),
   };
 };
 

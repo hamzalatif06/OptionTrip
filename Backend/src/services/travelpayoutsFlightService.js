@@ -42,6 +42,11 @@ function normalizeResult(item) {
     price:           item.price,
     currency:        'USD',
     bookingUrl:      buildBookingUrl(item.link),
+    // Return leg fields (TP only provides departure time for return)
+    isRoundTrip:         !!item.return_at,
+    returnOrigin:        item.destination || '',
+    returnDestination:   item.origin      || '',
+    returnDepartureTime: item.return_at   ? String(item.return_at).slice(11, 16) : '',
   };
 }
 

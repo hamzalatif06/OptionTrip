@@ -79,6 +79,17 @@ const normalise = (raw, { origin, destination, departureDate, returnDate, adults
     overnight: !!l.overnight,
   }));
 
+  // ── Return leg ────────────────────────────────────────────────────────────
+  const rSegs  = raw.return_flights || [];
+  const rFirst = rSegs[0] || {};
+  const rLast  = rSegs[rSegs.length - 1] || rFirst;
+  const returnLayovers = (raw.return_layovers || []).map(l => ({
+    id:       l.airport_code || '',
+    name:     l.airport_name || l.city || '',
+    duration: l.duration_label || durationText(l.duration) || '',
+    overnight: !!l.overnight,
+  }));
+
   return {
     id:            raw.next_token || raw.booking_token || `${origin}-${destination}-${Date.now()}-${Math.random()}`,
     departureTime: extractTime(first.departure_airport?.time) || raw.departure_time || '',
@@ -98,10 +109,21 @@ const normalise = (raw, { origin, destination, departureDate, returnDate, adults
     currency:      'USD',
     bags:          raw.bags || { carry_on: 0, checked: 0 },
     legroom:       first.legroom || '',
-    seatType:      first.seat   || '',   // e.g. "Above average legroom"
+    seatType:      first.seat   || '',
     amenities:     parseAmenities(first.extensions || []),
     co2:           raw.carbon_emissions?.difference_percent ?? null,
     bookingUrl:    buildBookingUrl({ origin, destination, departureDate, returnDate, adults }),
+    // Return leg fields
+    isRoundTrip:           rSegs.length > 0,
+    returnOrigin:          rFirst.departure_airport?.airport_code || '',
+    returnDestination:     rLast.arrival_airport?.airport_code   || '',
+    returnDepartureTime:   extractTime(rFirst.departure_airport?.time) || '',
+    returnArrivalTime:     extractTime(rLast.arrival_airport?.time)    || '',
+    returnDuration:        raw.return_duration?.text || durationText(raw.return_duration) || '',
+    returnDurationMinutes: typeof raw.return_duration === 'number' ? raw.return_duration : null,
+    returnStops:           rSegs.length > 1 ? rSegs.length - 1 : 0,
+    returnLayovers,
+    returnFlightNumber:    rSegs.map(s => s.flight_number).filter(Boolean).join(', '),
   };
 };
 
