@@ -92,9 +92,6 @@ const FlightCardDuffel = ({ flight }) => {
 
   return (
     <div className="fcdf">
-      {/* Duffel source ribbon */}
-      <div className="fcdf__ribbon">Duffel</div>
-
       <div className="fcdf__top">
 
         {/* ── Legs ── */}
@@ -118,14 +115,11 @@ const FlightCardDuffel = ({ flight }) => {
         {/* ── Price panel ── */}
         <div className="fcdf__price-panel">
           <button className="fcdf__wishlist" aria-label="Save">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
-
-          <span className="fcdf__source-badge">Duffel · Real-time</span>
-
-          <div className="fcdf__price-block">
+          <div className="fcdf__price-row">
             <span className="fcdf__price-from">from</span>
             <span className="fcdf__price-amount">
               {displayPrice !== null ? `${sym}${displayPrice.toLocaleString()}` : '—'}
@@ -134,7 +128,6 @@ const FlightCardDuffel = ({ flight }) => {
           </div>
 
           <div className="fcdf__conditions">
-            <ConditionPill allowed={changeable} label="Changeable" />
             <ConditionPill allowed={refundable} label="Refundable" />
           </div>
 

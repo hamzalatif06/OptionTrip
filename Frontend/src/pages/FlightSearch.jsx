@@ -60,9 +60,9 @@ const FlightSectionHeader = ({ type, count, route }) => {
 
 const SourceHeader = ({ source, count, route }) => {
   const cfg = {
-    duffel: { cls: 'top',   title: 'Duffel Flights',        sub: `Real-time fares · ${route}` },
-    tp:     { cls: 'top',   title: 'Travelpayouts Flights',  sub: `Cached best fares · ${route}` },
-    amadeus:{ cls: 'other', title: 'Amadeus Flights',        sub: `Real-time fares · ${route}` },
+    duffel: { cls: 'top',   title: 'Option Trip Flights',    sub: `Real-time fares · ${route}` },
+    tp:     { cls: 'top',   title: 'Option Trip Flights',    sub: `Best available fares · ${route}` },
+    amadeus:{ cls: 'other', title: 'Option Trip Flights',    sub: `Real-time fares · ${route}` },
   }[source] || {};
   return (
     <div className={`fs-section-header fs-section-header--${cfg.cls}`} style={{ marginTop: 0 }}>
@@ -290,10 +290,10 @@ const FlightSearch = () => {
   const filtered   = filterable ? applyFilters(allRaw, filters) : allRaw;
 
   const sourceNote = {
-    duffel: 'Powered by Duffel · Real-time fares · Changeable/Refundable shown · Book via Aviasales',
-    gf:     'Powered by Google Flights · Prices per person · Book via Aviasales',
-    tp:     'Powered by Travelpayouts Aviasales · Cached best fares · Book Now links open Aviasales',
-    amadeus:'Powered by Amadeus · Real-time fares · Book via partner',
+    duffel: 'Option Trip · Real-time fares · Refundable options available',
+    gf:     'Option Trip · Best prices per person',
+    tp:     'Option Trip · Best available fares',
+    amadeus:'Option Trip · Real-time fares',
   }[source] || '';
 
   return (
@@ -340,10 +340,6 @@ const FlightSearch = () => {
 
             {isLoading && (
               <div>
-                <div className="flight-loading">
-                  <div className="flight-loading__spinner" />
-                  <p>Searching Duffel, Google Flights, Travelpayouts & Amadeus…</p>
-                </div>
                 {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
               </div>
             )}

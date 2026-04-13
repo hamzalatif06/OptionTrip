@@ -430,8 +430,16 @@ const FlightTab = ({ tripData }) => {
 
         {autoFetching && (
           <div className="ft-auto-loading">
-            <span className="ft-spinner" />
-            <span>Searching discounted flights from your location to <strong>{tripData?.destination?.name}</strong>…</span>
+            {[1, 2, 3].map(i => (
+              <div key={i} className="fcgf-skeleton">
+                <div className="fcgf-skeleton__logo pulse" />
+                <div className="fcgf-skeleton__body">
+                  <div className="fcgf-skeleton__line pulse" />
+                  <div className="fcgf-skeleton__line fcgf-skeleton__line--short pulse" />
+                </div>
+                <div className="fcgf-skeleton__price pulse" />
+              </div>
+            ))}
           </div>
         )}
 
@@ -443,7 +451,7 @@ const FlightTab = ({ tripData }) => {
           const list       = autoSource === 'duffel' ? autoDuffelFlights : autoFlights;
           const totalPages = Math.ceil(list.length / PAGE_SIZE);
           const paginated  = list.slice((autoPage - 1) * PAGE_SIZE, autoPage * PAGE_SIZE);
-          const sourceTag  = autoSource === 'duffel' ? 'Duffel real-time fares' : 'Book via Aviasales';
+          const sourceTag  = 'Option Trip · Best fares';
           return (
             <>
               <p className="ft-suggested__sub">
@@ -555,7 +563,20 @@ const FlightTab = ({ tripData }) => {
       </div>
 
       {/* Manual search loading */}
-      {isLoading && <div className="ft-loading"><div className="ft-loading__spinner" />Searching for flights…</div>}
+      {isLoading && (
+        <div>
+          {[1, 2, 3].map(i => (
+            <div key={i} className="fcgf-skeleton">
+              <div className="fcgf-skeleton__logo pulse" />
+              <div className="fcgf-skeleton__body">
+                <div className="fcgf-skeleton__line pulse" />
+                <div className="fcgf-skeleton__line fcgf-skeleton__line--short pulse" />
+              </div>
+              <div className="fcgf-skeleton__price pulse" />
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Manual search results */}
       {searched && !isLoading && (
@@ -599,10 +620,10 @@ const FlightTab = ({ tripData }) => {
             const route      = `${origin?.code || ''} → ${dest?.code || ''}`;
 
             const sourceLabel = {
-              duffel: 'Duffel real-time fares · Changeable/Refundable shown',
-              gf:     'Google Flights · Book via Aviasales',
-              tp:     'Travelpayouts cached fares · Book via Aviasales',
-              amadeus:'Amadeus real-time fares',
+              duffel: 'Option Trip · Real-time fares',
+              gf:     'Option Trip · Best prices',
+              tp:     'Option Trip · Best available fares',
+              amadeus:'Option Trip · Real-time fares',
             }[source] || '';
 
             return (
@@ -635,7 +656,7 @@ const FlightTab = ({ tripData }) => {
                             </div>
                             <div>
                               <div className="ft-section-header__title">Duffel Flights</div>
-                              <div className="ft-section-header__sub">Real-time fares · {route}</div>
+                              <div className="ft-section-header__sub">Option Trip · {route}</div>
                             </div>
                             <span className="ft-section-header__badge">{duffelFlights.length}</span>
                           </div>
@@ -729,7 +750,7 @@ const FlightTab = ({ tripData }) => {
                             </div>
                             <div>
                               <div className="ft-section-header__title">Amadeus Flights</div>
-                              <div className="ft-section-header__sub">Real-time fares · {route}</div>
+                              <div className="ft-section-header__sub">Option Trip · {route}</div>
                             </div>
                             <span className="ft-section-header__badge">{amadFlights.length}</span>
                           </div>

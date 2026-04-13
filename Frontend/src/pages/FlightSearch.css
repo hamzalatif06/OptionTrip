@@ -1,3 +1,25 @@
+/* ── Inter font — applied across the entire flights page ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+.flight-hero,
+.flight-hero *,
+.flight-results-section,
+.flight-results-section *,
+.flight-loading,
+.flight-empty,
+.flight-error,
+.fs-section-header,
+.fs-section-header *,
+.fs-pagination,
+.fs-pagination *,
+.fs-results-layout,
+.fs-results-layout *,
+.fcgf, .fcgf *,
+.fcdf, .fcdf *,
+.ftc-card, .ftc-card * {
+  font-family: 'Inter', sans-serif !important;
+}
+
 /* ── Hero ──────────────────────────────────────────────────────────────────── */
 /* Full-width container for the flight search form only */
 .flight-search-section .container {
@@ -230,10 +252,10 @@
 
 .fs-section-header__title {
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 700;
   color: #fff;
   margin: 0 0 1px;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.3px;
 }
 
 .fs-section-header__sub {

@@ -1,8 +1,8 @@
 /* ═══════════════════════════════════════════════════════
-   FlightCardDuffel — Premium redesign (screenshot-matched)
+   FlightCardDuffel — Premium redesign
    ═══════════════════════════════════════════════════════ */
 
-/* ── Shared stop badges (same as GF, prefixed fc-) ── */
+/* ── Shared stop badges ── */
 .fc-badge {
   display: inline-block;
   font-size: 11px;
@@ -16,7 +16,6 @@
 
 /* ── Card shell ── */
 .fcdf {
-  position: relative;
   background: #ffffff;
   border-radius: 16px;
   border: 1px solid #e4e2f8;
@@ -32,23 +31,6 @@
   border-color: #6366f1;
 }
 
-/* ── Duffel source ribbon ── */
-.fcdf__ribbon {
-  position: absolute;
-  top: 11px;
-  right: -22px;
-  background: linear-gradient(135deg, #6366f1, #818cf8);
-  color: #fff;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 3px 28px;
-  transform: rotate(35deg);
-  pointer-events: none;
-  z-index: 2;
-}
-
 /* ── Top row: legs + price panel ── */
 .fcdf__top {
   display: flex;
@@ -59,13 +41,33 @@
 .fcdf__legs {
   flex: 1;
   min-width: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
+
+/* ── Heart icon — top-right corner of price panel ── */
+.fcdf__wishlist {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #c4b5fd;
+  padding: 4px;
+  line-height: 1;
+  transition: color 0.15s;
+  z-index: 1;
+}
+.fcdf__wishlist:hover { color: #ef4444; }
 
 /* ── Single leg row ── */
 .fcdf__leg {
   display: flex;
   align-items: center;
-  padding: 18px 22px;
+  padding: 12px 20px;
 }
 
 .fcdf__legs .fcdf__leg + .fcdf__leg {
@@ -80,23 +82,23 @@
 }
 
 .fcdf__logo {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   object-fit: contain;
   border-radius: 10px;
   border: 1px solid #eef1f5;
-  padding: 5px;
+  padding: 4px;
   background: #fff;
   display: block;
 }
 
 .fcdf__logo-fallback {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   border-radius: 10px;
   background: linear-gradient(135deg, #4f46e5, #818cf8);
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
   display: flex;
   align-items: center;
@@ -151,7 +153,7 @@
 }
 
 .fcdf__time {
-  font-size: 21px;
+  font-size: 20px;
   font-weight: 800;
   color: #0f172a;
   line-height: 1;
@@ -162,7 +164,7 @@
   font-size: 12px;
   font-weight: 600;
   color: #64748b;
-  margin-top: 3px;
+  margin-top: 2px;
   letter-spacing: 0.04em;
 }
 
@@ -212,68 +214,46 @@
 
 /* ── Price panel ── */
 .fcdf__price-panel {
-  width: 210px;
+  width: 200px;
   flex-shrink: 0;
   border-left: 1px solid #ede9fe;
   background: #faf8ff;
-  padding: 18px 18px 16px;
+  padding: 36px 16px 12px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   justify-content: center;
   position: relative;
+  gap: 0;
 }
 
-.fcdf__wishlist {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #c4b5fd;
-  padding: 2px;
-  line-height: 1;
-  transition: color 0.15s;
-}
-.fcdf__wishlist:hover { color: #ef4444; }
-
-.fcdf__source-badge {
-  font-size: 10px;
-  font-weight: 700;
-  color: #6366f1;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+/* ── Inline price row: "from  $99  / person" ── */
+.fcdf__price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  flex-wrap: wrap;
   margin-bottom: 8px;
 }
 
-.fcdf__price-block {
-  margin-bottom: 4px;
-}
-
 .fcdf__price-from {
-  display: block;
-  font-size: 10.5px;
+  font-size: 11px;
   color: #94a3b8;
   font-weight: 500;
-  margin-bottom: 1px;
 }
 
 .fcdf__price-amount {
-  display: block;
-  font-size: 23px;
+  font-size: 22px;
   font-weight: 900;
   color: #0f172a;
-  line-height: 1.1;
+  line-height: 1;
   letter-spacing: -0.5px;
 }
 
 .fcdf__price-per {
-  display: block;
-  font-size: 10.5px;
+  font-size: 11px;
   color: #94a3b8;
   font-weight: 500;
-  margin-bottom: 8px;
 }
 
 /* ── Changeable / Refundable pills ── */
@@ -304,8 +284,8 @@
   color: #fff !important;
   border: none;
   border-radius: 9px;
-  padding: 10px 14px;
-  font-size: 13.5px;
+  padding: 9px 14px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   text-decoration: none !important;
@@ -315,13 +295,13 @@
 
 .fcdf__select-btn:hover {
   background: linear-gradient(135deg, #029e9d 0%, #027b7a 100%);
-  color: #fff;
+  color: #fff !important;
   transform: translateY(-1px);
-  text-decoration: none;
+  text-decoration: none !important;
 }
 
 .fcdf__btn-arrow {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1;
 }
 
@@ -329,11 +309,11 @@
   background: none;
   border: none;
   color: #7c3aed;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   text-align: center;
-  margin-top: 8px;
+  margin-top: 6px;
   padding: 2px 0;
   transition: color 0.15s;
 }
@@ -341,7 +321,7 @@
 
 /* ── Expanded details ── */
 .fcdf__details {
-  padding: 16px 22px 20px;
+  padding: 14px 20px 18px;
   border-top: 1px solid #ede9fe;
   background: #faf8ff;
 }
@@ -421,9 +401,9 @@
 /* ── Responsive ── */
 @media (max-width: 860px) {
   .fcdf__airline-label { display: none; }
-  .fcdf__leg { padding: 14px 16px; }
-  .fcdf__price-panel { width: 180px; padding: 16px 14px; }
-  .fcdf__price-amount { font-size: 20px; }
+  .fcdf__leg { padding: 12px 16px; }
+  .fcdf__price-panel { width: 175px; padding: 14px 12px 12px; }
+  .fcdf__price-amount { font-size: 19px; }
 }
 
 @media (max-width: 600px) {
@@ -436,12 +416,10 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 10px;
-    padding: 14px 18px;
+    padding: 12px 16px;
   }
-  .fcdf__price-block { flex: 1; }
-  .fcdf__price-per { margin-bottom: 0; }
-  .fcdf__source-badge { display: none; }
-  .fcdf__wishlist { position: static; }
+  .fcdf__price-row { flex: 1; margin-bottom: 0; }
+  .fcdf__wishlist { top: 6px; right: 8px; }
   .fcdf__details-btn { display: none; }
-  .fcdf__time { font-size: 18px; }
+  .fcdf__time { font-size: 17px; }
 }
