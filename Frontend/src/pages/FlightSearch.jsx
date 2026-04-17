@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import FlightSearchForm from '../components/FlightSearchForm/FlightSearchForm';
 import FlightCardGF     from '../components/FlightCard/FlightCardGF';
 import FlightCardTP     from '../components/FlightCard/FlightCardTP';
@@ -112,6 +113,59 @@ const Pagination = ({ page, total, onChange }) => {
 // 'duffel' | 'gf' | 'tp' | 'amadeus'
 const SOURCE_NONE = null;
 
+const EXPLORE_MODAL_LIMIT = 8;
+
+const formatModalTime = (value) => {
+  if (!value) return '--:--';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+};
+
+const formatModalPrice = (currency, amount) => {
+  const parsed = Number(amount);
+  if (!Number.isFinite(parsed)) return null;
+  const symbol = currency === 'USD' ? '$' : `${currency || ''} `;
+  return `${symbol}${Math.round(parsed).toLocaleString()}`;
+};
+
+const normalizeExploreFlight = (flight, source, fallbackOrigin, fallbackDestination) => {
+  if (source === 'amadeus') {
+    const outbound = flight.itineraries?.[0];
+    const firstSeg = outbound?.segments?.[0];
+    const lastSeg = outbound?.segments?.[outbound.segments.length - 1];
+    return {
+      id: flight.id || `${source}-${firstSeg?.id || Math.random()}`,
+      airline: flight.validatingCarrier || firstSeg?.carrierCode || 'Airline',
+      origin: firstSeg?.departure?.iataCode || fallbackOrigin,
+      destination: lastSeg?.arrival?.iataCode || fallbackDestination,
+      departureTime: firstSeg?.departure?.time || null,
+      arrivalTime: lastSeg?.arrival?.time || null,
+      duration: outbound?.totalDuration || 'N/A',
+      stops: Number.isFinite(flight.numberOfStops)
+        ? flight.numberOfStops
+        : Math.max((outbound?.segments?.length || 1) - 1, 0),
+      price: flight.price,
+      currency: flight.currency || 'USD',
+      bookingUrl: flight.bookingUrl || null,
+    };
+  }
+
+  return {
+    id: flight.id || `${source}-${flight.flightNumber || Math.random()}`,
+    airline: flight.airline || 'Airline',
+    origin: flight.origin || fallbackOrigin,
+    destination: flight.destination || fallbackDestination,
+    departureTime: flight.departureTime || flight.departureAt || null,
+    arrivalTime: flight.arrivalTime || null,
+    duration: flight.duration || 'N/A',
+    stops: Number.isFinite(flight.stops) ? flight.stops : 0,
+    price: flight.price,
+    currency: flight.currency || 'USD',
+    bookingUrl: flight.bookingUrl || null,
+  };
+};
+
 const FlightSearch = () => {
   const [source,        setSource]       = useState(SOURCE_NONE); // which API won
   const [duffelFlights, setDuffelFlights]= useState([]);          // Duffel
@@ -130,9 +184,31 @@ const FlightSearch = () => {
   const [originFieldError,setOriginFieldError]= useState('');
   const [detectedOrigin,  setDetectedOrigin]  = useState(null); // { iata, display }
   const [filters,         setFilters]         = useState(DEFAULT_FILTERS);
+  const [exploreModal,    setExploreModal]    = useState({
+    isOpen: false,
+    isLoading: false,
+    error: '',
+    destination: null,
+    originDisplay: '',
+    tickets: [],
+    source: '',
+  });
 
+  const navigate = useNavigate();
   const formRef    = useRef(null);
   const exploreRef = useRef(null);
+
+  useEffect(() => {
+    if (exploreModal.isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [exploreModal.isOpen]);
 
   const resetResults = () => {
     setSource(SOURCE_NONE);
@@ -236,44 +312,152 @@ const FlightSearch = () => {
     }
   };
 
-  const handleExploreAnywhereFromForm = () => {
-    // If results are showing, reset so ExploreDestinations becomes visible again
-    if (searched) {
-      setSearched(false);
-      resetResults();
+  const handleExploreAnywhereFromForm = (tripContext) => {
+    const originCode = tripContext?.originCode || '';
+    const originDisplay = tripContext?.originDisplay || originCode;
+
+    if (!originCode || !tripContext?.departureDate) {
+      setOriginFieldError('Select a departure airport or allow location access to use Explore Anywhere');
+      return;
     }
-    setTimeout(() => {
-      exploreRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 50);
+
+    const query = new URLSearchParams({
+      origin: originCode,
+      departureDate: tripContext.departureDate,
+      adults: String(tripContext.adults || 1),
+    });
+
+    if (tripContext.returnDate) query.set('returnDate', tripContext.returnDate);
+    if (originDisplay) query.set('originDisplay', originDisplay);
+
+    navigate(`/flights/explore?${query.toString()}`);
   };
 
   const handleOriginDetected = (result) => {
     setDetectedOrigin(result); // { iata, display }
   };
 
+  const closeExploreModal = () => {
+    setExploreModal(prev => ({ ...prev, isOpen: false }));
+  };
+
+  const fetchExploreTickets = async ({ originCode, destinationCode, departureDate, adults }) => {
+    let duffelResult = null;
+    try {
+      duffelResult = await searchFlightsDuffel({
+        originCode,
+        destinationCode,
+        departureDate,
+        adults,
+      });
+    } catch { /* continue fallback chain */ }
+    if (duffelResult?.flights?.length) return { source: 'duffel', flights: duffelResult.flights };
+
+    let gfResult = null;
+    try {
+      gfResult = await searchFlightsGoogle({
+        originCode,
+        destinationCode,
+        departureDate,
+        adults,
+      });
+    } catch { /* continue fallback chain */ }
+    const gfFlights = [...(gfResult?.topFlights || []), ...(gfResult?.otherFlights || [])];
+    if (gfFlights.length) return { source: 'gf', flights: gfFlights };
+
+    let tpResult = null;
+    try {
+      tpResult = await searchFlightsTP({
+        origin: originCode,
+        destination: destinationCode,
+        departureAt: departureDate,
+        limit: 20,
+      });
+    } catch { /* continue fallback chain */ }
+    if (tpResult?.flights?.length) return { source: 'tp', flights: tpResult.flights };
+
+    let amadeusResult = null;
+    try {
+      amadeusResult = await searchFlightsAmadeus({
+        originCode,
+        destinationCode,
+        departureDate,
+        adults,
+      });
+    } catch { /* no more fallback */ }
+    if (amadeusResult?.flights?.length) return { source: 'amadeus', flights: amadeusResult.flights };
+
+    return { source: 'none', flights: [] };
+  };
+
+  const openExploreTicketsModal = async ({ destination }) => {
+    const originCode = detectedOrigin?.iata || '';
+    const originDisplay = detectedOrigin?.display || '';
+
+    setExploreModal({
+      isOpen: true,
+      isLoading: true,
+      error: '',
+      destination,
+      originDisplay,
+      tickets: [],
+      source: '',
+    });
+
+    if (!originCode) {
+      setExploreModal(prev => ({
+        ...prev,
+        isLoading: false,
+        error: 'Please set your departure city first so we can show available tickets.',
+      }));
+      return;
+    }
+
+    const departureDate = getFutureDate(30);
+
+    try {
+      const result = await fetchExploreTickets({
+        originCode,
+        destinationCode: destination.iata,
+        departureDate,
+        adults: 1,
+      });
+
+      const tickets = (result.flights || [])
+        .slice(0, EXPLORE_MODAL_LIMIT)
+        .map(f => normalizeExploreFlight(f, result.source, originCode, destination.iata));
+
+      setExploreModal(prev => ({
+        ...prev,
+        isLoading: false,
+        tickets,
+        source: result.source,
+        error: tickets.length ? '' : 'No tickets found for this destination right now. Try another one or a different date.',
+      }));
+    } catch (err) {
+      setExploreModal(prev => ({
+        ...prev,
+        isLoading: false,
+        error: err.message || 'Unable to load available tickets right now.',
+      }));
+    }
+  };
+
+  const handleModalGoToSearch = () => {
+    closeExploreModal();
+    setOriginFieldError('Enter your departure city or allow location access to view available tickets');
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  };
+
   const handleExploreSelect = ({ iata, city }) => {
     const dest = { code: iata, display: `${city} (${iata})` };
     setPrefillDest(dest);
+    setPrefillOrigin(detectedOrigin ? { code: detectedOrigin.iata, display: detectedOrigin.display } : null);
+    setOriginFieldError('');
 
-    if (detectedOrigin) {
-      // Origin known — pre-fill origin field and auto-search with a default date
-      setPrefillOrigin({ code: detectedOrigin.iata, display: detectedOrigin.display });
-      setOriginFieldError('');
-      const defaultDate = getFutureDate(30);
-      handleSearch({
-        originCode:      detectedOrigin.iata,
-        destinationCode: iata,
-        departureDate:   defaultDate,
-        adults:          1,
-      });
-    } else {
-      // No origin — scroll to form and show error on origin field
-      setPrefillOrigin(null);
-      setOriginFieldError('Enter your departure city or allow location access to auto-search');
-      setTimeout(() => {
-        formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 50);
-    }
+    openExploreTicketsModal({ destination: { iata, city } });
   };
 
   /* ── Derived data for filters ─────────────────────────────────── */
@@ -480,6 +664,86 @@ const FlightSearch = () => {
             })()}
           </div>
         </section>
+      )}
+
+      {exploreModal.isOpen && (
+        <div className="explore-ticket-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) closeExploreModal(); }}>
+          <div className="explore-ticket-modal" role="dialog" aria-modal="true" aria-label="Available tickets">
+            <button className="explore-ticket-modal__close" onClick={closeExploreModal} aria-label="Close ticket modal">
+              ×
+            </button>
+
+            <div className="explore-ticket-modal__head">
+              <h3>
+                Available Tickets: {exploreModal.destination?.city} ({exploreModal.destination?.iata})
+              </h3>
+              <p>
+                {exploreModal.originDisplay
+                  ? `From ${exploreModal.originDisplay} · ${EXPLORE_MODAL_LIMIT} best options`
+                  : 'Set departure city to load available tickets'}
+              </p>
+            </div>
+
+            {exploreModal.isLoading && (
+              <div className="explore-ticket-modal__state">Loading available tickets...</div>
+            )}
+
+            {!exploreModal.isLoading && exploreModal.error && (
+              <div className="explore-ticket-modal__state explore-ticket-modal__state--error">
+                <p>{exploreModal.error}</p>
+                {!exploreModal.originDisplay && (
+                  <button className="explore-ticket-modal__action" onClick={handleModalGoToSearch}>
+                    Set departure city
+                  </button>
+                )}
+              </div>
+            )}
+
+            {!exploreModal.isLoading && !exploreModal.error && exploreModal.tickets.length > 0 && (
+              <>
+                <div className="explore-ticket-modal__meta">
+                  <span>{exploreModal.tickets.length} ticket{exploreModal.tickets.length !== 1 ? 's' : ''}</span>
+                  <span>Source: {exploreModal.source}</span>
+                </div>
+
+                <div className="explore-ticket-modal__list">
+                  {exploreModal.tickets.map((ticket) => {
+                    const price = formatModalPrice(ticket.currency, ticket.price);
+                    const stopsText = ticket.stops === 0
+                      ? 'Direct'
+                      : `${ticket.stops} stop${ticket.stops > 1 ? 's' : ''}`;
+
+                    return (
+                      <div className="explore-ticket-item" key={ticket.id}>
+                        <div className="explore-ticket-item__top">
+                          <strong>{ticket.airline}</strong>
+                          <span className="explore-ticket-item__stops">{stopsText}</span>
+                        </div>
+
+                        <div className="explore-ticket-item__route">
+                          <span>{ticket.origin} {formatModalTime(ticket.departureTime)}</span>
+                          <span>{ticket.duration}</span>
+                          <span>{ticket.destination} {formatModalTime(ticket.arrivalTime)}</span>
+                        </div>
+
+                        <div className="explore-ticket-item__bottom">
+                          <span className="explore-ticket-item__price">{price || 'Price unavailable'}</span>
+                          {ticket.bookingUrl ? (
+                            <a href={ticket.bookingUrl} target="_blank" rel="noopener noreferrer" className="explore-ticket-item__book">
+                              Book now
+                            </a>
+                          ) : (
+                            <span className="explore-ticket-item__book explore-ticket-item__book--disabled">No booking link</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       )}
     </>
   );

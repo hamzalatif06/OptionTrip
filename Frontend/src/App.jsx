@@ -36,6 +36,7 @@ import CookiePolicyPage from './pages/CookiePolicyPage';
 import DataProtectionPage from './pages/DataProtectionPage';
 import HelpCenterPage from './pages/HelpCenterPage';
 import FlightSearch from './pages/FlightSearch';
+import ExploreAnywhereDetailPage from './pages/ExploreAnywhereDetailPage';
 import HotelSearch from './pages/HotelSearch';
 
 function ScrollToTop() {
@@ -118,6 +119,7 @@ function App() {
                   <Route path="/data-protection" element={<DataProtectionPage />} />
 
                   {/* Bookings */}
+                  <Route path="/flights/explore" element={<ExploreAnywhereDetailPage />} />
                   <Route path="/flights" element={<FlightSearch />} />
                   <Route path="/hotels"  element={<HotelSearch />} />
 

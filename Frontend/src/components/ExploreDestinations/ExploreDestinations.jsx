@@ -1,33 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { exploreDestinations, searchAirports } from '../../services/flightService';
+import { EXPLORE_DESTINATIONS, getExploreImageUrl } from '../../data/exploreDestinations';
 import './ExploreDestinations.css';
 
-/* ── Curated popular destinations with Unsplash photo IDs ── */
-const DESTINATIONS = [
-  { iata: 'DXB', city: 'Dubai',         country: 'UAE',          photo: 'photo-1518684079-3c830dcef090' },
-  { iata: 'BKK', city: 'Bangkok',        country: 'Thailand',     photo: 'photo-1508009603885-50cf7c579365' },
-  { iata: 'LHR', city: 'London',         country: 'UK',           photo: 'photo-1513635269975-59663e0ac1ad' },
-  { iata: 'CDG', city: 'Paris',          country: 'France',       photo: 'photo-1502602898657-3e91760cbb34' },
-  { iata: 'JFK', city: 'New York',       country: 'USA',          photo: 'photo-1496442226666-8d4d0e62e6e9' },
-  { iata: 'NRT', city: 'Tokyo',          country: 'Japan',        photo: 'photo-1540959733332-eab4deabeeaf' },
-  { iata: 'SIN', city: 'Singapore',      country: 'Singapore',    photo: 'photo-1525625293386-3f8f99389edd' },
-  { iata: 'IST', city: 'Istanbul',       country: 'Turkey',       photo: 'photo-1541432901042-2d8bd64b4a9b' },
-  { iata: 'FCO', city: 'Rome',           country: 'Italy',        photo: 'photo-1552832230-c0197dd311b5' },
-  { iata: 'BCN', city: 'Barcelona',      country: 'Spain',        photo: 'photo-1539037116277-4db20889f2d4' },
-  { iata: 'SYD', city: 'Sydney',         country: 'Australia',    photo: 'photo-1506973035872-a4ec16b8e8d9' },
-  { iata: 'DPS', city: 'Bali',           country: 'Indonesia',    photo: 'photo-1537996194471-e657df975ab4' },
-  { iata: 'KUL', city: 'Kuala Lumpur',   country: 'Malaysia',     photo: 'photo-1596422846543-75c6fc197f11' },
-  { iata: 'MLE', city: 'Maldives',       country: 'Maldives',     photo: 'photo-1514282401047-d79a71a590e8' },
-  { iata: 'ICN', city: 'Seoul',          country: 'South Korea',  photo: 'photo-1517154421773-0529f29ea451' },
-  { iata: 'ATH', city: 'Athens',         country: 'Greece',       photo: 'photo-1555993539-1732b0258235' },
-  { iata: 'AMS', city: 'Amsterdam',      country: 'Netherlands',  photo: 'photo-1534351590666-13e3e96b5017' },
-  { iata: 'CAI', city: 'Cairo',          country: 'Egypt',        photo: 'photo-1572252009286-268acec5ca0a' },
-  { iata: 'GRU', city: 'São Paulo',      country: 'Brazil',       photo: 'photo-1554224155-8d04cb21cd6c' },
-  { iata: 'CPT', city: 'Cape Town',      country: 'South Africa', photo: 'photo-1580060839134-75a5edca2e99' },
-];
-
-const imgUrl = (photo) =>
-  `https://images.unsplash.com/${photo}?auto=format&fit=crop&w=600&q=75`;
+const formatPriceBand = (price) => {
+  const numericPrice = Number(price);
+  if (!Number.isFinite(numericPrice)) return null;
+  const lower = Math.max(100, Math.floor(numericPrice / 100) * 100);
+  const upper = lower + 200;
+  return `$${lower} - $${upper}`;
+};
 
 /** Resolve city string → { iata, display } or null */
 const resolveOrigin = async (cityName) => {
@@ -141,12 +123,12 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
               <h2 className="explore-header__title">Explore Anywhere</h2>
               <p className="explore-header__sub">
                 {origin
-                  ? `Cheapest fares from ${origin} · Click any destination to search`
+                  ? `Cheapest fares from ${origin} · Click any destination to view tickets`
                   : geoStatus === 'detecting'
                     ? 'Detecting your location to show personalised fares…'
                     : geoStatus === 'denied'
-                      ? 'Location access denied · Click any destination to search'
-                      : 'Discover your next adventure · Click any destination to search'}
+                      ? 'Location access denied · Click any destination to view tickets'
+                      : 'Discover your next adventure · Click any destination to view tickets'}
               </p>
             </div>
           </div>
@@ -158,7 +140,7 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
 
         {/* Destination grid */}
         <div className="explore-grid">
-          {DESTINATIONS.map(dest => {
+          {EXPLORE_DESTINATIONS.map(dest => {
             const priceData = prices[dest.iata];
             return (
               <button
@@ -169,7 +151,7 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
                 {/* Photo */}
                 <div className="explore-card__img-wrap">
                   <img
-                    src={imgUrl(dest.photo)}
+                    src={getExploreImageUrl(dest.photo)}
                     alt={dest.city}
                     className="explore-card__img"
                     loading="lazy"
@@ -187,7 +169,7 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
                   {priceData ? (
                     <div className="explore-card__price">
                       <span className="explore-card__price-from">from</span>
-                      <span className="explore-card__price-amount">${Math.round(priceData.price)}</span>
+                      <span className="explore-card__price-amount">{formatPriceBand(priceData.price) || 'Price unavailable'}</span>
                     </div>
                   ) : (
                     <div className="explore-card__price explore-card__price--na">

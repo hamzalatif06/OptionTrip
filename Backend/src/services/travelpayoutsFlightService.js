@@ -80,38 +80,199 @@ export async function getCityDirections(origin) {
   }
 }
 
+function mergeExploreResult(target, destination, payload = {}) {
+  const code = String(destination || '').toUpperCase().trim();
+  if (!/^[A-Z]{3}$/.test(code)) return;
+
+  const price = Number(payload.price);
+  if (!Number.isFinite(price) || price <= 0) return;
+
+  const prev = target[code];
+  const base = {
+    price,
+    airline: payload.airline || payload.airlineName || null,
+    transfers: Number.isFinite(Number(payload.transfers)) ? Number(payload.transfers) : 0,
+    city: payload.city || payload.destinationName || payload.destination_name || null,
+    country: payload.country || payload.countryName || payload.country_name || null,
+  };
+
+  if (!prev || price < Number(prev.price)) {
+    target[code] = {
+      ...prev,
+      ...base,
+      price,
+    };
+    return;
+  }
+
+  target[code] = {
+    ...prev,
+    airline: prev.airline || base.airline,
+    city: prev.city || base.city,
+    country: prev.country || base.country,
+    transfers: Number.isFinite(Number(prev.transfers)) ? Number(prev.transfers) : base.transfers,
+  };
+}
+
+async function fetchTPJson(url, queryObj = {}) {
+  try {
+    const params = new URLSearchParams(
+      Object.entries(queryObj)
+        .filter(([, value]) => value !== undefined && value !== null && value !== '')
+        .map(([key, value]) => [key, String(value)])
+    );
+    const res = await fetch(`${url}?${params.toString()}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Get cheapest prices from one origin to ALL destinations (Explore Anywhere).
  * Tries city-directions first (popular routes), falls back to cheap prices.
  * Returns a map: { IATA: { price, airline, transfers } }
  */
 export async function getExploreDestinations(origin) {
-  // Attempt 1: city-directions (popular destinations, one clean record per dest)
-  const cityDir = await getCityDirections(origin);
-  if (Object.keys(cityDir).length > 0) return cityDir;
+  const o = String(origin || '').toUpperCase().trim();
+  if (!/^[A-Z]{3}$/.test(o) || !TP_CONFIG.token) return {};
 
-  // Attempt 2: cheap prices fallback
-  try {
-    const params = new URLSearchParams({
-      origin:   origin.toUpperCase(),
+  const result = {};
+
+  const [
+    cityDirectionsJson,
+    cheapJson,
+    directJson,
+    latestJson,
+    specialJson,
+    rangeJson,
+  ] = await Promise.all([
+    fetchTPJson(TP_CONFIG.cityDirectionsUrl, { origin: o, currency: 'usd', token: TP_CONFIG.token }),
+    fetchTPJson('https://api.travelpayouts.com/v1/prices/cheap', {
+      origin: o,
+      destination: '-',
       currency: 'usd',
-      token:    TP_CONFIG.token,
+      token: TP_CONFIG.token,
+    }),
+    fetchTPJson('https://api.travelpayouts.com/v1/prices/direct', {
+      origin: o,
+      destination: '-',
+      currency: 'usd',
+      token: TP_CONFIG.token,
+    }),
+    fetchTPJson(TP_CONFIG.latestPricesUrl, {
+      origin: o,
+      currency: 'usd',
+      period_type: 'year',
+      sorting: 'price',
+      group_by: 'directions',
+      page: 1,
+      token: TP_CONFIG.token,
+    }),
+    fetchTPJson('https://api.travelpayouts.com/aviasales/v3/get_special_offers', {
+      origin: o,
+      locale: 'en',
+      currency: 'usd',
+      token: TP_CONFIG.token,
+    }),
+    fetchTPJson('https://api.travelpayouts.com/aviasales/v3/search_by_price_range', {
+      origin: o,
+      destination: '-',
+      value_min: 50,
+      value_max: 500,
+      one_way: true,
+      direct: false,
+      locale: 'en',
+      currency: 'usd',
+      market: 'us',
+      limit: 60,
+      page: 1,
+      token: TP_CONFIG.token,
+    }),
+  ]);
+
+  // 1) city-directions
+  for (const [dest, info] of Object.entries(cityDirectionsJson?.data || {})) {
+    mergeExploreResult(result, dest, {
+      price: info.price,
+      airline: info.airline,
+      transfers: info.number_of_changes ?? info.transfers ?? 0,
+      destinationName: info.destination_name,
+      countryName: info.country_name,
     });
-    const res  = await fetch(`https://api.travelpayouts.com/v1/prices/cheap?${params}`);
-    if (!res.ok) return {};
-    const json = await res.json();
-    if (!json.success) return {};
-    const result = {};
-    for (const [dest, months] of Object.entries(json.data || {})) {
-      const prices = Object.values(months);
-      if (prices.length) {
-        result[dest] = prices.reduce((best, p) => p.price < best.price ? p : best);
-      }
-    }
-    return result;
-  } catch {
-    return {};
   }
+
+  // 2) cheap prices to any destination
+  for (const [dest, months] of Object.entries(cheapJson?.data || {})) {
+    const monthEntries = Object.values(months || {}).filter(Boolean);
+    if (!monthEntries.length) continue;
+    const best = monthEntries.reduce((acc, item) => {
+      if (!acc) return item;
+      return Number(item.price) < Number(acc.price) ? item : acc;
+    }, null);
+    if (!best) continue;
+    mergeExploreResult(result, dest, {
+      price: best.price,
+      airline: best.airline,
+      transfers: best.transfers ?? 0,
+      destinationName: best.destination_name,
+      countryName: best.country_name,
+    });
+  }
+
+  // 3) direct prices
+  for (const [dest, data] of Object.entries(directJson?.data || {})) {
+    const directEntries = Object.values(data || {}).filter(Boolean);
+    if (!directEntries.length) continue;
+    const best = directEntries.reduce((acc, item) => {
+      if (!acc) return item;
+      return Number(item.price) < Number(acc.price) ? item : acc;
+    }, null);
+    if (!best) continue;
+    mergeExploreResult(result, dest, {
+      price: best.price,
+      airline: best.airline,
+      transfers: 0,
+      destinationName: best.destination_name,
+      countryName: best.country_name,
+    });
+  }
+
+  // 4) latest prices grouped by directions
+  for (const item of (latestJson?.data || [])) {
+    mergeExploreResult(result, item.destination, {
+      price: item.price ?? item.value,
+      airline: item.airline,
+      transfers: item.transfers ?? item.number_of_changes ?? 0,
+      destinationName: item.destination_name,
+      countryName: item.country_name,
+    });
+  }
+
+  // 5) special offers
+  for (const item of (specialJson?.data || [])) {
+    mergeExploreResult(result, item.destination, {
+      price: item.price ?? item.value,
+      airline: item.airline,
+      transfers: item.transfers ?? 0,
+      destinationName: item.destination_name,
+      countryName: item.country_name,
+    });
+  }
+
+  // 6) search by price range
+  for (const item of (rangeJson?.data || [])) {
+    mergeExploreResult(result, item.destination, {
+      price: item.price ?? item.value,
+      airline: item.airline,
+      transfers: item.transfers ?? item.number_of_changes ?? 0,
+      destinationName: item.destination_name,
+      countryName: item.country_name,
+    });
+  }
+
+  return result;
 }
 
 /**

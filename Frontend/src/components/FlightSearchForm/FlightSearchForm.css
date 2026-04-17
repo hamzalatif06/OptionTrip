@@ -120,10 +120,19 @@
   height: 50px;
 }
 
+.fsf-ac-field--explore {
+  border-color: rgba(2, 158, 157, 0.45);
+  background: linear-gradient(135deg, rgba(2, 158, 157, 0.08), rgba(91, 98, 245, 0.08));
+}
+
 .fsf-ac-field:focus-within {
   border-color: #029e9d;
   background: #fff;
   box-shadow: 0 0 0 3.5px rgba(2, 158, 157, 0.13);
+}
+
+.fsf-ac-field--explore:focus-within {
+  background: linear-gradient(135deg, rgba(2, 158, 157, 0.1), rgba(91, 98, 245, 0.1));
 }
 
 .fsf-ac-icon {
@@ -151,6 +160,47 @@
 .fsf-input--ac:focus { box-shadow: none !important; outline: none; }
 
 .fsf-input--ac::placeholder { color: #b0bec5; font-weight: 400; }
+
+.fsf-ac-field--explore .fsf-input--ac::placeholder {
+  color: transparent;
+}
+
+.fsf-ac-field--explore .fsf-input--ac {
+  color: transparent;
+  caret-color: transparent;
+}
+
+.fsf-explore-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: 8px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #029e9d, #5b62f5);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  box-shadow: 0 8px 20px rgba(2, 158, 157, 0.22);
+  flex-shrink: 0;
+}
+
+.fsf-explore-chip__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fsf-explore-chip__text {
+  white-space: nowrap;
+}
+
+.fsf-ac-field--explore .fsf-ac-clear,
+.fsf-ac-field--explore .fsf-ac-spinner {
+  position: relative;
+  z-index: 1;
+}
 
 .fsf-ac-spinner {
   width: 14px;

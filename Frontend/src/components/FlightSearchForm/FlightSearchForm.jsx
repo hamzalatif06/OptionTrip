@@ -72,7 +72,6 @@ const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect,
   };
 
   const handleFocus = () => {
-    // Always open dropdown on focus when Explore Anywhere option is available
     if (onExploreAnywhere) setOpen(true);
     else if (!selected && suggestions.length > 0) setOpen(true);
   };
@@ -82,10 +81,21 @@ const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect,
   return (
     <div className={`fsf-ac-wrap${error ? ' fsf-ac-wrap--error' : ''}`} ref={wrapRef}>
       <label className="fsf-label">{label}</label>
-      <div className="fsf-ac-field">
+      <div className={`fsf-ac-field${iataCode === 'EXPLORE_ANYWHERE' ? ' fsf-ac-field--explore' : ''}`}>
         <svg className="fsf-ac-icon" viewBox="0 0 24 24" fill="none">
           <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="currentColor"/>
         </svg>
+        {iataCode === 'EXPLORE_ANYWHERE' && (
+          <span className="fsf-explore-chip" aria-hidden="true">
+            <span className="fsf-explore-chip__icon">
+              <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" stroke="currentColor" strokeWidth="2" />
+              </svg>
+            </span>
+            <span className="fsf-explore-chip__text">Explore Anywhere</span>
+          </span>
+        )}
         <input
           className="fsf-input fsf-input--ac"
           type="text"
@@ -100,7 +110,7 @@ const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect,
         {query && !loading && (
           <button type="button" className="fsf-ac-clear" onClick={handleClear} tabIndex={-1}>✕</button>
         )}
-        {selected && iataCode && (
+        {selected && iataCode && iataCode !== 'EXPLORE_ANYWHERE' && (
           <span className="fsf-ac-badge">{iataCode}</span>
         )}
       </div>
@@ -110,7 +120,7 @@ const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect,
 
           {/* ── Explore Anywhere option ── */}
           {onExploreAnywhere && (
-            <li className="fsf-ac-item fsf-ac-item--explore" onMouseDown={(e) => { e.preventDefault(); setOpen(false); onExploreAnywhere(); }}>
+            <li className="fsf-ac-item fsf-ac-item--explore" onMouseDown={(e) => { e.preventDefault(); setOpen(false); onExploreAnywhere?.(); }}>
               <div className="fsf-ac-item__left">
                 <svg viewBox="0 0 24 24" fill="none" width="16" height="16" className="fsf-explore-icon">
                   <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
@@ -162,6 +172,7 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
   const [tripType,      setTripType]      = useState('one-way');
   const [originCode,    setOriginCode]    = useState('');
   const [originDisplay, setOriginDisplay] = useState('');
+  const [isExploreAnywhere, setIsExploreAnywhere] = useState(false);
   const [destCode,      setDestCode]      = useState('');
   const [destDisplay,   setDestDisplay]   = useState('');
   const [departureDate, setDepartureDate] = useState('');
@@ -175,6 +186,7 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
     if (prefillOrigin?.code && prefillOrigin?.display) {
       setOriginCode(prefillOrigin.code);
       setOriginDisplay(prefillOrigin.display);
+      setIsExploreAnywhere(false);
       setErrors(p => ({ ...p, origin: '' }));
     }
   }, [prefillOrigin]); // eslint-disable-line
@@ -184,6 +196,7 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
     if (prefillDest?.code && prefillDest?.display) {
       setDestCode(prefillDest.code);
       setDestDisplay(prefillDest.display);
+      setIsExploreAnywhere(false);
       setErrors(p => ({ ...p, destination: '' }));
     }
   }, [prefillDest]); // eslint-disable-line
@@ -192,14 +205,15 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
 
   const handleSwap = () => {
     setOriginCode(destCode);      setOriginDisplay(destDisplay);
+    setIsExploreAnywhere(false);
     setDestCode(originCode);      setDestDisplay(originDisplay);
   };
 
   const validate = () => {
     const errs = {};
-    if (!originCode)  errs.origin      = 'Select a departure airport';
-    if (!destCode)    errs.destination = 'Select a destination airport';
-    if (originCode && destCode && originCode === destCode) errs.destination = 'Origin and destination must differ';
+    if (!isExploreAnywhere && !originCode)  errs.origin      = 'Select a departure airport';
+    if (!isExploreAnywhere && !destCode)    errs.destination = 'Select a destination airport';
+    if (!isExploreAnywhere && originCode && destCode && originCode === destCode) errs.destination = 'Origin and destination must differ';
     if (!departureDate) errs.departureDate = 'Select departure date';
     if (tripType === 'round-trip' && !returnDate) errs.returnDate = 'Select return date';
     return errs;
@@ -209,6 +223,18 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    if (isExploreAnywhere) {
+      onExploreAnywhere?.({
+        originCode,
+        originDisplay,
+        departureDate,
+        returnDate: tripType === 'round-trip' ? returnDate : '',
+        adults: Number(adults),
+        tripType,
+        exploreAnywhere: true,
+      });
+      return;
+    }
     onSearch({
       originCode,
       destinationCode: destCode,
@@ -250,10 +276,12 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
                   iataCode={originCode}
                   onChange={(code, display) => {
                     setOriginCode(code); setOriginDisplay(display);
+                    setIsExploreAnywhere(false);
                     clearError('origin'); onOriginErrorClear?.();
                   }}
                   onSelect={(code, display) => {
                     setOriginCode(code); setOriginDisplay(display);
+                    setIsExploreAnywhere(false);
                     clearError('origin'); onOriginErrorClear?.();
                   }}
                   error={errors.origin || originError}
@@ -276,10 +304,15 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
                   placeholder="City or airport (e.g. Dubai, CDG)"
                   value={destDisplay}
                   iataCode={destCode}
-                  onChange={(code, display) => { setDestCode(code); setDestDisplay(display); clearError('destination'); }}
-                  onSelect={(code, display) => { setDestCode(code); setDestDisplay(display); clearError('destination'); }}
+                  onChange={(code, display) => { setDestCode(code); setDestDisplay(display); setIsExploreAnywhere(false); clearError('destination'); }}
+                  onSelect={(code, display) => { setDestCode(code); setDestDisplay(display); setIsExploreAnywhere(false); clearError('destination'); }}
                   error={errors.destination}
-                  onExploreAnywhere={onExploreAnywhere}
+                  onExploreAnywhere={() => {
+                    setDestCode('EXPLORE_ANYWHERE');
+                    setDestDisplay('Explore Anywhere');
+                    setIsExploreAnywhere(true);
+                    setErrors((p) => ({ ...p, destination: '' }));
+                  }}
                 />
               </div>
 
