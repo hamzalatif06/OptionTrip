@@ -7,6 +7,7 @@ import { searchFlights as amadeusSearchFlights } from '../services/amadeusServic
 import { searchFlights as tpSearchFlights, getCheapPrice, getExploreDestinations } from '../services/travelpayoutsFlightService.js';
 import { searchFlightsGoogle } from '../services/googleFlightsService.js';
 import { searchFlightsDuffel } from '../services/duffelService.js';
+import { searchDestinationImage } from '../services/unsplashService.js';
 
 /**
  * GET /api/flights/airports?keyword=Paris
@@ -246,5 +247,44 @@ export const exploreDestinationsHandler = async (req, res) => {
   } catch (error) {
     console.error('❌ Explore destinations error:', error.message);
     res.status(502).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * GET /api/flights/destination-image?query=Dubai
+ * Returns an Unsplash image URL for a destination query.
+ */
+export const getDestinationImageHandler = async (req, res) => {
+  try {
+    const { query } = req.query;
+    if (!query || query.trim().length < 2) {
+      console.warn(`⚠️ Invalid image query: ${query}`);
+      return res.status(400).json({ success: false, message: 'query must be at least 2 characters' });
+    }
+
+    console.log(`📷 Getting image for query: ${query}`);
+    const result = await searchDestinationImage(query.trim());
+    
+    // Ensure response has the imageUrl at the right level
+    const response = {
+      success: true,
+      data: {
+        imageUrl: result?.imageUrl || null,
+        source: result?.source || 'none',
+        error: result?.error || null,
+      }
+    };
+    
+    res.json(response);
+  } catch (error) {
+    console.error('❌ Destination image error:', error.message);
+    res.status(502).json({ 
+      success: false, 
+      message: error.message,
+      data: {
+        imageUrl: null,
+        source: 'error',
+      }
+    });
   }
 };

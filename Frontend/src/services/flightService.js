@@ -1,4 +1,5 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+import { getDestinationImage as getCachedDestinationImage } from '../utils/destinationImages';
 
 /**
  * Search airports/cities using Travelpayouts places2 API (free, no auth).
@@ -112,6 +113,19 @@ export const exploreDestinations = async (origin) => {
   } catch {
     return {};
   }
+};
+
+/**
+ * Fetch an accurate destination image from the browser cache / Unsplash Source URL helper.
+ * @param {string} query
+ * @returns {Promise<{ imageUrl: string, source: string, credit?: object } | null>}
+ */
+export const getDestinationImage = async (query) => {
+  if (!query || query.trim().length < 2) return null;
+  return {
+    imageUrl: getCachedDestinationImage(query),
+    source: 'unsplash-source',
+  };
 };
 
 /**

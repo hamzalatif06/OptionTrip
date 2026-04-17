@@ -1,5 +1,5 @@
 import express from 'express';
-import { searchFlights, getAirports, searchFlightsTravelpayouts, searchFlightsGoogleHandler, getCheapPriceHandler, exploreDestinationsHandler, searchFlightsDuffelHandler } from '../controllers/flightController.js';
+import { searchFlights, getAirports, searchFlightsTravelpayouts, searchFlightsGoogleHandler, getCheapPriceHandler, exploreDestinationsHandler, searchFlightsDuffelHandler, getDestinationImageHandler } from '../controllers/flightController.js';
 import { validateFlightSearch, validateTPFlightSearch } from '../middleware/validation.js';
 
 const router = express.Router();
@@ -12,6 +12,9 @@ router.get('/cheap-price', getCheapPriceHandler);
 
 // GET /api/flights/explore?origin=LHE
 router.get('/explore', exploreDestinationsHandler);
+
+// GET /api/flights/destination-image?query=Dubai
+router.get('/destination-image', getDestinationImageHandler);
 
 // GET /api/flights/duffel-search?origin=LHR&destination=DXB&departureDate=2026-04-15&adults=1
 router.get('/duffel-search', searchFlightsDuffelHandler);

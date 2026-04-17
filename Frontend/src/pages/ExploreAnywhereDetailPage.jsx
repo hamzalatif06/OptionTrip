@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import FlightCardDuffel from '../components/FlightCard/FlightCardDuffel';
-import { EXPLORE_DESTINATIONS, getExploreImageUrl } from '../data/exploreDestinations';
+import { EXPLORE_DESTINATIONS } from '../data/exploreDestinations';
 import { exploreDestinations, searchAirports, searchFlightsDuffel } from '../services/flightService';
-import { getExploreDestinationImageId } from '../utils/exploreDestinationMedia';
+import { clearDestinationImageCache, getDestinationFallbackImage, getDestinationImage } from '../utils/destinationImages';
 import './FlightSearch.css';
 import './ExploreAnywhereDetailPage.css';
 
@@ -17,15 +17,43 @@ const formatPriceBand = (price) => {
 
 const INITIAL_VISIBLE_CARDS = 12;
 const LOAD_MORE_STEP = 12;
-const FALLBACK_DESTINATION_PHOTO = 'photo-1469474968028-56623f02e42e';
 
-const getDestinationImageUrl = ({ iata, city, country, photo }) => {
-  if (photo && photo !== FALLBACK_DESTINATION_PHOTO) {
-    return getExploreImageUrl(photo);
-  }
+// Destination tags based on what they're famous for
+const DESTINATION_TAGS = {
+  dubai: 'luxury',
+  bangkok: 'food',
+  london: 'luxury',
+  paris: 'luxury',
+  'new york': 'travel',
+  tokyo: 'food',
+  singapore: 'luxury',
+  istanbul: 'travel',
+  rome: 'travel',
+  barcelona: 'travel',
+  sydney: 'nature',
+  bali: 'nature',
+  'kuala lumpur': 'travel',
+  maldives: 'nature',
+  seoul: 'food',
+  athens: 'travel',
+  amsterdam: 'travel',
+  cairo: 'travel',
+  'são paulo': 'travel',
+  'cape town': 'nature',
+  lahore: 'food',
+  karachi: 'food',
+  skardu: 'hiking',
+  quetta: 'travel',
+  tashkent: 'travel',
+  multan: 'travel',
+  riyadh: 'luxury',
+  almaty: 'nature',
+  sukkur: 'travel',
+};
 
-  const photoId = getExploreDestinationImageId({ iata, city, country });
-  return getExploreImageUrl(photoId);
+const getDestinationTag = (city) => {
+  const normalized = String(city || '').trim().toLowerCase();
+  return DESTINATION_TAGS[normalized] || 'travel';
 };
 
 const normalizeDuffelFlight = (flight, fallbackOrigin, fallbackDestination) => {
@@ -54,8 +82,11 @@ const ExploreAnywhereDetailPage = () => {
   const [isLoadingTickets, setIsLoadingTickets] = useState(false);
   const [ticketError, setTicketError] = useState('');
   const [tickets, setTickets] = useState([]);
+  const [imageMap, setImageMap] = useState({});
+  const [imageFetchKey, setImageFetchKey] = useState(0);
   const lookedUpIatasRef = useRef(new Set());
   const inFlightIatasRef = useRef(new Set());
+  const imageRequestIdsRef = useRef(new Set());
 
   const origin = searchParams.get('origin') || '';
   const originDisplay = searchParams.get('originDisplay') || origin;
@@ -85,7 +116,6 @@ const ExploreAnywhereDetailPage = () => {
         iata,
         city,
         country,
-        photo: meta.photo || FALLBACK_DESTINATION_PHOTO,
         price: Number(api.price),
         isNameResolved: city.toUpperCase() !== iata,
       };
@@ -103,6 +133,73 @@ const ExploreAnywhereDetailPage = () => {
     () => allDestinations.slice(0, visibleCards),
     [allDestinations, visibleCards]
   );
+
+  // Clear old cached destination images on mount to fetch fresh ones
+  useEffect(() => {
+    clearDestinationImageCache();
+    // Also clear the request tracking refs to allow fresh fetches on page reload
+    imageRequestIdsRef.current.clear();
+    lookedUpIatasRef.current.clear();
+    setImageMap({}); // Clear cached images in state
+    setImageFetchKey((prev) => prev + 1); // Trigger image refetch
+  }, []);
+
+  useEffect(() => {
+    // Only fetch images for destinations that have their names fully resolved
+    const pending = visibleDestinations.filter((destination) => {
+      const hasResolvedName = destination.isNameResolved;
+      const cityLabel = String(destination.city || '').trim();
+      const countryLabel = String(destination.country || '').trim();
+      
+      // Only fetch if:
+      // 1. Name is resolved (not just the IATA code)
+      // 2. Has both city and country
+      // 3. Image not already loaded
+      // 4. Not already requesting
+      return hasResolvedName && 
+             cityLabel && 
+             countryLabel && 
+             !imageMap[destination.iata] && 
+             !imageRequestIdsRef.current.has(destination.iata);
+    });
+
+    if (pending.length === 0) return undefined;
+
+    let mounted = true;
+    pending.forEach((destination) => imageRequestIdsRef.current.add(destination.iata));
+
+    (async () => {
+      const imageUpdates = {};
+      
+      for (const destination of pending) {
+        if (!mounted) break;
+        
+        // Use FULL resolved name: "City, Country" for better Unsplash matching
+        const query = `${destination.city}, ${destination.country}`;
+
+        try {
+          console.log(`📷 Fetching image for: ${query}`);
+          const imageUrl = await getDestinationImage(query);
+          imageUpdates[destination.iata] = imageUrl;
+        } catch (error) {
+          console.error(`Failed to load image for ${query}:`, error);
+          imageUpdates[destination.iata] = getDestinationFallbackImage(query);
+        }
+      }
+
+      if (mounted && Object.keys(imageUpdates).length > 0) {
+        console.log(`✅ Loaded ${Object.keys(imageUpdates).length} images`);
+        setImageMap((prev) => ({
+          ...prev,
+          ...imageUpdates,
+        }));
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [visibleDestinations, imageMap, imageFetchKey]);
 
   useEffect(() => {
     if (!origin) return undefined;
@@ -356,12 +453,12 @@ const ExploreAnywhereDetailPage = () => {
                         <div className="fcdf__legs explore-flight-card__legs">
                           <div className="explore-flight-card__media">
                             <img
-                              src={getDestinationImageUrl(destination)}
+                              src={imageMap[destination.iata] || '/images/destination/destination13.jpg'}
                               alt={destination.isNameResolved ? destination.city : destination.iata}
                               loading="lazy"
                               onError={(event) => {
                                 event.currentTarget.onerror = null;
-                                event.currentTarget.src = getExploreImageUrl(getExploreDestinationImageId(destination));
+                                event.currentTarget.src = getDestinationFallbackImage([destination.city, destination.country].filter(Boolean).join(' '));
                               }}
                             />
                           </div>
@@ -395,7 +492,9 @@ const ExploreAnywhereDetailPage = () => {
                           </div>
 
                           <div className="fcdf__conditions">
-                            <span className="fc-badge fc-badge--direct">Travelpayouts</span>
+                            <span className={`fc-badge fc-badge--${getDestinationTag(destination.city)}`}>
+                              {getDestinationTag(destination.city).charAt(0).toUpperCase() + getDestinationTag(destination.city).slice(1)}
+                            </span>
                           </div>
 
                           <button type="button" className="fcdf__select-btn">
