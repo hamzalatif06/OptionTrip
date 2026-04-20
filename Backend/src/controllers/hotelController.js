@@ -1,4 +1,8 @@
 import {
+  searchHotelLocations as tpSearchLocations,
+  searchHotels as tpSearchHotels,
+} from '../services/travelpayoutsService.js';
+import {
   searchDestination,
   searchHotels   as bookingSearchHotels,
   getHotelDetails as bookingGetDetails,
@@ -12,8 +16,19 @@ export const getHotelLocations = async (req, res) => {
     const { term } = req.query;
     if (!term || term.trim().length < 2)
       return res.status(400).json({ success: false, message: 'term must be at least 2 characters' });
-    const locations = await searchDestination(term.trim());
-    console.log(`📍 Returning ${locations.length} location(s) for "${term}"`);
+    
+    // Use Travel Payouts for hotel location search
+    const tpLocations = await tpSearchLocations(term.trim());
+    
+    // Map Travel Payouts format to expected format
+    const locations = tpLocations.map(loc => ({
+      destId: loc.cityCode,      // Use cityCode as destId
+      name: loc.name,
+      countryName: loc.countryName,
+      searchType: 'CITY',
+    }));
+    
+    console.log(`📍 Returning ${locations.length} location(s) for "${term}" from Travel Payouts`);
     res.json({ success: true, data: { locations } });
   } catch (err) {
     console.error('❌ Hotel location search error:', err.message);
@@ -26,7 +41,17 @@ export const searchHotels = async (req, res) => {
     const { destId, searchType = 'CITY', checkIn, checkOut, adults = 1, rooms = 1, cityName = '' } = req.query;
     if (!destId || !checkIn || !checkOut)
       return res.status(400).json({ success: false, message: 'destId, checkIn and checkOut are required' });
-    const hotels = await bookingSearchHotels({ destId, searchType, checkIn, checkOut, adults: Number(adults), rooms: Number(rooms), cityName });
+    
+    // Use Travel Payouts for hotel search (destId is the cityCode)
+    const hotels = await tpSearchHotels({ 
+      cityCode: destId, 
+      checkIn, 
+      checkOut, 
+      adults: Number(adults),
+      limit: 30 
+    });
+    
+    console.log(`🏨 Search completed: ${hotels.length} hotel(s) found for ${destId}`);
     res.json({ success: true, data: { hotels, count: hotels.length } });
   } catch (err) {
     console.error('❌ Hotel search error:', err.message);

@@ -84,6 +84,8 @@ const ExploreAnywhereDetailPage = () => {
   const [tickets, setTickets] = useState([]);
   const [imageMap, setImageMap] = useState({});
   const [imageFetchKey, setImageFetchKey] = useState(0);
+  const [tripType, setTripType] = useState('one-way'); // 'one-way' or 'round-trip'
+  const [modalReturnDate, setModalReturnDate] = useState('');
   const lookedUpIatasRef = useRef(new Set());
   const inFlightIatasRef = useRef(new Set());
   const imageRequestIdsRef = useRef(new Set());
@@ -307,6 +309,8 @@ const ExploreAnywhereDetailPage = () => {
 
     setSelectedDestination(destination);
     setIsModalOpen(true);
+    setTripType('one-way'); // Default to one-way
+    setModalReturnDate('');
     setIsLoadingTickets(true);
     setTicketError('');
     setTickets([]);
@@ -316,7 +320,7 @@ const ExploreAnywhereDetailPage = () => {
         originCode: origin,
         destinationCode: destination.iata,
         departureDate,
-        returnDate: returnDate || null,
+        returnDate: null, // Default to one-way
         adults,
       });
 
@@ -341,6 +345,81 @@ const ExploreAnywhereDetailPage = () => {
     setTickets([]);
     setTicketError('');
     setIsLoadingTickets(false);
+    setTripType('one-way');
+    setModalReturnDate('');
+  };
+
+  const handleTripTypeChange = async (newTripType) => {
+    setTripType(newTripType);
+
+    // If switching to round-trip but no return date yet, just wait for user to select date
+    if (newTripType === 'round-trip' && !modalReturnDate) {
+      return;
+    }
+
+    // Fetch tickets with the new trip type
+    if (!selectedDestination) return;
+
+    setIsLoadingTickets(true);
+    setTicketError('');
+    setTickets([]);
+
+    try {
+      const response = await searchFlightsDuffel({
+        originCode: origin,
+        destinationCode: selectedDestination.iata,
+        departureDate,
+        returnDate: newTripType === 'round-trip' ? (modalReturnDate || null) : null,
+        adults,
+      });
+
+      const normalized = (response?.flights || []).map((flight) =>
+        normalizeDuffelFlight(flight, origin, selectedDestination.iata)
+      );
+
+      setTickets(normalized);
+      if (normalized.length === 0) {
+        setTicketError('No real-time Duffel tickets found for this route.');
+      }
+    } catch (error) {
+      setTicketError(error.message || 'Failed to load real-time tickets.');
+    } finally {
+      setIsLoadingTickets(false);
+    }
+  };
+
+  const handleReturnDateChange = async (date) => {
+    setModalReturnDate(date);
+
+    // Only fetch if round-trip is selected and date is provided
+    if (tripType === 'round-trip' && date && selectedDestination) {
+      setIsLoadingTickets(true);
+      setTicketError('');
+      setTickets([]);
+
+      try {
+        const response = await searchFlightsDuffel({
+          originCode: origin,
+          destinationCode: selectedDestination.iata,
+          departureDate,
+          returnDate: date,
+          adults,
+        });
+
+        const normalized = (response?.flights || []).map((flight) =>
+          normalizeDuffelFlight(flight, origin, selectedDestination.iata)
+        );
+
+        setTickets(normalized);
+        if (normalized.length === 0) {
+          setTicketError('No real-time Duffel tickets found for this route.');
+        }
+      } catch (error) {
+        setTicketError(error.message || 'Failed to load real-time tickets.');
+      } finally {
+        setIsLoadingTickets(false);
+      }
+    }
   };
 
   const handleViewMore = () => {
@@ -531,7 +610,38 @@ const ExploreAnywhereDetailPage = () => {
 
             <div className="explore-ticket-modal__head">
               <h3>Real-time tickets for {selectedDestination.city}</h3>
-              <p>{originDisplay} → {selectedDestination.iata} · {departureDate}{returnDate ? ` · return ${returnDate}` : ''}</p>
+              <p>{originDisplay} → {selectedDestination.iata} · {departureDate}{tripType === 'round-trip' && modalReturnDate ? ` · return ${modalReturnDate}` : ''}</p>
+            </div>
+
+            <div className="explore-ticket-modal__filters">
+              <div className="explore-trip-type-filter">
+                <button
+                  className={`explore-trip-type-btn ${tripType === 'one-way' ? 'explore-trip-type-btn--active' : ''}`}
+                  onClick={() => handleTripTypeChange('one-way')}
+                >
+                  One Way
+                </button>
+                <button
+                  className={`explore-trip-type-btn ${tripType === 'round-trip' ? 'explore-trip-type-btn--active' : ''}`}
+                  onClick={() => handleTripTypeChange('round-trip')}
+                >
+                  Round Trip
+                </button>
+              </div>
+
+              {tripType === 'round-trip' && (
+                <div className="explore-return-date-picker">
+                  <label htmlFor="explore-return-date">Return Date:</label>
+                  <input
+                    id="explore-return-date"
+                    type="date"
+                    value={modalReturnDate}
+                    onChange={(e) => handleReturnDateChange(e.target.value)}
+                    min={departureDate}
+                    className="explore-return-date-input"
+                  />
+                </div>
+              )}
             </div>
 
             {isLoadingTickets && <div className="explore-ticket-modal__state">Loading real-time tickets...</div>}
