@@ -8,6 +8,11 @@ import { searchFlights as tpSearchFlights, getCheapPrice, getExploreDestinations
 import { searchFlightsGoogle } from '../services/googleFlightsService.js';
 import { searchFlightsDuffel } from '../services/duffelService.js';
 import { searchDestinationImage } from '../services/unsplashService.js';
+import { 
+  getPlaceImageWithCache, 
+  getPlaceImagesForMultiplePlaces,
+  getCacheStats
+} from '../services/googlePlacesService.js';
 
 /**
  * GET /api/flights/airports?keyword=Paris
@@ -253,6 +258,7 @@ export const exploreDestinationsHandler = async (req, res) => {
 /**
  * GET /api/flights/destination-image?query=Dubai
  * Returns an Unsplash image URL for a destination query.
+ * DEPRECATED: Use /api/flights/place-image instead (uses Google Places API with DB caching)
  */
 export const getDestinationImageHandler = async (req, res) => {
   try {
@@ -285,6 +291,194 @@ export const getDestinationImageHandler = async (req, res) => {
         imageUrl: null,
         source: 'error',
       }
+    });
+  }
+};
+
+/**
+ * GET /api/flights/place-image?placeName=Dubai
+ * Returns an accurate image for a place using Google Places API with database caching.
+ * 
+ * FLOW:
+ * 1. Check if place image is cached in database
+ * 2. If cache is valid → return cached image (fast)
+ * 3. If cache expired/not found → fetch from Google Places API
+ * 4. Store fetched images in database for future use
+ * 5. Return image URL with cache status
+ * 
+ * RESPONSE:
+ * {
+ *   success: true,
+ *   data: {
+ *     imageUrl: "https://...",
+ *     source: "cached|google-places|fallback",
+ *     cacheStatus: "hit|valid|new|failed|no_photos|error",
+ *     placeDetails: { displayName, rating, ... },
+ *     cacheInfo: { totalCached: 123, avgFetchCount: 4.5 }
+ *   }
+ * }
+ */
+export const getPlaceImageHandler = async (req, res) => {
+  try {
+    const { placeName } = req.query;
+    
+    if (!placeName || placeName.trim().length < 2) {
+      console.warn(`⚠️ Invalid place name: ${placeName}`);
+      return res.status(400).json({ 
+        success: false, 
+        message: 'placeName must be at least 2 characters' 
+      });
+    }
+
+    console.log(`\n🖼️  [API] Getting place image for: ${placeName}`);
+    
+    const result = await getPlaceImageWithCache(placeName.trim());
+    
+    // Get cache stats for response
+    const stats = await getCacheStats();
+    
+    const response = {
+      success: true,
+      data: {
+        imageUrl: result?.imageUrl || null,
+        source: result?.source || 'fallback',
+        cacheStatus: result?.cacheStatus || 'error',
+        placeDetails: result?.placeDetails || null,
+        cacheInfo: {
+          totalCached: stats?.activeCacheEntries || 0,
+          avgFetchCount: stats?.totalFetches && stats?.activeCacheEntries 
+            ? (stats.totalFetches / stats.activeCacheEntries).toFixed(2)
+            : 0
+        }
+      }
+    };
+    
+    console.log(`✅ [API] Response - Source: ${result?.source}, Status: ${result?.cacheStatus}`);
+    res.json(response);
+    
+  } catch (error) {
+    console.error('❌ [API] Place image error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch place image',
+      error: error.message,
+      data: {
+        imageUrl: null,
+        source: 'error',
+        cacheStatus: 'error'
+      }
+    });
+  }
+};
+
+/**
+ * POST /api/flights/place-images-batch
+ * Fetch images for multiple places at once (optimized with Promise.allSettled)
+ * 
+ * REQUEST BODY:
+ * { placeNames: ["Dubai", "Paris", "Tokyo"] }
+ * 
+ * RESPONSE:
+ * {
+ *   success: true,
+ *   data: {
+ *     imageMap: {
+ *       "Dubai": { imageUrl, source, cacheStatus, ... },
+ *       "Paris": { imageUrl, source, cacheStatus, ... },
+ *       "Tokyo": { imageUrl, source, cacheStatus, ... }
+ *     },
+ *     totalPlaces: 3,
+ *     cachedCount: 2,
+ *     newlyFetchedCount: 1
+ *   }
+ * }
+ */
+export const getPlaceImagesBatchHandler = async (req, res) => {
+  try {
+    const { placeNames } = req.body;
+    
+    if (!Array.isArray(placeNames) || placeNames.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'placeNames must be a non-empty array'
+      });
+    }
+
+    if (placeNames.length > 50) {
+      return res.status(400).json({
+        success: false,
+        message: 'Maximum 50 places allowed per request'
+      });
+    }
+
+    console.log(`\n📦 [API] Batch fetching images for ${placeNames.length} places`);
+    
+    const imageMap = await getPlaceImagesForMultiplePlaces(placeNames);
+    
+    // Count cache statuses
+    const stats = {
+      cached: 0,
+      new: 0,
+      fallback: 0,
+      error: 0
+    };
+
+    Object.values(imageMap).forEach(item => {
+      if (item.cacheStatus === 'hit' || item.cacheStatus === 'valid') {
+        stats.cached++;
+      } else if (item.cacheStatus === 'new') {
+        stats.new++;
+      } else if (item.cacheStatus === 'fallback' || item.cacheStatus === 'no_photos') {
+        stats.fallback++;
+      } else {
+        stats.error++;
+      }
+    });
+
+    const response = {
+      success: true,
+      data: {
+        imageMap,
+        totalPlaces: placeNames.length,
+        stats: {
+          cachedCount: stats.cached,
+          newlyFetchedCount: stats.new,
+          fallbackCount: stats.fallback,
+          errorCount: stats.error
+        }
+      }
+    };
+
+    console.log(`✅ [API] Batch complete - Cached: ${stats.cached}, New: ${stats.new}, Fallback: ${stats.fallback}`);
+    res.json(response);
+
+  } catch (error) {
+    console.error('❌ [API] Batch place images error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Batch place image fetch failed',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * GET /api/flights/cache-stats
+ * Returns cache statistics for monitoring
+ */
+export const getCacheStatsHandler = async (req, res) => {
+  try {
+    const stats = await getCacheStats();
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('❌ Cache stats error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch cache statistics',
+      error: error.message
     });
   }
 };

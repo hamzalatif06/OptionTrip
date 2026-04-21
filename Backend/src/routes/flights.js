@@ -1,5 +1,5 @@
 import express from 'express';
-import { searchFlights, getAirports, searchFlightsTravelpayouts, searchFlightsGoogleHandler, getCheapPriceHandler, exploreDestinationsHandler, searchFlightsDuffelHandler, getDestinationImageHandler } from '../controllers/flightController.js';
+import { searchFlights, getAirports, searchFlightsTravelpayouts, searchFlightsGoogleHandler, getCheapPriceHandler, exploreDestinationsHandler, searchFlightsDuffelHandler, getDestinationImageHandler, getPlaceImageHandler, getPlaceImagesBatchHandler, getCacheStatsHandler } from '../controllers/flightController.js';
 import { validateFlightSearch, validateTPFlightSearch } from '../middleware/validation.js';
 
 const router = express.Router();
@@ -13,8 +13,17 @@ router.get('/cheap-price', getCheapPriceHandler);
 // GET /api/flights/explore?origin=LHE
 router.get('/explore', exploreDestinationsHandler);
 
-// GET /api/flights/destination-image?query=Dubai
+// GET /api/flights/destination-image?query=Dubai (DEPRECATED - use /place-image)
 router.get('/destination-image', getDestinationImageHandler);
+
+// NEW: GET /api/flights/place-image?placeName=Dubai (Google Places with DB caching)
+router.get('/place-image', getPlaceImageHandler);
+
+// NEW: POST /api/flights/place-images-batch (Batch fetch with DB caching)
+router.post('/place-images-batch', getPlaceImagesBatchHandler);
+
+// NEW: GET /api/flights/cache-stats (Cache statistics)
+router.get('/cache-stats', getCacheStatsHandler);
 
 // GET /api/flights/duffel-search?origin=LHR&destination=DXB&departureDate=2026-04-15&adults=1
 router.get('/duffel-search', searchFlightsDuffelHandler);

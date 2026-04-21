@@ -1,6 +1,25 @@
-const CACHE_PREFIX = 'optiontrip:destination-image:';
-const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-const DEFAULT_QUERY = 'travel,city,landmark';
+/**
+ * Destination Images Utility - Google Places API with Database Caching
+ * 
+ * STRATEGY: Database-First with Local Fallback
+ * 1. Request image from backend /api/flights/place-image
+ * 2. Backend checks database cache first (fast, usually hits)
+ * 3. If cache hit → return cached Google Places image immediately
+ * 4. If cache miss → fetch from Google Places API → store in database → return
+ * 5. Local fallback images used only when API/DB unavailable
+ * 
+ * BENEFITS:
+ * ✅ Accurate images for specific places (Google Places)
+ * ✅ Reduced API calls (database caching)
+ * ✅ Better user experience (consistent images across sessions)
+ * ✅ Faster load times (database cache hits)
+ * ✅ No Unsplash dependency
+ */
+
+const BROWSER_CACHE_PREFIX = 'optiontrip:place-image:'; // Local browser cache
+const BROWSER_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const LOCAL_FALLBACK_IMAGES = [
   '/images/destination/destination1.jpg',
   '/images/destination/destination2.jpg',
@@ -21,177 +40,318 @@ const LOCAL_FALLBACK_IMAGES = [
   '/images/destination/destination17.jpg',
 ];
 
-// City-specific landmarks and keywords for accurate image fetching
-const CITY_LANDMARKS = {
-  dubai: 'Burj Khalifa Dubai',
-  bangkok: 'Bangkok temples',
-  london: 'London Big Ben',
-  paris: 'Eiffel Tower Paris',
-  'new york': 'New York Manhattan',
-  tokyo: 'Tokyo Tower',
-  singapore: 'Marina Bay Singapore',
-  istanbul: 'Istanbul Turkey',
-  rome: 'Rome Colosseum',
-  barcelona: 'Barcelona Gaudí',
-  sydney: 'Sydney Opera House',
-  bali: 'Bali beach',
-  'kuala lumpur': 'Petronas Towers',
-  maldives: 'Maldives resort',
-  seoul: 'Seoul South Korea',
-  athens: 'Acropolis Athens',
-  amsterdam: 'Amsterdam canals',
-  cairo: 'Pyramids Giza',
-  'são paulo': 'São Paulo Brazil',
-  'cape town': 'Table Mountain',
-  lahore: 'Badshahi Mosque',
-  karachi: 'Karachi city',
-  skardu: 'Skardu mountains',
-  quetta: 'Quetta city',
-  tashkent: 'Tashkent city',
-  multan: 'Minar-e-Pakistan',
-  riyadh: 'Riyadh Saudi Arabia',
-  almaty: 'Almaty Kazakhstan',
-  sukkur: 'Sukkur city',
+/**
+ * Normalize place name for consistent caching
+ */
+const normalizePlaceName = (name) => {
+  return String(name || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ');
 };
 
-const hasWindow = () => typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
-
-const normalizeQuery = (query) => String(query || '').trim().replace(/\s+/g, ' ').toLowerCase();
-
+/**
+ * Hash string to get consistent index
+ */
 const hashString = (value) => {
   let hash = 0;
   const text = String(value || '');
-
   for (let index = 0; index < text.length; index += 1) {
     hash = (hash << 5) - hash + text.charCodeAt(index);
     hash |= 0;
   }
-
   return Math.abs(hash);
 };
 
-const getLandmarkForCity = (query) => {
-  const normalized = normalizeQuery(query);
-  
-  // Check direct city match
-  if (CITY_LANDMARKS[normalized]) {
-    return CITY_LANDMARKS[normalized];
-  }
-  
-  // Check if query starts with a known city
-  const firstWord = normalized.split(' ')[0];
-  if (CITY_LANDMARKS[firstWord]) {
-    return CITY_LANDMARKS[firstWord];
-  }
-  
-  // Fallback: use the query itself
-  return normalized || DEFAULT_QUERY;
+/**
+ * Check if browser cache is available and valid
+ */
+const hasWindow = () => typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
+
+/**
+ * Get local storage key for place image
+ */
+const getBrowserCacheKey = (placeName) => {
+  return `${BROWSER_CACHE_PREFIX}${normalizePlaceName(placeName)}`;
 };
 
-const buildUnsplashApiUrl = (query) => {
-  const landmark = getLandmarkForCity(query);
-  const encodedQuery = encodeURIComponent(landmark);
-  
-  // Use Unsplash API with access key from backend
-  // Format: https://api.unsplash.com/photos/random?query=landmark&client_id=ACCESS_KEY
-  return `/api/flights/destination-image?query=${encodedQuery}`;
-};
-
-const getStorageKey = (query) => `${CACHE_PREFIX}${normalizeQuery(query) || DEFAULT_QUERY}`;
-
-export const isCacheValid = (timestamp) => {
+/**
+ * Check if cached data is still valid
+ */
+export const isBrowserCacheValid = (timestamp) => {
   if (!Number.isFinite(Number(timestamp))) return false;
-  return Date.now() - Number(timestamp) < CACHE_TTL_MS;
+  return Date.now() - Number(timestamp) < BROWSER_CACHE_TTL_MS;
 };
 
-export const getCachedImage = (query) => {
+/**
+ * Get image from browser's localStorage cache
+ */
+export const getBrowserCachedImage = (placeName) => {
   if (!hasWindow()) return null;
 
   try {
-    const raw = window.localStorage.getItem(getStorageKey(query));
+    const raw = window.localStorage.getItem(getBrowserCacheKey(placeName));
     if (!raw) return null;
 
     const parsed = JSON.parse(raw);
-    if (!parsed?.imageUrl || !isCacheValid(parsed.timestamp)) return null;
+    if (!parsed?.imageUrl || !isBrowserCacheValid(parsed.timestamp)) {
+      // Cache expired, remove it
+      window.localStorage.removeItem(getBrowserCacheKey(placeName));
+      return null;
+    }
 
+    console.log(`✅ Browser cache HIT for: ${placeName}`);
     return parsed;
-  } catch {
+  } catch (error) {
+    console.error(`⚠️ Error reading browser cache for ${placeName}:`, error);
     return null;
   }
 };
 
-export const setCachedImage = (query, data) => {
+/**
+ * Set image in browser's localStorage cache
+ */
+export const setBrowserCachedImage = (placeName, data) => {
   if (!hasWindow()) return data;
 
   try {
     const payload = {
-      query: normalizeQuery(query) || DEFAULT_QUERY,
+      placeName: normalizePlaceName(placeName),
       imageUrl: data?.imageUrl || '',
-      timestamp: data?.timestamp || Date.now(),
+      source: data?.source || 'unknown',
+      cacheStatus: data?.cacheStatus || 'unknown',
+      placeDetails: data?.placeDetails || null,
+      timestamp: Date.now(),
     };
-    window.localStorage.setItem(getStorageKey(query), JSON.stringify(payload));
+    window.localStorage.setItem(getBrowserCacheKey(placeName), JSON.stringify(payload));
     return payload;
-  } catch {
+  } catch (error) {
+    console.error(`⚠️ Error setting browser cache for ${placeName}:`, error);
     return data;
   }
 };
 
 /**
- * Fetch destination image from Unsplash API via backend.
- * Returns fresh image without caching to allow variety.
- * This is ASYNC and should be awaited.
+ * Get a deterministic fallback image based on place name
  */
-export const getDestinationImage = async (query) => {
-  const normalizedQuery = normalizeQuery(query);
-
-  if (!normalizedQuery) {
-    return getDestinationFallbackImage(normalizedQuery);
-  }
-
-  try {
-    // Always fetch fresh images (no caching) to get variety
-    // Backend handles randomization with pagination
-    const landmark = getLandmarkForCity(query);
-    const response = await fetch(`/api/flights/destination-image?query=${encodeURIComponent(landmark)}&t=${Date.now()}`);
-    
-    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-    
-    const data = await response.json();
-    const imageUrl = data?.data?.imageUrl || data?.imageUrl;
-    
-    if (imageUrl) {
-      return imageUrl;
-    }
-    
-    return getDestinationFallbackImage(normalizedQuery);
-  } catch (error) {
-    console.error(`Failed to fetch image for ${query}:`, error);
-    return getDestinationFallbackImage(normalizedQuery);
-  }
-};
-
-export const getDestinationFallbackImage = (query) => {
-  const normalizedQuery = normalizeQuery(query);
-  const seed = hashString(normalizedQuery || DEFAULT_QUERY);
+export const getDestinationFallbackImage = (placeName) => {
+  const normalized = normalizePlaceName(placeName);
+  const seed = hashString(normalized);
   const index = seed % LOCAL_FALLBACK_IMAGES.length;
-  return LOCAL_FALLBACK_IMAGES[index] || '/images/destination/destination13.jpg';
+  return LOCAL_FALLBACK_IMAGES[index] || '/images/destination/destination1.jpg';
 };
 
 /**
- * Clears all cached destination images from localStorage.
- * Use this when updating the image query format to fetch fresh images.
+ * Fetch place image with smart caching strategy:
+ * 1. Check browser cache first (instant)
+ * 2. If miss → call backend API
+ * 3. Backend checks database cache (usually hits)
+ * 4. If backend cache miss → fetch from Google Places API
+ * 5. Cache result and return
+ * 
+ * RESPONSE:
+ * {
+ *   imageUrl: "https://...",
+ *   source: "cached|google-places|fallback",
+ *   cacheStatus: "hit|valid|new|failed|no_photos|error",
+ *   placeDetails: { displayName, rating, ... },
+ *   cacheInfo: { ... }
+ * }
  */
-export const clearDestinationImageCache = () => {
-  if (!hasWindow()) return;
+export const getPlaceImage = async (placeName) => {
+  const normalized = normalizePlaceName(placeName);
+
+  if (!normalized || normalized.length < 2) {
+    console.warn(`⚠️ Invalid place name: ${placeName}`);
+    return {
+      imageUrl: getDestinationFallbackImage(placeName),
+      source: 'fallback',
+      error: 'Invalid place name'
+    };
+  }
+
   try {
-    const keys = Object.keys(window.localStorage || {});
-    keys.forEach((key) => {
-      if (key.startsWith(CACHE_PREFIX)) {
-        window.localStorage.removeItem(key);
+    // STEP 1: Check browser cache
+    console.log(`\n🔍 Fetching image for: ${placeName}`);
+    const browserCached = getBrowserCachedImage(placeName);
+    
+    if (browserCached && browserCached.imageUrl) {
+      console.log(`✅ Using browser cache (source: ${browserCached.source})`);
+      return browserCached;
+    }
+
+    // STEP 2: Fetch from backend API (which handles database caching + Google Places API)
+    console.log(`📡 Calling backend API for: ${placeName}`);
+    const response = await fetch(
+      `${API_BASE_URL}/api/flights/place-image?placeName=${encodeURIComponent(placeName)}`,
+      {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 15000
       }
-    });
-    console.log('✓ Cleared destination image cache');
+    );
+
+    if (!response.ok) {
+      console.error(`❌ API error: ${response.status} ${response.statusText}`);
+      const fallbackUrl = getDestinationFallbackImage(placeName);
+      return {
+        imageUrl: fallbackUrl,
+        source: 'fallback',
+        error: `API error: ${response.status}`
+      };
+    }
+
+    const data = await response.json();
+    
+    if (!data.success) {
+      console.error(`❌ API returned error:`, data.message);
+      const fallbackUrl = getDestinationFallbackImage(placeName);
+      return {
+        imageUrl: fallbackUrl,
+        source: 'fallback',
+        error: data.message
+      };
+    }
+
+    const result = data.data || {};
+
+    // STEP 3: Store in browser cache and return
+    if (result.imageUrl) {
+      console.log(`✅ Got image from: ${result.source} (cache: ${result.cacheStatus})`);
+      const cached = setBrowserCachedImage(placeName, result);
+      return cached;
+    }
+
+    // Fallback if no imageUrl
+    const fallbackUrl = getDestinationFallbackImage(placeName);
+    return {
+      imageUrl: fallbackUrl,
+      source: 'fallback',
+      error: 'No image URL in response'
+    };
+
   } catch (error) {
-    console.error('Failed to clear destination image cache:', error);
+    console.error(`❌ Error fetching place image for ${placeName}:`, error.message);
+    return {
+      imageUrl: getDestinationFallbackImage(placeName),
+      source: 'fallback',
+      error: error.message
+    };
   }
 };
+
+/**
+ * DEPRECATED: Use getPlaceImage instead (was using Unsplash)
+ * Kept for backwards compatibility
+ */
+export const getDestinationImage = async (query) => {
+  const result = await getPlaceImage(query);
+  return result.imageUrl;
+};
+
+/**
+ * Batch fetch images for multiple places
+ * Optimized with Promise.allSettled
+ * 
+ * REQUEST: ["Dubai", "Paris", "Tokyo"]
+ * RESPONSE: { "Dubai": { imageUrl, ... }, "Paris": { imageUrl, ... }, ... }
+ */
+export const getPlaceImagesForMultiplePlaces = async (placeNames) => {
+  try {
+    if (!Array.isArray(placeNames) || placeNames.length === 0) {
+      console.warn('⚠️ Invalid placeNames array');
+      return {};
+    }
+
+    console.log(`\n📦 Batch fetching images for ${placeNames.length} places`);
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/flights/place-images-batch`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ placeNames }),
+        timeout: 30000
+      }
+    );
+
+    if (!response.ok) {
+      console.error(`❌ Batch API error: ${response.status}`);
+      return {};
+    }
+
+    const data = await response.json();
+    
+    if (!data.success) {
+      console.error(`❌ Batch API returned error:`, data.message);
+      return {};
+    }
+
+    const imageMap = data.data?.imageMap || {};
+    
+    // Cache each result in browser cache
+    Object.entries(imageMap).forEach(([placeName, result]) => {
+      if (result?.imageUrl) {
+        setBrowserCachedImage(placeName, result);
+      }
+    });
+
+    console.log(`✅ Batch fetch complete - ${Object.keys(imageMap).length} places cached`);
+    return imageMap;
+
+  } catch (error) {
+    console.error(`❌ Error in batch fetch:`, error.message);
+    return {};
+  }
+};
+
+/**
+ * Get cache statistics from backend
+ */
+export const getCacheStatsFromBackend = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/flights/cache-stats`);
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('⚠️ Error fetching cache stats:', error.message);
+    return null;
+  }
+};
+
+/**
+ * Clear all browser cached place images
+ * Use when resetting or upgrading image system
+ */
+export const clearBrowserPlaceImageCache = () => {
+  if (!hasWindow()) return;
+  
+  try {
+    const keys = Object.keys(window.localStorage || {});
+    let clearedCount = 0;
+    
+    keys.forEach((key) => {
+      if (key.startsWith(BROWSER_CACHE_PREFIX)) {
+        window.localStorage.removeItem(key);
+        clearedCount++;
+      }
+    });
+    
+    console.log(`✅ Cleared ${clearedCount} browser cached place images`);
+  } catch (error) {
+    console.error('⚠️ Error clearing browser place image cache:', error);
+  }
+};
+
+/**
+ * DEPRECATED: For backwards compatibility
+ */
+export const clearDestinationImageCache = () => {
+  clearBrowserPlaceImageCache();
+};
+
+// Legacy exports for backwards compatibility
+export const isCacheValid = isBrowserCacheValid;
+export const getCachedImage = getBrowserCachedImage;
+export const setCachedImage = setBrowserCachedImage;
