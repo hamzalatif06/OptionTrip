@@ -234,150 +234,183 @@ const fetchPlacePhotos = async (placeId, displayName) => {
   }
 };
 
+// In-process deduplication: if two requests arrive for the same uncached place
+// at the same time, the second one waits for the first's Google API call instead
+// of making its own. Keyed by placeId, value is the in-flight Promise.
+const pendingFetches = new Map();
+
 /**
- * Get or fetch place image with caching
- * FLOW: Check DB cache -> if expired/not found -> fetch from Google Places API -> cache in DB
+ * Save a record to DB so the next request hits cache instead of calling the API again.
+ * Used for both successful fetches and failures (with a short TTL for failures).
  */
-export const getPlaceImageWithCache = async (placeName) => {
+const saveToDb = async (placeId, placeName, normalized, primaryImageUrl, photos, placeDetails, ttlDays) => {
   try {
-    const normalized = normalizePlaceName(placeName);
-    const placeId = createPlaceId(placeName);
+    const now = new Date();
+    await PlaceImage.findOneAndUpdate(
+      { placeId },
+      {
+        placeId,
+        placeName: normalized,
+        images: photos,
+        primaryImageUrl,
+        source: photos.length > 0 ? 'google-places' : 'fallback',
+        placeDetails: placeDetails || {},
+        fallbackImages: FALLBACK_IMAGES,
+        isActive: true,
+        cacheMetadata: {
+          fetchCount: 1,
+          lastFetched: now,
+          nextRefreshDate: new Date(now.getTime() + ttlDays * 24 * 60 * 60 * 1000),
+          expiresAt: new Date(now.getTime() + ttlDays * 24 * 60 * 60 * 1000)
+        }
+      },
+      { upsert: true, new: true }
+    );
+    console.log(`💾 Saved to DB cache (TTL: ${ttlDays}d): ${placeName}`);
+  } catch (err) {
+    console.error(`⚠️ DB save failed for ${placeName}:`, err.message);
+  }
+};
 
-    console.log(`\n🎯 Getting place image for: ${placeName} (ID: ${placeId})`);
+/**
+ * Core fetch-and-cache logic. Only called on a DB miss.
+ * Always saves a DB record — either real photos (90-day TTL) or fallback (1-hour TTL)
+ * so the next request for this place hits DB instead of calling Google API.
+ */
+const fetchFromApiAndCache = async (placeName, normalized, placeId) => {
+  const fallbackUrl = getFallbackImage(placeName);
 
-    // STEP 1: Check if cached in database
-    console.log(`⏱️ Checking database cache...`);
-    const cachedPlaceImage = await PlaceImage.getCachedImage(placeId);
-
-    if (cachedPlaceImage && cachedPlaceImage.primaryImageUrl) {
-      console.log(`✅ DB cache HIT for: ${placeName} (fetches: ${cachedPlaceImage.cacheMetadata.fetchCount})`);
-      return {
-        imageUrl: cachedPlaceImage.primaryImageUrl,
-        source: 'cached',
-        placeDetails: cachedPlaceImage.placeDetails,
-        cacheStatus: 'hit'
-      };
-    }
-
-    // STEP 2: Cache miss — fetch from Google Places API
-    console.log(`🔄 Cache expired or not found, fetching from Google Places API...`);
-    
+  try {
     const placeDetails = await searchGooglePlace(placeName);
+
     if (!placeDetails) {
-      console.log(`⚠️ Google Places search failed, using fallback image`);
-      return {
-        imageUrl: getFallbackImage(placeName),
-        source: 'fallback',
-        cacheStatus: 'failed'
-      };
+      console.log(`⚠️ Google Places returned nothing for: ${placeName} — caching fallback for 1h`);
+      await saveToDb(placeId, placeName, normalized, fallbackUrl, [], null, 1 / 24);
+      return { imageUrl: fallbackUrl, source: 'fallback', cacheStatus: 'failed' };
     }
 
-    // STEP 3: Process photos from search results
     const rawPhotos = placeDetails.photos || [];
 
     if (rawPhotos.length === 0) {
-      console.log(`⚠️ No photos found, using fallback image`);
-      return {
-        imageUrl: getFallbackImage(placeName),
-        source: 'fallback',
-        placeDetails,
-        cacheStatus: 'no_photos'
-      };
+      console.log(`⚠️ No photos for: ${placeName} — caching fallback for 1h`);
+      await saveToDb(placeId, placeName, normalized, fallbackUrl, [], placeDetails, 1 / 24);
+      return { imageUrl: fallbackUrl, source: 'fallback', placeDetails, cacheStatus: 'no_photos' };
     }
 
-    // Format photos for caching
-    const photos = rawPhotos.slice(0, MAX_IMAGES_TO_CACHE).map((photo, index) => ({
+    const photos = rawPhotos.slice(0, MAX_IMAGES_TO_CACHE).map((photo) => ({
       photoReference: photo.name,
       url: getGooglePlacePhotoUrl(photo.name),
-      attribution: photo.authorAttributions?.map(attr => attr.displayName).join(', ') || 'Google Places',
+      attribution: photo.authorAttributions?.map(a => a.displayName).join(', ') || 'Google Places',
       width: photo.widthPx,
       height: photo.heightPx,
       addedAt: new Date()
     }));
 
-    // STEP 4: Save to database cache
-    console.log(`💾 Saving to database cache...`);
-    let placeImage = await PlaceImage.getOrCreatePlaceImage(placeId, placeName);
-    
-    placeImage.placeName = normalized;
-    placeImage.images = photos;
-    placeImage.primaryImageUrl = photos[0].url;
-    placeImage.source = 'google-places';
-    placeImage.placeDetails = {
-      displayName: placeDetails.displayName,
-      formattedAddress: placeDetails.formattedAddress,
-      latitude: placeDetails.latitude,
-      longitude: placeDetails.longitude,
-      rating: placeDetails.rating,
-      userRatingsTotal: placeDetails.userRatingsTotal,
-      types: placeDetails.types,
-      website: placeDetails.website,
-      phone: placeDetails.phone
-    };
-    placeImage.fallbackImages = FALLBACK_IMAGES;
-    placeImage.cacheMetadata = {
-      fetchCount: 1,
-      lastFetched: new Date(),
-      nextRefreshDate: new Date(Date.now() + CACHE_TTL_DAYS * 24 * 60 * 60 * 1000),
-      expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
-    };
-    placeImage.isActive = true;
+    await saveToDb(placeId, placeName, normalized, photos[0].url, photos, placeDetails, CACHE_TTL_DAYS);
 
-    await placeImage.save();
-    console.log(`✅ Successfully saved ${photos.length} images to cache`);
-
+    console.log(`✅ Fetched + cached ${photos.length} photos for: ${placeName}`);
     return {
-      imageUrl: placeImage.primaryImageUrl,
+      imageUrl: photos[0].url,
       source: 'google-places',
-      placeDetails: placeImage.placeDetails,
+      placeDetails,
       cacheStatus: 'new'
     };
 
   } catch (error) {
-    console.error(`❌ Error in getPlaceImageWithCache:`, error.message);
-    
-    // Return fallback on any error
-    return {
-      imageUrl: getFallbackImage(placeName),
-      source: 'fallback',
-      cacheStatus: 'error',
-      error: error.message
-    };
+    console.error(`❌ fetchFromApiAndCache error for ${placeName}:`, error.message);
+    // Still cache the fallback so we don't retry the failing API immediately
+    await saveToDb(placeId, placeName, normalized, fallbackUrl, [], null, 1 / 24);
+    return { imageUrl: fallbackUrl, source: 'fallback', cacheStatus: 'error', error: error.message };
   }
 };
 
 /**
- * Batch get place images for multiple places
+ * Get place image: DB cache first, Google Places API only on miss.
+ * Concurrent requests for the same uncached place share one API call.
+ */
+export const getPlaceImageWithCache = async (placeName) => {
+  const normalized = normalizePlaceName(placeName);
+  const placeId = createPlaceId(placeName);
+
+  // STEP 1: DB cache hit → return immediately, no API call
+  const cached = await PlaceImage.getCachedImage(placeId);
+  if (cached?.primaryImageUrl) {
+    console.log(`✅ DB cache HIT: ${placeName}`);
+    return { imageUrl: cached.primaryImageUrl, source: 'cached', placeDetails: cached.placeDetails, cacheStatus: 'hit' };
+  }
+
+  // STEP 2: Deduplicate concurrent misses — share one in-flight API call per place
+  if (pendingFetches.has(placeId)) {
+    console.log(`⏳ Waiting for in-flight fetch: ${placeName}`);
+    return pendingFetches.get(placeId);
+  }
+
+  // STEP 3: Cache miss — call Google Places API, then save to DB
+  console.log(`🔄 DB miss — calling Google Places API: ${placeName}`);
+  const promise = fetchFromApiAndCache(placeName, normalized, placeId);
+  pendingFetches.set(placeId, promise);
+  promise.finally(() => pendingFetches.delete(placeId));
+  return promise;
+};
+
+/**
+ * Batch get images for multiple places.
+ * Does ONE bulk DB query first, then calls Google API only for the misses.
  */
 export const getPlaceImagesForMultiplePlaces = async (placeNames) => {
-  try {
-    console.log(`\n📦 Fetching images for ${placeNames.length} places...`);
+  if (!Array.isArray(placeNames) || placeNames.length === 0) return {};
 
-    const results = await Promise.allSettled(
-      placeNames.map(name => getPlaceImageWithCache(name))
-    );
+  console.log(`\n📦 Batch image fetch for ${placeNames.length} places`);
 
-    const imageMap = {};
-    results.forEach((result, index) => {
-      const placeName = placeNames[index];
-      if (result.status === 'fulfilled') {
-        imageMap[placeName] = result.value;
-      } else {
-        console.error(`❌ Failed to fetch image for ${placeName}:`, result.reason);
-        imageMap[placeName] = {
-          imageUrl: getFallbackImage(placeName),
-          source: 'fallback',
-          cacheStatus: 'error'
-        };
-      }
-    });
+  // Build placeId → placeName map
+  const placeIdMap = {};
+  placeNames.forEach(name => { placeIdMap[createPlaceId(name)] = name; });
+  const allPlaceIds = Object.keys(placeIdMap);
 
-    console.log(`✅ Completed batch fetch for ${Object.keys(imageMap).length} places`);
-    return imageMap;
-  } catch (error) {
-    console.error(`❌ Error in batch fetch:`, error.message);
-    return {};
-  }
+  // STEP 1: One bulk DB query for all places
+  const cachedDocs = await PlaceImage.find({
+    placeId: { $in: allPlaceIds },
+    isActive: true,
+    'cacheMetadata.expiresAt': { $gt: new Date() }
+  }).lean();
+
+  const cachedById = {};
+  cachedDocs.forEach(doc => { cachedById[doc.placeId] = doc; });
+
+  const hits = cachedDocs.length;
+  const misses = allPlaceIds.filter(id => !cachedById[id]);
+  console.log(`📊 DB: ${hits} hits, ${misses.length} misses`);
+
+  // STEP 2: Fetch only cache misses from Google Places API (in parallel)
+  const missResults = await Promise.allSettled(
+    misses.map(placeId => {
+      const name = placeIdMap[placeId];
+      return getPlaceImageWithCache(name); // uses pendingFetches dedup internally
+    })
+  );
+
+  // STEP 3: Assemble final imageMap keyed by original placeName
+  const imageMap = {};
+
+  placeNames.forEach(name => {
+    const placeId = createPlaceId(name);
+    const doc = cachedById[placeId];
+    if (doc?.primaryImageUrl) {
+      imageMap[name] = { imageUrl: doc.primaryImageUrl, source: 'cached', cacheStatus: 'hit' };
+    }
+  });
+
+  misses.forEach((placeId, idx) => {
+    const name = placeIdMap[placeId];
+    const result = missResults[idx];
+    imageMap[name] = result.status === 'fulfilled'
+      ? result.value
+      : { imageUrl: getFallbackImage(name), source: 'fallback', cacheStatus: 'error' };
+  });
+
+  const apiCalls = misses.length;
+  console.log(`✅ Batch complete — ${hits} from DB cache, ${apiCalls} from Google API`);
+  return imageMap;
 };
 
 /**

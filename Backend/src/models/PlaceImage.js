@@ -120,26 +120,7 @@ placeImageSchema.methods.incrementFetchCount = async function() {
   return this.save();
 };
 
-// Static method to get or create place image
-placeImageSchema.statics.getOrCreatePlaceImage = async function(placeId, placeName) {
-  let placeImage = await this.findOne({ 
-    placeId, 
-    isActive: true 
-  });
-  
-  if (!placeImage) {
-    placeImage = new this({
-      placeId,
-      placeName: placeName.toLowerCase(),
-      primaryImageUrl: '',
-      images: []
-    });
-  }
-  
-  return placeImage;
-};
-
-// Static method to get cached image
+// Get a valid (non-expired) cached entry for a single place
 placeImageSchema.statics.getCachedImage = async function(placeId) {
   const placeImage = await this.findOne({
     placeId,
@@ -147,21 +128,12 @@ placeImageSchema.statics.getCachedImage = async function(placeId) {
     'cacheMetadata.expiresAt': { $gt: new Date() }
   });
 
-  // Fire-and-forget: don't block the response on a stat write
+  // Fire-and-forget stat update — don't block the response
   if (placeImage) {
     placeImage.incrementFetchCount().catch(() => {});
   }
 
   return placeImage;
-};
-
-// Static method to cache needs refresh
-placeImageSchema.statics.needsRefresh = async function(placeId) {
-  const placeImage = await this.findOne({ placeId, isActive: true });
-  
-  if (!placeImage) return true;
-  
-  return new Date() > placeImage.cacheMetadata.nextRefreshDate;
 };
 
 const PlaceImage = mongoose.model('PlaceImage', placeImageSchema);

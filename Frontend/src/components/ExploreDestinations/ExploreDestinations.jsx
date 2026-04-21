@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { exploreDestinations, searchAirports } from '../../services/flightService';
 import { EXPLORE_DESTINATIONS, getExploreImageUrl } from '../../data/exploreDestinations';
+import { getPlaceImagesForMultiplePlaces } from '../../utils/destinationImages';
 import './ExploreDestinations.css';
 
 const formatPriceBand = (price) => {
@@ -42,6 +43,7 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
   const [origin,    setOrigin]    = useState(originCode || '');   // IATA string
   const [originObj, setOriginObj] = useState(null);               // { iata, display }
   const [geoStatus, setGeoStatus] = useState('idle');             // 'idle'|'detecting'|'done'|'denied'
+  const [imageMap,  setImageMap]  = useState({});                 // iata → imageUrl
 
   /** Set origin from a resolved { iata, display } object */
   const applyOrigin = (result) => {
@@ -106,6 +108,23 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
     });
   }, [origin]);
 
+  /* Batch-fetch Google Places images once on mount (browser cache avoids repeat calls) */
+  useEffect(() => {
+    let mounted = true;
+    const queries = EXPLORE_DESTINATIONS.map(d => `${d.city}, ${d.country}`);
+    getPlaceImagesForMultiplePlaces(queries).then(result => {
+      if (!mounted) return;
+      const map = {};
+      EXPLORE_DESTINATIONS.forEach(d => {
+        const key = `${d.city}, ${d.country}`;
+        const url = result[key]?.imageUrl;
+        if (url) map[d.iata] = url;
+      });
+      setImageMap(map);
+    }).catch(() => {});
+    return () => { mounted = false; };
+  }, []);
+
   return (
     <section className="explore-section">
       <div className="container">
@@ -151,10 +170,11 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
                 {/* Photo */}
                 <div className="explore-card__img-wrap">
                   <img
-                    src={getExploreImageUrl(dest.photo)}
+                    src={imageMap[dest.iata] || getExploreImageUrl(dest.photo)}
                     alt={dest.city}
                     className="explore-card__img"
                     loading="lazy"
+                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = getExploreImageUrl(dest.photo); }}
                   />
                   <div className="explore-card__overlay" />
                 </div>
