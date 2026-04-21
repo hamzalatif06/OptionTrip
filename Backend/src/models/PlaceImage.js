@@ -108,13 +108,9 @@ const placeImageSchema = new mongoose.Schema({
 // Automatically delete expired documents after 90 days
 placeImageSchema.index({ 'cacheMetadata.expiresAt': 1 }, { expireAfterSeconds: 0 });
 
-// Method to get a random image from cached images
+// Return the primary image — always consistent, no random variation across requests
 placeImageSchema.methods.getRandomImage = function() {
-  if (!this.images || this.images.length === 0) {
-    return this.primaryImageUrl;
-  }
-  const randomIndex = Math.floor(Math.random() * this.images.length);
-  return this.images[randomIndex].url || this.primaryImageUrl;
+  return this.primaryImageUrl;
 };
 
 // Method to increment fetch count
@@ -145,16 +141,17 @@ placeImageSchema.statics.getOrCreatePlaceImage = async function(placeId, placeNa
 
 // Static method to get cached image
 placeImageSchema.statics.getCachedImage = async function(placeId) {
-  const placeImage = await this.findOne({ 
-    placeId, 
+  const placeImage = await this.findOne({
+    placeId,
     isActive: true,
     'cacheMetadata.expiresAt': { $gt: new Date() }
   });
-  
+
+  // Fire-and-forget: don't block the response on a stat write
   if (placeImage) {
-    await placeImage.incrementFetchCount();
+    placeImage.incrementFetchCount().catch(() => {});
   }
-  
+
   return placeImage;
 };
 

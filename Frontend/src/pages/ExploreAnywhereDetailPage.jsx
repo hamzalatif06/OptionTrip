@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import FlightCardDuffel from '../components/FlightCard/FlightCardDuffel';
 import { EXPLORE_DESTINATIONS } from '../data/exploreDestinations';
 import { exploreDestinations, searchAirports, searchFlightsDuffel } from '../services/flightService';
-import { clearDestinationImageCache, getDestinationFallbackImage, getDestinationImage } from '../utils/destinationImages';
+import { getDestinationFallbackImage, getPlaceImagesForMultiplePlaces } from '../utils/destinationImages';
 import './FlightSearch.css';
 import './ExploreAnywhereDetailPage.css';
 
@@ -136,14 +136,13 @@ const ExploreAnywhereDetailPage = () => {
     [allDestinations, visibleCards]
   );
 
-  // Clear old cached destination images on mount to fetch fresh ones
+  // Reset per-session tracking refs on mount so images are re-fetched into React state,
+  // but do NOT clear localStorage — that 24-hour browser cache avoids unnecessary backend calls
   useEffect(() => {
-    clearDestinationImageCache();
-    // Also clear the request tracking refs to allow fresh fetches on page reload
     imageRequestIdsRef.current.clear();
     lookedUpIatasRef.current.clear();
-    setImageMap({}); // Clear cached images in state
-    setImageFetchKey((prev) => prev + 1); // Trigger image refetch
+    setImageMap({});
+    setImageFetchKey((prev) => prev + 1);
   }, []);
 
   useEffect(() => {
@@ -171,37 +170,34 @@ const ExploreAnywhereDetailPage = () => {
     pending.forEach((destination) => imageRequestIdsRef.current.add(destination.iata));
 
     (async () => {
+      // One batch request for all pending destinations instead of N individual calls
+      const queries = pending.map((d) => `${d.city}, ${d.country}`);
+      console.log(`📷 Batch fetching ${queries.length} destination images`);
+
+      let batchResult = {};
+      try {
+        batchResult = await getPlaceImagesForMultiplePlaces(queries);
+      } catch (error) {
+        console.error('Batch image fetch failed:', error);
+      }
+
+      if (!mounted) return;
+
       const imageUpdates = {};
-      
-      for (const destination of pending) {
-        if (!mounted) break;
-        
-        // Use FULL resolved name: "City, Country" for better Unsplash matching
+      pending.forEach((destination) => {
         const query = `${destination.city}, ${destination.country}`;
+        const result = batchResult[query];
+        imageUpdates[destination.iata] = result?.imageUrl || getDestinationFallbackImage(query);
+      });
 
-        try {
-          console.log(`📷 Fetching image for: ${query}`);
-          const imageUrl = await getDestinationImage(query);
-          imageUpdates[destination.iata] = imageUrl;
-        } catch (error) {
-          console.error(`Failed to load image for ${query}:`, error);
-          imageUpdates[destination.iata] = getDestinationFallbackImage(query);
-        }
-      }
-
-      if (mounted && Object.keys(imageUpdates).length > 0) {
-        console.log(`✅ Loaded ${Object.keys(imageUpdates).length} images`);
-        setImageMap((prev) => ({
-          ...prev,
-          ...imageUpdates,
-        }));
-      }
+      console.log(`✅ Loaded ${Object.keys(imageUpdates).length} images`);
+      setImageMap((prev) => ({ ...prev, ...imageUpdates }));
     })();
 
     return () => {
       mounted = false;
     };
-  }, [visibleDestinations, imageMap, imageFetchKey]);
+  }, [visibleDestinations, imageFetchKey]); // intentionally exclude imageMap — it's read via imageRequestIdsRef guard, not as a reactive dep
 
   useEffect(() => {
     if (!origin) return undefined;

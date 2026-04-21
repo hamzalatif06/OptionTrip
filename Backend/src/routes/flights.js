@@ -1,5 +1,5 @@
 import express from 'express';
-import { searchFlights, getAirports, searchFlightsTravelpayouts, searchFlightsGoogleHandler, getCheapPriceHandler, exploreDestinationsHandler, searchFlightsDuffelHandler, getDestinationImageHandler, getPlaceImageHandler, getPlaceImagesBatchHandler, getCacheStatsHandler } from '../controllers/flightController.js';
+import { searchFlights, getAirports, searchFlightsTravelpayouts, searchFlightsGoogleHandler, getCheapPriceHandler, exploreDestinationsHandler, searchFlightsDuffelHandler, getDestinationImageHandler, getPlaceImageHandler, getPlaceImagesBatchHandler, getCacheStatsHandler, clearPlaceImageCacheHandler } from '../controllers/flightController.js';
 import { validateFlightSearch, validateTPFlightSearch } from '../middleware/validation.js';
 
 const router = express.Router();
@@ -24,6 +24,9 @@ router.post('/place-images-batch', getPlaceImagesBatchHandler);
 
 // NEW: GET /api/flights/cache-stats (Cache statistics)
 router.get('/cache-stats', getCacheStatsHandler);
+
+// DELETE /api/flights/cache-clear (Wipe all cached place images)
+router.delete('/cache-clear', clearPlaceImageCacheHandler);
 
 // GET /api/flights/duffel-search?origin=LHR&destination=DXB&departureDate=2026-04-15&adults=1
 router.get('/duffel-search', searchFlightsDuffelHandler);

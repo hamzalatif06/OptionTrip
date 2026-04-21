@@ -37,10 +37,17 @@ const createPlaceId = (placeName) => {
 };
 
 /**
- * Get a random fallback image
+ * Get a deterministic fallback image based on place name so the same
+ * destination always gets the same fallback (no random repeats across cards)
  */
-const getRandomFallbackImage = () => {
-  return FALLBACK_IMAGES[Math.floor(Math.random() * FALLBACK_IMAGES.length)];
+const getFallbackImage = (placeName = '') => {
+  let hash = 0;
+  const text = normalizePlaceName(placeName) || String(Date.now());
+  for (let i = 0; i < text.length; i++) {
+    hash = (hash << 5) - hash + text.charCodeAt(i);
+    hash |= 0;
+  }
+  return FALLBACK_IMAGES[Math.abs(hash) % FALLBACK_IMAGES.length];
 };
 
 /**
@@ -145,13 +152,15 @@ export const searchGooglePlace = async (placeName) => {
 
 /**
  * Get photo URL from Google Places using photoReference
+ * photo.name from Places API v1 is already "places/{id}/photos/{photoId}"
+ * so we must NOT add an extra "/places/" prefix
  */
 export const getGooglePlacePhotoUrl = (photoReference, maxWidth = 800, maxHeight = 600) => {
   if (!photoReference || !GOOGLE_PLACES_API_KEY) {
     return null;
   }
 
-  return `${GOOGLE_PLACES_API_URL}/places/${photoReference}/media?maxHeightPx=${maxHeight}&maxWidthPx=${maxWidth}&key=${GOOGLE_PLACES_API_KEY}`;
+  return `${GOOGLE_PLACES_API_URL}/${photoReference}/media?maxHeightPx=${maxHeight}&maxWidthPx=${maxWidth}&key=${GOOGLE_PLACES_API_KEY}`;
 };
 
 /**
@@ -241,48 +250,35 @@ export const getPlaceImageWithCache = async (placeName) => {
     const cachedPlaceImage = await PlaceImage.getCachedImage(placeId);
 
     if (cachedPlaceImage && cachedPlaceImage.primaryImageUrl) {
-      console.log(`✅ Using cached image from database (fetch count: ${cachedPlaceImage.cacheMetadata.fetchCount})`);
+      console.log(`✅ DB cache HIT for: ${placeName} (fetches: ${cachedPlaceImage.cacheMetadata.fetchCount})`);
       return {
-        imageUrl: cachedPlaceImage.getRandomImage(),
+        imageUrl: cachedPlaceImage.primaryImageUrl,
         source: 'cached',
         placeDetails: cachedPlaceImage.placeDetails,
         cacheStatus: 'hit'
       };
     }
 
-    // STEP 2: Check if needs refresh
-    const needsRefresh = await PlaceImage.needsRefresh(placeId);
-    if (!needsRefresh && cachedPlaceImage && cachedPlaceImage.primaryImageUrl) {
-      console.log(`⏳ Cache still valid, returning cached image`);
-      return {
-        imageUrl: cachedPlaceImage.primaryImageUrl,
-        source: 'cached',
-        placeDetails: cachedPlaceImage.placeDetails,
-        cacheStatus: 'valid'
-      };
-    }
-
-    // STEP 3: If no valid cache, fetch from Google Places API
+    // STEP 2: Cache miss — fetch from Google Places API
     console.log(`🔄 Cache expired or not found, fetching from Google Places API...`);
     
     const placeDetails = await searchGooglePlace(placeName);
     if (!placeDetails) {
       console.log(`⚠️ Google Places search failed, using fallback image`);
       return {
-        imageUrl: getRandomFallbackImage(),
+        imageUrl: getFallbackImage(placeName),
         source: 'fallback',
         cacheStatus: 'failed'
       };
     }
 
-    // STEP 4: Process photos from search results (already included)
-    // searchGooglePlace already returns photos, no need to fetch separately
+    // STEP 3: Process photos from search results
     const rawPhotos = placeDetails.photos || [];
-    
+
     if (rawPhotos.length === 0) {
       console.log(`⚠️ No photos found, using fallback image`);
       return {
-        imageUrl: getRandomFallbackImage(),
+        imageUrl: getFallbackImage(placeName),
         source: 'fallback',
         placeDetails,
         cacheStatus: 'no_photos'
@@ -299,7 +295,7 @@ export const getPlaceImageWithCache = async (placeName) => {
       addedAt: new Date()
     }));
 
-    // STEP 5: Save to database cache
+    // STEP 4: Save to database cache
     console.log(`💾 Saving to database cache...`);
     let placeImage = await PlaceImage.getOrCreatePlaceImage(placeId, placeName);
     
@@ -342,7 +338,7 @@ export const getPlaceImageWithCache = async (placeName) => {
     
     // Return fallback on any error
     return {
-      imageUrl: getRandomFallbackImage(),
+      imageUrl: getFallbackImage(placeName),
       source: 'fallback',
       cacheStatus: 'error',
       error: error.message
@@ -369,7 +365,7 @@ export const getPlaceImagesForMultiplePlaces = async (placeNames) => {
       } else {
         console.error(`❌ Failed to fetch image for ${placeName}:`, result.reason);
         imageMap[placeName] = {
-          imageUrl: getRandomFallbackImage(),
+          imageUrl: getFallbackImage(placeName),
           source: 'fallback',
           cacheStatus: 'error'
         };

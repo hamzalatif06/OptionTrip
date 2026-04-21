@@ -8,11 +8,12 @@ import { searchFlights as tpSearchFlights, getCheapPrice, getExploreDestinations
 import { searchFlightsGoogle } from '../services/googleFlightsService.js';
 import { searchFlightsDuffel } from '../services/duffelService.js';
 import { searchDestinationImage } from '../services/unsplashService.js';
-import { 
-  getPlaceImageWithCache, 
+import {
+  getPlaceImageWithCache,
   getPlaceImagesForMultiplePlaces,
   getCacheStats
 } from '../services/googlePlacesService.js';
+import PlaceImage from '../models/PlaceImage.js';
 
 /**
  * GET /api/flights/airports?keyword=Paris
@@ -457,6 +458,28 @@ export const getPlaceImagesBatchHandler = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Batch place image fetch failed',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * DELETE /api/flights/cache-clear
+ * Wipes all cached place images so fresh ones are fetched with correct URLs
+ */
+export const clearPlaceImageCacheHandler = async (req, res) => {
+  try {
+    const result = await PlaceImage.deleteMany({});
+    console.log(`🧹 Cleared ${result.deletedCount} cached place image entries`);
+    res.json({
+      success: true,
+      message: `Cleared ${result.deletedCount} cached entries`
+    });
+  } catch (error) {
+    console.error('❌ Cache clear error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to clear cache',
       error: error.message
     });
   }
