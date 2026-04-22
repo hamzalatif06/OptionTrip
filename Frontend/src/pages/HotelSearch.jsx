@@ -125,7 +125,7 @@ const HotelSearch = () => {
             <h4 className="mb-2 theme1">Search & Compare</h4>
             <h1 className="mb-3">Find Your <span className="theme">Perfect Hotel</span></h1>
             <p className="hotel-search-hero__sub">
-              Real-time hotel prices from Booking.com. Compare and book via our trusted partners.
+              Real-time hotel availability from Hotelbeds. Compare and book via our trusted partners.
             </p>
           </div>
         </div>

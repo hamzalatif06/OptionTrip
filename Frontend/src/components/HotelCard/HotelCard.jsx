@@ -29,6 +29,12 @@ const HotelCard = ({ hotel }) => {
     setExpanded(true);
     if (rooms !== null) return; // already loaded
 
+    // Hotelbeds hotels ship with pre-loaded room data from the availability API
+    if (hotel.preloadedRooms) {
+      setRooms(hotel.preloadedRooms);
+      return;
+    }
+
     setLoadingMore(true);
     try {
       const [roomData, detailData] = await Promise.all([
@@ -135,7 +141,9 @@ const HotelCard = ({ hotel }) => {
           <button className="hc-rooms-btn" onClick={handleExpand}>
             {expanded ? 'Hide Rooms ▲' : 'View Rooms ▼'}
           </button>
-          <p className="hc-affiliate-note">via Booking.com</p>
+          <p className="hc-affiliate-note">
+            {hotel.source === 'hotelbeds' ? 'via Hotellook' : 'via Booking.com'}
+          </p>
         </div>
       </div>
 

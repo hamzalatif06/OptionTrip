@@ -7,17 +7,12 @@ const RAPIDAPI_KEY  = process.env.RAPIDAPI_KEY  || '';
 const RAPIDAPI_HOST = 'google-flights2.p.rapidapi.com';
 const TP_MARKER     = process.env.TRAVELPAYOUTS_MARKER || '370056';
 
-// Build Aviasales affiliate booking URL from flight data
 const buildBookingUrl = ({ origin, destination, departureDate, returnDate, adults }) => {
-  // Aviasales format: /search/{FROM}{DD}{MM}{TO}[{TO}{DD}{MM}{FROM}]{adults}
-  const fmt = (dateStr) => {
-    const [, mm, dd] = dateStr.split('-'); // YYYY-MM-DD
-    return `${dd}${mm}`;
-  };
-  let path = `${origin}${fmt(departureDate)}${destination}`;
-  if (returnDate) path += `${destination}${fmt(returnDate)}${origin}`;
-  path += String(adults);
-  return `https://www.aviasales.com/search/${path}?marker=${TP_MARKER}`;
+  // Aviasales format: {FROM}{DDMM}{TO}[{DDMM_RETURN}]{pax}
+  const fmt = (d) => { const [, mm, dd] = d.split('-'); return `${dd}${mm}`; };
+  const pax = String(Math.max(1, adults || 1));
+  const returnPart = returnDate ? fmt(returnDate) : '';
+  return `https://www.aviasales.com/search/${origin}${fmt(departureDate)}${destination}${returnPart}${pax}?marker=${TP_MARKER}`;
 };
 
 // Extract HH:MM from time strings like "2025-2-1 08:34" or "01-02-2025 08:34 AM"

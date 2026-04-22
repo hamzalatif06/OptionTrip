@@ -66,16 +66,17 @@ const formatDuration = (iso) => {
   return [h && `${h}h`, m && `${m}m`].filter(Boolean).join(' ');
 };
 
-/**
- * Build a Google Flights deep link for MVP booking.
- */
+const TP_MARKER = process.env.TRAVELPAYOUTS_MARKER || '370056';
+
 const buildBookingUrl = (offer, params) => {
-  const seg = offer.itineraries?.[0]?.segments?.[0];
-  const origin = seg?.departure?.iataCode || params.originCode;
-  const destination = seg?.arrival?.iataCode || params.destinationCode;
-  const date = params.departureDate;
-  const q = `Flights from ${origin} to ${destination} on ${date}`;
-  return `https://www.google.com/travel/flights?q=${encodeURIComponent(q)}`;
+  // Aviasales format: {FROM}{DDMM}{TO}[{DDMM_RETURN}]{pax}
+  const seg         = offer.itineraries?.[0]?.segments?.[0];
+  const origin      = (seg?.departure?.iataCode || params.originCode      || '').toUpperCase();
+  const destination = (seg?.arrival?.iataCode   || params.destinationCode || '').toUpperCase();
+  const fmt = (d) => { const [, mm, dd] = String(d).split('-'); return `${dd}${mm}`; };
+  const pax = String(Math.max(1, params.adults || 1));
+  const returnPart = params.returnDate ? fmt(params.returnDate) : '';
+  return `https://www.aviasales.com/search/${origin}${fmt(params.departureDate)}${destination}${returnPart}${pax}?marker=${TP_MARKER}`;
 };
 
 /**

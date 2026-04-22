@@ -38,13 +38,12 @@ const extractTime = (iso) => {
   return t ? t.slice(0, 5) : '';
 };
 
-/** Build Aviasales affiliate booking URL (same pattern as GF / TP) */
 const buildBookingUrl = ({ origin, destination, departureDate, returnDate, adults }) => {
+  // Aviasales format: {FROM}{DDMM}{TO}[{DDMM_RETURN}]{pax}
   const fmt = (d) => { const [, mm, dd] = d.split('-'); return `${dd}${mm}`; };
-  let path = `${origin}${fmt(departureDate)}${destination}`;
-  if (returnDate) path += `${destination}${fmt(returnDate)}${origin}`;
-  path += String(Math.max(1, adults));
-  return `https://www.aviasales.com/search/${path}?marker=${TP_MARKER}`;
+  const pax = String(Math.max(1, adults));
+  const returnPart = returnDate ? fmt(returnDate) : '';
+  return `https://www.aviasales.com/search/${origin}${fmt(departureDate)}${destination}${returnPart}${pax}?marker=${TP_MARKER}`;
 };
 
 /* ── Normaliser ──────────────────────────────────────────────────────────── */

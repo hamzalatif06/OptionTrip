@@ -13,11 +13,11 @@ import './FlightSearch.css';
 const TP_MARKER = '370056';
 
 const buildAviasalesUrl = ({ originCode, destinationCode, departureDate, returnDate, adults }) => {
+  // Aviasales format: {FROM}{DDMM}{TO}[{DDMM_RETURN}]{pax}
   const fmt = (d) => { const [, mm, dd] = d.split('-'); return `${dd}${mm}`; };
-  let path = `${originCode}${fmt(departureDate)}${destinationCode}`;
-  if (returnDate) path += `${destinationCode}${fmt(returnDate)}${originCode}`;
-  path += String(adults || 1);
-  return `https://www.aviasales.com/search/${path}?marker=${TP_MARKER}`;
+  const pax = String(adults || 1);
+  const returnPart = returnDate ? fmt(returnDate) : '';
+  return `https://www.aviasales.com/search/${originCode}${fmt(departureDate)}${destinationCode}${returnPart}${pax}?marker=${TP_MARKER}`;
 };
 
 const SkeletonCard = () => (
@@ -183,8 +183,10 @@ const FlightSearch = () => {
   const [prefillOrigin,   setPrefillOrigin]   = useState(null);
   const [originFieldError,setOriginFieldError]= useState('');
   const [detectedOrigin,  setDetectedOrigin]  = useState(null); // { iata, display }
-  const [filters,         setFilters]         = useState(DEFAULT_FILTERS);
-  const [exploreModal,    setExploreModal]    = useState({
+  const [filters,             setFilters]            = useState(DEFAULT_FILTERS);
+  const [exploreTripType,     setExploreTripType]     = useState('one-way');
+  const [exploreReturnDate,   setExploreReturnDate]   = useState('');
+  const [exploreModal,        setExploreModal]        = useState({
     isOpen: false,
     isLoading: false,
     error: '',
@@ -339,15 +341,18 @@ const FlightSearch = () => {
 
   const closeExploreModal = () => {
     setExploreModal(prev => ({ ...prev, isOpen: false }));
+    setExploreTripType('one-way');
+    setExploreReturnDate('');
   };
 
-  const fetchExploreTickets = async ({ originCode, destinationCode, departureDate, adults }) => {
+  const fetchExploreTickets = async ({ originCode, destinationCode, departureDate, returnDate = null, adults }) => {
     let duffelResult = null;
     try {
       duffelResult = await searchFlightsDuffel({
         originCode,
         destinationCode,
         departureDate,
+        returnDate,
         adults,
       });
     } catch { /* continue fallback chain */ }
@@ -359,6 +364,7 @@ const FlightSearch = () => {
         originCode,
         destinationCode,
         departureDate,
+        returnDate,
         adults,
       });
     } catch { /* continue fallback chain */ }
@@ -368,10 +374,11 @@ const FlightSearch = () => {
     let tpResult = null;
     try {
       tpResult = await searchFlightsTP({
-        origin: originCode,
+        origin:      originCode,
         destination: destinationCode,
         departureAt: departureDate,
-        limit: 20,
+        returnAt:    returnDate || null,
+        limit:       20,
       });
     } catch { /* continue fallback chain */ }
     if (tpResult?.flights?.length) return { source: 'tp', flights: tpResult.flights };
@@ -382,6 +389,7 @@ const FlightSearch = () => {
         originCode,
         destinationCode,
         departureDate,
+        returnDate,
         adults,
       });
     } catch { /* no more fallback */ }
@@ -390,7 +398,7 @@ const FlightSearch = () => {
     return { source: 'none', flights: [] };
   };
 
-  const openExploreTicketsModal = async ({ destination }) => {
+  const openExploreTicketsModal = async ({ destination, returnDate = null }) => {
     const originCode = detectedOrigin?.iata || '';
     const originDisplay = detectedOrigin?.display || '';
 
@@ -420,6 +428,7 @@ const FlightSearch = () => {
         originCode,
         destinationCode: destination.iata,
         departureDate,
+        returnDate,
         adults: 1,
       });
 
@@ -440,6 +449,24 @@ const FlightSearch = () => {
         isLoading: false,
         error: err.message || 'Unable to load available tickets right now.',
       }));
+    }
+  };
+
+  const handleExploreTripTypeChange = (newType) => {
+    setExploreTripType(newType);
+    if (newType === 'one-way') {
+      setExploreReturnDate('');
+      if (exploreModal.destination) {
+        openExploreTicketsModal({ destination: exploreModal.destination, returnDate: null });
+      }
+    }
+    // If switching to round-trip, wait for user to pick return date
+  };
+
+  const handleExploreReturnDateChange = (date) => {
+    setExploreReturnDate(date);
+    if (date && exploreModal.destination) {
+      openExploreTicketsModal({ destination: exploreModal.destination, returnDate: date });
     }
   };
 
@@ -682,6 +709,35 @@ const FlightSearch = () => {
                   ? `From ${exploreModal.originDisplay} · ${EXPLORE_MODAL_LIMIT} best options`
                   : 'Set departure city to load available tickets'}
               </p>
+
+              {/* Trip type toggle */}
+              <div className="explore-trip-type-row" style={{ display: 'flex', gap: '8px', marginTop: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button
+                  className={`explore-trip-type-btn${exploreTripType === 'one-way' ? ' explore-trip-type-btn--active' : ''}`}
+                  onClick={() => handleExploreTripTypeChange('one-way')}
+                >
+                  One Way
+                </button>
+                <button
+                  className={`explore-trip-type-btn${exploreTripType === 'round-trip' ? ' explore-trip-type-btn--active' : ''}`}
+                  onClick={() => handleExploreTripTypeChange('round-trip')}
+                >
+                  Round Trip
+                </button>
+                {exploreTripType === 'round-trip' && (
+                  <div className="explore-return-date-picker" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <label htmlFor="fs-explore-return-date" style={{ fontSize: '13px', whiteSpace: 'nowrap' }}>Return:</label>
+                    <input
+                      id="fs-explore-return-date"
+                      type="date"
+                      value={exploreReturnDate}
+                      min={getFutureDate(31)}
+                      onChange={(e) => handleExploreReturnDateChange(e.target.value)}
+                      className="explore-return-date-input"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
             {exploreModal.isLoading && (
