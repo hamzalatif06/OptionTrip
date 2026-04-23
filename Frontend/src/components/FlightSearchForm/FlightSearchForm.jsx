@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { searchAirports } from '../../services/flightService';
+import TripDatePicker from '../TripDatePicker/TripDatePicker';
+import PassengerSelector from '../PassengerSelector/PassengerSelector';
 import './FlightSearchForm.css';
 
 const today = new Date().toISOString().split('T')[0];
@@ -55,12 +57,20 @@ const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect,
   };
 
   const handleSelect = (airport) => {
-    const display = `${airport.cityName || airport.name} (${airport.iataCode})`;
+    const display = airport.isCountry
+      ? `${airport.cityName} (${airport.iataCode})`
+      : `${airport.cityName || airport.name} (${airport.iataCode})`;
     setQuery(display);
     setSelected(true);
     setOpen(false);
     setSuggestions([]);
-    onSelect(airport.iataCode, display);
+    // Pass extra country metadata as third arg so FlightSearchForm can forward it
+    onSelect(airport.iataCode, display, airport.isCountry ? {
+      isCountry:       true,
+      countryCode:     airport.iataCode,
+      countryName:     airport.cityName,
+      countryAirports: airport.countryAirports || [],
+    } : null);
   };
 
   const handleClear = () => {
@@ -135,23 +145,35 @@ const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect,
             </li>
           )}
 
-          {/* ── Airport suggestions ── */}
+          {/* ── Airport / country suggestions ── */}
           {suggestions.map(airport => (
             <li
-              key={airport.iataCode}
-              className="fsf-ac-item"
+              key={airport.iataCode + (airport.isCountry ? '-country' : '')}
+              className={`fsf-ac-item${airport.isCountry ? ' fsf-ac-item--country' : ''}`}
               onMouseDown={() => handleSelect(airport)}
             >
               <div className="fsf-ac-item__left">
-                <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
-                  <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="#029e9d"/>
-                </svg>
+                {airport.isCountry ? (
+                  /* Globe icon for whole-country entries */
+                  <svg viewBox="0 0 24 24" fill="none" width="15" height="15">
+                    <circle cx="12" cy="12" r="10" stroke="#029e9d" strokeWidth="2"/>
+                    <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" stroke="#029e9d" strokeWidth="2"/>
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
+                    <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="#029e9d"/>
+                  </svg>
+                )}
                 <div>
-                  <span className="fsf-ac-item__name">{airport.cityName || airport.name}</span>
-                  {airport.name !== airport.cityName && airport.name && (
+                  <span className="fsf-ac-item__name">
+                    {airport.isCountry ? airport.cityName : (airport.cityName || airport.name)}
+                  </span>
+                  {!airport.isCountry && airport.name !== airport.cityName && airport.name && (
                     <span className="fsf-ac-item__airport">{airport.name}</span>
                   )}
-                  {airport.countryName && (
+                  {airport.isCountry ? (
+                    <span className="fsf-ac-item__airport">All cities & airports</span>
+                  ) : airport.countryName && (
                     <span className="fsf-ac-item__country">{airport.countryName}</span>
                   )}
                 </div>
@@ -169,17 +191,19 @@ const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect,
 
 /* ── Main form ─────────────────────────────────────────────────── */
 const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, originError, onOriginErrorClear, onExploreAnywhere }) => {
-  const [tripType,      setTripType]      = useState('one-way');
-  const [originCode,    setOriginCode]    = useState('');
-  const [originDisplay, setOriginDisplay] = useState('');
+  const [tripType,          setTripType]          = useState('one-way');
+  const [originCode,        setOriginCode]        = useState('');
+  const [originDisplay,     setOriginDisplay]     = useState('');
+  const [originCountryData, setOriginCountryData] = useState(null);
   const [isExploreAnywhere, setIsExploreAnywhere] = useState(false);
-  const [destCode,      setDestCode]      = useState('');
-  const [destDisplay,   setDestDisplay]   = useState('');
-  const [departureDate, setDepartureDate] = useState('');
-  const [returnDate,    setReturnDate]    = useState('');
-  const [adults,        setAdults]        = useState(1);
-  const [children,      setChildren]      = useState(0);
-  const [errors,        setErrors]        = useState({});
+  const [destCode,          setDestCode]          = useState('');
+  const [destDisplay,       setDestDisplay]       = useState('');
+  const [destCountryData,   setDestCountryData]   = useState(null);
+  const [departureDate,     setDepartureDate]     = useState('');
+  const [returnDate,        setReturnDate]        = useState('');
+  const [adults,            setAdults]            = useState(1);
+  const [children,          setChildren]          = useState(0);
+  const [errors,            setErrors]            = useState({});
 
   // Sync origin when Explore auto-detects user location
   useEffect(() => {
@@ -204,9 +228,11 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
   const clearError = (field) => setErrors(p => ({ ...p, [field]: '' }));
 
   const handleSwap = () => {
-    setOriginCode(destCode);      setOriginDisplay(destDisplay);
+    setOriginCode(destCode);           setOriginDisplay(destDisplay);
+    setOriginCountryData(destCountryData);
     setIsExploreAnywhere(false);
-    setDestCode(originCode);      setDestDisplay(originDisplay);
+    setDestCode(originCode);           setDestDisplay(originDisplay);
+    setDestCountryData(originCountryData);
   };
 
   const validate = () => {
@@ -237,7 +263,9 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
     }
     onSearch({
       originCode,
+      originCountryData,
       destinationCode: destCode,
+      destCountryData,
       departureDate,
       returnDate: tripType === 'round-trip' ? returnDate : undefined,
       adults:   Number(adults),
@@ -276,11 +304,13 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
                   iataCode={originCode}
                   onChange={(code, display) => {
                     setOriginCode(code); setOriginDisplay(display);
+                    setOriginCountryData(null);
                     setIsExploreAnywhere(false);
                     clearError('origin'); onOriginErrorClear?.();
                   }}
-                  onSelect={(code, display) => {
+                  onSelect={(code, display, countryData) => {
                     setOriginCode(code); setOriginDisplay(display);
+                    setOriginCountryData(countryData || null);
                     setIsExploreAnywhere(false);
                     clearError('origin'); onOriginErrorClear?.();
                   }}
@@ -304,8 +334,8 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
                   placeholder="City or airport (e.g. Dubai, CDG)"
                   value={destDisplay}
                   iataCode={destCode}
-                  onChange={(code, display) => { setDestCode(code); setDestDisplay(display); setIsExploreAnywhere(false); clearError('destination'); }}
-                  onSelect={(code, display) => { setDestCode(code); setDestDisplay(display); setIsExploreAnywhere(false); clearError('destination'); }}
+                  onChange={(code, display) => { setDestCode(code); setDestDisplay(display); setDestCountryData(null); setIsExploreAnywhere(false); clearError('destination'); }}
+                  onSelect={(code, display, countryData) => { setDestCode(code); setDestDisplay(display); setDestCountryData(countryData || null); setIsExploreAnywhere(false); clearError('destination'); }}
                   error={errors.destination}
                   onExploreAnywhere={() => {
                     setDestCode('EXPLORE_ANYWHERE');
@@ -316,46 +346,44 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
                 />
               </div>
 
-              {/* Departure */}
-              <div className="fsf-col fsf-col--date">
-                <label className="fsf-label">Departure</label>
-                <input
-                  className={`fsf-input${errors.departureDate ? ' is-error' : ''}`}
-                  type="date" min={today}
-                  value={departureDate}
-                  onChange={e => { setDepartureDate(e.target.value); clearError('departureDate'); }}
+              {/* Date picker */}
+              <div className={`fsf-col ${tripType === 'round-trip' ? 'fsf-col--datepicker-range' : 'fsf-col--datepicker'}`}>
+                <TripDatePicker
+                  mode={tripType === 'round-trip' ? 'range' : 'single'}
+                  startDate={departureDate}
+                  endDate={returnDate}
+                  minDate={today}
+                  onApply={({ startDate, endDate }) => {
+                    setDepartureDate(startDate);
+                    if (tripType === 'round-trip') setReturnDate(endDate);
+                    clearError('departureDate');
+                    clearError('returnDate');
+                  }}
+                  startLabel="Departure"
+                  endLabel="Return"
+                  startPlaceholder="Select departure"
+                  endPlaceholder="Select return"
+                  startError={errors.departureDate}
+                  endError={errors.returnDate}
                 />
-                {errors.departureDate && <p className="fsf-error">{errors.departureDate}</p>}
               </div>
 
-              {/* Return (round-trip only) */}
-              {tripType === 'round-trip' && (
-                <div className="fsf-col fsf-col--date">
-                  <label className="fsf-label">Return</label>
-                  <input
-                    className={`fsf-input${errors.returnDate ? ' is-error' : ''}`}
-                    type="date" min={departureDate || today}
-                    value={returnDate}
-                    onChange={e => { setReturnDate(e.target.value); clearError('returnDate'); }}
-                  />
-                  {errors.returnDate && <p className="fsf-error">{errors.returnDate}</p>}
-                </div>
-              )}
-
-              {/* Adults */}
+              {/* Passengers */}
               <div className="fsf-col fsf-col--pax">
-                <label className="fsf-label">Adults</label>
-                <select className="fsf-input" value={adults} onChange={e => setAdults(e.target.value)}>
-                  {[1,2,3,4,5,6,7,8,9].map(n => <option key={n} value={n}>{n}</option>)}
-                </select>
-              </div>
-
-              {/* Children */}
-              <div className="fsf-col fsf-col--pax">
-                <label className="fsf-label">Children</label>
-                <select className="fsf-input" value={children} onChange={e => setChildren(e.target.value)}>
-                  {[0,1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n}</option>)}
-                </select>
+                <PassengerSelector
+                  passengers={[
+                    { key: 'adults',   label: 'Adults',   subtitle: 'Aged 18+',     value: adults,   min: 1, max: 9 },
+                    { key: 'children', label: 'Children', subtitle: 'Aged 0 to 17', value: children, min: 0, max: 8 },
+                  ]}
+                  onChange={(key, val) => key === 'adults' ? setAdults(val) : setChildren(val)}
+                  onApply={() => {}}
+                  label={p => {
+                    const a = p.find(x => x.key === 'adults')?.value || 1;
+                    const c = p.find(x => x.key === 'children')?.value || 0;
+                    return c > 0 ? `${a} Adult${a>1?'s':''}, ${c} Child${c>1?'ren':''}` : `${a} Adult${a>1?'s':''}`;
+                  }}
+                  note="Your age at time of travel must be valid for the age category booked. Airlines have restrictions on under 18s travelling alone."
+                />
               </div>
 
               {/* Search */}

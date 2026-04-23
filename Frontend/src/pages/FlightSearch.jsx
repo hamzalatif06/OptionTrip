@@ -7,6 +7,7 @@ import FlightCard       from '../components/FlightCard/FlightCard';
 import FlightCardDuffel from '../components/FlightCard/FlightCardDuffel';
 import ExploreDestinations from '../components/ExploreDestinations/ExploreDestinations';
 import FlightFilters, { DEFAULT_FILTERS, applyFilters } from '../components/FlightFilters/FlightFilters';
+import CountryCityPicker from '../components/CountryCityPicker/CountryCityPicker';
 import { searchFlightsDuffel, searchFlightsGoogle, searchFlightsTP, searchFlights as searchFlightsAmadeus } from '../services/flightService';
 import './FlightSearch.css';
 
@@ -196,6 +197,11 @@ const FlightSearch = () => {
     source: '',
   });
 
+  // Country → city multi-step flow
+  // null = normal mode
+  // { step:'dest'|'origin', originCountry, destCountry, selectedDestCity, departureDate, returnDate, adults }
+  const [countryFlow, setCountryFlow] = useState(null);
+
   const navigate = useNavigate();
   const formRef    = useRef(null);
   const exploreRef = useRef(null);
@@ -221,6 +227,25 @@ const FlightSearch = () => {
   };
 
   const handleSearch = async (params) => {
+    // ── Country flow: intercept when origin or destination is a whole country ─
+    if (params.originCountryData?.isCountry || params.destCountryData?.isCountry) {
+      // Clear any previous flight results so they don't show under the city picker
+      setSearched(false);
+      resetResults();
+      setCountryFlow({
+        step:             params.destCountryData?.isCountry ? 'dest' : 'origin',
+        originCountry:    params.originCountryData || null,
+        destCountry:      params.destCountryData   || null,
+        originCode:       params.originCode,
+        selectedDestCity: null,
+        departureDate:    params.departureDate,
+        returnDate:       params.returnDate || null,
+        adults:           params.adults,
+      });
+      return;
+    }
+
+    setCountryFlow(null);   // dismiss picker if user re-searches with specific airports
     setIsLoading(true);
     setSearched(true);
     setLastSearch(params);
@@ -534,8 +559,68 @@ const FlightSearch = () => {
         />
       </div>
 
+      {/* ── Country city picker (multi-step flow) ── */}
+      {countryFlow && (
+        <section className="flight-results-section">
+          <div className="container">
+            {countryFlow.step === 'dest' && (
+              <CountryCityPicker
+                step="dest"
+                cities={countryFlow.destCountry?.countryAirports || []}
+                countryName={countryFlow.destCountry?.countryName || ''}
+                originCode={countryFlow.originCountry ? null : countryFlow.originCode}
+                departureDate={countryFlow.departureDate}
+                returnDate={countryFlow.returnDate}
+                adults={countryFlow.adults}
+                onSelect={(city) => {
+                  if (countryFlow.originCountry) {
+                    // Origin is also a country → go to origin city step
+                    setCountryFlow(f => ({ ...f, step: 'origin', selectedDestCity: city }));
+                  } else {
+                    // Origin is a specific airport → search immediately
+                    setCountryFlow(null);
+                    handleSearch({
+                      originCode:    countryFlow.originCode,
+                      destinationCode: city.iataCode,
+                      departureDate: countryFlow.departureDate,
+                      returnDate:    countryFlow.returnDate,
+                      adults:        countryFlow.adults,
+                    });
+                  }
+                }}
+                onBack={() => setCountryFlow(null)}
+              />
+            )}
+
+            {countryFlow.step === 'origin' && (
+              <CountryCityPicker
+                step="origin"
+                cities={countryFlow.originCountry?.countryAirports || []}
+                countryName={countryFlow.originCountry?.countryName || ''}
+                originCode={null}
+                departureDate={countryFlow.departureDate}
+                returnDate={countryFlow.returnDate}
+                adults={countryFlow.adults}
+                onSelect={(city) => {
+                  const destCode = countryFlow.selectedDestCity?.iataCode || countryFlow.destCode;
+                  setCountryFlow(null);
+                  handleSearch({
+                    originCode:      city.iataCode,
+                    destinationCode: destCode,
+                    departureDate:   countryFlow.departureDate,
+                    returnDate:      countryFlow.returnDate,
+                    adults:          countryFlow.adults,
+                  });
+                }}
+                onBack={() => setCountryFlow(f => ({ ...f, step: 'dest' }))}
+              />
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Explore Anywhere */}
-      {!searched && (
+      {!searched && !countryFlow && (
         <div ref={exploreRef}>
           <ExploreDestinations
             onSelect={handleExploreSelect}

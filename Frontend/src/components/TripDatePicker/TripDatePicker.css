@@ -1,0 +1,208 @@
+/* ── Wrapper ─────────────────────────────────────────────────────────────── */
+.tdp-wrap {
+  position: relative;
+}
+
+/* ── Trigger row ─────────────────────────────────────────────────────────── */
+.tdp-trigger {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.tdp-sep {
+  display: flex;
+  align-items: center;
+  color: #94a3b8;
+  font-size: 16px;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+/* ── Trigger field ───────────────────────────────────────────────────────── */
+.tdp-field {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  user-select: none;
+  height: 50px;
+  padding: 0 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+}
+.tdp-field:hover            { border-color: #029e9d; }
+.tdp-field--active          { border-color: #029e9d; box-shadow: 0 0 0 3px rgba(2,158,157,0.13); }
+.tdp-field--error           { border-color: #ef4444; }
+.tdp-field--error:hover     { border-color: #ef4444; }
+
+.tdp-field__label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 3px;
+  line-height: 1;
+}
+
+.tdp-field__value {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  line-height: 1;
+}
+
+.tdp-field__icon  { color: #94a3b8; flex-shrink: 0; }
+.tdp-field__date  { font-size: 13px; font-weight: 600; color: #1e293b; white-space: nowrap; }
+.tdp-field__ph    { font-size: 13px; color: #94a3b8; white-space: nowrap; }
+.tdp-field__err   { font-size: 11px; color: #ef4444; margin: 4px 0 0; }
+
+/* ── Popup ───────────────────────────────────────────────────────────────── */
+.tdp-popup {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 1000;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid #e8ecef;
+  overflow: hidden;
+  min-width: 660px;
+}
+
+@media (max-width: 720px) {
+  .tdp-popup { min-width: calc(100vw - 32px); left: 50%; transform: translateX(-50%); }
+}
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+.tdp-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px 16px;
+  border-top: 1px solid #f1f5f9;
+  background: #fafafa;
+}
+
+.tdp-footer__nights {
+  margin-right: auto;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.tdp-footer__btns {
+  display: flex;
+  gap: 10px;
+}
+
+.tdp-btn {
+  padding: 9px 24px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+}
+.tdp-btn--cancel { background: #f1f5f9; color: #64748b; }
+.tdp-btn--cancel:hover { background: #e2e8f0; }
+.tdp-btn--apply  { background: #029e9d; color: #fff; }
+.tdp-btn--apply:hover { background: #027b7a; transform: translateY(-1px); }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Override react-date-range default styles to match the app's design
+──────────────────────────────────────────────────────────────────────────*/
+
+.tdp-popup .rdrCalendarWrapper {
+  font-family: inherit;
+  font-size: 13px;
+  background: transparent;
+}
+
+/* Month header */
+.tdp-popup .rdrMonthAndYearWrapper {
+  padding-top: 16px;
+}
+.tdp-popup .rdrMonthAndYearPickers select {
+  font-weight: 700;
+  font-size: 15px;
+  color: #1e293b;
+  background: transparent;
+}
+.tdp-popup .rdrPprevButton,
+.tdp-popup .rdrNextButton {
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+.tdp-popup .rdrPprevButton:hover,
+.tdp-popup .rdrNextButton:hover { background: #e2e8f0; }
+.tdp-popup .rdrPprevButton i { border-right-color: #475569; }
+.tdp-popup .rdrNextButton i  { border-left-color: #475569; }
+
+/* Month name (shown per-month when direction=horizontal) */
+.tdp-popup .rdrMonthName {
+  text-align: center;
+  font-weight: 700;
+  font-size: 15px;
+  color: #1e293b;
+  padding-bottom: 8px;
+}
+
+/* Week day headers */
+.tdp-popup .rdrWeekDay {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Days */
+.tdp-popup .rdrDay:not(.rdrDayPassive) .rdrDayNumber span {
+  color: #1e293b;
+  font-weight: 500;
+}
+.tdp-popup .rdrDayPassive .rdrDayNumber span { color: #cbd5e1; }
+
+/* Today indicator */
+.tdp-popup .rdrDayToday .rdrDayNumber span::after { background: #029e9d; }
+
+/* Selected start / end circles */
+.tdp-popup .rdrStartEdge,
+.tdp-popup .rdrEndEdge {
+  background: #029e9d;
+  border-radius: 50%;
+}
+
+/* Range fill */
+.tdp-popup .rdrInRange {
+  background: rgba(2, 158, 157, 0.13);
+}
+
+/* Single-date selection (Calendar component) */
+.tdp-popup .rdrSelected { background: #029e9d; border-radius: 50%; }
+
+/* Hover */
+.tdp-popup .rdrDayHovered .rdrDayNumber span { color: #029e9d; }
+.tdp-popup .rdrDayStartPreview,
+.tdp-popup .rdrDayEndPreview,
+.tdp-popup .rdrDayInPreview {
+  border-color: rgba(2, 158, 157, 0.4);
+}
+
+/* Remove the blue date display at the top */
+.tdp-popup .rdrDateDisplayWrapper { display: none; }
+
+/* Month grid padding */
+.tdp-popup .rdrMonths.rdrMonthsHorizontal { padding: 0 12px 4px; }
+.tdp-popup .rdrMonth { width: 300px; padding-bottom: 12px; }

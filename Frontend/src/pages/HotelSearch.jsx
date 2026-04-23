@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { searchHotelLocations, searchHotels } from '../services/hotelService';
 import HotelCard from '../components/HotelCard/HotelCard';
+import TripDatePicker from '../components/TripDatePicker/TripDatePicker';
+import PassengerSelector from '../components/PassengerSelector/PassengerSelector';
 import './HotelSearch.css';
 
 function useDebounce(value, delay) {
@@ -181,31 +183,37 @@ const HotelSearch = () => {
             </div>
 
             <div className="hs-form__row">
-              {/* Check-in */}
-              <div className={`hs-field${errors.checkIn ? ' hs-field--error' : ''}`}>
-                <label className="hs-field__label">Check-in</label>
-                <input type="date" className="hs-field__input" min={today}
-                  value={checkIn}
-                  onChange={(e) => { setCheckIn(e.target.value); setErrors(p => ({ ...p, checkIn: '' })); }} />
-                {errors.checkIn && <span className="hs-field__err">{errors.checkIn}</span>}
+              {/* Check-in / Check-out — date range picker */}
+              <div className="hs-field hs-field--datepicker">
+                <TripDatePicker
+                  mode="range"
+                  startDate={checkIn}
+                  endDate={checkOut}
+                  minDate={today}
+                  onApply={({ startDate, endDate }) => {
+                    setCheckIn(startDate);
+                    setCheckOut(endDate);
+                    setErrors(p => ({ ...p, checkIn: '', checkOut: '' }));
+                  }}
+                  startLabel="Check-in"
+                  endLabel="Check-out"
+                  startPlaceholder="Select date"
+                  endPlaceholder="Select date"
+                  startError={errors.checkIn}
+                  endError={errors.checkOut}
+                />
               </div>
 
-              {/* Check-out */}
-              <div className={`hs-field${errors.checkOut ? ' hs-field--error' : ''}`}>
-                <label className="hs-field__label">Check-out</label>
-                <input type="date" className="hs-field__input" min={checkIn || today}
-                  value={checkOut}
-                  onChange={(e) => { setCheckOut(e.target.value); setErrors(p => ({ ...p, checkOut: '' })); }} />
-                {errors.checkOut  && <span className="hs-field__err">{errors.checkOut}</span>}
-                {!errors.checkOut && nights > 0 && <span className="hs-field__sub">{nights} night{nights !== 1 ? 's' : ''}</span>}
-              </div>
-
-              {/* Adults */}
-              <div className="hs-field">
-                <label className="hs-field__label">Adults</label>
-                <select className="hs-field__input" value={adults} onChange={(e) => setAdults(Number(e.target.value))}>
-                  {[1,2,3,4,5,6].map(n => <option key={n} value={n}>{n} Adult{n > 1 ? 's' : ''}</option>)}
-                </select>
+              {/* Guests */}
+              <div className="hs-field hs-field--adults">
+                <PassengerSelector
+                  passengers={[
+                    { key: 'adults', label: 'Adults', subtitle: 'Aged 18+', value: adults, min: 1, max: 9 },
+                  ]}
+                  onChange={(key, val) => setAdults(val)}
+                  onApply={() => {}}
+                  label={p => { const a = p[0]?.value || 1; return `${a} Adult${a>1?'s':''}`; }}
+                />
               </div>
             </div>
 

@@ -55,11 +55,13 @@
   gap: 12px;
 }
 
-.fsf-col           { display: flex; flex-direction: column; }
-.fsf-col--airport  { flex: 2; min-width: 200px; }
-.fsf-col--date     { flex: 1.2; min-width: 148px; }
-.fsf-col--pax      { flex: 0.65; min-width: 88px; }
-.fsf-col--btn      { flex: 1.3; min-width: 160px; }
+.fsf-col                 { display: flex; flex-direction: column; }
+.fsf-col--airport        { flex: 2; min-width: 200px; }
+.fsf-col--date           { flex: 1.2; min-width: 148px; }
+.fsf-col--datepicker     { flex: 1.4; min-width: 160px; }
+.fsf-col--datepicker-range { flex: 2.6; min-width: 300px; }
+.fsf-col--pax            { flex: 1.3; min-width: 160px; }
+.fsf-col--btn            { flex: 1.3; min-width: 160px; }
 
 /* ── Label ────────────────────────────────────────────────── */
 .fsf-label {
@@ -269,6 +271,14 @@
 }
 
 .fsf-ac-item:hover { background: #f0fdfa; }
+
+/* Country-level entry in dropdown */
+.fsf-ac-item--country {
+  background: #f0fdfa;
+  border-left: 3px solid #029e9d;
+}
+.fsf-ac-item--country:hover { background: #ccfbf1; }
+.fsf-ac-item--country .fsf-ac-item__name { color: #029e9d; font-weight: 700; }
 
 .fsf-ac-item__left {
   display: flex;
