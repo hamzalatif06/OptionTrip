@@ -1,0 +1,63 @@
+.nab-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  background: linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 100%);
+  border: 1.5px solid #99f6e4;
+  border-radius: 16px;
+  padding: 28px 32px;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.nab-icon-wrap {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  background: #fff;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(2, 158, 157, 0.15);
+}
+
+.nab-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.nab-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 8px;
+}
+
+.nab-desc {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.65;
+  margin: 0 0 20px;
+}
+
+.nab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #029e9d;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 22px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.nab-btn:hover { background: #027b7a; transform: translateY(-1px); }
+
+@media (max-width: 520px) {
+  .nab-wrap { flex-direction: column; padding: 20px; }
+  .nab-icon-wrap { width: 44px; height: 44px; }
+}

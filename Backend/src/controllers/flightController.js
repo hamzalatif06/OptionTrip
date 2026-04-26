@@ -14,6 +14,7 @@ import {
   getCacheStats
 } from '../services/googlePlacesService.js';
 import PlaceImage from '../models/PlaceImage.js';
+import { findNearbyAirports, findNearbyForRoute } from '../services/nearbyAirportsService.js';
 
 // ── Country → top airports mapping ───────────────────────────────────────────
 // Used when user types a country name instead of a city (e.g. "Pakistan", "India").
@@ -442,43 +443,146 @@ export const getCheapPriceHandler = async (req, res) => {
 };
 
 /**
+ * GET /api/flights/monthly-prices?origin=KHI&destination=DXB&month=2026-05
+ * Returns Travelpayouts cached prices keyed by date for the entire month.
+ * Uses v3/prices_for_dates (returns ISO departure_at timestamps per ticket).
+ * Response: { prices: { "2026-06-01": 275, "2026-06-03": 296, ... } }
+ */
+export const getMonthlyPricesHandler = async (req, res) => {
+  try {
+    const { origin, destination, month } = req.query;
+    if (!origin || !destination || !month)
+      return res.status(400).json({ success: false, message: 'origin, destination, month (YYYY-MM) required' });
+    if (!/^\d{4}-\d{2}$/.test(month))
+      return res.status(400).json({ success: false, message: 'month must be YYYY-MM format' });
+
+    const token = process.env.TRAVELPAYOUTS_TOKEN || '';
+    const o     = origin.toUpperCase();
+    const d     = destination.toUpperCase();
+
+    // v3 prices_for_dates — returns individual tickets with full departure timestamps
+    const params = new URLSearchParams({
+      origin:       o,
+      destination:  d,
+      departure_at: month,
+      one_way:      'true',
+      currency:     'usd',
+      sorting:      'price',
+      page:         '1',
+      limit:        '100',    // max 100 to cover as many dates as possible
+      token,
+    });
+
+    const tpRes = await fetch(`https://api.travelpayouts.com/aviasales/v3/prices_for_dates?${params}`);
+    const json  = await tpRes.json();
+
+    // Build date → minimum price map
+    const prices = {};
+    for (const ticket of (json.data || [])) {
+      if (!ticket.departure_at || !ticket.price) continue;
+      const date = ticket.departure_at.slice(0, 10); // "2026-06-15T07:10:00..." → "2026-06-15"
+      if (!prices[date] || ticket.price < prices[date]) {
+        prices[date] = ticket.price;
+      }
+    }
+
+    // Fallback: also try v1/prices/cheap which sometimes has different coverage
+    if (Object.keys(prices).length === 0) {
+      const p2 = new URLSearchParams({ origin: o, destination: d, depart_date: month, currency: 'usd', token });
+      const r2 = await fetch(`https://api.travelpayouts.com/v1/prices/cheap?${p2}`);
+      const j2 = await r2.json();
+      const inner = j2.data?.[d] || j2.data?.[o] || {};
+      for (const [date, info] of Object.entries(inner)) {
+        if (info?.price) prices[date] = info.price;
+      }
+    }
+
+    console.log(`📅 Monthly prices: ${Object.keys(prices).length} dates for ${o}→${d} ${month}`);
+    res.json({ success: true, data: { prices } });
+  } catch (err) {
+    console.error('❌ Monthly prices error:', err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/**
  * GET /api/flights/google-search?origin=LAX&destination=JFK&departureDate=2026-04-15&adults=1[&returnDate=...]
  * Returns real-time flights via Google Flights (RapidAPI). Book Now → Aviasales affiliate.
  */
 export const searchFlightsGoogleHandler = async (req, res) => {
   try {
-    const { origin, destination, departureDate, returnDate, adults = 1, travelClass = 'ECONOMY' } = req.query;
+    const {
+      origin, destination, departureDate, returnDate,
+      adults = 1, travelClass = 'ECONOMY',
+      includeNearby = 'false', radius = '250',
+    } = req.query;
 
     if (!origin || !destination || !departureDate) {
       return res.status(400).json({ success: false, message: 'origin, destination and departureDate are required' });
     }
 
-    console.log(`🌐 Google Flights search: ${origin} → ${destination} on ${departureDate}`);
+    const params = { returnDate: returnDate || null, adults: Number(adults), travelClass };
 
-    const { topFlights, otherFlights } = await searchFlightsGoogle({
-      origin,
-      destination,
-      departureDate,
-      returnDate:  returnDate || null,
-      adults:      Number(adults),
-      travelClass,
-    });
-
-    const flights = [...(topFlights || []), ...(otherFlights || [])];
-
-    if (flights.length === 0) {
-      console.warn(`⚠️  Google Flights: 0 results for ${origin} → ${destination} on ${departureDate} — frontend will fall back to TP`);
-    } else {
-      console.log(`✅ Google Flights: ${topFlights.length} top + ${otherFlights.length} other = ${flights.length} total`);
+    // ── Standard single-pair search ───────────────────────────────────────────
+    if (includeNearby !== 'true') {
+      console.log(`🌐 Google Flights search: ${origin} → ${destination} on ${departureDate}`);
+      const { topFlights, otherFlights } = await searchFlightsGoogle({ origin, destination, departureDate, ...params });
+      const flights = [...(topFlights || []), ...(otherFlights || [])];
+      console.log(`✅ Google Flights: ${flights.length} total`);
+      return res.json({
+        success: true,
+        message: flights.length > 0 ? 'Flights found' : 'No flights found',
+        data: { topFlights: topFlights || [], otherFlights: otherFlights || [], flights, count: flights.length },
+      });
     }
 
+    // ── Nearby expansion ──────────────────────────────────────────────────────
+    const radiusKm = Math.min(Math.max(parseInt(radius, 10) || 250, 50), 1000);
+    const { originNearby, destNearby } = findNearbyForRoute(origin, destination, radiusKm, 3);
+
+    const pairs = [
+      [origin, destination],
+      ...originNearby.map(n => [n.iata, destination]),
+      ...destNearby.map(n => [origin, n.iata]),
+    ];
+
+    console.log(`🌐 Google Flights nearby: ${pairs.length} pair(s) for ${origin}→${destination}`);
+
+    const settled = await Promise.allSettled(
+      pairs.map(([o, d]) => searchFlightsGoogle({ origin: o, destination: d, departureDate, ...params }))
+    );
+
+    const seen = new Set();
+    const allTop = [], allOther = [];
+
+    settled.forEach(r => {
+      if (r.status !== 'fulfilled') return;
+      const { topFlights = [], otherFlights = [] } = r.value;
+      [...topFlights, ...otherFlights].forEach(f => {
+        const sig = `${f.origin}:${f.destination}:${f.departureTime}:${f.airline}:${f.flightNumber || ''}`;
+        if (!seen.has(sig)) { seen.add(sig); (topFlights.includes(f) ? allTop : allOther).push(f); }
+      });
+    });
+
+    allTop.sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity));
+    allOther.sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity));
+    const allFlights = [...allTop, ...allOther];
+
+    const nearbyMeta = {
+      originAirports: originNearby.map(n => ({ iata: n.iata, city: n.city, distanceKm: n.distanceKm })),
+      destAirports:   destNearby.map(n => ({ iata: n.iata, city: n.city, distanceKm: n.distanceKm })),
+      pairsSearched:  pairs.length,
+      pairsWithResults: settled.filter(r => r.status === 'fulfilled' && ((r.value.topFlights?.length || 0) + (r.value.otherFlights?.length || 0)) > 0).length,
+    };
+
+    console.log(`✅ Google Flights nearby: ${allFlights.length} merged results`);
     res.json({
       success: true,
-      message: flights.length > 0 ? 'Flights found' : 'No flights found',
-      data: { topFlights: topFlights || [], otherFlights: otherFlights || [], flights, count: flights.length },
+      message: allFlights.length > 0 ? 'Flights found' : 'No flights found',
+      data: { topFlights: allTop, otherFlights: allOther, flights: allFlights, count: allFlights.length, nearbyMeta },
     });
   } catch (error) {
-    console.error(`❌ Google Flights error (${req.query.origin} → ${req.query.destination}): ${error.message} — frontend will fall back to TP`);
+    console.error(`❌ Google Flights error (${req.query.origin} → ${req.query.destination}): ${error.message}`);
     res.status(502).json({ success: false, message: error.message });
   }
 };
@@ -524,31 +628,92 @@ export const searchFlightsTravelpayouts = async (req, res) => {
  */
 export const searchFlightsDuffelHandler = async (req, res) => {
   try {
-    const { origin, destination, departureDate, returnDate, adults = 1, travelClass = 'economy' } = req.query;
+    const {
+      origin, destination, departureDate, returnDate,
+      adults = 1, travelClass = 'economy',
+      includeNearby = 'false', radius = '250',
+    } = req.query;
 
     if (!origin || !destination || !departureDate) {
       return res.status(400).json({ success: false, message: 'origin, destination and departureDate are required' });
     }
 
-    console.log(`🛫  Duffel search handler: ${origin} → ${destination} on ${departureDate}`);
+    const params = { returnDate: returnDate || null, adults: Number(adults), travelClass };
 
-    const flights = await searchFlightsDuffel({
-      origin,
-      destination,
-      departureDate,
-      returnDate:  returnDate || null,
-      adults:      Number(adults),
-      travelClass,
+    // ── Standard single-pair search ───────────────────────────────────────────
+    if (includeNearby !== 'true') {
+      console.log(`🛫  Duffel search: ${origin} → ${destination} on ${departureDate}`);
+      const flights = await searchFlightsDuffel({ origin, destination, departureDate, ...params });
+      return res.json({
+        success: true,
+        message: flights.length > 0 ? 'Flights found' : 'No flights found',
+        data:    { flights, count: flights.length },
+      });
+    }
+
+    // ── Nearby expansion ──────────────────────────────────────────────────────
+    const radiusKm = Math.min(Math.max(parseInt(radius, 10) || 250, 50), 1000);
+    const { originNearby, destNearby } = findNearbyForRoute(origin, destination, radiusKm, 3);
+
+    const pairs = [
+      [origin, destination],
+      ...originNearby.map(n => [n.iata, destination]),
+      ...destNearby.map(n => [origin, n.iata]),
+    ];
+
+    console.log(`🛫  Duffel nearby: ${pairs.length} pair(s) for ${origin}→${destination}`);
+
+    const settled = await Promise.allSettled(
+      pairs.map(([o, d]) => searchFlightsDuffel({ origin: o, destination: d, departureDate, ...params }))
+    );
+
+    const seen = new Set();
+    const merged = [];
+    settled.forEach(r => {
+      if (r.status !== 'fulfilled') return;
+      (r.value || []).forEach(f => {
+        const sig = `${f.origin}:${f.destination}:${f.departureTime}:${f.airline}:${f.flightNumber || ''}`;
+        if (!seen.has(sig)) { seen.add(sig); merged.push(f); }
+      });
     });
+    merged.sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity));
 
+    const nearbyMeta = {
+      originAirports: originNearby.map(n => ({ iata: n.iata, city: n.city, distanceKm: n.distanceKm })),
+      destAirports:   destNearby.map(n => ({ iata: n.iata, city: n.city, distanceKm: n.distanceKm })),
+      pairsSearched:  pairs.length,
+      pairsWithResults: settled.filter(r => r.status === 'fulfilled' && r.value?.length > 0).length,
+    };
+
+    console.log(`✅ Duffel nearby: ${merged.length} merged results`);
     res.json({
       success: true,
-      message: flights.length > 0 ? 'Flights found' : 'No flights found',
-      data:    { flights, count: flights.length },
+      message: merged.length > 0 ? 'Flights found' : 'No flights found',
+      data:    { flights: merged, count: merged.length, nearbyMeta },
     });
   } catch (error) {
     console.error(`❌ Duffel error (${req.query.origin} → ${req.query.destination}): ${error.message}`);
     res.status(502).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * GET /api/flights/nearby-airports?iata=KHI&radius=250&limit=3
+ * Returns airports within radiusKm of the given IATA code, sorted by distance.
+ */
+export const getNearbyAirportsHandler = async (req, res) => {
+  try {
+    const { iata, radius = '250', limit = '3' } = req.query;
+    if (!iata || !/^[A-Za-z]{3}$/.test(iata.trim())) {
+      return res.status(400).json({ success: false, message: 'iata must be a 3-letter IATA code' });
+    }
+    const radiusKm = Math.min(Math.max(parseInt(radius, 10) || 250, 50), 1000);
+    const lim      = Math.min(Math.max(parseInt(limit, 10)  || 3,   1), 10);
+    const nearby   = findNearbyAirports(iata.trim().toUpperCase(), radiusKm, lim);
+    res.json({ success: true, data: { iata: iata.toUpperCase(), radiusKm, count: nearby.length, nearby } });
+  } catch (error) {
+    console.error('❌ Nearby airports error:', error.message);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

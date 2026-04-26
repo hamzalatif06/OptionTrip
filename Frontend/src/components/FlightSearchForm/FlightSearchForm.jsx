@@ -204,6 +204,7 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
   const [adults,            setAdults]            = useState(1);
   const [children,          setChildren]          = useState(0);
   const [errors,            setErrors]            = useState({});
+  const [includeNearby,     setIncludeNearby]     = useState(false);
 
   // Sync origin when Explore auto-detects user location
   useEffect(() => {
@@ -268,8 +269,9 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
       destCountryData,
       departureDate,
       returnDate: tripType === 'round-trip' ? returnDate : undefined,
-      adults:   Number(adults),
-      children: Number(children),
+      adults:        Number(adults),
+      children:      Number(children),
+      includeNearby,
     });
   };
 
@@ -365,6 +367,8 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
                   endPlaceholder="Select return"
                   startError={errors.departureDate}
                   endError={errors.returnDate}
+                  origin={/^[A-Za-z]{3}$/.test(originCode) ? originCode.toUpperCase() : undefined}
+                  destination={/^[A-Za-z]{3}$/.test(destCode) ? destCode.toUpperCase() : undefined}
                 />
               </div>
 
@@ -395,6 +399,24 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
                 </button>
               </div>
 
+            </div>
+
+            {/* Nearby airports toggle */}
+            <div className="fsf-nearby-row">
+              <label className="fsf-nearby-label">
+                <input
+                  type="checkbox"
+                  className="fsf-nearby-checkbox"
+                  checked={includeNearby}
+                  onChange={e => setIncludeNearby(e.target.checked)}
+                />
+                <svg viewBox="0 0 24 24" fill="none" width="14" height="14" className="fsf-nearby-icon">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/>
+                  <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                  <path d="M12 3v2M12 19v2M3 12h2M19 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                <span>Also search nearby airports <span className="fsf-nearby-hint">(within 250 km)</span></span>
+              </label>
             </div>
           </form>
         </div>

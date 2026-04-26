@@ -1,5 +1,5 @@
 import express from 'express';
-import { searchFlights, getAirports, searchFlightsTravelpayouts, searchFlightsGoogleHandler, getCheapPriceHandler, exploreDestinationsHandler, searchFlightsDuffelHandler, getDestinationImageHandler, getPlaceImageHandler, getPlaceImagesBatchHandler, getCacheStatsHandler, clearPlaceImageCacheHandler } from '../controllers/flightController.js';
+import { searchFlights, getAirports, searchFlightsTravelpayouts, searchFlightsGoogleHandler, getCheapPriceHandler, exploreDestinationsHandler, searchFlightsDuffelHandler, getDestinationImageHandler, getPlaceImageHandler, getPlaceImagesBatchHandler, getCacheStatsHandler, clearPlaceImageCacheHandler, getNearbyAirportsHandler, getMonthlyPricesHandler } from '../controllers/flightController.js';
 import { validateFlightSearch, validateTPFlightSearch } from '../middleware/validation.js';
 
 const router = express.Router();
@@ -7,8 +7,14 @@ const router = express.Router();
 // GET /api/flights/airports?keyword=Paris
 router.get('/airports', getAirports);
 
+// GET /api/flights/nearby-airports?iata=KHI&radius=250&limit=3
+router.get('/nearby-airports', getNearbyAirportsHandler);
+
 // GET /api/flights/cheap-price?origin=KHI&destination=DXB&departDate=2026-05-01
 router.get('/cheap-price', getCheapPriceHandler);
+
+// GET /api/flights/monthly-prices?origin=KHI&destination=DXB&month=2026-05
+router.get('/monthly-prices', getMonthlyPricesHandler);
 
 // GET /api/flights/explore?origin=LHE
 router.get('/explore', exploreDestinationsHandler);

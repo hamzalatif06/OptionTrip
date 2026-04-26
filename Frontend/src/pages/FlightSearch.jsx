@@ -8,6 +8,7 @@ import FlightCardDuffel from '../components/FlightCard/FlightCardDuffel';
 import ExploreDestinations from '../components/ExploreDestinations/ExploreDestinations';
 import FlightFilters, { DEFAULT_FILTERS, applyFilters } from '../components/FlightFilters/FlightFilters';
 import CountryCityPicker from '../components/CountryCityPicker/CountryCityPicker';
+import NearbyAirportsBanner from '../components/NearbyAirportsBanner/NearbyAirportsBanner';
 import { searchFlightsDuffel, searchFlightsGoogle, searchFlightsTP, searchFlights as searchFlightsAmadeus } from '../services/flightService';
 import './FlightSearch.css';
 
@@ -201,6 +202,7 @@ const FlightSearch = () => {
   // null = normal mode
   // { step:'dest'|'origin', originCountry, destCountry, selectedDestCity, departureDate, returnDate, adults }
   const [countryFlow, setCountryFlow] = useState(null);
+  const [nearbyMeta,  setNearbyMeta]  = useState(null);
 
   const navigate = useNavigate();
   const formRef    = useRef(null);
@@ -224,6 +226,7 @@ const FlightSearch = () => {
     setTopFlights([]); setOtherFlights([]);
     setTpFlights([]); setAmadFlights([]);
     setError(''); setCurrentPage(1); setFilters(DEFAULT_FILTERS);
+    setNearbyMeta(null);
   };
 
   const handleSearch = async (params) => {
@@ -261,12 +264,14 @@ const FlightSearch = () => {
           departureDate:   params.departureDate,
           returnDate:      params.returnDate || null,
           adults:          params.adults,
+          includeNearby:   params.includeNearby || false,
         });
       } catch { /* fall through */ }
 
       if (duffelResult?.flights?.length > 0) {
         setSource('duffel');
         setDuffelFlights(duffelResult.flights);
+        if (duffelResult.nearbyMeta) setNearbyMeta(duffelResult.nearbyMeta);
         return;
       }
 
@@ -279,6 +284,7 @@ const FlightSearch = () => {
           departureDate:   params.departureDate,
           returnDate:      params.returnDate || null,
           adults:          params.adults,
+          includeNearby:   params.includeNearby || false,
         });
       } catch { /* fall through */ }
 
@@ -288,6 +294,7 @@ const FlightSearch = () => {
         setSource('gf');
         setTopFlights(gfResult.topFlights || []);
         setOtherFlights(gfResult.otherFlights || []);
+        if (gfResult.nearbyMeta) setNearbyMeta(gfResult.nearbyMeta);
         return;
       }
 
@@ -653,18 +660,27 @@ const FlightSearch = () => {
             )}
 
             {!isLoading && !error && allRaw.length === 0 && (
-              <div className="flight-empty">
-                <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>✈️</div>
-                <h3>No flights found</h3>
-                <p>
-                  No results for <strong>{lastSearch?.originCode} → {lastSearch?.destinationCode}</strong> on{' '}
-                  <strong>{lastSearch?.departureDate}</strong>. Try different dates.
-                </p>
-                <a href={buildAviasalesUrl(lastSearch)} target="_blank" rel="noopener noreferrer"
-                  className="fsf-search-btn" style={{ textDecoration: 'none', display: 'inline-flex', marginTop: 16 }}>
-                  Search on Aviasales ↗
-                </a>
-              </div>
+              !lastSearch?.includeNearby ? (
+                /* Auto-suggest: offer nearby airports when not yet tried */
+                <NearbyAirportsBanner
+                  lastSearch={lastSearch}
+                  onRetry={(enrichedParams) => handleSearch(enrichedParams)}
+                />
+              ) : (
+                /* Already tried nearby — show final empty state */
+                <div className="flight-empty">
+                  <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>✈️</div>
+                  <h3>No flights found</h3>
+                  <p>
+                    No results for <strong>{lastSearch?.originCode} → {lastSearch?.destinationCode}</strong> on{' '}
+                    <strong>{lastSearch?.departureDate}</strong>, including nearby airports. Try different dates.
+                  </p>
+                  <a href={buildAviasalesUrl(lastSearch)} target="_blank" rel="noopener noreferrer"
+                    className="fsf-search-btn" style={{ textDecoration: 'none', display: 'inline-flex', marginTop: 16 }}>
+                    Search on Aviasales ↗
+                  </a>
+                </div>
+              )
             )}
 
             {!isLoading && !error && allRaw.length > 0 && (() => {
@@ -680,6 +696,25 @@ const FlightSearch = () => {
                       <span className="flight-results-route"> — {route}</span>
                     </h2>
                     <p className="flight-results-note">{sourceNote}</p>
+                    {nearbyMeta && (
+                      <p className="flight-results-nearby-note">
+                        <svg viewBox="0 0 24 24" fill="none" width="13" height="13" style={{ display:'inline', marginRight:4, verticalAlign:'middle' }}>
+                          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/>
+                          <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                        </svg>
+                        Searched:{' '}
+                        <strong>
+                          {[lastSearch.originCode, ...(nearbyMeta.originAirports?.map(a => a.iata) || [])].join(', ')}
+                          {' → '}
+                          {[lastSearch.destinationCode, ...(nearbyMeta.destAirports?.map(a => a.iata) || [])].join(', ')}
+                        </strong>
+                        {nearbyMeta.destAirports?.length > 0 && (
+                          <span style={{ marginLeft: 8, color: '#64748b' }}>
+                            ({nearbyMeta.destAirports.map(a => `${a.iata} ${a.distanceKm} km`).join(', ')})
+                          </span>
+                        )}
+                      </p>
+                    )}
                   </div>
 
                   <div className="fs-results-layout">

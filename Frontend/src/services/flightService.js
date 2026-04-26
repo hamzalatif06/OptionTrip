@@ -80,9 +80,11 @@ export const searchFlightsGoogle = async ({
   originCode,
   destinationCode,
   departureDate,
-  returnDate   = null,
-  adults       = 1,
-  travelClass  = 'ECONOMY',
+  returnDate    = null,
+  adults        = 1,
+  travelClass   = 'ECONOMY',
+  includeNearby = false,
+  radius        = 250,
 }) => {
   const params = new URLSearchParams({
     origin:        originCode.trim().toUpperCase(),
@@ -91,13 +93,40 @@ export const searchFlightsGoogle = async ({
     adults:        String(adults),
     travelClass,
   });
-  if (returnDate) params.append('returnDate', returnDate);
+  if (returnDate)    params.append('returnDate',    returnDate);
+  if (includeNearby) { params.append('includeNearby', 'true'); params.append('radius', String(radius)); }
 
   const res  = await fetch(`${API_URL}/api/flights/google-search?${params.toString()}`);
   const data = await res.json();
 
   if (!data.success) throw new Error(data.message || 'Flight search failed');
-  return data.data; // { topFlights, otherFlights, flights, count }
+  return data.data; // { topFlights, otherFlights, flights, count, nearbyMeta? }
+};
+
+/**
+ * Fetch nearby airports for a given IATA code.
+ */
+/**
+ * Fetch cheapest cached prices per date for a full month.
+ * @param {{ origin, destination, month }} month = "YYYY-MM"
+ * @returns {Promise<{ [date: string]: number }>}  e.g. { "2026-05-01": 16012, ... }
+ */
+export const fetchMonthlyPrices = async ({ origin, destination, month }) => {
+  try {
+    const params = new URLSearchParams({ origin, destination, month });
+    const res  = await fetch(`${API_URL}/api/flights/monthly-prices?${params}`);
+    const data = await res.json();
+    return data.success ? (data.data?.prices || {}) : {};
+  } catch { return {}; }
+};
+
+export const fetchNearbyAirports = async ({ iata, radius = 250, limit = 3 }) => {
+  try {
+    const params = new URLSearchParams({ iata, radius: String(radius), limit: String(limit) });
+    const res  = await fetch(`${API_URL}/api/flights/nearby-airports?${params}`);
+    const data = await res.json();
+    return data.success ? (data.data?.nearby || []) : [];
+  } catch { return []; }
 };
 
 /**
@@ -153,9 +182,11 @@ export const searchFlightsDuffel = async ({
   originCode,
   destinationCode,
   departureDate,
-  returnDate  = null,
-  adults      = 1,
-  travelClass = 'economy',
+  returnDate    = null,
+  adults        = 1,
+  travelClass   = 'economy',
+  includeNearby = false,
+  radius        = 250,
 }) => {
   const params = new URLSearchParams({
     origin:      originCode.trim().toUpperCase(),
@@ -164,13 +195,14 @@ export const searchFlightsDuffel = async ({
     adults:      String(adults),
     travelClass,
   });
-  if (returnDate) params.append('returnDate', returnDate);
+  if (returnDate)    params.append('returnDate',    returnDate);
+  if (includeNearby) { params.append('includeNearby', 'true'); params.append('radius', String(radius)); }
 
   const res  = await fetch(`${API_URL}/api/flights/duffel-search?${params.toString()}`);
   const data = await res.json();
 
   if (!data.success) throw new Error(data.message || 'Duffel flight search failed');
-  return data.data; // { flights, count }
+  return data.data; // { flights, count, nearbyMeta? }
 };
 
 export const searchFlightsTP = async ({ origin, destination, departureAt, returnAt, limit }) => {

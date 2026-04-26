@@ -86,6 +86,16 @@
   margin: 0;
 }
 
+.flight-results-nearby-note {
+  font-size: 12px;
+  color: #029e9d;
+  margin: 6px 0 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
 /* ── Loading ───────────────────────────────────────────────────────────────── */
 .flight-loading {
   display: flex;
