@@ -52,7 +52,20 @@ const useCurrency = () => {
     }
   };
 
-  return { formatPrice, currency };
+  /**
+   * Format a price that is in a specific source currency (e.g. EUR from Hotelbeds, USD from GF).
+   * Converts source → USD → user currency.
+   */
+  const formatPriceFromCurrency = (amount, fromCurrency = 'USD') => {
+    if (amount === null || amount === undefined) return null;
+    const num = typeof amount === 'string' ? parseFloat(amount.replace(/[^0-9.]/g, '')) : amount;
+    if (isNaN(num) || num === 0) return formatPrice(0);
+    const fromRate = RATES_FROM_USD[fromCurrency] ?? 1;
+    const usdAmount = num / fromRate; // convert source → USD
+    return formatPrice(usdAmount);    // then USD → user currency
+  };
+
+  return { formatPrice, formatPriceFromCurrency, currency };
 };
 
 export default useCurrency;

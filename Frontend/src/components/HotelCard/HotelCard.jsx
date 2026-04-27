@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { getHotelRooms, getHotelDetails } from '../../services/hotelService';
+import useCurrency from '../../hooks/useCurrency';
 import './HotelCard.css';
 
 const Stars = ({ count }) => {
@@ -14,6 +15,7 @@ const Stars = ({ count }) => {
 };
 
 const HotelCard = ({ hotel }) => {
+  const { formatPriceFromCurrency } = useCurrency();
   const [photoIdx,    setPhotoIdx]    = useState(0);
   const [expanded,    setExpanded]    = useState(false);
   const [rooms,       setRooms]       = useState(null);
@@ -131,7 +133,7 @@ const HotelCard = ({ hotel }) => {
           {hotel.price && (
             <div className="hc-price">
               <span className="hc-price__from">From</span>
-              <span className="hc-price__amount">{hotel.currency} {Math.round(hotel.price).toLocaleString()}</span>
+              <span className="hc-price__amount">{formatPriceFromCurrency(hotel.price, hotel.currency || 'USD')}</span>
               <span className="hc-price__per">/ night</span>
             </div>
           )}
@@ -177,7 +179,7 @@ const HotelCard = ({ hotel }) => {
                     <div className="hc-room__cta">
                       {room.price && (
                         <p className="hc-room__price">
-                          <span className="hc-room__price-amount">{room.currency} {Math.round(room.price)}</span>
+                          <span className="hc-room__price-amount">{formatPriceFromCurrency(room.price, room.currency || 'USD')}</span>
                           <span className="hc-room__price-per">/night</span>
                         </p>
                       )}

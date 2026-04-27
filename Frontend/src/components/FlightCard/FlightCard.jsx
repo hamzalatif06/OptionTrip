@@ -1,4 +1,5 @@
 import React from 'react';
+import useCurrency from '../../hooks/useCurrency';
 import './FlightCard.css';
 
 /**
@@ -19,6 +20,7 @@ const formatDate = (isoStr) => {
 };
 
 const FlightCard = ({ flight }) => {
+  const { formatPriceFromCurrency } = useCurrency();
   const outbound = flight.itineraries?.[0];
   const inbound  = flight.itineraries?.[1]; // round-trip return leg
   const firstSeg = outbound?.segments?.[0];
@@ -106,7 +108,7 @@ const FlightCard = ({ flight }) => {
       {/* Price + CTA */}
       <div className="flight-card__cta">
         <div className="flight-price">
-          <span className="price-amount">{flight.currency} {flight.price}</span>
+          <span className="price-amount">{flight.price != null ? formatPriceFromCurrency(flight.price, flight.currency || 'USD') : '—'}</span>
           <span className="price-label">/ person</span>
         </div>
         <a

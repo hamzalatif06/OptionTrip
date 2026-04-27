@@ -1,4 +1,5 @@
 import React from 'react';
+import useCurrency from '../../hooks/useCurrency';
 import './FlightCardTP.css';
 
 const formatTime = (isoString) => {
@@ -14,6 +15,7 @@ const formatDate = (isoString) => {
 };
 
 const FlightCardTP = ({ flight }) => {
+  const { formatPriceFromCurrency } = useCurrency();
   const stopsLabel =
     flight.stops === 0
       ? 'Non-stop'
@@ -63,7 +65,7 @@ const FlightCardTP = ({ flight }) => {
           <div className="ftc-price">
             <span className="ftc-price__from">from</span>
             <span className="ftc-price__amount">
-              {flight.currency} {flight.price?.toLocaleString()}
+              {flight.price != null ? formatPriceFromCurrency(flight.price, flight.currency || 'USD') : '—'}
             </span>
           </div>
           <a

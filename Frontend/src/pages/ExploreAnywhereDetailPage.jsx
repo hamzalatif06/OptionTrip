@@ -4,16 +4,9 @@ import FlightCardDuffel from '../components/FlightCard/FlightCardDuffel';
 import { EXPLORE_DESTINATIONS } from '../data/exploreDestinations';
 import { exploreDestinations, searchAirports, searchFlightsDuffel } from '../services/flightService';
 import { getDestinationFallbackImage, getPlaceImagesForMultiplePlaces } from '../utils/destinationImages';
+import useCurrency from '../hooks/useCurrency';
 import './FlightSearch.css';
 import './ExploreAnywhereDetailPage.css';
-
-const formatPriceBand = (price) => {
-  const numericPrice = Number(price);
-  if (!Number.isFinite(numericPrice)) return null;
-  const lower = Math.max(100, Math.floor(numericPrice / 100) * 100);
-  const upper = lower + 200;
-  return `$${lower} - $${upper}`;
-};
 
 const INITIAL_VISIBLE_CARDS = 12;
 const LOAD_MORE_STEP = 12;
@@ -70,6 +63,7 @@ const normalizeDuffelFlight = (flight, fallbackOrigin, fallbackDestination) => {
 };
 
 const ExploreAnywhereDetailPage = () => {
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [priceMap, setPriceMap] = useState({});
@@ -503,8 +497,10 @@ const ExploreAnywhereDetailPage = () => {
               ) : (
                 <div className="explore-anywhere-cards">
                 {visibleDestinations.map((destination) => {
-                  const priceBand = formatPriceBand(priceMap[destination.iata]?.price);
-                  const displayPrice = priceBand || (isLoadingPrices ? 'Loading fare...' : 'Price unavailable');
+                  const rawPrice    = priceMap[destination.iata]?.price;
+                  const displayPrice = rawPrice != null
+                    ? formatPrice(rawPrice)
+                    : (isLoadingPrices ? 'Loading fare...' : 'Price unavailable');
                   const displayCity = destination.isNameResolved ? destination.city : 'Loading destination...';
                   const displayCountry = destination.isNameResolved
                     ? `${destination.country} · ${destination.iata}`

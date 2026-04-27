@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import useCurrency from '../../hooks/useCurrency';
 import './FlightCardGF.css';
 
 /* ── Helpers ── */
@@ -65,6 +66,7 @@ const InfoChip = ({ icon, label, value, highlight }) => (
 /* ── Main card ── */
 const FlightCardGF = ({ flight }) => {
   const [expanded, setExpanded] = useState(false);
+  const { formatPrice } = useCurrency();
 
   const {
     departureTime, arrivalTime, duration, stops,
@@ -77,8 +79,7 @@ const FlightCardGF = ({ flight }) => {
     returnFlightNumber,
   } = flight;
 
-  const sym          = currency === 'USD' ? '$' : (currency || '') + ' ';
-  const displayPrice = price != null ? Math.round(price) : null;
+  const displayPrice = price != null ? formatPrice(price) : null;
 
   return (
     <div className="fcgf">
@@ -112,7 +113,7 @@ const FlightCardGF = ({ flight }) => {
           <div className="fcgf__price-row">
             <span className="fcgf__price-from">from</span>
             <span className="fcgf__price-amount">
-              {displayPrice !== null ? `${sym}${displayPrice.toLocaleString()}` : '—'}
+              {displayPrice ?? '—'}
             </span>
             <span className="fcgf__price-per">/ person</span>
           </div>

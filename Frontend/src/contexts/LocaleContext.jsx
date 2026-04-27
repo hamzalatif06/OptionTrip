@@ -142,26 +142,45 @@ const TIMEZONE_COUNTRY = {
 
 // ── Auto-detection ────────────────────────────────────────────────────────────
 
-const detectCountryCode = () => {
-  // 1. Try navigator.language region (e.g. pt-BR → BR)
+/**
+ * Detect country code from the browser timezone.
+ * Timezone is location-based and is always preferred over navigator.language
+ * which reflects the browser UI language setting, not the user's location
+ * (e.g. a Pakistani user with en-GB browser language should still get PKR).
+ */
+const detectFromTimezone = () => {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (TIMEZONE_COUNTRY[tz]) return TIMEZONE_COUNTRY[tz];
+    // Broad prefix fallback (e.g. Asia/Unknown → IN)
+    const prefix = tz.split('/')[0];
+    const prefixMap = { Europe: 'DE', America: 'US', Asia: 'IN', Africa: 'ZA', Pacific: 'AU', Australia: 'AU' };
+    return prefixMap[prefix] || null;
+  } catch {
+    return null;
+  }
+};
+
+/** Last-resort: try navigator.language region tag (least reliable for currency). */
+const detectFromLanguage = () => {
   const locale = navigator.language || '';
   if (locale.includes('-')) {
     const region = locale.split('-')[1].toUpperCase();
     if (COUNTRIES.find(c => c.code === region)) return region;
   }
+  return null;
+};
 
-  // 2. Try timezone
-  try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (TIMEZONE_COUNTRY[tz]) return TIMEZONE_COUNTRY[tz];
+const applyCountryCode = (code, setCountryState, setCurrencyState, overrideExisting = false) => {
+  const savedCountry   = localStorage.getItem('optiontrip_country');
+  const savedCurrency  = localStorage.getItem('optiontrip_currency');
+  if (!overrideExisting && (savedCountry || savedCurrency)) return; // respect saved preference
 
-    // Try prefix match (e.g. Europe/Warsaw → PL via prefix match)
-    const prefix = tz.split('/')[0];
-    const prefixMap = { Europe: 'DE', America: 'US', Asia: 'IN', Africa: 'ZA', Pacific: 'AU', Australia: 'AU' };
-    if (prefixMap[prefix]) return prefixMap[prefix];
-  } catch {}
-
-  return 'US'; // final fallback
+  const country  = COUNTRIES.find(c => c.code === code);
+  if (!country) return;
+  const currency = CURRENCIES.find(c => c.code === country.currency) || CURRENCIES[0];
+  setCountryState(country);
+  setCurrencyState(currency);
 };
 
 // ── Context ───────────────────────────────────────────────────────────────────
@@ -172,23 +191,61 @@ export const LocaleProvider = ({ children }) => {
   const [country, setCountryState]   = useState(null);
   const [currency, setCurrencyState] = useState(null);
 
-  // Initialize on mount
   useEffect(() => {
-    const savedCountryCode   = localStorage.getItem('optiontrip_country');
-    const savedCurrencyCode  = localStorage.getItem('optiontrip_currency');
+    const savedCountryCode  = localStorage.getItem('optiontrip_country');
+    const savedCurrencyCode = localStorage.getItem('optiontrip_currency');
 
-    const detectedCode = detectCountryCode();
-    const detectedCountry  = COUNTRIES.find(c => c.code === (savedCountryCode || detectedCode)) || COUNTRIES[0];
-    const detectedCurrency = CURRENCIES.find(c => c.code === (savedCurrencyCode || detectedCountry.currency)) || CURRENCIES[0];
+    // ── Step 1: Use saved user preference ONLY if explicitly set by the user ──
+    // The 'optiontrip_manual' flag is written only when the user picks via CurrencySwitcher.
+    // This prevents stale auto-detected values (e.g. wrong GBP) from persisting.
+    const isManual = localStorage.getItem('optiontrip_manual') === '1';
+    if (isManual && (savedCountryCode || savedCurrencyCode)) {
+      const savedCountry  = COUNTRIES.find(c => c.code === savedCountryCode) || COUNTRIES[0];
+      const savedCurrency = CURRENCIES.find(c => c.code === (savedCurrencyCode || savedCountry.currency)) || CURRENCIES[0];
+      setCountryState(savedCountry);
+      setCurrencyState(savedCurrency);
+      return;
+    }
 
-    setCountryState(detectedCountry);
-    setCurrencyState(detectedCurrency);
+    // ── Step 2: Timezone detection (location-based, most accurate sync method)
+    const tzCode = detectFromTimezone();
+    if (tzCode) {
+      const country  = COUNTRIES.find(c => c.code === tzCode) || COUNTRIES[0];
+      const currency = CURRENCIES.find(c => c.code === country.currency) || CURRENCIES[0];
+      setCountryState(country);
+      setCurrencyState(currency);
+    } else {
+      // Fallback to browser language (least reliable)
+      const langCode = detectFromLanguage() || 'US';
+      const country  = COUNTRIES.find(c => c.code === langCode) || COUNTRIES[0];
+      const currency = CURRENCIES.find(c => c.code === country.currency) || CURRENCIES[0];
+      setCountryState(country);
+      setCurrencyState(currency);
+    }
+
+    // ── Step 3: IP geolocation (async, most accurate — refines after render) ─
+    // Only runs on first visit (no saved preference). Uses free ipapi.co API.
+    fetch('https://ipapi.co/json/')
+      .then(r => r.json())
+      .then(data => {
+        const ipCode = data?.country_code;
+        if (!ipCode) return;
+        const ipCountry  = COUNTRIES.find(c => c.code === ipCode);
+        if (!ipCountry) return;
+        const ipCurrency = CURRENCIES.find(c => c.code === ipCountry.currency) || CURRENCIES[0];
+        // Only update if the user hasn't changed anything manually yet
+        if (!localStorage.getItem('optiontrip_country')) {
+          setCountryState(ipCountry);
+          setCurrencyState(ipCurrency);
+        }
+      })
+      .catch(() => {}); // fail silently — timezone fallback already applied
   }, []);
 
   const setCountry = (countryObj, updateCurrency = true) => {
     setCountryState(countryObj);
     localStorage.setItem('optiontrip_country', countryObj.code);
-    // Auto-update currency to match country (unless user explicitly overrides currency)
+    localStorage.setItem('optiontrip_manual', '1'); // user explicitly chose
     if (updateCurrency) {
       const matchedCurrency = CURRENCIES.find(c => c.code === countryObj.currency);
       if (matchedCurrency) {
@@ -201,6 +258,7 @@ export const LocaleProvider = ({ children }) => {
   const setCurrency = (currencyObj) => {
     setCurrencyState(currencyObj);
     localStorage.setItem('optiontrip_currency', currencyObj.code);
+    localStorage.setItem('optiontrip_manual', '1'); // user explicitly chose
   };
 
   if (!country || !currency) return null; // wait for detection

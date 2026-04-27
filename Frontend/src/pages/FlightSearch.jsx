@@ -10,6 +10,7 @@ import FlightFilters, { DEFAULT_FILTERS, applyFilters } from '../components/Flig
 import CountryCityPicker from '../components/CountryCityPicker/CountryCityPicker';
 import NearbyAirportsBanner from '../components/NearbyAirportsBanner/NearbyAirportsBanner';
 import { searchFlightsDuffel, searchFlightsGoogle, searchFlightsTP, searchFlights as searchFlightsAmadeus } from '../services/flightService';
+import useCurrency from '../hooks/useCurrency';
 import './FlightSearch.css';
 
 const TP_MARKER = '370056';
@@ -124,12 +125,7 @@ const formatModalTime = (value) => {
   return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
 };
 
-const formatModalPrice = (currency, amount) => {
-  const parsed = Number(amount);
-  if (!Number.isFinite(parsed)) return null;
-  const symbol = currency === 'USD' ? '$' : `${currency || ''} `;
-  return `${symbol}${Math.round(parsed).toLocaleString()}`;
-};
+// formatModalPrice replaced by useCurrency.formatPriceFromCurrency — see FlightSearch component
 
 const normalizeExploreFlight = (flight, source, fallbackOrigin, fallbackDestination) => {
   if (source === 'amadeus') {
@@ -169,6 +165,7 @@ const normalizeExploreFlight = (flight, source, fallbackOrigin, fallbackDestinat
 };
 
 const FlightSearch = () => {
+  const { formatPriceFromCurrency } = useCurrency();
   const [source,        setSource]       = useState(SOURCE_NONE); // which API won
   const [duffelFlights, setDuffelFlights]= useState([]);          // Duffel
   const [topFlights,    setTopFlights]   = useState([]);          // GF top
@@ -884,7 +881,7 @@ const FlightSearch = () => {
 
                 <div className="explore-ticket-modal__list">
                   {exploreModal.tickets.map((ticket) => {
-                    const price = formatModalPrice(ticket.currency, ticket.price);
+                    const price = ticket.price != null ? formatPriceFromCurrency(ticket.price, ticket.currency || 'USD') : null;
                     const stopsText = ticket.stops === 0
                       ? 'Direct'
                       : `${ticket.stops} stop${ticket.stops > 1 ? 's' : ''}`;

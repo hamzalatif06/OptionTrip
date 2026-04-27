@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import useCurrency from '../../hooks/useCurrency';
 import './FlightCardDuffel.css';
 
 /* ── Helpers ── */
@@ -74,6 +75,7 @@ const InfoChip = ({ icon, label, value, highlight }) => (
 /* ── Main card ── */
 const FlightCardDuffel = ({ flight }) => {
   const [expanded, setExpanded] = useState(false);
+  const { formatPriceFromCurrency } = useCurrency();
 
   const {
     departureTime, arrivalTime, duration, stops,
@@ -87,8 +89,7 @@ const FlightCardDuffel = ({ flight }) => {
     returnFlightNumber,
   } = flight;
 
-  const sym          = currency === 'USD' ? '$' : (currency || '') + ' ';
-  const displayPrice = price != null ? Math.round(price) : null;
+  const displayPrice = price != null ? formatPriceFromCurrency(price, currency || 'USD') : null;
 
   return (
     <div className="fcdf">
@@ -122,7 +123,7 @@ const FlightCardDuffel = ({ flight }) => {
           <div className="fcdf__price-row">
             <span className="fcdf__price-from">from</span>
             <span className="fcdf__price-amount">
-              {displayPrice !== null ? `${sym}${displayPrice.toLocaleString()}` : '—'}
+              {displayPrice ?? '—'}
             </span>
             <span className="fcdf__price-per">/ person</span>
           </div>

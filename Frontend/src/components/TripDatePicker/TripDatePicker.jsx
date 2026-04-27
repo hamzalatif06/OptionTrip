@@ -9,6 +9,7 @@ import {
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 import { fetchMonthlyPrices } from '../../services/flightService';
+import useCurrency from '../../hooks/useCurrency';
 import './TripDatePicker.css';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -34,7 +35,7 @@ const MONTHS = buildMonths(12);
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-const PriceCalendar = ({ month, prices, loading, minDate, mode, onSelect, onBack }) => {
+const PriceCalendar = ({ month, prices, loading, minDate, mode, onSelect, onBack, formatPrice }) => {
   const [displayMonth, setDisplayMonth] = useState(month);
   const [phase,        setPhase]        = useState(0);   // 0=pick start, 1=pick end
   const [rangeStart,   setRangeStart]   = useState(null);
@@ -142,7 +143,7 @@ const PriceCalendar = ({ month, prices, loading, minDate, mode, onSelect, onBack
                 >
                   <span className="pc-day__num">{day.getDate()}</span>
                   {price && !past && (
-                    <span className="pc-day__price">${price.toLocaleString()}</span>
+                    <span className="pc-day__price">{formatPrice ? formatPrice(price) : `$${price.toLocaleString()}`}</span>
                   )}
                 </button>
               );
@@ -226,6 +227,8 @@ const TripDatePicker = ({
     const e = toDate(endDate)   || (mode === 'range' ? addDays(s, 1) : s);
     return [{ startDate: s, endDate: e, key: 'selection' }];
   }, [startDate, endDate, mode]);
+
+  const { formatPrice } = useCurrency();
 
   const [open,          setOpen]          = useState(false);
   const [dateMode,      setDateMode]      = useState('specific'); // 'specific'|'flexible'
@@ -415,6 +418,7 @@ const TripDatePicker = ({
                   loading={pricesLoading}
                   minDate={minD}
                   mode={mode}
+                  formatPrice={formatPrice}
                   onSelect={(s, e) => apply(s, e)}
                   onBack={() => { setFlexView('months'); setFlexMonth(null); setMonthPrices({}); }}
                 />

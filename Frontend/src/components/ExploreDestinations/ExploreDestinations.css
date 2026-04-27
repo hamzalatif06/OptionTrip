@@ -160,7 +160,7 @@
 
 .explore-card__city {
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 700;
   color: #fff;
   margin-bottom: 1px;
   line-height: 1.2;
@@ -197,8 +197,9 @@
 
 .explore-card__price-amount {
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
   color: #fff;
+  font-family: 'Inter', sans-serif;
   letter-spacing: -0.01em;
 }
 

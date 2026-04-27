@@ -2,15 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { exploreDestinations, searchAirports } from '../../services/flightService';
 import { EXPLORE_DESTINATIONS, getExploreImageUrl } from '../../data/exploreDestinations';
 import { getPlaceImagesForMultiplePlaces } from '../../utils/destinationImages';
+import useCurrency from '../../hooks/useCurrency';
 import './ExploreDestinations.css';
-
-const formatPriceBand = (price) => {
-  const numericPrice = Number(price);
-  if (!Number.isFinite(numericPrice)) return null;
-  const lower = Math.max(100, Math.floor(numericPrice / 100) * 100);
-  const upper = lower + 200;
-  return `$${lower} - $${upper}`;
-};
 
 /** Resolve city string → { iata, display } or null */
 const resolveOrigin = async (cityName) => {
@@ -38,6 +31,7 @@ const reverseGeocode = (lat, lon) =>
     .catch(() => '');
 
 const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
+  const { formatPrice } = useCurrency();
   const [prices,    setPrices]    = useState({});
   const [loading,   setLoading]   = useState(false);
   const [origin,    setOrigin]    = useState(originCode || '');   // IATA string
@@ -189,7 +183,7 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
                   {priceData ? (
                     <div className="explore-card__price">
                       <span className="explore-card__price-from">from</span>
-                      <span className="explore-card__price-amount">{formatPriceBand(priceData.price) || 'Price unavailable'}</span>
+                      <span className="explore-card__price-amount">{formatPrice(priceData.price) || 'Price unavailable'}</span>
                     </div>
                   ) : (
                     <div className="explore-card__price explore-card__price--na">
