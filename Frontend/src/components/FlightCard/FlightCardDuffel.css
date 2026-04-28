@@ -336,18 +336,38 @@
 .fcdf__chip {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   background: #fff;
   border: 1px solid #e8ecf0;
   border-radius: 10px;
-  padding: 8px 12px;
+  padding: 9px 13px;
   min-width: 140px;
 }
 
 .fcdf__chip--hl {
-  background: #f5f3ff;
-  border-color: #ddd6fe;
+  background: #f0fdfa;
+  border-color: #99f6e4;
 }
+
+/* Icon wrapper — inherits color so SVG strokes follow */
+.fcdf__chip-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #64748b;
+}
+.fcdf__chip--hl .fcdf__chip-icon { color: #029e9d; }
+
+/* Condition pill icon */
+.fcdf-cond__icon {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+.fcdf-cond--yes .fcdf-cond__icon { color: #029e9d; }
+.fcdf-cond--no  .fcdf-cond__icon { color: #ef4444; }
 
 .fcdf__chip-label {
   font-size: 10px;

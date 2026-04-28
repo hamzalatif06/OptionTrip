@@ -10,6 +10,8 @@ import FlightFilters, { DEFAULT_FILTERS, applyFilters } from '../components/Flig
 import CountryCityPicker from '../components/CountryCityPicker/CountryCityPicker';
 import NearbyAirportsBanner from '../components/NearbyAirportsBanner/NearbyAirportsBanner';
 import { searchFlightsDuffel, searchFlightsGoogle, searchFlightsTP, searchFlights as searchFlightsAmadeus } from '../services/flightService';
+import { searchHotels } from '../services/hotelService';
+import HotelCard from '../components/HotelCard/HotelCard';
 import useCurrency from '../hooks/useCurrency';
 import './FlightSearch.css';
 
@@ -201,6 +203,12 @@ const FlightSearch = () => {
   const [countryFlow, setCountryFlow] = useState(null);
   const [nearbyMeta,  setNearbyMeta]  = useState(null);
 
+  // Hotels-under-flights state
+  const [hotelResults,  setHotelResults]  = useState([]);
+  const [hotelsLoading, setHotelsLoading] = useState(false);
+  const [hotelError,    setHotelError]    = useState(null);
+  const [hotelsFor,     setHotelsFor]     = useState(null);
+
   const navigate = useNavigate();
   const formRef    = useRef(null);
   const exploreRef = useRef(null);
@@ -224,6 +232,7 @@ const FlightSearch = () => {
     setTpFlights([]); setAmadFlights([]);
     setError(''); setCurrentPage(1); setFilters(DEFAULT_FILTERS);
     setNearbyMeta(null);
+    setHotelResults([]); setHotelsLoading(false); setHotelError(null); setHotelsFor(null);
   };
 
   const handleSearch = async (params) => {
@@ -250,6 +259,29 @@ const FlightSearch = () => {
     setSearched(true);
     setLastSearch(params);
     resetResults();
+
+    // ── Hotel search (fire-and-forget — never blocks the flight cascade) ──────
+    if (params.includeHotels && params.destinationCode && !/^[A-Z]{2}$/i.test(params.destinationCode)) {
+      const cityName = (params.destinationDisplay || '').split(' (')[0].trim();
+      const checkIn  = params.departureDate;
+      const checkOut = params.returnDate || (() => {
+        const d = new Date(params.departureDate + 'T00:00:00');
+        d.setDate(d.getDate() + 3);
+        return d.toISOString().split('T')[0];
+      })();
+      setHotelsLoading(true);
+      setHotelsFor(cityName || params.destinationCode);
+      searchHotels({
+        destId:     params.destinationCode.toUpperCase(),
+        searchType: 'CITY',
+        checkIn,
+        checkOut,
+        adults:   params.adults || 1,
+        cityName,
+      })
+        .then(data => { setHotelResults(data.hotels || []); setHotelsLoading(false); })
+        .catch(err  => { console.warn('Hotel search failed:', err.message); setHotelError(err.message); setHotelsLoading(false); });
+    }
 
     try {
       /* ── Stage 0: Duffel ─────────────────────────────────────── */
@@ -917,6 +949,81 @@ const FlightSearch = () => {
             )}
           </div>
         </div>
+      )}
+
+      {/* ── Hotels in destination ── */}
+      {(hotelsLoading || hotelResults.length > 0 || hotelError) && (
+        <section className="flt-hotels-section">
+          <div className="container">
+
+            {/* Header — same design language as flight section headers */}
+            <div className="fs-section-header fs-section-header--hotel" style={{ marginTop: 0 }}>
+              <div className="fs-section-header__left">
+                <div className="fs-section-header__icon">
+                  {/* Hotel/bed icon */}
+                  <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+                    <path d="M2 20h20M2 20V8l10-5 10 5v12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M9 20v-5h6v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <rect x="11" y="8" width="2" height="3" rx="0.5" fill="currentColor" opacity="0.6"/>
+                  </svg>
+                </div>
+                <div>
+                  <div className="fs-section-header__title">
+                    Hotels in {hotelsFor}
+                  </div>
+                  <div className="fs-section-header__sub">
+                    {lastSearch?.departureDate && (
+                      <>
+                        Check-in {lastSearch.departureDate}
+                        {lastSearch.returnDate
+                          ? ` · Check-out ${lastSearch.returnDate}`
+                          : ' (3 nights)'}
+                        {` · ${lastSearch.adults} adult${lastSearch.adults !== 1 ? 's' : ''}`}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {!hotelsLoading && hotelResults.length > 0 && (
+                <span className="fs-section-header__badge">
+                  {hotelResults.length} hotel{hotelResults.length !== 1 ? 's' : ''}
+                </span>
+              )}
+              {hotelsLoading && (
+                <span className="fs-section-header__badge flt-hotels-badge--loading">
+                  Searching…
+                </span>
+              )}
+            </div>
+
+            {hotelsLoading && (
+              <div className="flt-hotels-grid" style={{ marginTop: 16 }}>
+                {[1,2,3].map(i => (
+                  <div key={i} className="hs-skeleton">
+                    <div className="hs-skeleton__img pulse" />
+                    <div className="hs-skeleton__body">
+                      <div className="hs-skeleton__line pulse" />
+                      <div className="hs-skeleton__line hs-skeleton__line--short pulse" />
+                    </div>
+                    <div className="hs-skeleton__cta pulse" />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {!hotelsLoading && hotelError && (
+              <p className="flt-hotels-error">Could not load hotels — {hotelError}</p>
+            )}
+
+            {!hotelsLoading && !hotelError && hotelResults.length > 0 && (
+              <div className="flt-hotels-grid">
+                {hotelResults.slice(0, 6).map(hotel => (
+                  <HotelCard key={hotel.hotelId} hotel={hotel} />
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
       )}
     </>
   );

@@ -16,7 +16,8 @@
 .fs-results-layout *,
 .fcgf, .fcgf *,
 .fcdf, .fcdf *,
-.ftc-card, .ftc-card * {
+.ftc-card, .ftc-card *,
+.flt-hotels-section, .flt-hotels-section * {
   font-family: 'Inter', sans-serif !important;
 }
 
@@ -64,6 +65,33 @@
 .flight-results-section {
   padding: 40px 0 80px;
 }
+
+/* ── Hotels under flights ──────────────────────────────────────────────────── */
+.flt-hotels-section {
+  padding: 48px 0 64px;
+  background: #f8fafc;
+  border-top: 1px solid #e8ecef;
+}
+
+/* .flt-hotels-header/.flt-hotels-title/.flt-hotels-dates replaced by fs-section-header--hotel */
+
+.flt-hotels-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.flt-hotels-grid .hc-card { margin-bottom: 0; }
+
+.flt-hotels-error {
+  color: #ef4444;
+  font-size: 14px;
+  padding: 12px 0;
+}
+
+@media (max-width: 1100px) { .flt-hotels-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px)  { .flt-hotels-grid { grid-template-columns: 1fr; } }
 
 .flight-results-header {
   margin-bottom: 24px;
@@ -241,6 +269,16 @@
 .fs-section-header--other {
   background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
 }
+
+.fs-section-header--hotel {
+  background: linear-gradient(135deg, #0f4c6b 0%, #0e6b8a 50%, #0891b2 100%);
+}
+
+.flt-hotels-badge--loading {
+  opacity: 0.7;
+  animation: fs-badge-pulse 1.2s ease-in-out infinite;
+}
+@keyframes fs-badge-pulse { 0%,100%{opacity:0.7} 50%{opacity:0.3} }
 
 .fs-section-header__left {
   display: flex;

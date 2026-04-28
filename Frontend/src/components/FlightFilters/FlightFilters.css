@@ -2,7 +2,13 @@
 .flf-aside {
   width: 260px;
   flex-shrink: 0;
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox — hide inner scrollbar */
 }
+.flf-aside::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 
 /* ── Mobile toggle (hidden on desktop) ─────────────────────────────────────── */
 .flf-mobile-toggle {

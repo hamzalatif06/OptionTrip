@@ -2,6 +2,18 @@ import React, { useState } from 'react';
 import useCurrency from '../../hooks/useCurrency';
 import './FlightCardDuffel.css';
 
+/* ── SVG icon set ── */
+const Ic = {
+  airplane:   <svg viewBox="0 0 24 24" fill="none" width="15" height="15"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  seat:       <svg viewBox="0 0 24 24" fill="none" width="15" height="15"><path d="M5 4v9M19 4v9M5 13h14a2 2 0 010 4H5a2 2 0 010-4zM10 21h4M12 17v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  carryOn:    <svg viewBox="0 0 24 24" fill="none" width="15" height="15"><path d="M9 4a3 3 0 016 0v1h1a2 2 0 012 2v11a2 2 0 01-2 2H8a2 2 0 01-2-2V7a2 2 0 012-2h1V4z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M12 11v4M10 13h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+  luggage:    <svg viewBox="0 0 24 24" fill="none" width="15" height="15"><rect x="5" y="8" width="14" height="13" rx="1.5" stroke="currentColor" strokeWidth="1.5"/><path d="M16 8V6a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M8 13h8M12 10v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+  changeable: <svg viewBox="0 0 24 24" fill="none" width="15" height="15"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  refund:     <svg viewBox="0 0 24 24" fill="none" width="15" height="15"><path d="M3 12a9 9 0 109-9H3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M3 4v8h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  check:      <svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8"/><path d="M8 12l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  cross:      <svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8"/><path d="M9 9l6 6M15 9l-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>,
+};
+
 /* ── Helpers ── */
 const StopBadge = ({ stops }) =>
   stops === 0
@@ -12,7 +24,8 @@ const ConditionPill = ({ allowed, label }) => {
   if (allowed === null || allowed === undefined) return null;
   return (
     <span className={`fcdf-cond${allowed ? ' fcdf-cond--yes' : ' fcdf-cond--no'}`}>
-      {allowed ? '✓' : '✗'} {label}
+      <span className="fcdf-cond__icon">{allowed ? Ic.check : Ic.cross}</span>
+      {label}
     </span>
   );
 };
@@ -64,7 +77,7 @@ const Leg = ({ logo, airline, time1, iata1, city1, duration, stops, time2, iata2
 /* ── InfoChip for expanded ── */
 const InfoChip = ({ icon, label, value, highlight }) => (
   <div className={`fcdf__chip${highlight ? ' fcdf__chip--hl' : ''}`}>
-    <span>{icon}</span>
+    <div className="fcdf__chip-icon">{icon}</div>
     <div>
       <div className="fcdf__chip-label">{label}</div>
       <div className="fcdf__chip-value">{value}</div>
@@ -146,20 +159,18 @@ const FlightCardDuffel = ({ flight }) => {
       {expanded && (
         <div className="fcdf__details">
           <div className="fcdf__chips">
-            {aircraft   && <InfoChip icon="✈" label="Aircraft"    value={aircraft} />}
-            {cabinClass && <InfoChip icon="💺" label="Cabin class" value={cabinClass} highlight />}
-            <InfoChip icon="🎒" label="Carry-on"
+            {aircraft   && <InfoChip icon={Ic.airplane}   label="Aircraft"     value={aircraft} />}
+            {cabinClass && <InfoChip icon={Ic.seat}       label="Cabin class"  value={cabinClass} highlight />}
+            <InfoChip icon={Ic.carryOn}  label="Carry-on"
               value={bags?.carry_on > 0 ? `${bags.carry_on} bag included` : 'Not included'}
               highlight={bags?.carry_on > 0} />
-            <InfoChip icon="🧳" label="Checked bag"
+            <InfoChip icon={Ic.luggage} label="Checked bag"
               value={bags?.checked > 0 ? `${bags.checked} bag included` : 'Not included'}
               highlight={bags?.checked > 0} />
-            <InfoChip
-              icon={changeable ? '✅' : '❌'} label="Change fee"
+            <InfoChip icon={Ic.changeable} label="Change fee"
               value={changeable === null ? 'Unknown' : changeable ? 'Changeable' : 'Non-changeable'}
               highlight={changeable === true} />
-            <InfoChip
-              icon={refundable ? '✅' : '❌'} label="Refund"
+            <InfoChip icon={Ic.refund} label="Refund"
               value={refundable === null ? 'Unknown' : refundable ? 'Refundable' : 'Non-refundable'}
               highlight={refundable === true} />
           </div>
