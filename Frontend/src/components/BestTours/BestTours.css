@@ -48,27 +48,35 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #f8f9fa;
-  padding: 8px 12px;
+  background: rgba(2, 158, 157, 0.12);
+  border: 1.5px solid rgba(2, 158, 157, 0.3);
+  padding: 0 16px;
   border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
   flex: 0 0 auto;
+  height: 44px;
+  box-sizing: border-box;
 }
 
 .guest-selector-inline label {
   color: #029e9d;
   margin: 0;
   font-size: 14px;
+  font-weight: 600;
 }
 
 .guest-selector-inline select {
   border: none;
   background: transparent;
   font-size: 14px;
-  font-weight: 500;
-  color: #333;
+  font-weight: 600;
+  color: #029e9d;
   cursor: pointer;
   padding-right: 5px;
   outline: none;
+  height: 100%;
+  -webkit-appearance: auto;
 }
 
 .guest-selector-inline select:focus {
@@ -84,11 +92,13 @@
   background: linear-gradient(135deg, #029e9d 0%, #027b7a 100%);
   color: white;
   border: none;
-  padding: 10px 16px;
+  padding: 0 16px;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  height: 44px;
+  box-sizing: border-box;
   transition: all 0.3s ease;
 }
 

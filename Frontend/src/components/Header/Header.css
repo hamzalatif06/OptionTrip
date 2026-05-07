@@ -178,7 +178,7 @@
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
-  color: #122D46;
+  /* color: #122D46; */
   text-align: left;
   transition: background 0.15s;
 }
@@ -306,7 +306,7 @@
   gap: 8px;
   font-size: 15px;
   font-weight: 600;
-  color: #122D46;
+  /* color: #122D46; */
   background: transparent;
   border: none;
   cursor: pointer;

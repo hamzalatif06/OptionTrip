@@ -8,6 +8,7 @@ import BestTours from '../components/BestTours/BestTours';
 import LastMinuteDeals from '../components/LastMinuteDeals/LastMinuteDeals';
 import DiscountAction from '../components/DiscountAction/DiscountAction';
 import FeaturedBlogSection from '../components/FeaturedBlogSection/FeaturedBlogSection';
+import WhyChooseUs from '../components/WhyChooseUs/WhyChooseUs';
 // import OfferPackages from '../components/OfferPackages/OfferPackages';
 import OurTeam from '../components/OurTeam/OurTeam';
 import Testimonials from '../components/Testimonials/Testimonials';
@@ -59,14 +60,15 @@ const Home = () => {
       <AboutUs />
       <TopDestinations />
       <AboutSection />
+      <WhyChooseUs />
       <BestTours />
       <LastMinuteDeals />
       <FeaturedBlogSection />
-      <DiscountAction />
+      {/* <DiscountAction /> */}
       {/* <OfferPackages /> */}
       {/* <OurTeam /> */}
-      <Testimonials />
-      <RecentArticles />
+      {/* <Testimonials /> */}
+      {/* <RecentArticles /> */}
     </>
   );
 };
