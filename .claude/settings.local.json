@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(sed 's/=.*//')"
+      "Bash(sed 's/=.*//')",
+      "Bash(npm install *)",
+      "Bash(node --input-type=module --eval \"import\\('./src/routes/trips.js'\\).then\\(\\(\\)=>console.log\\('OK'\\)\\).catch\\(e=>console.error\\('ERR',e.message\\)\\)\")",
+      "Bash(node --input-type=module --eval \"import\\('./src/routes/trips.js'\\).then\\(m=>console.log\\('OK, routes:', Object.keys\\(m\\)\\)\\).catch\\(e=>console.error\\('ERR',e.message\\)\\)\")",
+      "Bash(node --env-file=.env --input-type=module --eval \"import\\('./src/routes/trips.js'\\).then\\(m=>console.log\\('OK'\\)\\).catch\\(e=>console.error\\('ERR',e.message\\)\\)\")",
+      "PowerShell(Get-Process -Id 20072 -ErrorAction SilentlyContinue)"
     ]
   }
 }

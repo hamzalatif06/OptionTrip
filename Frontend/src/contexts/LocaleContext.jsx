@@ -224,8 +224,9 @@ export const LocaleProvider = ({ children }) => {
     }
 
     // ── Step 3: IP geolocation (async, most accurate — refines after render) ─
-    // Only runs on first visit (no saved preference). Uses free ipapi.co API.
-    fetch('https://ipapi.co/json/')
+    // Proxied through backend to avoid browser CORS restrictions on ipapi.co
+    const GEO_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api/geo/ip';
+    fetch(GEO_URL)
       .then(r => r.json())
       .then(data => {
         const ipCode = data?.country_code;

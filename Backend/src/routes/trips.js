@@ -9,7 +9,8 @@ import {
   getUserTrips,
   generateSingleDay,
   getDayItinerary,
-  parseTripDescriptionController
+  parseTripDescriptionController,
+  getMapData
 } from '../controllers/tripController.js';
 import {
   validateTripGeneration,
@@ -44,6 +45,9 @@ router.post('/generate-options', validateTripGeneration, generateTripOptions);
 
 // GET /api/trips/my-trips - Get authenticated user's saved trips (must be before :tripId routes)
 router.get('/my-trips', authenticate, getMyTrips);
+
+// GET /api/trips/map-data - Lightweight trip data for travel map (auth required)
+router.get('/map-data', authenticate, getMapData);
 
 // GET /api/trips/user/:userId - Get all trips for a user (public)
 router.get('/user/:userId', getUserTrips);

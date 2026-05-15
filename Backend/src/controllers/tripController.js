@@ -380,6 +380,33 @@ export const getMyTrips = async (req, res) => {
   }
 };
 
+// GET /api/trips/map-data — lightweight projection for travel map
+export const getMapData = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const trips  = await Trip.find({ user_id: userId })
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .select('trip_id destination dates status budget description options.itinerary.activities.title options.itinerary.activities.location options.itinerary.activities.category');
+
+    // Build a slim payload — only what the map needs
+    const mapTrips = trips.map(t => ({
+      trip_id:     t.trip_id,
+      destination: t.destination,
+      dates:       t.dates,
+      status:      t.status,
+      budget:      t.budget,
+      description: t.description,
+      options:     t.options,
+    }));
+
+    res.json({ success: true, trips: mapTrips, total: mapTrips.length });
+  } catch (err) {
+    console.error('Error fetching map data:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 // GET /api/trips/user/:userId - Get all trips for a user (public)
 export const getUserTrips = async (req, res) => {
   try {

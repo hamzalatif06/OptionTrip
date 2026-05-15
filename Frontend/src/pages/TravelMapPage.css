@@ -1,0 +1,129 @@
+/* ── Page layout ─────────────────────────────────────────────────────────── */
+.tmp-page {
+  position: relative;
+  height: calc(100vh - 70px);
+  display: flex;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+/* ── Map wrapper ─────────────────────────────────────────────────────────── */
+.tmp-map-wrap {
+  flex: 1;
+  position: relative;
+  transition: margin-left 0.3s cubic-bezier(.4,0,.2,1);
+}
+.tmp-map-wrap--shifted {
+  margin-left: 300px;
+}
+@media (max-width: 900px) {
+  .tmp-map-wrap--shifted { margin-left: 0; }
+}
+
+/* ── Loading overlay ─────────────────────────────────────────────────────── */
+.tmp-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: rgba(15, 23, 42, 0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: #e2e8f0;
+  font-size: 14px;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+}
+.tmp-loader__spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(2,158,157,0.2);
+  border-top-color: #029e9d;
+  border-radius: 50%;
+  animation: tmp-spin 0.75s linear infinite;
+}
+@keyframes tmp-spin { to { transform: rotate(360deg); } }
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+.tmp-empty {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  background: #fff;
+  border-radius: 20px;
+  padding: 40px 48px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+  max-width: 340px;
+}
+[data-theme="dark"] .tmp-empty { background: #1e293b; }
+.tmp-empty svg { color: #94a3b8; margin-bottom: 12px; }
+.tmp-empty h3 { font-size: 18px; font-weight: 800; color: #0f172a; margin: 0 0 8px; }
+[data-theme="dark"] .tmp-empty h3 { color: #f8fafc; }
+.tmp-empty p { font-size: 13px; color: #64748b; margin: 0 0 20px; line-height: 1.6; }
+.tmp-empty__btn {
+  display: inline-flex;
+  align-items: center;
+  background: #029e9d;
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.tmp-empty__btn:hover { background: #027b7a; color: #fff; }
+
+/* ── No-token screen ─────────────────────────────────────────────────────── */
+.tmp-no-token {
+  min-height: calc(100vh - 70px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+}
+[data-theme="dark"] .tmp-no-token { background: #0f172a; }
+.tmp-no-token__card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 48px;
+  text-align: center;
+  max-width: 440px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+}
+[data-theme="dark"] .tmp-no-token__card { background: #1e293b; }
+.tmp-no-token__card h2 { font-size: 22px; font-weight: 800; color: #0f172a; margin: 16px 0 10px; }
+[data-theme="dark"] .tmp-no-token__card h2 { color: #f8fafc; }
+.tmp-no-token__card p { font-size: 14px; color: #64748b; line-height: 1.65; margin: 0 0 20px; }
+.tmp-no-token__card code {
+  background: #f1f5f9;
+  color: #029e9d;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.tmp-no-token__link {
+  display: inline-flex;
+  background: #029e9d;
+  color: #fff;
+  padding: 11px 24px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.tmp-no-token__link:hover { background: #027b7a; color: #fff; }
+
+/* ── Mapbox control overrides ────────────────────────────────────────────── */
+.mapboxgl-ctrl-group {
+  border-radius: 10px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+  overflow: hidden;
+}
+.mapboxgl-ctrl button { width: 32px !important; height: 32px !important; }

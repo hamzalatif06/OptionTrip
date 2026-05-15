@@ -1,0 +1,73 @@
+/* ── Base marker ─────────────────────────────────────────────────────────── */
+.tm-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transform-origin: bottom center;
+  transition: transform 0.18s cubic-bezier(.4,0,.2,1);
+}
+.tm-marker--hovered  { transform: scale(1.15) translateY(-2px); }
+.tm-marker--selected { transform: scale(1.2) translateY(-3px); }
+
+/* ── Dot ─────────────────────────────────────────────────────────────────── */
+.tm-marker__dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: var(--mc, #029e9d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  border: 2.5px solid #fff;
+  color: #fff;
+}
+.tm-marker__dot svg { transform: rotate(45deg); }
+
+/* Small activity dot */
+.tm-marker__dot--sm {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  transform: none;
+}
+.tm-marker__dot--sm svg { transform: none; }
+
+/* ── Label ───────────────────────────────────────────────────────────────── */
+.tm-marker__label {
+  margin-top: 4px;
+  background: #fff;
+  color: #0f172a;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 100px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+[data-theme="dark"] .tm-marker__label { background: #1e293b; color: #f1f5f9; border-color: #2d3f55; }
+
+/* ── Pulse ring (selected destination) ──────────────────────────────────── */
+.tm-marker__pulse {
+  position: absolute;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 3px solid var(--mc, #029e9d);
+  animation: tm-pulse 1.6s ease-out infinite;
+  pointer-events: none;
+  top: -8px;
+  left: -8px;
+}
+.tm-marker--dest { position: relative; }
+
+@keyframes tm-pulse {
+  0%   { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}

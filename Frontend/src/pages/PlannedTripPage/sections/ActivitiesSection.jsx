@@ -13,6 +13,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ExploreIcon from '@mui/icons-material/Explore';
 import FlightTab from './FlightTab';
 import HotelTab from './HotelTab';
+import TripMapTab from './TripMapTab';
 
 /**
  * ActivitiesSection - Main itinerary section with tab navigation
@@ -366,9 +367,7 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
             <FlightTab tripData={tripData} />
           )}
           {activeTab === 3 && (
-            <div className="activities-section__coming-soon">
-              <p>Map view coming soon</p>
-            </div>
+            <TripMapTab tripData={tripData} daysData={daysData} />
           )}
           {activeTab === 4 && (
             <div className="activities-section__coming-soon">
