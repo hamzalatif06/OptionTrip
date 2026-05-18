@@ -86,6 +86,17 @@ const TripPlannerForm = () => {
     };
   }, []);
 
+  // Parse YYYY-MM-DD safely in local timezone
+  const parseLocalDate = (str) => {
+    if (!str) return null;
+    const [y, m, d] = str.split('-').map(Number);
+    return new Date(y, m - 1, d, 12, 0, 0);
+  };
+
+  // Format a local Date to YYYY-MM-DD without UTC shift
+  const toDateStr = (date) =>
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
   // ─── AI auto-fill from parsed data ───────────────────────────────
   const applyParsedData = useCallback((parsed) => {
     setFormData(prev => {
@@ -100,25 +111,28 @@ const TripPlannerForm = () => {
         };
       }
 
+      // Apply dates — AI now always tries to provide both start_date and end_date
       if (parsed.start_date) next.start_date = parsed.start_date;
       if (parsed.end_date)   next.end_date   = parsed.end_date;
 
       if (parsed.start_date && parsed.duration_days && !parsed.end_date) {
-        const s = new Date(parsed.start_date);
+        // AI gave start + duration but not end → compute end
+        const s = parseLocalDate(parsed.start_date);
         s.setDate(s.getDate() + parsed.duration_days - 1);
-        next.end_date      = s.toISOString().split('T')[0];
+        next.end_date      = toDateStr(s);
         next.duration_days = parsed.duration_days;
       } else if (parsed.start_date && parsed.end_date) {
-        const s = new Date(parsed.start_date);
-        const e = new Date(parsed.end_date);
+        // Both provided → compute duration
+        const s = parseLocalDate(parsed.start_date);
+        const e = parseLocalDate(parsed.end_date);
         next.duration_days = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
-      } else if (parsed.duration_days) {
+      } else if (parsed.duration_days && !parsed.start_date) {
         next.duration_days = parsed.duration_days;
       }
 
       if (next.start_date) {
-        next.month_year = new Date(next.start_date)
-          .toLocaleString('default', { month: 'long', year: 'numeric' });
+        const s = parseLocalDate(next.start_date);
+        next.month_year = s.toLocaleString('default', { month: 'long', year: 'numeric' });
       }
 
       if (parsed.tripType && TRIP_TYPE_LABELS[parsed.tripType]) {

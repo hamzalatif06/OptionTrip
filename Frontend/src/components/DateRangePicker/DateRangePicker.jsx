@@ -5,6 +5,13 @@ import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 import './DateRangePicker.css';
 
+// Parse YYYY-MM-DD string safely in local timezone (avoids UTC midnight off-by-one)
+const parseLocalDate = (str) => {
+  if (!str) return null;
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d, 12, 0, 0);
+};
+
 const DateRangePickerComponent = ({
   selectedDates = [],
   onDateRangeChange,
@@ -18,25 +25,25 @@ const DateRangePickerComponent = ({
   });
   const pickerRef = useRef(null);
 
-  // Initialize dates
+  // Set default dates once on mount (only when no external dates provided)
+  useEffect(() => {
+    if (!selectedDates[0] && !selectedDates[1]) {
+      const defaultStart = addMonths(new Date(), 3);
+      const defaultEnd = addDays(defaultStart, 4);
+      setDateRange({ startDate: defaultStart, endDate: defaultEnd, key: 'selection' });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // React to externally-set dates (e.g. AI auto-fill from speech / text input)
   useEffect(() => {
     if (selectedDates[0] && selectedDates[1]) {
       setDateRange({
-        startDate: new Date(selectedDates[0]),
-        endDate: new Date(selectedDates[1]),
-        key: 'selection'
-      });
-    } else {
-      // Default: 3 months from now + 4 days (like TripTap)
-      const defaultStart = addMonths(new Date(), 3);
-      const defaultEnd = addDays(defaultStart, 4);
-      setDateRange({
-        startDate: defaultStart,
-        endDate: defaultEnd,
+        startDate: parseLocalDate(selectedDates[0]),
+        endDate: parseLocalDate(selectedDates[1]),
         key: 'selection'
       });
     }
-  }, []);
+  }, [selectedDates[0], selectedDates[1]]);
 
   // Close picker when clicking outside
   useEffect(() => {

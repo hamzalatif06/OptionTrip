@@ -538,11 +538,11 @@ export const parseTripDescription = async (text) => {
         content: `You are a travel assistant that extracts structured trip information from natural language text.
 Today's date is ${today}.
 
-Extract the following fields from the user's trip description and return ONLY valid JSON (no markdown, no explanation):
+Extract the following fields and return ONLY valid JSON (no markdown, no explanation):
 
 {
   "destination": {
-    "text": "City, Country or region as written",
+    "text": "City, Country or region the user wants to VISIT",
     "name": "City or place name only"
   },
   "start_date": "YYYY-MM-DD or null",
@@ -558,14 +558,43 @@ Extract the following fields from the user's trip description and return ONLY va
   "activities": ["array", "of", "detected", "interests"] or []
 }
 
-Rules:
-- If a field is not mentioned, return null for it (or [] for arrays)
-- For guests: "family of 4" = 2 adults + 2 children. "couple" = 2 adults. "solo" = 1 adult. "wife and 2 kids" = 2 adults 2 children. "me and my friend" = 2 adults.
-- For budget: "cheap/backpacker/economy" = "budget", "mid-range/moderate/normal" = "moderate", "high-end/luxury/5-star" = "luxury", "ultra-luxury/premium/first-class" = "premium"
-- For tripType: detect from context - mentions of kids/family = "Family", romantic/honeymoon/couple = "Romantic", hiking/climbing/extreme = "Adventure", history/museum/culture = "Cultural", beach/spa/relax = "Relaxation"
-- For duration: if user says "5 days", set duration_days=5 and compute end_date from start_date if available
-- Dates: interpret relative dates (e.g. "next month", "in July") from today's date ${today}
-- activities: extract hobbies/interests like "hiking", "local food", "art galleries", "beaches" etc.`
+DESTINATION rules:
+- destination is WHERE THE USER WANTS TO GO, NOT where they are leaving from
+- "from London to Paris" → destination = Paris (London is the origin, ignore it)
+- "fly from Dubai to Tokyo" → destination = Tokyo
+- "I want to visit Rome" → destination = Rome
+- "going to Barcelona" → destination = Barcelona
+
+DATE rules (very important — always compute both start_date AND end_date when possible):
+- Today is ${today}. Use this as the reference for all relative dates.
+- If the user gives a specific day+month (e.g. "23 May", "May 23rd"), infer the year: use current year if that date hasn't passed yet, otherwise next year.
+- "on 23 May" with today ${today} → start_date = "${new Date().getFullYear()}-05-23" (or next year if already past)
+- "go back in X days" / "return in X days" / "coming back in X days" after a start date → end_date = start_date + X days; duration_days = X + 1
+- "stay for X days" / "X-day trip" → duration_days = X; if start_date known, end_date = start_date + X - 1 days
+- "X nights" → duration_days = X + 1; if start_date known, end_date = start_date + X days
+- "next month" → first day of next calendar month
+- "in July" → July 1st of current or next year (whichever is upcoming)
+- Always try to produce BOTH start_date and end_date; compute the missing one when duration is given
+- Return all dates as YYYY-MM-DD strings
+
+GUEST rules:
+- "family of 4" = 2 adults + 2 children. "couple" = 2 adults. "solo" = 1 adult.
+- "wife and 2 kids" = 2 adults + 2 children. "me and my friend" = 2 adults. "3 adults" = 3 adults.
+- "with my partner" = 2 adults. "honeymoon" = 2 adults.
+
+BUDGET rules:
+- "cheap/backpacker/economy/low cost" = "budget"
+- "mid-range/moderate/normal/average" = "moderate"
+- "high-end/luxury/5-star/upscale" = "luxury"
+- "ultra-luxury/premium/first-class/private" = "premium"
+
+TRIP TYPE rules:
+- kids/family mentioned = "Family"; romantic/honeymoon/couple = "Romantic"
+- hiking/climbing/extreme/adventure = "Adventure"; history/museum/culture/heritage = "Cultural"
+- beach/spa/relax/chill/wellness = "Relaxation"; work/conference/meeting = "Business"
+
+- activities: extract hobbies/interests like "hiking", "local food", "art galleries", "beaches" etc.
+- If a field is not mentioned, return null (or [] for arrays).`
       },
       {
         role: 'user',
