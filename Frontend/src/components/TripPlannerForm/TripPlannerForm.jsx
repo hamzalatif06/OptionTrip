@@ -7,6 +7,7 @@ import DateRangePickerComponent from '../DateRangePicker/DateRangePicker';
 import GuestSelector from '../GuestSelector/GuestSelector';
 import TripTypeSelector from '../TripTypeSelector/TripTypeSelector';
 import { generateTripOptions, parseTripDescription } from '../../services/tripsService';
+import Loader from '../Loader/Loader';
 
 const TRIP_TYPE_LABELS = {
   Adventure: 'Adventure',
@@ -348,6 +349,11 @@ const TripPlannerForm = () => {
   const micSupported  = !!SpeechRecognitionAPI;
 
   return (
+    <>
+    {/* Full-screen loader while the trip is being created on the server */}
+    {isSubmitting && (
+      <Loader size="fullpage" text="Building your trip..." />
+    )}
     <form className="trip-planner-form" onSubmit={handleSubmit}>
 
       {/* ── Smart Description Box ─────────────────────────────── */}
@@ -548,6 +554,7 @@ const TripPlannerForm = () => {
         </button>
       </div>
     </form>
+    </>
   );
 };
 
