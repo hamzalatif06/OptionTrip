@@ -484,16 +484,6 @@
   color: #334155;
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
 }
-.vi-md--streaming::after {
-  content: '▍';
-  display: inline-block;
-  color: var(--vi-teal);
-  animation: vi-cursor-blink 0.9s steps(2) infinite;
-  margin-left: 2px;
-  font-weight: 400;
-}
-@keyframes vi-cursor-blink { 50% { opacity: 0; } }
-
 .vi-thinking-line {
   margin: 0;
   font-size: 14px;

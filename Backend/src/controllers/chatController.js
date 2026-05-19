@@ -3,7 +3,7 @@
  * Handles Vi AI Assistant chat endpoints with conversation persistence
  */
 
-import { generateViResponse, generateViResponseStream } from '../services/chatService.js';
+import { generateViResponse } from '../services/chatService.js';
 import Trip from '../models/Trip.js';
 import Conversation from '../models/Conversation.js';
 
@@ -160,108 +160,6 @@ export const sendMessage = async (req, res) => {
   }
 };
 
-/**
- * POST /api/chat/message/stream
- * Server-Sent Events stream of Vi's reply. Events emitted:
- *   - meta:         { conversationId }
- *   - chunk:        { text } — appended to the bot message client-side
- *   - final:        { text, quickReplies, type } — definitive reply, used to overwrite
- *                   the in-progress bubble (handles any QR-marker stripping cleanup)
- *   - done:         end of stream
- *   - error:        { message }
- *
- * Client disconnect aborts the OpenAI stream via the underlying generator's break.
- */
-export const sendMessageStream = async (req, res) => {
-  const { message, tripId, conversationId } = req.body;
-  const user = req.user;
-
-  if (!message || typeof message !== 'string') {
-    return res.status(400).json({ success: false, message: 'Message is required' });
-  }
-
-  // ── SSE headers — set up to survive nginx / Cloudflare / Render proxies ──
-  res.writeHead(200, {
-    'Content-Type':     'text/event-stream; charset=utf-8',
-    // Defeat every common proxy cache/transform behavior:
-    'Cache-Control':    'private, no-cache, no-store, no-transform, must-revalidate',
-    'Connection':       'keep-alive',
-    // nginx-specific: disable response buffering for this request
-    'X-Accel-Buffering': 'no',
-    // Tell upstream NOT to gzip — gzip buffers until the encoder has enough bytes
-    'Content-Encoding':  'identity'
-  });
-  // Force the headers + first byte to go out immediately. Without this, some
-  // Node setups behind a proxy hold the response until the body is flushed.
-  if (typeof res.flushHeaders === 'function') res.flushHeaders();
-  // Priming comment — SSE allows lines starting with ":" as ignored heartbeats.
-  // Writing one immediately convinces proxies (and the browser fetch reader)
-  // that the connection is live and bytes will flow.
-  res.write(':ok\n\n');
-
-  const send = (event, data) => {
-    if (res.writableEnded) return;
-    res.write(`event: ${event}\n`);
-    res.write(`data: ${JSON.stringify(data)}\n\n`);
-  };
-
-  // Heartbeat every 15s. Many proxies (Render, Heroku router, Cloudflare free
-  // tier) silently close idle connections after 30-60s. A periodic `:` comment
-  // keeps the pipe alive while OpenAI is still thinking.
-  const heartbeat = setInterval(() => {
-    if (!res.writableEnded) res.write(`: hb ${Date.now()}\n\n`);
-  }, 15000);
-
-  let aborted = false;
-  req.on('close', () => { aborted = true; clearInterval(heartbeat); });
-
-  try {
-    const { context, conversation, conversationHistory } =
-      await prepareChat(user, { message, tripId, conversationId });
-
-    send('meta', { conversationId: conversation?.conversation_id || null });
-
-    let finalText = '';
-    let finalQuickReplies = [];
-    let finalType = 'general';
-
-    for await (const evt of generateViResponseStream(message, context, conversationHistory)) {
-      if (aborted) break;
-      if (evt.type === 'chunk') {
-        send('chunk', { text: evt.text });
-      } else if (evt.type === 'final') {
-        finalText = evt.cleanText;
-        finalQuickReplies = evt.quickReplies || [];
-        finalType = evt.replyType || 'general';
-        send('final', { text: finalText, quickReplies: finalQuickReplies, type: finalType });
-      }
-    }
-
-    if (!aborted && conversation && finalText) {
-      try {
-        conversation.messages.push({
-          role: 'assistant',
-          text: finalText,
-          type: finalType,
-          quickReplies: finalQuickReplies
-        });
-        conversation.last_message_at = new Date();
-        await conversation.save();
-      } catch (saveErr) {
-        console.error('Error saving streamed conversation:', saveErr);
-      }
-    }
-
-    send('done', { ok: true });
-  } catch (error) {
-    console.error('Chat stream error:', error);
-    send('error', { message: 'Failed to generate response' });
-  } finally {
-    clearInterval(heartbeat);
-    if (!res.writableEnded) res.end();
-  }
-};
-
 // ── Conversation CRUD ──────────────────────────────────────────────────────
 
 /** POST /api/chat/conversations */
@@ -411,4 +309,4 @@ export const getStatus = async (req, res) => {
   }
 };
 
-export default { sendMessage, sendMessageStream, getChatHistory, getStatus, createConversation, getConversations, getConversation, deleteConversation };
+export default { sendMessage, getChatHistory, getStatus, createConversation, getConversations, getConversation, deleteConversation };

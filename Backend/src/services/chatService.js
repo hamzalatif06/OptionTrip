@@ -2,11 +2,8 @@
  * Chat Service
  * Powers the Vi AI Travel Assistant.
  *
- * Two response modes:
- *   1. generateViResponse        — non-streaming, returns full text + quickReplies + type
- *   2. generateViResponseStream  — async generator that yields text chunks for SSE
- *
- * Both modes share the same system prompt and itinerary-aware context.
+ * Single response mode: `generateViResponse` returns the full reply + quickReplies
+ * + reply type. We use OpenAI JSON mode so the response is structured.
  */
 
 import OpenAI from 'openai';
@@ -45,7 +42,7 @@ const formatItineraryForPrompt = (trip) => {
   return lines.join('\n');
 };
 
-const buildSystemPrompt = (context, { jsonMode = false } = {}) => {
+const buildSystemPrompt = (context) => {
   const { user, currentTrip, tripPhase, allTrips, preferences } = context;
 
   let prompt = `You are Vi — an expert AI travel assistant for OptionTrip, a trip-planning, flight, hotel, and activity booking platform.
@@ -65,7 +62,7 @@ const buildSystemPrompt = (context, { jsonMode = false } = {}) => {
 - Flight & hotel guidance (search tactics, booking timing, loyalty tips) — point to OptionTrip's tools where relevant
 - On-trip help: directions, nearby places, weather expectations, emergencies
 
-# Formatting rules
+# Formatting rules (apply inside the "message" field of the JSON output)
 - Use clean Markdown: short paragraphs, **bold** for key terms, bullet points (\`-\`) and numbered lists where they help scanability.
 - Headings (\`###\`) only when the answer has clearly distinct sections.
 - Inline links allowed: \`[label](url)\`. Do not invent URLs you aren't sure of — prefer naming the source.
@@ -84,20 +81,14 @@ const buildSystemPrompt = (context, { jsonMode = false } = {}) => {
 - If asked something genuinely ambiguous, ask one short clarifying question.
 - Never claim you booked or can book anything — booking happens in the OptionTrip UI.
 
-# Quick replies
-At the very end of every reply, on its own line, emit exactly:
-[[QR]] Reply A | Reply B | Reply C
-- 2-4 short follow-up suggestions (each ≤ 28 chars), tailored to your reply and the user's trip phase.
-- The frontend strips this line before display — do not reference it in your prose.`;
-
-  if (jsonMode) {
-    prompt += `
-
-# JSON output
-Respond ONLY with valid JSON:
-{ "message": "<markdown reply>", "type": "greeting|info|emergency|planning|trip_details|recommendation|general", "quickReplies": ["...", "..."] }
-Do NOT include the [[QR]] line inside "message" — put suggestions in the "quickReplies" array instead.`;
-  }
+# Output format
+Respond ONLY with valid JSON, no surrounding prose, in this exact shape:
+{
+  "message": "<your markdown reply>",
+  "type": "greeting|info|emergency|planning|trip_details|recommendation|general",
+  "quickReplies": ["short follow-up 1", "short follow-up 2", "short follow-up 3"]
+}
+- 2-4 quickReplies, each ≤ 28 chars, tailored to the reply and the user's trip phase.`;
 
   // ─── User context
   if (user) {
@@ -158,8 +149,8 @@ const buildUserPrompt = (userMessage, context) => {
   return prompt;
 };
 
-const buildMessages = (userMessage, context, conversationHistory, { jsonMode = false } = {}) => {
-  const messages = [{ role: 'system', content: buildSystemPrompt(context, { jsonMode }) }];
+const buildMessages = (userMessage, context, conversationHistory) => {
+  const messages = [{ role: 'system', content: buildSystemPrompt(context) }];
 
   // Inject prior turns (exclude the just-pushed user message — we add it last with extra context)
   const history = conversationHistory.slice(0, -1).slice(-20);
@@ -174,35 +165,14 @@ const buildMessages = (userMessage, context, conversationHistory, { jsonMode = f
   return messages;
 };
 
-// ─── Quick-reply extraction ──────────────────────────────────────────────────
-
-const QR_REGEX = /\n?\[\[QR\]\]\s*(.+?)\s*$/i;
-
-/**
- * Pull the trailing `[[QR]] A | B | C` marker out of a streamed/markdown reply.
- * Returns { cleanText, quickReplies }.
- */
-export const extractQuickReplies = (text) => {
-  if (!text) return { cleanText: '', quickReplies: [] };
-  const match = text.match(QR_REGEX);
-  if (!match) return { cleanText: text.trim(), quickReplies: [] };
-  const replies = match[1]
-    .split('|')
-    .map(s => s.trim())
-    .filter(Boolean)
-    .slice(0, 4);
-  const cleanText = text.replace(QR_REGEX, '').trim();
-  return { cleanText, quickReplies: replies };
-};
-
-// ─── Non-streaming response (legacy / fallback path) ─────────────────────────
+// ─── Main response generator ────────────────────────────────────────────────
 
 export const generateViResponse = async (userMessage, context = {}, conversationHistory = []) => {
   try {
     const client = getOpenAIClient();
     if (!client) return generateFallbackResponse(userMessage, context);
 
-    const messages = buildMessages(userMessage, context, conversationHistory, { jsonMode: true });
+    const messages = buildMessages(userMessage, context, conversationHistory);
 
     const completion = await client.chat.completions.create({
       model: MODEL,
@@ -227,123 +197,9 @@ export const generateViResponse = async (userMessage, context = {}, conversation
         : getContextualQuickReplies(context)
     };
   } catch (err) {
-    console.error('Vi chat (non-stream) error:', err);
+    console.error('Vi chat error:', err);
     return generateFallbackResponse(userMessage, context);
   }
-};
-
-// ─── Streaming response ──────────────────────────────────────────────────────
-
-/**
- * Stream Vi's reply token-by-token.
- * Yields { type: 'chunk', text } for each delta and a final
- * { type: 'final', cleanText, quickReplies } once the QR marker line is parsed.
- *
- * The caller is responsible for forwarding events as SSE to the client and
- * persisting the final message to the Conversation document.
- */
-export async function* generateViResponseStream(userMessage, context = {}, conversationHistory = []) {
-  const client = getOpenAIClient();
-
-  if (!client) {
-    const fallback = generateFallbackResponse(userMessage, context);
-    yield { type: 'chunk', text: fallback.text };
-    yield {
-      type: 'final',
-      cleanText: fallback.text,
-      quickReplies: fallback.quickReplies,
-      replyType: fallback.type
-    };
-    return;
-  }
-
-  const messages = buildMessages(userMessage, context, conversationHistory, { jsonMode: false });
-
-  let stream;
-  try {
-    stream = await client.chat.completions.create({
-      model: MODEL,
-      messages,
-      temperature: 0.75,
-      max_tokens: 700,
-      stream: true
-    });
-  } catch (err) {
-    console.error('Vi chat (stream) start error:', err);
-    const fallback = generateFallbackResponse(userMessage, context);
-    yield { type: 'chunk', text: fallback.text };
-    yield {
-      type: 'final',
-      cleanText: fallback.text,
-      quickReplies: fallback.quickReplies,
-      replyType: fallback.type
-    };
-    return;
-  }
-
-  let fullText = '';
-  let qrBufferStarted = false;
-  let qrBuffer = '';
-
-  try {
-    for await (const part of stream) {
-      const delta = part.choices?.[0]?.delta?.content;
-      if (!delta) continue;
-      fullText += delta;
-
-      // Once we see the QR marker, buffer the rest silently — don't stream it to the client.
-      if (qrBufferStarted) {
-        qrBuffer += delta;
-        continue;
-      }
-
-      // Detect the start of the QR marker (it begins with `\n[[QR]]` or just `[[QR]]`).
-      // Heuristic: if the tail of fullText contains "[[QR" — stop emitting and start buffering.
-      const idx = fullText.indexOf('[[QR]]');
-      if (idx !== -1) {
-        // Everything before [[QR]] is content; anything after goes into qrBuffer.
-        const splitPoint = idx;
-        const emittedSoFarLen = fullText.length - delta.length;
-        if (splitPoint > emittedSoFarLen) {
-          // Emit the portion of this delta that is still real content.
-          const safeChunk = fullText.substring(emittedSoFarLen, splitPoint).replace(/\n+$/, '');
-          if (safeChunk) yield { type: 'chunk', text: safeChunk };
-        }
-        qrBufferStarted = true;
-        qrBuffer = fullText.substring(splitPoint);
-        continue;
-      }
-
-      // Don't emit a delta that potentially starts a [[QR]] marker — wait one tick.
-      // Cheap guard: hold back the last 6 chars in case they're "\n[[QR" split across deltas.
-      // We do this by emitting all-but-last-6 of the freshly-added text only when next delta arrives.
-      // Simpler approach: just emit the delta directly — the indexOf check above runs each iteration.
-      yield { type: 'chunk', text: delta };
-    }
-  } catch (err) {
-    console.error('Vi chat stream iteration error:', err);
-  }
-
-  const { cleanText, quickReplies } = extractQuickReplies(fullText);
-  yield {
-    type: 'final',
-    cleanText: cleanText || fullText.trim(),
-    quickReplies: quickReplies.length ? quickReplies : getContextualQuickReplies(context),
-    replyType: inferReplyType(cleanText)
-  };
-}
-
-// ─── Reply type heuristic ────────────────────────────────────────────────────
-
-const inferReplyType = (text) => {
-  if (!text) return 'general';
-  const t = text.toLowerCase();
-  if (/\b(112|911|999|emergency|embass|hospital|police)\b/.test(t)) return 'emergency';
-  if (/\b(pack|luggage|suitcase|bring)\b/.test(t))                   return 'packing';
-  if (/\b(restaurant|café|cafe|dinner|lunch|food|cuisine)\b/.test(t))return 'recommendation';
-  if (/\b(itinerary|day \d|day-by-day|schedule)\b/.test(t))          return 'planning';
-  if (/\b(visa|passport|documents|customs)\b/.test(t))               return 'info';
-  return 'general';
 };
 
 // ─── Fallback (offline / no API key) ─────────────────────────────────────────
@@ -431,4 +287,4 @@ const getContextualQuickReplies = (context) => {
   return ['Plan a trip', 'My trips', 'Travel tips', 'Inspire me'];
 };
 
-export default { generateViResponse, generateViResponseStream, extractQuickReplies };
+export default { generateViResponse };

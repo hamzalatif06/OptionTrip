@@ -4,8 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { getAccessToken } from '../../services/authService';
 import { getMyTrips } from '../../services/tripsService';
 import {
-  streamMessage,
-  sendMessage as sendMessageNonStream,
+  sendMessage,
   getConversations,
   getConversation,
   deleteConversation
@@ -13,11 +12,6 @@ import {
 import './ViAssistant.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
-// Streaming kill switch. Set VITE_VI_STREAMING=false in prod if your reverse
-// proxy buffers SSE (Cloudflare free tier, some Vercel/Heroku routers, etc.).
-// Defaults to true — Vi will attempt streaming and fall back automatically.
-const STREAMING_ENABLED = String(import.meta.env.VITE_VI_STREAMING ?? 'true').toLowerCase() !== 'false';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -159,7 +153,6 @@ const ViAssistant = () => {
   const [messages, setMessages]           = useState([]);
   const [inputMessage, setInputMessage]   = useState('');
   const [isTyping, setIsTyping]           = useState(false); // request in flight
-  const [isStreaming, setIsStreaming]     = useState(false); // tokens arriving
   const [showDisclaimer, setShowDisclaimer] = useState(true);
 
   // Trip context
@@ -190,7 +183,7 @@ const ViAssistant = () => {
   const audioChunksRef    = useRef([]);
   const audioRef          = useRef(null);
   const stopTimeoutRef    = useRef(null);
-  const streamAbortRef    = useRef(null);
+  const requestAbortRef   = useRef(null);
   const tripPickerRef     = useRef(null);
   const shouldAutoScrollRef = useRef(true);
   const lastUserMessageRef  = useRef('');
@@ -292,14 +285,14 @@ const ViAssistant = () => {
 
   const handleSelectConversation = (convId) => {
     if (convId === activeConversationId) return;
-    cancelStream();
+    cancelRequest();
     setMessages([]);
     loadConversationMessages(convId);
     setIsSidebarOpen(false);
   };
 
   const handleNewConversation = () => {
-    cancelStream();
+    cancelRequest();
     setMessages([makeWelcomeMessage()]);
     setActiveConversationId(null);
     setIsSidebarOpen(false);
@@ -356,193 +349,110 @@ const ViAssistant = () => {
     }
   }, [messages, isTyping]);
 
-  // ── Streaming send ─────────────────────────────────────────────────────
+  // ── Send / cancel ──────────────────────────────────────────────────────
 
-  const cancelStream = () => {
-    if (streamAbortRef.current) {
-      streamAbortRef.current.abort();
-      streamAbortRef.current = null;
+  const cancelRequest = () => {
+    if (requestAbortRef.current) {
+      requestAbortRef.current.abort();
+      requestAbortRef.current = null;
     }
     setIsTyping(false);
-    setIsStreaming(false);
   };
 
   /**
-   * Send the message via the streaming endpoint. If streaming fails for any
-   * reason (proxy buffering / timeout / network), automatically fall back to
-   * the non-streaming endpoint so the user always gets a reply.
-   *
-   * The fallback path also runs when only partial content was streamed before
-   * the failure — but only if we never saw a `final` event. If we got `final`,
-   * the message is already complete; treat the connection drop as a no-op.
+   * Send a message to Vi via the non-streaming endpoint and update the chat
+   * bubble with the reply. AbortController lets the "Stop" button cancel an
+   * in-flight request.
    */
   const dispatchMessage = async (userText) => {
-    cancelStream();
+    cancelRequest();
     lastUserMessageRef.current = userText;
     shouldAutoScrollRef.current = true;
 
     const userMsgId = `u-${Date.now()}`;
-    const botMsgId  = `b-${Date.now() + 1}`;
 
     setMessages(prev => {
       const stripped = prev.filter(m => !m.isWelcome);
       return [
         ...stripped,
-        { id: userMsgId, text: userText, sender: 'user', timestamp: new Date() },
-        { id: botMsgId,  text: '',      sender: 'bot',  timestamp: new Date(), isStreaming: true }
+        { id: userMsgId, text: userText, sender: 'user', timestamp: new Date() }
       ];
     });
 
     setIsTyping(true);
     const controller = new AbortController();
-    streamAbortRef.current = controller;
+    requestAbortRef.current = controller;
     const token = isAuthenticated ? getAccessToken() : null;
 
-    let receivedFinal = false;
-    let finalText = '';
-    let finalQuickReplies = [];
-    let finalType = 'general';
-    let firstChunkReceived = false;
-    let aborted = false;
+    try {
+      const resp = await sendMessage(
+        userText,
+        token,
+        currentTrip?.trip_id,
+        activeConversationId,
+        controller.signal
+      );
 
-    // Wire the AbortController so a manual Stop is distinguishable from a
-    // background timeout — when the user clicks Stop we don't want to fall back.
-    controller.signal.addEventListener('abort', () => { aborted = true; }, { once: true });
-
-    // Shared non-streaming path. Used as both the fallback when SSE fails AND
-    // as the primary path when streaming is disabled via env flag.
-    const useNonStream = async ({ reconnecting = false } = {}) => {
-      if (reconnecting) {
-        setMessages(prev => prev.map(m =>
-          m.id === botMsgId ? { ...m, text: '', isStreaming: false, isReconnecting: true } : m
-        ));
+      if (!resp?.success || !resp.data) {
+        throw new Error(resp?.message || 'Empty response from Vi');
       }
-      try {
-        const resp = await sendMessageNonStream(userText, token, currentTrip?.trip_id, activeConversationId);
-        if (resp.success && resp.data) {
-          const { message, type, quickReplies, conversationId } = resp.data;
-          finalText = message;
-          finalQuickReplies = quickReplies || [];
-          finalType = type || 'general';
-          if (conversationId && conversationId !== activeConversationId) {
-            setActiveConversationId(conversationId);
-          }
-          setMessages(prev => prev.map(m =>
-            m.id === botMsgId
-              ? { ...m, text: message, type, quickReplies: quickReplies?.length ? quickReplies : undefined, isReconnecting: false, isStreaming: false }
-              : m
-          ));
-          if (isAuthenticated) {
-            try {
-              const listResp = await getConversations(token);
-              if (listResp.success) setConversations(listResp.data.conversations || []);
-            } catch { /* noop */ }
-          }
-          if (isVoiceMode && message) await speakText(message, botMsgId);
-        } else {
-          throw new Error(resp.message || 'Empty response');
+
+      const { message, type, quickReplies, conversationId } = resp.data;
+      if (conversationId && conversationId !== activeConversationId) {
+        setActiveConversationId(conversationId);
+      }
+
+      const botMsg = {
+        id: `b-${Date.now()}`,
+        text: message,
+        sender: 'bot',
+        timestamp: new Date(),
+        type: type || 'general',
+        quickReplies: quickReplies?.length ? quickReplies : undefined
+      };
+      setMessages(prev => [...prev, botMsg]);
+
+      // Refresh the conversation list so the sidebar title/timestamp update.
+      if (isAuthenticated) {
+        try {
+          const listResp = await getConversations(token);
+          if (listResp.success) setConversations(listResp.data.conversations || []);
+        } catch { /* noop */ }
+      }
+
+      if (isVoiceMode && message) await speakText(message, botMsg.id);
+    } catch (err) {
+      // User-initiated cancel — silent.
+      if (err?.name === 'AbortError') return;
+
+      console.error('Vi send error:', err);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: `b-${Date.now()}`,
+          text: `I'm having trouble reaching the server right now. Please try again in a moment.`,
+          sender: 'bot',
+          timestamp: new Date(),
+          type: 'error',
+          isError: true
         }
-      } catch (err) {
-        console.error('Vi non-stream call failed:', err);
-        setMessages(prev => prev.map(m =>
-          m.id === botMsgId
-            ? { ...m, text: `I'm having trouble reaching the server right now. Please try again in a moment.`, isReconnecting: false, isStreaming: false, isError: true }
-            : m
-        ));
-      } finally {
-        setIsTyping(false);
-        setIsStreaming(false);
-        streamAbortRef.current = null;
-      }
-    };
-
-    // ── Kill switch: skip streaming entirely if disabled via env ────────
-    if (!STREAMING_ENABLED) {
-      await useNonStream();
-      return;
+      ]);
+    } finally {
+      setIsTyping(false);
+      requestAbortRef.current = null;
     }
-
-    const fallbackToNonStream = (reason) => {
-      console.warn('Vi streaming fallback →', reason);
-      return useNonStream({ reconnecting: true });
-    };
-
-    await streamMessage({
-      message: userText,
-      token,
-      tripId: currentTrip?.trip_id,
-      conversationId: activeConversationId,
-      signal: controller.signal,
-      onMeta: ({ conversationId }) => {
-        if (conversationId && conversationId !== activeConversationId) {
-          setActiveConversationId(conversationId);
-        }
-      },
-      onChunk: (chunk) => {
-        if (!firstChunkReceived) {
-          firstChunkReceived = true;
-          setIsTyping(false);
-          setIsStreaming(true);
-        }
-        setMessages(prev => prev.map(m =>
-          m.id === botMsgId ? { ...m, text: (m.text || '') + chunk } : m
-        ));
-      },
-      onFinal: ({ text, quickReplies, type }) => {
-        receivedFinal = true;
-        finalText = text;
-        finalQuickReplies = quickReplies || [];
-        finalType = type || 'general';
-        setMessages(prev => prev.map(m =>
-          m.id === botMsgId
-            ? { ...m, text: text || m.text, quickReplies: quickReplies?.length ? quickReplies : undefined, type, isStreaming: false }
-            : m
-        ));
-      },
-      onDone: async () => {
-        setIsTyping(false);
-        setIsStreaming(false);
-        streamAbortRef.current = null;
-
-        if (isVoiceMode && finalText) await speakText(finalText, botMsgId);
-
-        if (isAuthenticated) {
-          try {
-            const listResp = await getConversations(token);
-            if (listResp.success) setConversations(listResp.data.conversations || []);
-          } catch { /* noop */ }
-        }
-      },
-      onError: async (err) => {
-        console.warn('Vi stream error:', err?.message || err);
-        // If the user manually hit Stop, don't fall back — just end gracefully.
-        if (aborted && !err?.name) {
-          setIsTyping(false); setIsStreaming(false); streamAbortRef.current = null;
-          return;
-        }
-        // If we already have a complete reply (got `final`), treat as success.
-        if (receivedFinal) {
-          setIsTyping(false); setIsStreaming(false); streamAbortRef.current = null;
-          return;
-        }
-        // Otherwise: fall back to the non-streaming endpoint so the user gets a reply.
-        await fallbackToNonStream(err?.message || 'stream-failed');
-      }
-    });
-
-    void finalQuickReplies; void finalType; // referenced for clarity in fallback closure
   };
 
   const handleSendMessage = async (e) => {
     e?.preventDefault?.();
-    if (!inputMessage.trim() || isTyping || isStreaming) return;
+    if (!inputMessage.trim() || isTyping) return;
     const text = inputMessage.trim();
     setInputMessage('');
     await dispatchMessage(text);
   };
 
   const sendVoiceMessage = async (text) => {
-    if (!text || isTyping || isStreaming) return;
+    if (!text || isTyping) return;
     await dispatchMessage(text);
   };
 
@@ -686,25 +596,25 @@ const ViAssistant = () => {
   // Cleanup on close
   useEffect(() => {
     if (!isOpen) {
-      stopRecording(); stopAudio(); cancelStream();
+      stopRecording(); stopAudio(); cancelRequest();
       setIsVoiceMode(false); setVoiceStatus(''); setIsFullscreen(false);
     }
   }, [isOpen]);
 
   useEffect(() => () => {
-    stopRecording(); stopAudio(); cancelStream();
+    stopRecording(); stopAudio(); cancelRequest();
     clearTimeout(stopTimeoutRef.current);
   }, []);
 
   // ── Misc ───────────────────────────────────────────────────────────────
 
   const handleQuickReply = (reply) => {
-    if (isTyping || isStreaming) return;
+    if (isTyping) return;
     dispatchMessage(reply);
   };
 
   const handleStarterClick = (text) => {
-    if (isTyping || isStreaming) return;
+    if (isTyping) return;
     dispatchMessage(text);
   };
 
@@ -729,7 +639,7 @@ const ViAssistant = () => {
   };
 
   const handleSwitchTrip = (trip) => {
-    cancelStream();
+    cancelRequest();
     setCurrentTrip(trip);
     setShowTripPicker(false);
     // Force a fresh welcome bubble when context changes mid-session
@@ -749,7 +659,7 @@ const ViAssistant = () => {
     return null;
   }, [messages]);
 
-  const showStarters = messages.length > 0 && messages.every(m => m.isWelcome) && !isTyping && !isStreaming;
+  const showStarters = messages.length > 0 && messages.every(m => m.isWelcome) && !isTyping;
 
   const micBtnClass = ['vi-mic-btn',
     isRecording ? 'vi-mic-btn--recording' : '',
@@ -858,7 +768,7 @@ const ViAssistant = () => {
                     <span className={`status-dot${isSpeaking ? ' speaking' : isRecording ? ' recording' : ''}`}></span>
                     {isSpeaking      ? 'Vi is speaking...'
                       : isRecording  ? '🎙️ Listening...'
-                      : isStreaming  ? 'Vi is thinking...'
+                      : isTyping     ? 'Vi is thinking...'
                       : isAuthenticated ? `Ready when you are, ${user?.name?.split(' ')[0] || 'traveler'} 🌍`
                       : 'Your AI travel buddy'}
                   </span>
@@ -979,25 +889,23 @@ const ViAssistant = () => {
                     <div className="message-content">
                       {message.sender === 'bot'
                         ? (
-                          message.isReconnecting
-                            ? <p className="vi-thinking-line"><i className="fas fa-wifi" style={{ marginRight: 6 }}></i>Reconnecting…</p>
-                            : <div
-                                className={`vi-md${message.isStreaming ? ' vi-md--streaming' : ''}`}
-                                dangerouslySetInnerHTML={{ __html: renderMarkdown(message.text) || '<p class="vi-thinking-line">Thinking…</p>' }}
-                              />
+                          <div
+                            className="vi-md"
+                            dangerouslySetInnerHTML={{ __html: renderMarkdown(message.text) || '<p class="vi-thinking-line">Thinking…</p>' }}
+                          />
                         )
                         : <p className="vi-user-text">{message.text}</p>
                       }
 
                       {/* Quick replies */}
-                      {message.quickReplies && !message.isStreaming && (
+                      {message.quickReplies && (
                         <div className="quick-replies">
                           {message.quickReplies.map((reply, idx) => (
                             <button
                               key={idx}
                               className="quick-reply-btn"
                               onClick={() => handleQuickReply(reply)}
-                              disabled={isTyping || isStreaming}
+                              disabled={isTyping}
                             >
                               {reply}
                             </button>
@@ -1006,7 +914,7 @@ const ViAssistant = () => {
                       )}
 
                       {/* Bot message actions */}
-                      {message.sender === 'bot' && !message.isStreaming && !message.isWelcome && message.text && (
+                      {message.sender === 'bot' && !message.isWelcome && message.text && (
                         <div className="vi-msg-actions">
                           <button
                             className={`vi-msg-action${playingMsgId === message.id ? ' vi-msg-action--active' : ''}`}
@@ -1027,7 +935,7 @@ const ViAssistant = () => {
                               className="vi-msg-action"
                               onClick={handleRegenerate}
                               title="Regenerate reply"
-                              disabled={isTyping || isStreaming}
+                              disabled={isTyping}
                             >
                               <i className="fas fa-arrows-rotate"></i>
                             </button>
@@ -1056,7 +964,7 @@ const ViAssistant = () => {
                         type="button"
                         className="vi-starter"
                         onClick={() => handleStarterClick(s.text)}
-                        disabled={isTyping || isStreaming}
+                        disabled={isTyping}
                       >
                         <span className="vi-starter__icon"><i className={`fas ${s.icon}`}></i></span>
                         <span className="vi-starter__label">{s.label}</span>
@@ -1066,7 +974,7 @@ const ViAssistant = () => {
                 </div>
               )}
 
-              {isTyping && !isStreaming && (
+              {isTyping && (
                 <div className="vi-message bot typing">
                   <div className="message-avatar"><i className="fas fa-plane vi-msg-icon"></i></div>
                   <div className="message-content">
@@ -1087,8 +995,8 @@ const ViAssistant = () => {
               )}
 
               {/* Stop generation button (replaces send while streaming) */}
-              {(isTyping || isStreaming) && (
-                <button type="button" className="vi-stop-gen" onClick={cancelStream}>
+              {(isTyping) && (
+                <button type="button" className="vi-stop-gen" onClick={cancelRequest}>
                   <i className="fas fa-stop"></i> Stop generating
                 </button>
               )}
@@ -1130,7 +1038,7 @@ const ViAssistant = () => {
                 <button
                   type="submit"
                   className="vi-send-btn"
-                  disabled={!inputMessage.trim() || isTyping || isStreaming || isVoiceMode}
+                  disabled={!inputMessage.trim() || isTyping || isVoiceMode}
                   title="Send message"
                 >
                   <i className="fas fa-paper-plane"></i>
