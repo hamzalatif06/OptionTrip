@@ -437,6 +437,12 @@
   color: #17233e;
 }
 
+.ft-pax-sublabel {
+  font-size: 12px;
+  font-weight: 400;
+  color: #596C7E;
+}
+
 .ft-pax-counter {
   display: flex;
   align-items: center;

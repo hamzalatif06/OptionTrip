@@ -107,11 +107,55 @@ const AirportField = ({ label, value, onSelect, error, placeholder }) => {
   );
 };
 
+/* ── Pick the best airport from a search result list ───────────────────────── */
+const pickBestAirport = (locs, searchTerm) => {
+  if (!locs?.length) return null;
+  const term = searchTerm.toLowerCase().split(',')[0].trim();
+
+  // Exact city name match (e.g. searching "Dubai" finds cityName "Dubai")
+  const exact = locs.find(l => l.cityName?.toLowerCase() === term);
+  if (exact) return exact;
+
+  // City name starts with the search term
+  const starts = locs.find(l =>
+    l.cityName?.toLowerCase().startsWith(term) ||
+    l.name?.toLowerCase().startsWith(term)
+  );
+  if (starts) return starts;
+
+  // City name contains the search term
+  const contains = locs.find(l =>
+    l.cityName?.toLowerCase().includes(term) ||
+    l.name?.toLowerCase().includes(term)
+  );
+  if (contains) return contains;
+
+  return locs[0];
+};
+
+/* ── Geolocation fallback ───────────────────────────────────────────────────── */
+const getCityFromGeolocation = () => new Promise((resolve) => {
+  if (!navigator.geolocation) { resolve(''); return; }
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      try {
+        const { latitude, longitude } = pos.coords;
+        const res  = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+        const data = await res.json();
+        resolve(data.address?.city || data.address?.town || data.address?.village || '');
+      } catch { resolve(''); }
+    },
+    () => resolve(''),
+    { timeout: 5000 }
+  );
+});
+
 /* ── Main component ─────────────────────────────────────────────────────────── */
 const FlightTab = ({ tripData }) => {
   const defaultDeparture = tripData?.dates?.start_date || '';
   const defaultReturn    = tripData?.dates?.end_date   || '';
   const defaultAdults    = tripData?.guests?.adults    || 1;
+  const defaultChildren  = tripData?.guests?.children  || 0;
 
   const [tripType, setTripType] = useState(defaultReturn ? 'round-trip' : 'one-way');
   const [origin,   setOrigin]   = useState(null);
@@ -120,6 +164,7 @@ const FlightTab = ({ tripData }) => {
     departureDate: defaultDeparture,
     returnDate:    defaultReturn,
     adults:        defaultAdults,
+    children:      defaultChildren,
     cabin:         'Economy',
   });
   const [showPassengers, setShowPassengers] = useState(false);
@@ -169,24 +214,38 @@ const FlightTab = ({ tripData }) => {
     setAutoFetching(true);
     setAutoError(null);
     try {
-      // 1. Get user city from localStorage (set by Header.jsx geolocation)
-      const userLocationStr = localStorage.getItem('userLocation') || '';
-      const cityName = userLocationStr.split(',')[0].trim();
+      // 1. Priority: tripData.origin (user explicitly provided flying from)
+      let cityName = (tripData?.origin?.name || '').split(',')[0].trim();
+
+      // 2. Fallback: localStorage userLocation (set by Header.jsx geolocation)
+      if (!cityName) {
+        const userLocationStr = localStorage.getItem('userLocation') || '';
+        cityName = userLocationStr.split(',')[0].trim();
+      }
+
+      // 3. Fallback: browser geolocation API
+      if (!cityName) {
+        cityName = await getCityFromGeolocation();
+      }
+
       if (!cityName) { setAutoError('Enable location access to see suggested flights.'); return; }
 
-      // 2. Resolve both IATA codes in parallel
+      // 2. Resolve both IATA codes — use city-only (strip country) for best match
+      const destCity = destName.split(',')[0].trim();
       const [originLocs, destLocs] = await Promise.all([
         searchAirports(cityName),
-        searchAirports(destName),
+        searchAirports(destCity),
       ]);
 
       if (!originLocs.length) { setAutoError(`No airport found near "${cityName}".`); return; }
-      if (!destLocs.length)   { setAutoError(`No airport found for "${destName}".`);  return; }
+      if (!destLocs.length)   { setAutoError(`No airport found for "${destCity}".`);  return; }
 
-      const oCode    = originLocs[0].iataCode;
-      const oDisplay = `${originLocs[0].cityName || originLocs[0].name} (${oCode})`;
-      const dCode    = destLocs[0].iataCode;
-      const dDisplay = `${destLocs[0].cityName || destLocs[0].name} (${dCode})`;
+      const oBest    = pickBestAirport(originLocs, cityName);
+      const dBest    = pickBestAirport(destLocs,   destCity);
+      const oCode    = oBest.iataCode;
+      const oDisplay = `${oBest.cityName || oBest.name} (${oCode})`;
+      const dCode    = dBest.iataCode;
+      const dDisplay = `${dBest.cityName || dBest.name} (${dCode})`;
 
       // 3. Pre-fill form fields
       const oObj = { code: oCode, name: oDisplay };
@@ -517,11 +576,25 @@ const FlightTab = ({ tripData }) => {
               {showPassengers && (
                 <div className="ft-pax-dropdown">
                   <div className="ft-pax-row">
-                    <span className="ft-pax-label">Adults</span>
+                    <div>
+                      <span className="ft-pax-label">Adults</span>
+                      <span className="ft-pax-sublabel"> (18+)</span>
+                    </div>
                     <div className="ft-pax-counter">
                       <button type="button" onClick={() => setField('adults', Math.max(1, form.adults - 1))}>−</button>
                       <span>{form.adults}</span>
                       <button type="button" onClick={() => setField('adults', Math.min(9, form.adults + 1))}>+</button>
+                    </div>
+                  </div>
+                  <div className="ft-pax-row">
+                    <div>
+                      <span className="ft-pax-label">Children</span>
+                      <span className="ft-pax-sublabel"> (under 18)</span>
+                    </div>
+                    <div className="ft-pax-counter">
+                      <button type="button" onClick={() => setField('children', Math.max(0, form.children - 1))}>−</button>
+                      <span>{form.children}</span>
+                      <button type="button" onClick={() => setField('children', Math.min(8, form.children + 1))}>+</button>
                     </div>
                   </div>
                   <button type="button" className="ft-pax-done" onClick={() => setShowPassengers(false)}>Done</button>

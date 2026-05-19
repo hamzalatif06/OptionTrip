@@ -15,11 +15,57 @@ import FlightTab from './FlightTab';
 import HotelTab from './HotelTab';
 import TripMapTab from './TripMapTab';
 
-/**
- * ActivitiesSection - Main itinerary section with tab navigation
- * Structure adapted from TripTap's ActivitiesSection.jsx
- * Styling uses OptionTrip theme
- */
+const ActivityCardSkeleton = () => (
+  <div className="act-sk-card">
+    <div className="act-sk-main">
+      <div className="act-sk-image act-sk-shimmer" />
+      <div className="act-sk-content">
+        <div className="act-sk-header-row">
+          <div className="act-sk-shimmer" style={{ width: 20, height: 20, borderRadius: 4 }} />
+          <div className="act-sk-shimmer" style={{ width: 80, height: 16 }} />
+          <div className="act-sk-vdivider" />
+          <div className="act-sk-shimmer" style={{ width: 160, height: 16 }} />
+          <div className="act-sk-shimmer act-sk-badge" />
+        </div>
+        <div className="act-sk-shimmer" style={{ width: '65%', height: 22 }} />
+        <div className="act-sk-rating-row">
+          <div className="act-sk-shimmer" style={{ width: 90, height: 14 }} />
+          <div className="act-sk-shimmer" style={{ width: 70, height: 14 }} />
+        </div>
+        <div className="act-sk-desc">
+          <div className="act-sk-shimmer" style={{ width: '100%', height: 13 }} />
+          <div className="act-sk-shimmer" style={{ width: '82%', height: 13 }} />
+          <div className="act-sk-shimmer" style={{ width: '55%', height: 13 }} />
+        </div>
+        <div className="act-sk-tags">
+          <div className="act-sk-shimmer act-sk-pill" />
+          <div className="act-sk-shimmer act-sk-pill" style={{ width: 80 }} />
+          <div className="act-sk-shimmer act-sk-pill" style={{ width: 60 }} />
+        </div>
+        <div className="act-sk-location">
+          <div className="act-sk-shimmer" style={{ width: 16, height: 16, borderRadius: '50%' }} />
+          <div className="act-sk-shimmer" style={{ width: 200, height: 13 }} />
+        </div>
+      </div>
+      <div className="act-sk-actions">
+        <div className="act-sk-shimmer act-sk-btn" />
+        <div className="act-sk-shimmer act-sk-btn act-sk-btn--sm" />
+      </div>
+    </div>
+  </div>
+);
+
+const ItinerarySkeletonSection = () => (
+  <div className="act-sk-section">
+    <div className="act-sk-day-header">
+      <div className="act-sk-shimmer" style={{ width: 120, height: 28 }} />
+      <div className="act-sk-shimmer" style={{ width: 200, height: 16 }} />
+    </div>
+    <ActivityCardSkeleton />
+    <ActivityCardSkeleton />
+    <ActivityCardSkeleton />
+  </div>
+);
 
 const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerating, totalDays }) => {
   const [activeTab, setActiveTab] = useState(0);
@@ -228,11 +274,7 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
     // Show generating message if no days loaded yet
     if (!daysData || daysData.length === 0) {
       if (isGenerating) {
-        return (
-          <div className="activities-section__loader-container">
-            <img src="/images/loader.gif" alt="Generating itinerary..." className="activities-section__loader-gif" />
-          </div>
-        );
+        return <ItinerarySkeletonSection />;
       }
       return (
         <div className="activities-section__empty">
@@ -271,7 +313,7 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
             <div className="activities-section__day-header">
               <div className="activities-section__day-header-top">
                 <h3 className="activities-section__day-title">
-                  Day {activeDayTab}: {currentDayData.title || 'Explore the City'}
+                  Day {activeDayTab}: {(currentDayData.title || 'Explore the City').replace(/^Day\s+\d+\s*:\s*/i, '')}
                 </h3>
                 <div className="activities-section__day-meta">
                   <span className="activities-section__day-date">

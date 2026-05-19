@@ -56,9 +56,10 @@ const HotelSkeleton = () => (
 );
 
 const HotelTab = ({ tripData }) => {
-  const defaultCheckIn  = tripData?.dates?.start_date || '';
-  const defaultCheckOut = tripData?.dates?.end_date   || '';
-  const defaultAdults   = tripData?.guests?.adults    || 1;
+  const defaultCheckIn  = tripData?.dates?.start_date  || '';
+  const defaultCheckOut = tripData?.dates?.end_date    || '';
+  const defaultAdults   = tripData?.guests?.adults     || 1;
+  const defaultChildren = tripData?.guests?.children   || 0;
 
   // Destination autocomplete
   const [cityQuery,    setCityQuery]    = useState(tripData?.destination?.name || '');
@@ -74,6 +75,7 @@ const HotelTab = ({ tripData }) => {
     checkIn:  defaultCheckIn,
     checkOut: defaultCheckOut,
     adults:   defaultAdults,
+    children: defaultChildren,
   });
   const [showGuests,  setShowGuests]  = useState(false);
   const [errors,      setErrors]      = useState({});
@@ -153,10 +155,12 @@ const HotelTab = ({ tripData }) => {
     setLastCityName(cityQuery);
 
     try {
+      const totalGuests = form.adults + form.children;
+      const rooms = Math.max(1, Math.ceil(totalGuests / 2));
       const result = await searchHotels({
         destId, searchType,
         checkIn: form.checkIn, checkOut: form.checkOut,
-        adults: form.adults, cityName: cityQuery,
+        adults: form.adults, rooms, cityName: cityQuery,
       });
       setHotels(result.hotels || []);
       setCurrentPage(1);
@@ -251,6 +255,7 @@ const HotelTab = ({ tripData }) => {
             <label className="ht-field__label">Guests</label>
             <button type="button" className="ht-field__pax-btn" onClick={() => setShowGuests(v => !v)}>
               {form.adults} Adult{form.adults !== 1 ? 's' : ''}
+              {form.children > 0 ? `, ${form.children} Child${form.children !== 1 ? 'ren' : ''}` : ''}
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ marginLeft: 6 }}>
                 <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.5"
                   strokeLinecap="round" strokeLinejoin="round" />
@@ -259,11 +264,25 @@ const HotelTab = ({ tripData }) => {
             {showGuests && (
               <div className="ht-pax-dropdown">
                 <div className="ht-pax-row">
-                  <span className="ht-pax-label">Adults</span>
+                  <div>
+                    <span className="ht-pax-label">Adults</span>
+                    <span className="ht-pax-sublabel"> (18+)</span>
+                  </div>
                   <div className="ht-pax-counter">
                     <button type="button" onClick={() => setField('adults', Math.max(1, form.adults - 1))}>−</button>
                     <span>{form.adults}</span>
                     <button type="button" onClick={() => setField('adults', Math.min(9, form.adults + 1))}>+</button>
+                  </div>
+                </div>
+                <div className="ht-pax-row">
+                  <div>
+                    <span className="ht-pax-label">Children</span>
+                    <span className="ht-pax-sublabel"> (under 18)</span>
+                  </div>
+                  <div className="ht-pax-counter">
+                    <button type="button" onClick={() => setField('children', Math.max(0, form.children - 1))}>−</button>
+                    <span>{form.children}</span>
+                    <button type="button" onClick={() => setField('children', Math.min(8, form.children + 1))}>+</button>
                   </div>
                 </div>
                 <button type="button" className="ht-pax-done" onClick={() => setShowGuests(false)}>Done</button>
@@ -325,6 +344,7 @@ const HotelTab = ({ tripData }) => {
                     {lastCityName}
                     {nights > 0 ? ` · ${nights} night${nights !== 1 ? 's' : ''}` : ''}
                     {` · ${form.adults} adult${form.adults !== 1 ? 's' : ''}`}
+                    {form.children > 0 ? `, ${form.children} child${form.children !== 1 ? 'ren' : ''}` : ''}
                     {' · '}Prices in USD
                   </p>
                 </div>

@@ -250,6 +250,12 @@
   color: #17233e;
 }
 
+.ht-pax-sublabel {
+  font-size: 12px;
+  font-weight: 400;
+  color: #596C7E;
+}
+
 .ht-pax-counter {
   display: flex;
   align-items: center;

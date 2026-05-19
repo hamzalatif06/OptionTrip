@@ -328,9 +328,15 @@ export const getAirports = async (req, res) => {
       const apiRes = await fetch(`https://autocomplete.travelpayouts.com/places2?${qs}`);
       if (apiRes.ok) {
         const raw = await apiRes.json();
+        // Sort: 'city' entries (represent whole metro area) first, then airports.
+        // This keeps the API's natural relevance order within each group.
         apiLocations = raw
           .filter(item => item.code && !excludedCodes.has(item.code))
-          .sort((a, b) => (a.type === 'airport' ? -1 : 1))
+          .sort((a, b) => {
+            if (a.type === 'city' && b.type !== 'city') return -1;
+            if (b.type === 'city' && a.type !== 'city') return  1;
+            return 0;
+          })
           .reduce((acc, item) => {
             if (!excludedCodes.has(item.code)) {
               excludedCodes.add(item.code);
