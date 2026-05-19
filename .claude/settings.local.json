@@ -14,7 +14,8 @@
       "Bash(node --check src/models/Trip.js)",
       "Bash(timeout 60 npx vite build --logLevel error)",
       "Bash(timeout 90 npx vite build)",
-      "Bash(node --input-type=module -e ' *)"
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(timeout 180 npx vite build)"
     ],
     "additionalDirectories": [
       "/home/jawad/Downloads/OptionTrip-main/Frontend/src/components"

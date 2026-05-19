@@ -1,10 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { getAccessToken } from '../../services/authService';
 import { getMyTrips } from '../../services/tripsService';
 import {
-  sendMessage as sendChatMessage,
+  streamMessage,
   getConversations,
   getConversation,
   deleteConversation
@@ -13,7 +13,7 @@ import './ViAssistant.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
 const formatRelativeTime = (dateString) => {
   if (!dateString) return '';
@@ -28,24 +28,139 @@ const formatRelativeTime = (dateString) => {
   return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 
-// ── Component ─────────────────────────────────────────────────────────────────
+const escapeHtml = (s) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/**
+ * Lightweight markdown renderer — supports headings, bold, italic, inline code,
+ * links, bullet/numbered lists, and paragraphs. Intentionally minimal: we
+ * sanitize input by escaping HTML first, then apply inline replacements.
+ */
+const renderMarkdown = (raw) => {
+  if (!raw) return '';
+  const text = escapeHtml(raw);
+
+  const lines = text.split('\n');
+  const out = [];
+  let inList = null; // 'ul' | 'ol' | null
+
+  const closeList = () => {
+    if (inList) { out.push(`</${inList}>`); inList = null; }
+  };
+
+  const inline = (s) =>
+    s
+      // Inline code: `code`
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      // Bold: **text**
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      // Italic: *text* (avoid matching ** by negative lookahead handled above)
+      .replace(/(?:^|\s)\*([^*\s][^*]*?)\*(?=\s|$|[.,!?;:])/g, (m, p1) => m.replace(`*${p1}*`, `<em>${p1}</em>`))
+      // Links: [label](url)
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) =>
+        `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`
+      );
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Heading
+    const h = line.match(/^(#{1,3})\s+(.+)$/);
+    if (h) {
+      closeList();
+      const level = h[1].length + 2; // H3+
+      out.push(`<h${level}>${inline(h[2])}</h${level}>`);
+      continue;
+    }
+
+    // Bullet list
+    if (/^\s*[-*•]\s+/.test(line)) {
+      if (inList !== 'ul') { closeList(); out.push('<ul>'); inList = 'ul'; }
+      out.push(`<li>${inline(line.replace(/^\s*[-*•]\s+/, ''))}</li>`);
+      continue;
+    }
+
+    // Numbered list
+    if (/^\s*\d+\.\s+/.test(line)) {
+      if (inList !== 'ol') { closeList(); out.push('<ol>'); inList = 'ol'; }
+      out.push(`<li>${inline(line.replace(/^\s*\d+\.\s+/, ''))}</li>`);
+      continue;
+    }
+
+    // Blank line — paragraph break
+    if (!line.trim()) {
+      closeList();
+      out.push('');
+      continue;
+    }
+
+    closeList();
+    out.push(`<p>${inline(line)}</p>`);
+  }
+  closeList();
+  return out.join('\n');
+};
+
+// ─── Suggested prompt starters (richer empty state) ─────────────────────────
+
+const PROMPT_STARTERS = {
+  before: [
+    { icon: 'fa-suitcase', label: 'Build me a packing list', text: 'Build me a packing list for my upcoming trip' },
+    { icon: 'fa-bowl-food', label: 'Best places to eat', text: 'What are the best places to eat at my destination?' },
+    { icon: 'fa-landmark', label: 'Must-see experiences', text: 'What are the must-see experiences I should book in advance?' },
+    { icon: 'fa-passport', label: 'Visa & documents', text: 'What documents and visa do I need for this trip?' },
+    { icon: 'fa-money-bill-wave', label: 'Daily budget estimate', text: 'Estimate a realistic daily budget for my trip' },
+    { icon: 'fa-cloud-sun', label: 'Weather & what to wear', text: 'What is the weather like, and what should I pack to wear?' }
+  ],
+  during: [
+    { icon: 'fa-location-dot', label: 'Nearby right now', text: 'What is worth seeing near me right now?' },
+    { icon: 'fa-utensils', label: 'Dinner tonight', text: 'Suggest a great dinner spot near my hotel tonight' },
+    { icon: 'fa-bus', label: 'How to get around', text: 'What is the best way to get around the city?' },
+    { icon: 'fa-triangle-exclamation', label: 'I need help', text: 'I need help — what should I do?' },
+    { icon: 'fa-mug-hot', label: 'Best cafés to work', text: 'Find me good cafés to work from with WiFi' },
+    { icon: 'fa-camera', label: 'Photo spots', text: 'Where are the best photo spots nearby?' }
+  ],
+  after: [
+    { icon: 'fa-plane-departure', label: 'Plan my next trip', text: 'Help me plan my next adventure based on this one' },
+    { icon: 'fa-images', label: 'Trip recap', text: 'Help me write a recap of my trip' },
+    { icon: 'fa-star', label: 'Recommend somewhere new', text: 'Recommend a destination I would love based on my last trip' }
+  ],
+  planning: [
+    { icon: 'fa-wand-magic-sparkles', label: 'Plan a perfect weekend', text: 'Plan a perfect 3-day weekend escape for me' },
+    { icon: 'fa-heart', label: 'Romantic getaway', text: 'Suggest a romantic getaway for two' },
+    { icon: 'fa-mountain-sun', label: 'Adventure trip', text: 'Plan an adventure trip with hiking and great food' },
+    { icon: 'fa-umbrella-beach', label: 'Beach vacation', text: 'Recommend a beach destination for next month' },
+    { icon: 'fa-piggy-bank', label: 'Budget Europe', text: 'Plan a budget-friendly 7-day Europe trip' },
+    { icon: 'fa-utensils', label: 'Food-focused trip', text: 'Plan a trip focused on amazing food and local culture' }
+  ],
+  guest: [
+    { icon: 'fa-globe', label: 'Where should I go?', text: 'Where should I travel next? Help me decide.' },
+    { icon: 'fa-suitcase-rolling', label: 'How to plan a trip', text: 'How do I plan a great trip from scratch?' },
+    { icon: 'fa-money-bill-wave', label: 'Budget travel tips', text: 'Give me your best budget travel tips' },
+    { icon: 'fa-passport', label: 'First international trip', text: 'I am planning my first international trip — what should I know?' }
+  ]
+};
+
+// ─── Component ──────────────────────────────────────────────────────────────
 
 const ViAssistant = () => {
-  const { t } = useTranslation();
+  useTranslation();
   const { isAuthenticated, user } = useAuth();
 
   // Chat state
   const [isOpen, setIsOpen]               = useState(false);
+  const [isFullscreen, setIsFullscreen]   = useState(false);
   const [messages, setMessages]           = useState([]);
   const [inputMessage, setInputMessage]   = useState('');
-  const [isTyping, setIsTyping]           = useState(false);
+  const [isTyping, setIsTyping]           = useState(false); // request in flight
+  const [isStreaming, setIsStreaming]     = useState(false); // tokens arriving
   const [showDisclaimer, setShowDisclaimer] = useState(true);
 
   // Trip context
   const [userTrips, setUserTrips]         = useState([]);
   const [currentTrip, setCurrentTrip]     = useState(null);
   const [tripPhase, setTripPhase]         = useState('before');
-  const [isLoadingTrips, setIsLoadingTrips] = useState(false);
+  const [showTripPicker, setShowTripPicker] = useState(false);
 
   // Conversation persistence
   const [activeConversationId, setActiveConversationId] = useState(null);
@@ -53,26 +168,30 @@ const ViAssistant = () => {
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen]               = useState(false);
 
-  // ── Voice state ──────────────────────────────────────────────────────────────
-  const [isRecording, setIsRecording]   = useState(false);   // MediaRecorder active
-  const [isSpeaking, setIsSpeaking]     = useState(false);   // TTS audio is playing
-  const [isVoiceMode, setIsVoiceMode]   = useState(false);   // full voice-conversation mode
-  const [voiceStatus, setVoiceStatus]   = useState('');      // status label under mic
-  const [playingMsgId, setPlayingMsgId] = useState(null);    // which msg's audio is playing
+  // Voice state
+  const [isRecording, setIsRecording]   = useState(false);
+  const [isSpeaking, setIsSpeaking]     = useState(false);
+  const [isVoiceMode, setIsVoiceMode]   = useState(false);
+  const [voiceStatus, setVoiceStatus]   = useState('');
+  const [playingMsgId, setPlayingMsgId] = useState(null);
   const [speechError, setSpeechError]   = useState('');
 
-  const messagesEndRef   = useRef(null);
-  const inputRef         = useRef(null);
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef   = useRef([]);
-  const audioRef         = useRef(null);          // current playing <audio> element
-  const stopTimeoutRef   = useRef(null);
+  // Refs
+  const messagesEndRef    = useRef(null);
+  const messagesListRef   = useRef(null);
+  const inputRef          = useRef(null);
+  const mediaRecorderRef  = useRef(null);
+  const audioChunksRef    = useRef([]);
+  const audioRef          = useRef(null);
+  const stopTimeoutRef    = useRef(null);
+  const streamAbortRef    = useRef(null);
+  const tripPickerRef     = useRef(null);
+  const shouldAutoScrollRef = useRef(true);
+  const lastUserMessageRef  = useRef('');
 
-  // ── Trip loading ────────────────────────────────────────────────────────────
+  // ── Trips ──────────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    if (isAuthenticated && isOpen) loadUserTrips();
-  }, [isAuthenticated, isOpen]);
+  useEffect(() => { if (isAuthenticated && isOpen) loadUserTrips(); }, [isAuthenticated, isOpen]);
 
   useEffect(() => {
     if (currentTrip?.dates) {
@@ -80,28 +199,39 @@ const ViAssistant = () => {
       const start = new Date(currentTrip.dates.start_date);
       const end   = new Date(currentTrip.dates.end_date);
       setTripPhase(today < start ? 'before' : today <= end ? 'during' : 'after');
+    } else {
+      setTripPhase('planning');
     }
   }, [currentTrip]);
 
   const loadUserTrips = async () => {
     try {
-      setIsLoadingTrips(true);
       const token    = getAccessToken();
       const response = await getMyTrips(token);
       if (response.success && response.data?.trips) {
         setUserTrips(response.data.trips);
-        const now  = new Date();
+        const now = new Date();
         const upcoming = response.data.trips.find(t => new Date(t.dates?.end_date) >= now);
-        setCurrentTrip(upcoming || response.data.trips[0] || null);
+        setCurrentTrip(prev => prev || upcoming || response.data.trips[0] || null);
       }
     } catch (err) {
       console.error('Error loading user trips:', err);
-    } finally {
-      setIsLoadingTrips(false);
     }
   };
 
-  // ── Conversation loading ────────────────────────────────────────────────────
+  // Close trip picker on outside click
+  useEffect(() => {
+    if (!showTripPicker) return;
+    const handler = (e) => {
+      if (tripPickerRef.current && !tripPickerRef.current.contains(e.target)) {
+        setShowTripPicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showTripPicker]);
+
+  // ── Conversations ──────────────────────────────────────────────────────
 
   const loadConversations = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -109,9 +239,7 @@ const ViAssistant = () => {
       setIsLoadingConversations(true);
       const token    = getAccessToken();
       const response = await getConversations(token);
-      if (response.success) {
-        setConversations(response.data.conversations || []);
-      }
+      if (response.success) setConversations(response.data.conversations || []);
     } catch (err) {
       console.error('Error loading conversations:', err);
     } finally {
@@ -121,11 +249,8 @@ const ViAssistant = () => {
 
   useEffect(() => {
     if (!isOpen) return;
-    if (isAuthenticated) {
-      loadConversations();
-    } else if (messages.length === 0) {
-      setMessages([makeWelcomeMessage()]);
-    }
+    if (isAuthenticated) loadConversations();
+    else if (messages.length === 0) setMessages([makeWelcomeMessage()]);
   }, [isOpen]);
 
   useEffect(() => {
@@ -143,7 +268,7 @@ const ViAssistant = () => {
       const response = await getConversation(convId, token);
       if (response.success) {
         const msgs = response.data.messages.map((m, i) => ({
-          id: i,
+          id: `${convId}-${i}`,
           text: m.text,
           sender: m.role === 'assistant' ? 'bot' : 'user',
           timestamp: new Date(m.timestamp),
@@ -161,12 +286,14 @@ const ViAssistant = () => {
 
   const handleSelectConversation = (convId) => {
     if (convId === activeConversationId) return;
+    cancelStream();
     setMessages([]);
     loadConversationMessages(convId);
     setIsSidebarOpen(false);
   };
 
   const handleNewConversation = () => {
+    cancelStream();
     setMessages([makeWelcomeMessage()]);
     setActiveConversationId(null);
     setIsSidebarOpen(false);
@@ -187,54 +314,181 @@ const ViAssistant = () => {
     }
   };
 
-  // ── Welcome message ─────────────────────────────────────────────────────────
+  // ── Welcome message ────────────────────────────────────────────────────
 
   const makeWelcomeMessage = () => {
     let text = '';
     if (isAuthenticated && user) {
       const firstName = user.name?.split(' ')[0] || 'there';
-      text = `Hello ${firstName}! 👋 I'm Vi, your AI travel assistant. `;
+      text = `Hi ${firstName}! 👋 I'm **Vi**, your AI travel concierge. `;
       if (currentTrip) {
         const dest = currentTrip.destination?.name || 'your destination';
-        if (tripPhase === 'before')  text += `I see you have an upcoming trip to ${dest}! I'm here to help you prepare. Would you like tips on what to pack, local customs, or must-see attractions?`;
-        else if (tripPhase === 'during') text += `I hope you're enjoying ${dest}! Need any help with directions, local recommendations, or emergency information?`;
-        else text += `How was your trip to ${dest}? I'd love to help you plan your next adventure!`;
+        if (tripPhase === 'before') text += `I see your upcoming trip to **${dest}** — I can help you prep, build a packing list, line up must-do experiences, or refine your itinerary day-by-day.`;
+        else if (tripPhase === 'during') text += `Hope you're enjoying **${dest}**! I can help with nearby spots, directions, dinner picks, or anything that comes up on the ground.`;
+        else text += `How was **${dest}**? I can help you plan what's next, or capture memories from your trip.`;
       } else {
-        text += `I'm here to help you plan your perfect trip. What destination are you dreaming about?`;
+        text += `Tell me what you're thinking — a beach getaway, a city break, a road trip — and I'll help you shape it.`;
       }
     } else {
-      text = `Hello! 👋 I'm Vi, your AI travel assistant. Log in to access your saved trips and personalized assistance, or ask me anything about travel!`;
+      text = `Hi! 👋 I'm **Vi**, your AI travel concierge. Ask me anything about destinations, packing, or trip planning — and sign in to save trips and unlock personalized help.`;
     }
-    return {
-      id: Date.now(),
-      text,
-      sender: 'bot',
-      timestamp: new Date(),
-      type: 'welcome',
-      quickReplies: getQuickReplies()
-    };
+    return { id: 'welcome', text, sender: 'bot', timestamp: new Date(), type: 'welcome', isWelcome: true };
   };
 
-  const getQuickReplies = () => {
-    if (!isAuthenticated) return ['Travel Tips', 'Popular Destinations', 'How to Plan'];
-    if (currentTrip) {
-      if (tripPhase === 'before')  return ['Packing Tips', 'Local Customs', 'Must-See Places', 'Weather Info'];
-      if (tripPhase === 'during')  return ['Emergency Help', 'Nearby Places', 'Restaurant Tips', 'Transportation'];
-      return ['Plan New Trip', 'Share Experience', 'Travel Tips'];
-    }
-    return ['Plan a Trip', 'My Trips', 'Travel Tips'];
+  // ── Auto-scroll (only if user is near bottom) ──────────────────────────
+
+  const handleMessagesScroll = () => {
+    const el = messagesListRef.current;
+    if (!el) return;
+    const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    shouldAutoScrollRef.current = distFromBottom < 80;
   };
 
-  // ── Voice: TTS speak ─────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (shouldAutoScrollRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isTyping]);
 
-  /**
-   * Play TTS for a given text via backend /api/voice/speak
-   * @param {string} text
-   * @param {number|null} msgId  — ID of the message being played (for button state)
-   */
+  // ── Streaming send ─────────────────────────────────────────────────────
+
+  const cancelStream = () => {
+    if (streamAbortRef.current) {
+      streamAbortRef.current.abort();
+      streamAbortRef.current = null;
+    }
+    setIsTyping(false);
+    setIsStreaming(false);
+  };
+
+  const dispatchMessage = async (userText) => {
+    cancelStream();
+    lastUserMessageRef.current = userText;
+    shouldAutoScrollRef.current = true;
+
+    const userMsgId = `u-${Date.now()}`;
+    const botMsgId  = `b-${Date.now() + 1}`;
+
+    setMessages(prev => {
+      // Replace welcome on first user turn
+      const stripped = prev.filter(m => !m.isWelcome);
+      return [
+        ...stripped,
+        { id: userMsgId, text: userText, sender: 'user', timestamp: new Date() },
+        { id: botMsgId,  text: '',      sender: 'bot',  timestamp: new Date(), isStreaming: true }
+      ];
+    });
+
+    setIsTyping(true);
+    const controller = new AbortController();
+    streamAbortRef.current = controller;
+    const token = isAuthenticated ? getAccessToken() : null;
+
+    let finalText = '';
+    let finalQuickReplies = [];
+    let firstChunkReceived = false;
+
+    await streamMessage({
+      message: userText,
+      token,
+      tripId: currentTrip?.trip_id,
+      conversationId: activeConversationId,
+      signal: controller.signal,
+      onMeta: ({ conversationId }) => {
+        if (conversationId && conversationId !== activeConversationId) {
+          setActiveConversationId(conversationId);
+        }
+      },
+      onChunk: (chunk) => {
+        if (!firstChunkReceived) {
+          firstChunkReceived = true;
+          setIsTyping(false);
+          setIsStreaming(true);
+        }
+        setMessages(prev => prev.map(m =>
+          m.id === botMsgId ? { ...m, text: (m.text || '') + chunk } : m
+        ));
+      },
+      onFinal: ({ text, quickReplies, type }) => {
+        finalText = text;
+        finalQuickReplies = quickReplies || [];
+        setMessages(prev => prev.map(m =>
+          m.id === botMsgId
+            ? { ...m, text: text || m.text, quickReplies: quickReplies?.length ? quickReplies : undefined, type, isStreaming: false }
+            : m
+        ));
+      },
+      onDone: async () => {
+        setIsTyping(false);
+        setIsStreaming(false);
+        streamAbortRef.current = null;
+
+        if (isVoiceMode && finalText) await speakText(finalText, botMsgId);
+
+        // Refresh conversation list (title/timestamp update)
+        if (isAuthenticated) {
+          try {
+            const listResp = await getConversations(token);
+            if (listResp.success) setConversations(listResp.data.conversations || []);
+          } catch { /* noop */ }
+        }
+      },
+      onError: (err) => {
+        console.error('Vi stream error:', err);
+        setIsTyping(false);
+        setIsStreaming(false);
+        streamAbortRef.current = null;
+        setMessages(prev => prev.map(m =>
+          m.id === botMsgId
+            ? { ...m, text: m.text || `I had trouble reaching the server. Try again in a moment.`, isStreaming: false, isError: true }
+            : m
+        ));
+      }
+    });
+  };
+
+  const handleSendMessage = async (e) => {
+    e?.preventDefault?.();
+    if (!inputMessage.trim() || isTyping || isStreaming) return;
+    const text = inputMessage.trim();
+    setInputMessage('');
+    await dispatchMessage(text);
+  };
+
+  const sendVoiceMessage = async (text) => {
+    if (!text || isTyping || isStreaming) return;
+    await dispatchMessage(text);
+  };
+
+  const handleRegenerate = () => {
+    if (!lastUserMessageRef.current) return;
+    // Remove the last bot message
+    setMessages(prev => {
+      const lastBotIdx = [...prev].reverse().findIndex(m => m.sender === 'bot' && !m.isWelcome);
+      if (lastBotIdx === -1) return prev;
+      const idx = prev.length - 1 - lastBotIdx;
+      return prev.slice(0, idx);
+    });
+    dispatchMessage(lastUserMessageRef.current);
+  };
+
+  // ── Voice: TTS ─────────────────────────────────────────────────────────
+
+  const stopAudio = () => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    setIsSpeaking(false); setPlayingMsgId(null);
+  };
+
   const speakText = async (text, msgId = null) => {
-    // Stop any currently playing audio
     stopAudio();
+    if (!text) return;
+    // Strip markdown formatting before sending to TTS for cleaner speech
+    const cleanText = text
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/^#{1,3}\s+/gm, '')
+      .replace(/^[-*•]\s+/gm, '');
 
     try {
       setIsSpeaking(true);
@@ -244,97 +498,56 @@ const ViAssistant = () => {
       const response = await fetch(`${API_BASE}/api/voice/speak`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, voice: 'nova' }),
+        body: JSON.stringify({ text: cleanText, voice: 'nova' }),
       });
-
       if (!response.ok) throw new Error('TTS failed');
 
       const arrayBuffer = await response.arrayBuffer();
       const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
       const url  = URL.createObjectURL(blob);
-
       const audio = new Audio(url);
       audioRef.current = audio;
 
       audio.onended = () => {
-        setIsSpeaking(false);
-        setPlayingMsgId(null);
-        setVoiceStatus('');
-        URL.revokeObjectURL(url);
-        audioRef.current = null;
-
-        // In voice mode: start listening again after TTS finishes
-        if (isVoiceMode) {
-          setTimeout(() => startRecording(), 800);
-        }
+        setIsSpeaking(false); setPlayingMsgId(null); setVoiceStatus('');
+        URL.revokeObjectURL(url); audioRef.current = null;
+        if (isVoiceMode) setTimeout(() => startRecording(), 800);
       };
-
       audio.onerror = () => {
-        setIsSpeaking(false);
-        setPlayingMsgId(null);
-        setVoiceStatus('');
-        audioRef.current = null;
+        setIsSpeaking(false); setPlayingMsgId(null); setVoiceStatus(''); audioRef.current = null;
       };
-
       await audio.play();
     } catch (err) {
       console.error('TTS error:', err);
-      setIsSpeaking(false);
-      setPlayingMsgId(null);
-      setVoiceStatus('');
+      setIsSpeaking(false); setPlayingMsgId(null); setVoiceStatus('');
     }
   };
 
-  const stopAudio = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-    setIsSpeaking(false);
-    setPlayingMsgId(null);
-  };
-
-  // ── Voice: Whisper STT ───────────────────────────────────────────────────────
+  // ── Voice: STT ─────────────────────────────────────────────────────────
 
   const startRecording = async () => {
     if (isRecording) { stopRecording(); return; }
-
     setSpeechError('');
     setVoiceStatus('Listening...');
-
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioChunksRef.current = [];
-
-      // Prefer webm/opus, fall back to whatever is supported
       const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
         ? 'audio/webm;codecs=opus'
-        : MediaRecorder.isTypeSupported('audio/webm')
-        ? 'audio/webm'
-        : '';
-
+        : MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '';
       const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       mediaRecorderRef.current = recorder;
-
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunksRef.current.push(e.data);
-      };
-
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
       recorder.onstop = async () => {
         stream.getTracks().forEach(t => t.stop());
         setIsRecording(false);
         setVoiceStatus('Transcribing...');
-
         const blob = new Blob(audioChunksRef.current, { type: mimeType || 'audio/webm' });
         audioChunksRef.current = [];
-
         await transcribeAndSend(blob, mimeType || 'audio/webm');
       };
-
       recorder.start();
       setIsRecording(true);
-
-      // Auto-stop after 30 seconds
       stopTimeoutRef.current = setTimeout(() => stopRecording(), 30000);
     } catch (err) {
       console.error('Mic error:', err);
@@ -355,31 +568,16 @@ const ViAssistant = () => {
     try {
       const formData = new FormData();
       formData.append('audio', audioBlob, `recording.${mimeType.includes('ogg') ? 'ogg' : 'webm'}`);
-
-      const response = await fetch(`${API_BASE}/api/voice/transcribe`, {
-        method: 'POST',
-        body: formData,
-      });
-
+      const response = await fetch(`${API_BASE}/api/voice/transcribe`, { method: 'POST', body: formData });
       const data = await response.json();
-
       if (!response.ok || !data.text) {
         setSpeechError('Could not understand audio. Please try again.');
-        setVoiceStatus('');
-        return;
+        setVoiceStatus(''); return;
       }
-
       setVoiceStatus('');
       const transcribedText = data.text.trim();
-
-      if (isVoiceMode) {
-        // In voice mode: auto-send the transcription
-        await sendVoiceMessage(transcribedText);
-      } else {
-        // Normal mode: put transcription in input field
-        setInputMessage(transcribedText);
-        inputRef.current?.focus();
-      }
+      if (isVoiceMode) await sendVoiceMessage(transcribedText);
+      else { setInputMessage(transcribedText); inputRef.current?.focus(); }
     } catch (err) {
       console.error('Transcription error:', err);
       setSpeechError('Transcription failed. Please try again.');
@@ -387,17 +585,13 @@ const ViAssistant = () => {
     }
   };
 
-  // ── Voice Mode ───────────────────────────────────────────────────────────────
+  // ── Voice mode ─────────────────────────────────────────────────────────
 
   const toggleVoiceMode = () => {
     if (isVoiceMode) {
-      // Turn off voice mode
-      stopRecording();
-      stopAudio();
-      setIsVoiceMode(false);
-      setVoiceStatus('');
+      stopRecording(); stopAudio();
+      setIsVoiceMode(false); setVoiceStatus('');
     } else {
-      // Turn on voice mode — start listening immediately
       setIsVoiceMode(true);
       startRecording();
     }
@@ -406,102 +600,33 @@ const ViAssistant = () => {
   // Cleanup on close
   useEffect(() => {
     if (!isOpen) {
-      stopRecording();
-      stopAudio();
-      setIsVoiceMode(false);
-      setVoiceStatus('');
+      stopRecording(); stopAudio(); cancelStream();
+      setIsVoiceMode(false); setVoiceStatus(''); setIsFullscreen(false);
     }
   }, [isOpen]);
 
   useEffect(() => () => {
-    stopRecording();
-    stopAudio();
+    stopRecording(); stopAudio(); cancelStream();
     clearTimeout(stopTimeoutRef.current);
   }, []);
 
-  // ── Messaging ───────────────────────────────────────────────────────────────
-
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isTyping]);
-
-  /**
-   * Core send logic — shared between text form submit and voice mode
-   */
-  const dispatchMessage = async (userText) => {
-    setMessages(prev => [...prev, { id: Date.now(), text: userText, sender: 'user', timestamp: new Date() }]);
-    setIsTyping(true);
-
-    setTimeout(async () => {
-      let botText = null;
-      let botMsg  = null;
-      try {
-        const token    = isAuthenticated ? getAccessToken() : null;
-        const response = await sendChatMessage(userText, token, currentTrip?.trip_id, activeConversationId);
-
-        if (response.success && response.data) {
-          const { message, type, quickReplies, conversationId } = response.data;
-          botText = message;
-          botMsg  = { id: Date.now() + 1, text: message, sender: 'bot', timestamp: new Date(), type: type || 'general', quickReplies: quickReplies?.length > 0 ? quickReplies : undefined };
-
-          setMessages(prev => [...prev, botMsg]);
-
-          if (conversationId) {
-            if (conversationId !== activeConversationId) {
-              setActiveConversationId(conversationId);
-              const listResp = await getConversations(token);
-              if (listResp.success) setConversations(listResp.data.conversations || []);
-            } else {
-              setConversations(prev => prev.map(c =>
-                c.conversation_id === conversationId
-                  ? { ...c, last_message_at: new Date().toISOString() }
-                  : c
-              ));
-            }
-          }
-        }
-      } catch (err) {
-        const localResp = localFallback(userText);
-        botText = localResp.text;
-        botMsg  = { id: Date.now() + 1, text: localResp.text, sender: 'bot', timestamp: new Date(), type: localResp.type, quickReplies: localResp.quickReplies };
-        setMessages(prev => [...prev, botMsg]);
-      } finally {
-        setIsTyping(false);
-        // Auto-play TTS in voice mode
-        if (botText && isVoiceMode) {
-          await speakText(botText, botMsg?.id ?? null);
-        }
-      }
-    }, 600);
-  };
-
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!inputMessage.trim() || isTyping) return;
-    const text = inputMessage.trim();
-    setInputMessage('');
-    await dispatchMessage(text);
-  };
-
-  const sendVoiceMessage = async (text) => {
-    if (!text || isTyping) return;
-    await dispatchMessage(text);
-  };
-
-  const localFallback = (text) => {
-    const lower = text.toLowerCase();
-    const dest  = currentTrip?.destination?.name || '';
-    const name  = user?.name?.split(' ')[0] || '';
-    if (/^(hi|hello|hey)/i.test(lower)) return { text: `Hello${name ? ` ${name}` : ''}! How can I help?`, type: 'greeting', quickReplies: getQuickReplies() };
-    if (lower.includes('pack')) return { text: `Pack documents, charger, medications and appropriate clothing for your trip${dest ? ` to ${dest}` : ''}!`, type: 'packing', quickReplies: ['Weather Info', 'Documents'] };
-    return { text: `I'm here to help with your travel needs${dest ? ` for ${dest}` : ''}! Ask me about packing, local tips, restaurants, or emergency info.`, type: 'general', quickReplies: getQuickReplies() };
-  };
+  // ── Misc ───────────────────────────────────────────────────────────────
 
   const handleQuickReply = (reply) => {
-    setInputMessage(reply);
-    setTimeout(() => inputRef.current?.form?.requestSubmit(), 100);
+    if (isTyping || isStreaming) return;
+    dispatchMessage(reply);
+  };
+
+  const handleStarterClick = (text) => {
+    if (isTyping || isStreaming) return;
+    dispatchMessage(text);
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); }
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage(e);
+    }
   };
 
   const toggleChat = () => {
@@ -509,31 +634,48 @@ const ViAssistant = () => {
     if (!isOpen) setTimeout(() => inputRef.current?.focus(), 300);
   };
 
-  const clearConversation = () => {
+  const handleCopyMessage = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.warn('Copy failed:', err);
+    }
+  };
+
+  const handleSwitchTrip = (trip) => {
+    cancelStream();
+    setCurrentTrip(trip);
+    setShowTripPicker(false);
+    // Force a fresh welcome bubble when context changes mid-session
     setMessages([makeWelcomeMessage()]);
     setActiveConversationId(null);
   };
 
-  // ── Render helpers ───────────────────────────────────────────────────────────
+  // ── Derived ────────────────────────────────────────────────────────────
 
-  const renderMessageText = (text) =>
-    text.split('\n').map((line, i, arr) => {
-      const formatted = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      return (
-        <React.Fragment key={i}>
-          <span dangerouslySetInnerHTML={{ __html: formatted }} />
-          {i < arr.length - 1 && <br />}
-        </React.Fragment>
-      );
-    });
+  const starterKey = !isAuthenticated ? 'guest' : (currentTrip ? tripPhase : 'planning');
+  const starters = PROMPT_STARTERS[starterKey] || PROMPT_STARTERS.planning;
 
-  const micBtnClass = [
-    'vi-mic-btn',
+  const lastBotMessageId = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].sender === 'bot' && !messages[i].isWelcome) return messages[i].id;
+    }
+    return null;
+  }, [messages]);
+
+  const showStarters = messages.length > 0 && messages.every(m => m.isWelcome) && !isTyping && !isStreaming;
+
+  const micBtnClass = ['vi-mic-btn',
     isRecording ? 'vi-mic-btn--recording' : '',
-    isVoiceMode  ? 'vi-mic-btn--voice-mode' : '',
+    isVoiceMode ? 'vi-mic-btn--voice-mode' : '',
   ].filter(Boolean).join(' ');
 
-  // ── Render ───────────────────────────────────────────────────────────────────
+  const windowClass = ['vi-window',
+    isSidebarOpen ? 'vi-window--with-sidebar' : '',
+    isFullscreen  ? 'vi-window--fullscreen'   : '',
+  ].filter(Boolean).join(' ');
+
+  // ── Render ─────────────────────────────────────────────────────────────
 
   return (
     <>
@@ -554,18 +696,17 @@ const ViAssistant = () => {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className={`vi-window${isSidebarOpen ? ' vi-window--with-sidebar' : ''}`}>
+        <div className={windowClass}>
 
-          {/* ── Sidebar ─────────────────────────────────────────────────── */}
+          {/* ── Sidebar ────────────────────────────────────────────── */}
           {isSidebarOpen && (
             <div className="vi-sidebar">
               <div className="vi-sidebar__header">
                 <span className="vi-sidebar__title">Conversations</span>
                 <button className="vi-sidebar__new-btn" onClick={handleNewConversation} title="New conversation">
-                  <i className="fas fa-plus"></i> New Chat
+                  <i className="fas fa-plus"></i> New chat
                 </button>
               </div>
-
               <div className="vi-sidebar__list">
                 {isLoadingConversations ? (
                   <div className="vi-sidebar__loading">
@@ -601,7 +742,7 @@ const ViAssistant = () => {
             </div>
           )}
 
-          {/* ── Main Chat Area ───────────────────────────────────────────── */}
+          {/* ── Main Chat Area ─────────────────────────────────────── */}
           <div className="vi-chat-main">
 
             {/* Header */}
@@ -626,21 +767,18 @@ const ViAssistant = () => {
                   )}
                 </div>
                 <div className="vi-header-info">
-                  <span className="vi-header-name">Vi ✈️</span>
+                  <span className="vi-header-name">Vi <span className="vi-header-tag">AI Concierge</span></span>
                   <span className="vi-status">
                     <span className={`status-dot${isSpeaking ? ' speaking' : isRecording ? ' recording' : ''}`}></span>
-                    {isSpeaking
-                      ? 'Vi is speaking...'
-                      : isRecording
-                      ? '🎙️ Listening...'
-                      : isAuthenticated
-                      ? `Hey ${user?.name?.split(' ')[0] || 'there'}, ready to explore? 🌍`
-                      : 'Your friendly travel buddy'}
+                    {isSpeaking      ? 'Vi is speaking...'
+                      : isRecording  ? '🎙️ Listening...'
+                      : isStreaming  ? 'Vi is thinking...'
+                      : isAuthenticated ? `Ready when you are, ${user?.name?.split(' ')[0] || 'traveler'} 🌍`
+                      : 'Your AI travel buddy'}
                   </span>
                 </div>
               </div>
               <div className="vi-header-actions">
-                {/* Voice Mode toggle */}
                 <button
                   className={`vi-btn-icon vi-voice-mode-btn${isVoiceMode ? ' active' : ''}`}
                   onClick={toggleVoiceMode}
@@ -648,8 +786,15 @@ const ViAssistant = () => {
                 >
                   <i className={`fas ${isVoiceMode ? 'fa-phone-slash' : 'fa-phone'}`}></i>
                 </button>
-                <button className="vi-btn-icon" onClick={clearConversation} title="New conversation">
-                  <i className="fas fa-rotate-right"></i>
+                <button
+                  className="vi-btn-icon"
+                  onClick={() => setIsFullscreen(p => !p)}
+                  title={isFullscreen ? 'Exit full screen' : 'Expand full screen'}
+                >
+                  <i className={`fas ${isFullscreen ? 'fa-compress' : 'fa-expand'}`}></i>
+                </button>
+                <button className="vi-btn-icon" onClick={handleNewConversation} title="New conversation">
+                  <i className="fas fa-pen-to-square"></i>
                 </button>
                 <button className="vi-btn-icon" onClick={toggleChat} title="Close chat">
                   <i className="fas fa-times"></i>
@@ -657,7 +802,57 @@ const ViAssistant = () => {
               </div>
             </div>
 
-            {/* Voice Mode Banner */}
+            {/* Trip context bar — clickable trip switcher */}
+            {isAuthenticated && (currentTrip || userTrips.length > 0) && (
+              <div className="vi-trip-bar" ref={tripPickerRef}>
+                <button
+                  type="button"
+                  className="vi-trip-bar__chip"
+                  onClick={() => setShowTripPicker(p => !p)}
+                  disabled={userTrips.length === 0}
+                >
+                  <i className={`fas ${tripPhase === 'during' ? 'fa-plane' : tripPhase === 'before' ? 'fa-calendar-check' : tripPhase === 'after' ? 'fa-flag-checkered' : 'fa-compass'}`}></i>
+                  <span className="vi-trip-bar__text">
+                    {currentTrip
+                      ? <>
+                          <strong>{currentTrip.destination?.name || 'Trip'}</strong>
+                          <span className="vi-trip-bar__sub">
+                            {tripPhase === 'before' ? ' · upcoming'
+                              : tripPhase === 'during' ? ' · happening now'
+                              : tripPhase === 'after' ? ' · past'
+                              : ''}
+                          </span>
+                        </>
+                      : <>Pick a trip to focus on</>
+                    }
+                  </span>
+                  {userTrips.length > 0 && <i className="fas fa-chevron-down vi-trip-bar__caret"></i>}
+                </button>
+                {showTripPicker && userTrips.length > 0 && (
+                  <div className="vi-trip-picker">
+                    <div className="vi-trip-picker__title">Switch trip context</div>
+                    {userTrips.map(t => (
+                      <button
+                        key={t.trip_id}
+                        type="button"
+                        className={`vi-trip-picker__item${currentTrip?.trip_id === t.trip_id ? ' vi-trip-picker__item--active' : ''}`}
+                        onClick={() => handleSwitchTrip(t)}
+                      >
+                        <i className="fas fa-location-dot"></i>
+                        <div className="vi-trip-picker__body">
+                          <span className="vi-trip-picker__name">{t.destination?.name || 'Trip'}</span>
+                          <span className="vi-trip-picker__dates">
+                            {t.dates?.start_date} → {t.dates?.end_date}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Voice mode banner */}
             {isVoiceMode && (
               <div className="vi-voice-banner">
                 <div className="vi-voice-banner__content">
@@ -665,21 +860,7 @@ const ViAssistant = () => {
                     <i className={`fas ${isSpeaking ? 'fa-volume-high' : 'fa-microphone'}`}></i>
                   </div>
                   <span className="vi-voice-banner__label">
-                    {isRecording ? 'Listening... tap mic to stop' : isSpeaking ? 'Vi is responding...' : 'Voice mode active — tap mic to speak'}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Trip Context Banner */}
-            {isAuthenticated && currentTrip && (
-              <div className="vi-trip-context">
-                <div className="trip-context-content">
-                  <i className={`fas ${tripPhase === 'during' ? 'fa-plane' : tripPhase === 'before' ? 'fa-calendar-check' : 'fa-flag-checkered'}`}></i>
-                  <span>
-                    {tripPhase === 'before' && `✈️ Upcoming trip to ${currentTrip.destination?.name}`}
-                    {tripPhase === 'during' && `🌍 You're in ${currentTrip.destination?.name} right now!`}
-                    {tripPhase === 'after'  && `🎉 Memories from ${currentTrip.destination?.name}`}
+                    {isRecording ? 'Listening... tap mic to stop' : isSpeaking ? 'Vi is responding...' : 'Voice mode — tap mic to speak'}
                   </span>
                 </div>
               </div>
@@ -690,7 +871,7 @@ const ViAssistant = () => {
               <div className="vi-disclaimer">
                 <div className="disclaimer-content">
                   <i className="fas fa-circle-info"></i>
-                  <span>I give general travel tips — always double-check critical info before you go! 😊</span>
+                  <span>I give general travel guidance — always double-check critical details (prices, schedules, visa rules) before you book.</span>
                 </div>
                 <button className="disclaimer-close" onClick={() => setShowDisclaimer(false)} title="Got it">
                   <i className="fas fa-times"></i>
@@ -699,49 +880,105 @@ const ViAssistant = () => {
             )}
 
             {/* Messages */}
-            <div className="vi-messages">
-              {messages.map((message) => (
-                <div key={message.id} className={`vi-message ${message.sender}`}>
-                  {message.sender === 'bot' && (
-                    <div className="message-avatar">
-                      <i className="fas fa-plane vi-msg-icon"></i>
-                    </div>
-                  )}
-                  <div className="message-content">
-                    <p>{renderMessageText(message.text)}</p>
-
-                    {/* Quick replies */}
-                    {message.quickReplies && (
-                      <div className="quick-replies">
-                        {message.quickReplies.map((reply, idx) => (
-                          <button key={idx} className="quick-reply-btn" onClick={() => handleQuickReply(reply)}>
-                            {reply}
-                          </button>
-                        ))}
+            <div className="vi-messages" ref={messagesListRef} onScroll={handleMessagesScroll}>
+              {messages.map((message) => {
+                const isLastBot = message.id === lastBotMessageId;
+                return (
+                  <div key={message.id} className={`vi-message ${message.sender}${message.isError ? ' is-error' : ''}`}>
+                    {message.sender === 'bot' && (
+                      <div className="message-avatar">
+                        <i className="fas fa-plane vi-msg-icon"></i>
                       </div>
                     )}
+                    <div className="message-content">
+                      {message.sender === 'bot'
+                        ? (
+                          <div
+                            className={`vi-md${message.isStreaming ? ' vi-md--streaming' : ''}`}
+                            dangerouslySetInnerHTML={{ __html: renderMarkdown(message.text) || '<p class="vi-thinking-line">Thinking…</p>' }}
+                          />
+                        )
+                        : <p className="vi-user-text">{message.text}</p>
+                      }
 
-                    {/* Listen button — only on bot messages */}
-                    {message.sender === 'bot' && (
+                      {/* Quick replies */}
+                      {message.quickReplies && !message.isStreaming && (
+                        <div className="quick-replies">
+                          {message.quickReplies.map((reply, idx) => (
+                            <button
+                              key={idx}
+                              className="quick-reply-btn"
+                              onClick={() => handleQuickReply(reply)}
+                              disabled={isTyping || isStreaming}
+                            >
+                              {reply}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Bot message actions */}
+                      {message.sender === 'bot' && !message.isStreaming && !message.isWelcome && message.text && (
+                        <div className="vi-msg-actions">
+                          <button
+                            className={`vi-msg-action${playingMsgId === message.id ? ' vi-msg-action--active' : ''}`}
+                            onClick={() => playingMsgId === message.id ? stopAudio() : speakText(message.text, message.id)}
+                            title={playingMsgId === message.id ? 'Stop audio' : 'Listen'}
+                          >
+                            <i className={`fas ${playingMsgId === message.id ? 'fa-stop' : 'fa-volume-high'}`}></i>
+                          </button>
+                          <button
+                            className="vi-msg-action"
+                            onClick={() => handleCopyMessage(message.text)}
+                            title="Copy reply"
+                          >
+                            <i className="fas fa-copy"></i>
+                          </button>
+                          {isLastBot && (
+                            <button
+                              className="vi-msg-action"
+                              onClick={handleRegenerate}
+                              title="Regenerate reply"
+                              disabled={isTyping || isStreaming}
+                            >
+                              <i className="fas fa-arrows-rotate"></i>
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                      <span className="message-time">
+                        {message.timestamp instanceof Date
+                          ? message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                          : new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Prompt starters (only when chat is empty / welcome) */}
+              {showStarters && (
+                <div className="vi-starters">
+                  <div className="vi-starters__title">Try asking Vi:</div>
+                  <div className="vi-starters__grid">
+                    {starters.map((s, idx) => (
                       <button
-                        className={`vi-listen-btn${playingMsgId === message.id ? ' vi-listen-btn--playing' : ''}`}
-                        onClick={() => playingMsgId === message.id ? stopAudio() : speakText(message.text, message.id)}
-                        title={playingMsgId === message.id ? 'Stop audio' : 'Listen to this message'}
+                        key={idx}
+                        type="button"
+                        className="vi-starter"
+                        onClick={() => handleStarterClick(s.text)}
+                        disabled={isTyping || isStreaming}
                       >
-                        <i className={`fas ${playingMsgId === message.id ? 'fa-stop' : 'fa-volume-high'}`}></i>
-                        <span>{playingMsgId === message.id ? 'Stop' : 'Listen'}</span>
+                        <span className="vi-starter__icon"><i className={`fas ${s.icon}`}></i></span>
+                        <span className="vi-starter__label">{s.label}</span>
                       </button>
-                    )}
-
-                    <span className="message-time">
-                      {message.timestamp instanceof Date
-                        ? message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                        : new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
+                    ))}
                   </div>
                 </div>
-              ))}
-              {isTyping && (
+              )}
+
+              {isTyping && !isStreaming && (
                 <div className="vi-message bot typing">
                   <div className="message-avatar"><i className="fas fa-plane vi-msg-icon"></i></div>
                   <div className="message-content">
@@ -760,23 +997,38 @@ const ViAssistant = () => {
                   {speechError || voiceStatus}
                 </p>
               )}
+
+              {/* Stop generation button (replaces send while streaming) */}
+              {(isTyping || isStreaming) && (
+                <button type="button" className="vi-stop-gen" onClick={cancelStream}>
+                  <i className="fas fa-stop"></i> Stop generating
+                </button>
+              )}
+
               <form onSubmit={handleSendMessage}>
-                <input
+                <textarea
                   ref={inputRef}
-                  type="text"
+                  rows={1}
                   className={`vi-input${isRecording ? ' vi-input--listening' : ''}`}
                   placeholder={
                     isRecording ? '🎙️ Recording — click mic to stop...'
                     : isVoiceMode ? '🔊 Voice mode active'
-                    : isAuthenticated ? 'Ask me anything! 😊'
-                    : 'Ask me about travel...'
+                    : isAuthenticated
+                      ? (currentTrip
+                          ? `Ask Vi about your trip to ${currentTrip.destination?.name || 'your destination'}…`
+                          : 'Ask Vi anything — destinations, packing, itineraries…')
+                      : 'Ask me about travel…'
                   }
                   value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onChange={(e) => {
+                    setInputMessage(e.target.value);
+                    // Auto-grow
+                    e.target.style.height = 'auto';
+                    e.target.style.height = Math.min(e.target.scrollHeight, 140) + 'px';
+                  }}
+                  onKeyDown={handleKeyPress}
                   disabled={isVoiceMode}
                 />
-                {/* Mic button — Whisper-powered */}
                 <button
                   type="button"
                   className={micBtnClass}
@@ -787,18 +1039,23 @@ const ViAssistant = () => {
                   <i className={`fas ${isRecording ? 'fa-stop' : 'fa-microphone'}`}></i>
                   {isRecording && <span className="vi-mic-pulse"></span>}
                 </button>
-                <button type="submit" className="vi-send-btn" disabled={!inputMessage.trim() || isTyping || isVoiceMode}>
+                <button
+                  type="submit"
+                  className="vi-send-btn"
+                  disabled={!inputMessage.trim() || isTyping || isStreaming || isVoiceMode}
+                  title="Send message"
+                >
                   <i className="fas fa-paper-plane"></i>
                 </button>
               </form>
               <p className="vi-input-hint">
                 {isVoiceMode
-                  ? 'Voice mode — click phone icon in header to exit'
-                  : 'Press Enter to send · 🎙️ mic for voice input'}
+                  ? 'Voice mode — tap the phone icon in the header to exit'
+                  : <>Press <kbd>Enter</kbd> to send · <kbd>Shift</kbd> + <kbd>Enter</kbd> for newline · 🎙️ for voice</>}
               </p>
             </div>
 
-          </div>{/* end vi-chat-main */}
+          </div>
         </div>
       )}
     </>

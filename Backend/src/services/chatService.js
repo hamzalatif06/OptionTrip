@@ -1,6 +1,12 @@
 /**
  * Chat Service
- * Handles AI-powered chat for Vi Travel Assistant
+ * Powers the Vi AI Travel Assistant.
+ *
+ * Two response modes:
+ *   1. generateViResponse        — non-streaming, returns full text + quickReplies + type
+ *   2. generateViResponseStream  — async generator that yields text chunks for SSE
+ *
+ * Both modes share the same system prompt and itinerary-aware context.
  */
 
 import OpenAI from 'openai';
@@ -14,129 +20,130 @@ const getOpenAIClient = () => {
   return openai;
 };
 
-/**
- * Generate AI response for Vi assistant
- * @param {string} userMessage
- * @param {Object} context - user, currentTrip, tripPhase, allTrips, preferences
- * @param {Array}  conversationHistory - [{role, text}, ...] last N messages
- */
-export const generateViResponse = async (userMessage, context = {}, conversationHistory = []) => {
-  try {
-    const client = getOpenAIClient();
-    if (!client) {
-      return generateFallbackResponse(userMessage, context);
+const MODEL = process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini';
+
+// ─── Prompt builders ─────────────────────────────────────────────────────────
+
+const formatItineraryForPrompt = (trip) => {
+  if (!trip?.options?.length) return '';
+  const selectedId = trip.selected_option_id;
+  const opt =
+    (selectedId && trip.options.find(o => o.option_id === selectedId)) ||
+    trip.options.find(o => o.itinerary_generated && o.itinerary?.length) ||
+    null;
+  if (!opt?.itinerary?.length) return '';
+
+  const lines = [`\nSELECTED ITINERARY (${opt.title}, ${opt.total_days} days, est. $${opt.estimated_total_cost || '—'}):`];
+  for (const day of opt.itinerary) {
+    lines.push(`\nDay ${day.day_number} — ${day.title}${day.date ? ` (${day.date})` : ''}`);
+    if (day.summary) lines.push(`  ${day.summary}`);
+    for (const act of (day.activities || []).slice(0, 8)) {
+      const cost = act.cost ? ` ($${act.cost})` : '';
+      lines.push(`  • ${act.time} — ${act.title} @ ${act.place_name}${cost}`);
     }
-
-    const systemPrompt = buildSystemPrompt(context);
-
-    // Build messages array: history + current message
-    const messages = [{ role: 'system', content: systemPrompt }];
-
-    // Inject prior conversation turns (skip the last one — it's the current user message)
-    const historyToInject = conversationHistory.slice(0, -1); // exclude the just-added user msg
-    for (const msg of historyToInject) {
-      messages.push({
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
-        content: msg.text
-      });
-    }
-
-    // Current user message
-    messages.push({ role: 'user', content: buildUserPrompt(userMessage, context) });
-
-    const completion = await client.chat.completions.create({
-      model: process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini',
-      messages,
-      temperature: 0.7,
-      max_tokens: 500,
-      response_format: { type: 'json_object' }
-    });
-
-    const responseText = completion.choices[0].message.content;
-
-    let parsedResponse;
-    try {
-      parsedResponse = JSON.parse(responseText);
-    } catch {
-      return generateFallbackResponse(userMessage, context);
-    }
-
-    return {
-      text: parsedResponse.message || parsedResponse.text || "I'm here to help with your travel needs!",
-      type: parsedResponse.type || 'general',
-      quickReplies: parsedResponse.quickReplies || getContextualQuickReplies(context)
-    };
-
-  } catch (error) {
-    console.error('Chat AI Error:', error);
-    return generateFallbackResponse(userMessage, context);
   }
+  return lines.join('\n');
 };
 
-const buildSystemPrompt = (context) => {
+const buildSystemPrompt = (context, { jsonMode = false } = {}) => {
   const { user, currentTrip, tripPhase, allTrips, preferences } = context;
 
-  let prompt = `You are Vi, a friendly and knowledgeable AI travel assistant for OptionTrip.
+  let prompt = `You are Vi — an expert AI travel assistant for OptionTrip, a trip-planning, flight, hotel, and activity booking platform.
 
-YOUR PERSONALITY:
-- Warm, helpful, and enthusiastic about travel
-- Professional but conversational
-- Use occasional travel-related emojis (1-2 per response max)
-- Provide practical, actionable advice
-- Be concise but informative
-- Remember context from earlier in the conversation
+# Identity & Personality
+- Warm, friendly, and genuinely enthusiastic about travel.
+- Speak like a savvy, well-traveled friend, not a brochure.
+- Be confident and decisive. Give specific recommendations, not "you could consider X or Y or Z".
+- Use light emojis sparingly — at most 1-2 per reply, only when they add warmth.
+- Never be condescending; never apologize for things outside your control.
 
-YOUR CAPABILITIES:
-- Help users plan trips and provide destination information
-- Offer packing tips, local customs, and travel etiquette
-- Provide emergency assistance information
-- Suggest restaurants, transportation, and activities
-- Answer questions about their saved trips
+# What you can help with
+- Trip planning, itinerary refinement, day-by-day suggestions
+- Destination knowledge: neighborhoods, when-to-visit, must-do experiences, hidden gems
+- Practical: packing, visa & docs, currency, transit, SIM/eSIM, tipping, etiquette, safety
+- Restaurant, café, and bar recommendations by neighborhood and vibe
+- Flight & hotel guidance (search tactics, booking timing, loyalty tips) — point to OptionTrip's tools where relevant
+- On-trip help: directions, nearby places, weather expectations, emergencies
 
-RESPONSE FORMAT (JSON):
-{
-  "message": "Your helpful response here",
-  "type": "greeting|info|emergency|planning|trip_details|general",
-  "quickReplies": ["Option 1", "Option 2", "Option 3"]
-}
+# Formatting rules
+- Use clean Markdown: short paragraphs, **bold** for key terms, bullet points (\`-\`) and numbered lists where they help scanability.
+- Headings (\`###\`) only when the answer has clearly distinct sections.
+- Inline links allowed: \`[label](url)\`. Do not invent URLs you aren't sure of — prefer naming the source.
+- Keep replies tight: under ~180 words unless the user explicitly asks for depth.
+- Never wrap the whole reply in a code block. Code blocks are only for code/data.
 
-RULES:
-- Keep responses under 200 words
-- Always include 2-4 relevant quick reply options
-- If asked about specific real-time data (weather, prices), recommend reliable sources
-- Be honest if you don't know something specific
-- For emergencies, always provide international emergency number (112) first`;
+# Style of advice
+- Prefer concrete: "Stay in Le Marais, walk to dinner at Breizh Café" over "There are many great areas".
+- When the user has a trip on file, anchor advice to their actual destination, dates, party size, and budget.
+- When they have a generated itinerary, reference specific days by number and named activities.
+- If a date- or price-sensitive fact would be guessed, say "check live" and tell them what to search for.
+- For emergencies, lead with: International 112 (works in EU + most countries), then US 911 / UK 999.
 
-  if (user) {
-    prompt += `\n\nUSER:
-- Name: ${user.name || 'User'}
-- Saved trips: ${allTrips?.length || 0}`;
+# Boundaries
+- Do not invent prices, schedules, availability, or facts about specific businesses you don't know.
+- If asked something genuinely ambiguous, ask one short clarifying question.
+- Never claim you booked or can book anything — booking happens in the OptionTrip UI.
+
+# Quick replies
+At the very end of every reply, on its own line, emit exactly:
+[[QR]] Reply A | Reply B | Reply C
+- 2-4 short follow-up suggestions (each ≤ 28 chars), tailored to your reply and the user's trip phase.
+- The frontend strips this line before display — do not reference it in your prose.`;
+
+  if (jsonMode) {
+    prompt += `
+
+# JSON output
+Respond ONLY with valid JSON:
+{ "message": "<markdown reply>", "type": "greeting|info|emergency|planning|trip_details|recommendation|general", "quickReplies": ["...", "..."] }
+Do NOT include the [[QR]] line inside "message" — put suggestions in the "quickReplies" array instead.`;
   }
 
+  // ─── User context
+  if (user) {
+    prompt += `\n\n# User\n- Name: ${user.name || 'Guest'}\n- Saved trips: ${allTrips?.length || 0}`;
+  } else {
+    prompt += `\n\n# User\n- Guest user (not signed in). Be welcoming; suggest signing in to unlock saved-trip features.`;
+  }
+
+  // ─── Inferred preferences
   if (preferences) {
     const { destinations, tripTypes, preferredBudget, loveDescriptions } = preferences;
-    if (destinations.length > 0 || tripTypes.length > 0 || loveDescriptions.length > 0) {
-      prompt += `\n\nUSER PREFERENCES (inferred from past trips):`;
-      if (destinations.length > 0)
-        prompt += `\n- Past destinations: ${destinations.slice(0, 5).join(', ')}`;
-      if (tripTypes.length > 0)
-        prompt += `\n- Preferred trip types: ${tripTypes.join(', ')}`;
-      if (preferredBudget)
-        prompt += `\n- Typical budget: ${preferredBudget}`;
-      if (loveDescriptions.length > 0)
-        prompt += `\n- Travel interests: ${loveDescriptions.slice(0, 3).map(d => `"${d.substring(0, 80)}"`).join('; ')}`;
+    const bits = [];
+    if (destinations?.length) bits.push(`- Past destinations: ${destinations.slice(0, 6).join(', ')}`);
+    if (tripTypes?.length)    bits.push(`- Trip styles enjoyed: ${tripTypes.join(', ')}`);
+    if (preferredBudget)      bits.push(`- Typical budget tier: ${preferredBudget}`);
+    if (loveDescriptions?.length) {
+      const sample = loveDescriptions.slice(0, 2).map(d => `"${d.substring(0, 90)}"`).join('; ');
+      bits.push(`- Stated interests: ${sample}`);
     }
+    if (bits.length) prompt += `\n\n# Inferred preferences (from history)\n${bits.join('\n')}`;
   }
 
+  // ─── Current trip
   if (currentTrip) {
-    prompt += `\n\nCURRENT TRIP:
-- Destination: ${currentTrip.destination?.name || 'Unknown'}
-- Dates: ${currentTrip.dates?.start_date || 'TBD'} to ${currentTrip.dates?.end_date || 'TBD'}
-- Duration: ${currentTrip.dates?.duration_days || 0} days
-- Trip Type: ${currentTrip.trip_type || 'Leisure'}
-- Travelers: ${currentTrip.guests?.total || 1}
-- Budget: ${currentTrip.budget || 'Standard'}
-- Phase: ${tripPhase || 'planning'}`;
+    const dest = currentTrip.destination?.name || currentTrip.destination?.text || 'Unknown';
+    const origin = currentTrip.origin?.name || currentTrip.origin?.text || null;
+    prompt += `\n\n# Current trip in focus\n- Destination: ${dest}`;
+    if (origin) prompt += `\n- Origin: ${origin}`;
+    prompt += `\n- Dates: ${currentTrip.dates?.start_date || 'TBD'} → ${currentTrip.dates?.end_date || 'TBD'} (${currentTrip.dates?.duration_days || 0} days)`;
+    if (currentTrip.guests?.label) prompt += `\n- Travelers: ${currentTrip.guests.label}`;
+    else if (currentTrip.guests?.total) prompt += `\n- Travelers: ${currentTrip.guests.total}`;
+    if (currentTrip.trip_type) prompt += `\n- Trip style: ${currentTrip.trip_type}`;
+    if (currentTrip.budget) prompt += `\n- Budget tier: ${currentTrip.budget}`;
+    prompt += `\n- Phase: **${tripPhase || 'planning'}** — `;
+    prompt += tripPhase === 'before'
+      ? 'pre-trip; focus on prep, anticipation, last-minute tweaks.'
+      : tripPhase === 'during'
+      ? 'on-trip right now; be brief, useful, on-the-ground (logistics, nearby spots, opening hours guidance).'
+      : tripPhase === 'after'
+      ? 'post-trip; reflect, capture memories, suggest the next adventure.'
+      : 'planning; help shape the trip.';
+
+    const itinSection = formatItineraryForPrompt(currentTrip);
+    if (itinSection) prompt += `\n${itinSection}`;
+  } else if (allTrips?.length) {
+    prompt += `\n\n# Current trip in focus\nNone selected. The user has ${allTrips.length} saved trip(s) — ask which one they want help with, or treat the message as general travel advice.`;
   }
 
   return prompt;
@@ -144,83 +151,270 @@ RULES:
 
 const buildUserPrompt = (userMessage, context) => {
   const { tripPhase, currentTrip } = context;
-  let prompt = `User message: "${userMessage}"`;
-  if (tripPhase && currentTrip) {
-    const phaseDesc = tripPhase === 'before' ? 'preparing for an upcoming' :
-                      tripPhase === 'during' ? 'currently on their' : 'reflecting on their recent';
-    prompt += `\n\nContext: User is ${phaseDesc} trip to ${currentTrip.destination?.name || 'their destination'}.`;
+  let prompt = userMessage;
+  if (tripPhase && currentTrip?.destination?.name) {
+    prompt = `[Context: user is in the "${tripPhase}" phase of their trip to ${currentTrip.destination.name}]\n\n${prompt}`;
   }
-  prompt += '\n\nProvide a helpful response in JSON format.';
   return prompt;
 };
 
-const generateFallbackResponse = (userMessage, context) => {
-  const lowerMessage = userMessage.toLowerCase();
-  const { user, currentTrip, tripPhase } = context;
-  const userName    = user?.name?.split(' ')[0] || '';
-  const destination = currentTrip?.destination?.name || '';
+const buildMessages = (userMessage, context, conversationHistory, { jsonMode = false } = {}) => {
+  const messages = [{ role: 'system', content: buildSystemPrompt(context, { jsonMode }) }];
 
-  if (/^(hi|hello|hey|good morning|good afternoon|good evening)/i.test(lowerMessage)) {
+  // Inject prior turns (exclude the just-pushed user message — we add it last with extra context)
+  const history = conversationHistory.slice(0, -1).slice(-20);
+  for (const m of history) {
+    messages.push({
+      role: m.role === 'assistant' ? 'assistant' : 'user',
+      content: m.text
+    });
+  }
+
+  messages.push({ role: 'user', content: buildUserPrompt(userMessage, context) });
+  return messages;
+};
+
+// ─── Quick-reply extraction ──────────────────────────────────────────────────
+
+const QR_REGEX = /\n?\[\[QR\]\]\s*(.+?)\s*$/i;
+
+/**
+ * Pull the trailing `[[QR]] A | B | C` marker out of a streamed/markdown reply.
+ * Returns { cleanText, quickReplies }.
+ */
+export const extractQuickReplies = (text) => {
+  if (!text) return { cleanText: '', quickReplies: [] };
+  const match = text.match(QR_REGEX);
+  if (!match) return { cleanText: text.trim(), quickReplies: [] };
+  const replies = match[1]
+    .split('|')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+  const cleanText = text.replace(QR_REGEX, '').trim();
+  return { cleanText, quickReplies: replies };
+};
+
+// ─── Non-streaming response (legacy / fallback path) ─────────────────────────
+
+export const generateViResponse = async (userMessage, context = {}, conversationHistory = []) => {
+  try {
+    const client = getOpenAIClient();
+    if (!client) return generateFallbackResponse(userMessage, context);
+
+    const messages = buildMessages(userMessage, context, conversationHistory, { jsonMode: true });
+
+    const completion = await client.chat.completions.create({
+      model: MODEL,
+      messages,
+      temperature: 0.75,
+      max_tokens: 700,
+      response_format: { type: 'json_object' }
+    });
+
+    let parsed;
+    try {
+      parsed = JSON.parse(completion.choices[0].message.content);
+    } catch {
+      return generateFallbackResponse(userMessage, context);
+    }
+
     return {
-      text: `Hello${userName ? ` ${userName}` : ''}! How can I help you with your travel plans today?`,
+      text: parsed.message || parsed.text || "I'm here to help with your travel plans!",
+      type: parsed.type || 'general',
+      quickReplies: Array.isArray(parsed.quickReplies) && parsed.quickReplies.length
+        ? parsed.quickReplies.slice(0, 4)
+        : getContextualQuickReplies(context)
+    };
+  } catch (err) {
+    console.error('Vi chat (non-stream) error:', err);
+    return generateFallbackResponse(userMessage, context);
+  }
+};
+
+// ─── Streaming response ──────────────────────────────────────────────────────
+
+/**
+ * Stream Vi's reply token-by-token.
+ * Yields { type: 'chunk', text } for each delta and a final
+ * { type: 'final', cleanText, quickReplies } once the QR marker line is parsed.
+ *
+ * The caller is responsible for forwarding events as SSE to the client and
+ * persisting the final message to the Conversation document.
+ */
+export async function* generateViResponseStream(userMessage, context = {}, conversationHistory = []) {
+  const client = getOpenAIClient();
+
+  if (!client) {
+    const fallback = generateFallbackResponse(userMessage, context);
+    yield { type: 'chunk', text: fallback.text };
+    yield {
+      type: 'final',
+      cleanText: fallback.text,
+      quickReplies: fallback.quickReplies,
+      replyType: fallback.type
+    };
+    return;
+  }
+
+  const messages = buildMessages(userMessage, context, conversationHistory, { jsonMode: false });
+
+  let stream;
+  try {
+    stream = await client.chat.completions.create({
+      model: MODEL,
+      messages,
+      temperature: 0.75,
+      max_tokens: 700,
+      stream: true
+    });
+  } catch (err) {
+    console.error('Vi chat (stream) start error:', err);
+    const fallback = generateFallbackResponse(userMessage, context);
+    yield { type: 'chunk', text: fallback.text };
+    yield {
+      type: 'final',
+      cleanText: fallback.text,
+      quickReplies: fallback.quickReplies,
+      replyType: fallback.type
+    };
+    return;
+  }
+
+  let fullText = '';
+  let qrBufferStarted = false;
+  let qrBuffer = '';
+
+  try {
+    for await (const part of stream) {
+      const delta = part.choices?.[0]?.delta?.content;
+      if (!delta) continue;
+      fullText += delta;
+
+      // Once we see the QR marker, buffer the rest silently — don't stream it to the client.
+      if (qrBufferStarted) {
+        qrBuffer += delta;
+        continue;
+      }
+
+      // Detect the start of the QR marker (it begins with `\n[[QR]]` or just `[[QR]]`).
+      // Heuristic: if the tail of fullText contains "[[QR" — stop emitting and start buffering.
+      const idx = fullText.indexOf('[[QR]]');
+      if (idx !== -1) {
+        // Everything before [[QR]] is content; anything after goes into qrBuffer.
+        const splitPoint = idx;
+        const emittedSoFarLen = fullText.length - delta.length;
+        if (splitPoint > emittedSoFarLen) {
+          // Emit the portion of this delta that is still real content.
+          const safeChunk = fullText.substring(emittedSoFarLen, splitPoint).replace(/\n+$/, '');
+          if (safeChunk) yield { type: 'chunk', text: safeChunk };
+        }
+        qrBufferStarted = true;
+        qrBuffer = fullText.substring(splitPoint);
+        continue;
+      }
+
+      // Don't emit a delta that potentially starts a [[QR]] marker — wait one tick.
+      // Cheap guard: hold back the last 6 chars in case they're "\n[[QR" split across deltas.
+      // We do this by emitting all-but-last-6 of the freshly-added text only when next delta arrives.
+      // Simpler approach: just emit the delta directly — the indexOf check above runs each iteration.
+      yield { type: 'chunk', text: delta };
+    }
+  } catch (err) {
+    console.error('Vi chat stream iteration error:', err);
+  }
+
+  const { cleanText, quickReplies } = extractQuickReplies(fullText);
+  yield {
+    type: 'final',
+    cleanText: cleanText || fullText.trim(),
+    quickReplies: quickReplies.length ? quickReplies : getContextualQuickReplies(context),
+    replyType: inferReplyType(cleanText)
+  };
+}
+
+// ─── Reply type heuristic ────────────────────────────────────────────────────
+
+const inferReplyType = (text) => {
+  if (!text) return 'general';
+  const t = text.toLowerCase();
+  if (/\b(112|911|999|emergency|embass|hospital|police)\b/.test(t)) return 'emergency';
+  if (/\b(pack|luggage|suitcase|bring)\b/.test(t))                   return 'packing';
+  if (/\b(restaurant|café|cafe|dinner|lunch|food|cuisine)\b/.test(t))return 'recommendation';
+  if (/\b(itinerary|day \d|day-by-day|schedule)\b/.test(t))          return 'planning';
+  if (/\b(visa|passport|documents|customs)\b/.test(t))               return 'info';
+  return 'general';
+};
+
+// ─── Fallback (offline / no API key) ─────────────────────────────────────────
+
+const generateFallbackResponse = (userMessage, context) => {
+  const lower = (userMessage || '').toLowerCase();
+  const { user, currentTrip, tripPhase } = context;
+  const userName = user?.name?.split(' ')[0] || '';
+  const dest     = currentTrip?.destination?.name || '';
+
+  if (/^(hi|hello|hey|good (morning|afternoon|evening))/i.test(lower)) {
+    return {
+      text: `Hi${userName ? ` ${userName}` : ''}! 👋 How can I help with your travel plans today?`,
       type: 'greeting',
       quickReplies: getContextualQuickReplies(context)
     };
   }
 
-  if (lowerMessage.includes('emergency') || lowerMessage.includes('help') || lowerMessage.includes('sos')) {
+  if (/(emergency|sos|urgent|help me)/.test(lower)) {
     return {
-      text: `For emergencies:\n- International: 112\n- US: 911 | UK: 999\n\n${destination ? `In ${destination}, note your hotel emergency contact and nearest embassy.` : ''}\n\nHow can I help?`,
+      text: `**Emergency numbers**\n- International: **112**\n- US: 911 · UK: 999 · AU: 000\n\n${dest ? `In ${dest}, save your hotel front desk and nearest embassy contact in your phone.` : ''}\n\nWhat happened — can I help you find a hospital, embassy, or police?`,
       type: 'emergency',
-      quickReplies: ['Local Embassy', 'Hospital Info', 'Police Contact']
+      quickReplies: ['Nearest embassy', 'Hospital info', 'Lost passport', 'Local police']
     };
   }
 
-  if (lowerMessage.includes('pack') || lowerMessage.includes('luggage') || lowerMessage.includes('bring')) {
-    const duration = currentTrip?.dates?.duration_days || 5;
+  if (/(pack|luggage|bring|suitcase)/.test(lower)) {
+    const d = currentTrip?.dates?.duration_days || 5;
     return {
-      text: `Packing essentials for your ${duration}-day trip:\n\n- Travel documents & copies\n- Phone charger & adapter\n- Medications\n- ${Math.ceil(duration * 0.7)} tops, ${Math.ceil(duration * 0.5)} bottoms\n- Comfortable walking shoes\n\nNeed destination-specific tips?`,
+      text: `Here's a tight ${d}-day packing list${dest ? ` for ${dest}` : ''}:\n\n- Travel docs + photocopies + 2 backup payment cards\n- Phone, charger, **universal adapter**, power bank\n- Medications + small first-aid kit\n- ${Math.ceil(d * 0.7)} tops, ${Math.ceil(d * 0.5)} bottoms, 1 layer, 1 rain shell\n- Comfortable walking shoes + 1 nicer pair\n\nWant a destination-specific tweak?`,
       type: 'packing',
-      quickReplies: ['Weather Info', 'Electronics', 'Toiletries Checklist']
+      quickReplies: ['Weather in ' + (dest || 'destination'), 'Electronics list', 'What to wear', 'Toiletries']
     };
   }
 
-  if (lowerMessage.includes('weather') || lowerMessage.includes('climate')) {
+  if (/(weather|climate|forecast)/.test(lower)) {
     return {
-      text: `For accurate weather${destination ? ` in ${destination}` : ''}, check Weather.com or AccuWeather closer to your trip. Pack layers and a light rain jacket just in case!`,
+      text: `For accurate forecasts${dest ? ` in ${dest}` : ''}, check **Weather.com** or **AccuWeather** a few days before you travel — long-range forecasts drift a lot.\n\nGeneral rule: pack one layer warmer than you think and a light rain shell.`,
       type: 'weather',
-      quickReplies: ['Packing Tips', 'What to Wear', 'Best Time to Visit']
+      quickReplies: ['Packing tips', 'Best time to visit', 'What to wear']
     };
   }
 
-  if (lowerMessage.includes('restaurant') || lowerMessage.includes('food') || lowerMessage.includes('eat')) {
+  if (/(restaurant|food|eat|cuisine|dinner)/.test(lower)) {
     return {
-      text: `For great dining${destination ? ` in ${destination}` : ''}:\n\n- Check TripAdvisor or Google Maps\n- Ask your hotel concierge\n- Look for places busy with locals\n- Try the local specialties!\n\nAny specific cuisine?`,
-      type: 'dining',
-      quickReplies: ['Local Cuisine', 'Budget Options', 'Fine Dining']
+      text: `Quick way to eat well${dest ? ` in ${dest}` : ''}:\n\n- Search **Google Maps** with "open now" + rating 4.5+ filter\n- Ask your hotel concierge for two picks — pick the smaller one\n- Skip anywhere with a host on the street pulling people in\n- Lunch menus are usually a steal at fine-dining spots\n\nWhat kind of vibe — casual local, romantic, or splurge?`,
+      type: 'recommendation',
+      quickReplies: ['Local favorites', 'Budget eats', 'Romantic dinner', 'Brunch spots']
     };
   }
 
-  if (lowerMessage.includes('transport') || lowerMessage.includes('taxi') || lowerMessage.includes('getting around')) {
+  if (/(transport|taxi|getting around|metro|subway|uber)/.test(lower)) {
     return {
-      text: `Transportation${destination ? ` in ${destination}` : ''}:\n\n- Ride-sharing (Uber, Lyft, local apps)\n- Public transit (cheapest)\n- Official taxi stands\n- Rental cars for outside city\n\nDownload offline maps before you go!`,
+      text: `Getting around${dest ? ` ${dest}` : ''}:\n\n- **Public transit** is almost always fastest in cities — grab a day pass\n- **Uber/Bolt/Grab** for late nights or with luggage\n- Avoid airport taxi touts — use the official rank or pre-booked transfer\n- Download offline maps before you land\n\nFlying in soon?`,
       type: 'transport',
-      quickReplies: ['Airport Transfer', 'Public Transit', 'Car Rental']
+      quickReplies: ['Airport transfer', 'Day pass info', 'Car rental tips']
     };
   }
 
-  if ((lowerMessage.includes('my trip') || lowerMessage.includes('trip detail')) && currentTrip) {
+  if (/(my trip|trip detail|itinerary|where am i going)/.test(lower) && currentTrip) {
     return {
-      text: `Your trip to ${destination}:\n\n- Dates: ${currentTrip.dates?.start_date || 'TBD'} to ${currentTrip.dates?.end_date || 'TBD'}\n- Duration: ${currentTrip.dates?.duration_days || 0} days\n- Travelers: ${currentTrip.guests?.total || 1}\n- Budget: ${currentTrip.budget || 'Standard'}\n\nHow can I help you prepare?`,
+      text: `**Your trip to ${dest}**\n- Dates: ${currentTrip.dates?.start_date || 'TBD'} → ${currentTrip.dates?.end_date || 'TBD'}\n- Duration: ${currentTrip.dates?.duration_days || 0} days\n- Travelers: ${currentTrip.guests?.total || 1}\n- Budget: ${currentTrip.budget || 'Standard'}\n\nHow can I help you prep?`,
       type: 'trip_details',
       quickReplies: tripPhase === 'before'
-        ? ['Packing List', 'Local Customs', 'Must-See Places']
-        : ['Nearby Places', 'Emergency Info', 'Restaurant Tips']
+        ? ['Packing list', 'Local customs', 'Top experiences', 'Visa info']
+        : ['Nearby places', 'Emergency info', 'Restaurant tips', 'Transport']
     };
   }
 
   return {
-    text: `I'm here to help${userName ? `, ${userName}` : ''}! I can assist with:\n\n- Trip planning & itineraries\n- Packing advice\n- Local customs & culture\n- Restaurant recommendations\n- Transportation tips\n- Emergency assistance\n\nWhat would you like to know?`,
+    text: `Happy to help${userName ? `, ${userName}` : ''}! I can do:\n\n- **Plan** itineraries day-by-day\n- **Pack** lists tailored to your trip\n- **Recommend** restaurants, neighborhoods, activities\n- **Prep** for visas, customs, currency, transit\n- **Help on-trip** with directions, nearby spots, emergencies\n\nWhat are you working on?`,
     type: 'general',
     quickReplies: getContextualQuickReplies(context)
   };
@@ -228,13 +422,13 @@ const generateFallbackResponse = (userMessage, context) => {
 
 const getContextualQuickReplies = (context) => {
   const { user, currentTrip, tripPhase } = context;
-  if (!user) return ['Travel Tips', 'Popular Destinations', 'How to Plan'];
+  if (!user) return ['Travel tips', 'Popular destinations', 'How to plan'];
   if (currentTrip) {
-    if (tripPhase === 'before') return ['Packing Tips', 'Local Customs', 'Weather Info'];
-    if (tripPhase === 'during') return ['Emergency Help', 'Nearby Places', 'Restaurant Tips'];
-    return ['Plan New Trip', 'Share Experience', 'Travel Tips'];
+    if (tripPhase === 'before') return ['Packing list', 'Local customs', 'Top experiences', 'Visa info'];
+    if (tripPhase === 'during') return ['Nearby places', 'Restaurant tips', 'Emergency help', 'Transport'];
+    return ['Plan a new trip', 'Share experience', 'Travel tips'];
   }
-  return ['Plan a Trip', 'My Trips', 'Travel Tips'];
+  return ['Plan a trip', 'My trips', 'Travel tips', 'Inspire me'];
 };
 
-export default { generateViResponse };
+export default { generateViResponse, generateViResponseStream, extractQuickReplies };

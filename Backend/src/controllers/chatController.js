@@ -3,7 +3,7 @@
  * Handles Vi AI Assistant chat endpoints with conversation persistence
  */
 
-import { generateViResponse } from '../services/chatService.js';
+import { generateViResponse, generateViResponseStream } from '../services/chatService.js';
 import Trip from '../models/Trip.js';
 import Conversation from '../models/Conversation.js';
 
@@ -29,6 +29,81 @@ const buildPreferences = (trips) => {
   return { destinations, tripTypes, preferredBudget, loveDescriptions: descriptions };
 };
 
+/**
+ * Shared context+conversation builder for both streaming and non-streaming endpoints.
+ * Returns { context, conversation, conversationHistory } where conversation is a Mongoose
+ * doc with the user message already appended (or null for anonymous users).
+ */
+const prepareChat = async (user, { message, tripId, conversationId }) => {
+  const context = {
+    user: user ? { id: user._id, name: user.name, email: user.email } : null,
+    currentTrip: null,
+    tripPhase: 'planning',
+    allTrips: [],
+    preferences: null
+  };
+
+  let conversation = null;
+  let conversationHistory = [];
+
+  if (user) {
+    try {
+      // Fetch user trips — include options + itinerary so Vi can reason about specific days.
+      const userTrips = await Trip.find({ user_id: user._id })
+        .sort({ createdAt: -1 })
+        .select('trip_id destination origin dates trip_type guests budget description options selected_option_id status')
+        .limit(15);
+
+      context.allTrips = userTrips;
+      context.preferences = buildPreferences(userTrips);
+
+      if (tripId) {
+        context.currentTrip = userTrips.find(t => t.trip_id === tripId) || null;
+      } else {
+        const now = new Date();
+        context.currentTrip =
+          userTrips.find(t => new Date(t.dates?.end_date) >= now) ||
+          userTrips[0] ||
+          null;
+      }
+
+      if (context.currentTrip?.dates) {
+        const now = new Date();
+        const start = new Date(context.currentTrip.dates.start_date);
+        const end   = new Date(context.currentTrip.dates.end_date);
+        context.tripPhase = now < start ? 'before' : now <= end ? 'during' : 'after';
+      }
+    } catch (tripErr) {
+      console.error('Error fetching trips for chat context:', tripErr);
+    }
+
+    try {
+      if (conversationId) {
+        conversation = await Conversation.findOne({
+          conversation_id: conversationId,
+          user_id: String(user._id)
+        });
+      }
+      if (!conversation) {
+        conversation = new Conversation({
+          conversation_id: generateConversationId(),
+          user_id: String(user._id),
+          title: autoTitle(message),
+          messages: []
+        });
+      }
+      conversation.messages.push({ role: 'user', text: message, type: 'user' });
+      conversationHistory = conversation.messages
+        .slice(-20)
+        .map(m => ({ role: m.role, text: m.text }));
+    } catch (convErr) {
+      console.error('Error loading conversation:', convErr);
+    }
+  }
+
+  return { context, conversation, conversationHistory };
+};
+
 // ── Main message handler ───────────────────────────────────────────────────
 
 /**
@@ -44,83 +119,11 @@ export const sendMessage = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Message is required' });
     }
 
-    // ── Build context ────────────────────────────────────────────────────
-    const context = {
-      user: user ? { id: user._id, name: user.name, email: user.email } : null,
-      currentTrip: null,
-      tripPhase: 'planning',
-      allTrips: [],
-      preferences: null
-    };
+    const { context, conversation, conversationHistory } =
+      await prepareChat(user, { message, tripId, conversationId });
 
-    let conversation = null;
-    let conversationHistory = [];
-
-    if (user) {
-      // Fetch user trips
-      try {
-        const userTrips = await Trip.find({ user_id: user._id })
-          .sort({ createdAt: -1 })
-          .select('trip_id destination dates trip_type guests budget description')
-          .limit(15);
-
-        context.allTrips = userTrips;
-        context.preferences = buildPreferences(userTrips);
-
-        // Resolve currentTrip
-        if (tripId) {
-          context.currentTrip = userTrips.find(t => t.trip_id === tripId) || null;
-        } else {
-          const now = new Date();
-          context.currentTrip = userTrips.find(t => new Date(t.dates?.end_date) >= now) || userTrips[0] || null;
-        }
-
-        // Trip phase
-        if (context.currentTrip?.dates) {
-          const now = new Date();
-          const start = new Date(context.currentTrip.dates.start_date);
-          const end   = new Date(context.currentTrip.dates.end_date);
-          context.tripPhase = now < start ? 'before' : now <= end ? 'during' : 'after';
-        }
-      } catch (tripErr) {
-        console.error('Error fetching trips for chat context:', tripErr);
-      }
-
-      // ── Load or create conversation ──────────────────────────────────
-      try {
-        if (conversationId) {
-          conversation = await Conversation.findOne({
-            conversation_id: conversationId,
-            user_id: String(user._id)
-          });
-        }
-
-        if (!conversation) {
-          conversation = new Conversation({
-            conversation_id: generateConversationId(),
-            user_id: String(user._id),
-            title: autoTitle(message),
-            messages: []
-          });
-        }
-
-        // Append user message
-        conversation.messages.push({ role: 'user', text: message, type: 'user' });
-
-        // Build history for AI (last 10 exchanges = 20 messages)
-        conversationHistory = conversation.messages
-          .slice(-20)
-          .map(m => ({ role: m.role, text: m.text }));
-
-      } catch (convErr) {
-        console.error('Error loading conversation:', convErr);
-      }
-    }
-
-    // ── Generate AI response ─────────────────────────────────────────────
     const response = await generateViResponse(message, context, conversationHistory);
 
-    // ── Save bot response to conversation ────────────────────────────────
     if (conversation) {
       try {
         conversation.messages.push({
@@ -154,6 +157,89 @@ export const sendMessage = async (req, res) => {
       message: 'Failed to process message',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
+  }
+};
+
+/**
+ * POST /api/chat/message/stream
+ * Server-Sent Events stream of Vi's reply. Events emitted:
+ *   - meta:         { conversationId }
+ *   - chunk:        { text } — appended to the bot message client-side
+ *   - final:        { text, quickReplies, type } — definitive reply, used to overwrite
+ *                   the in-progress bubble (handles any QR-marker stripping cleanup)
+ *   - done:         end of stream
+ *   - error:        { message }
+ *
+ * Client disconnect aborts the OpenAI stream via the underlying generator's break.
+ */
+export const sendMessageStream = async (req, res) => {
+  const { message, tripId, conversationId } = req.body;
+  const user = req.user;
+
+  if (!message || typeof message !== 'string') {
+    return res.status(400).json({ success: false, message: 'Message is required' });
+  }
+
+  // ── SSE headers ─────────────────────────────────────────────────────
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache, no-transform',
+    'Connection': 'keep-alive',
+    'X-Accel-Buffering': 'no'
+  });
+
+  const send = (event, data) => {
+    if (res.writableEnded) return;
+    res.write(`event: ${event}\n`);
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+
+  let aborted = false;
+  req.on('close', () => { aborted = true; });
+
+  try {
+    const { context, conversation, conversationHistory } =
+      await prepareChat(user, { message, tripId, conversationId });
+
+    send('meta', { conversationId: conversation?.conversation_id || null });
+
+    let finalText = '';
+    let finalQuickReplies = [];
+    let finalType = 'general';
+
+    for await (const evt of generateViResponseStream(message, context, conversationHistory)) {
+      if (aborted) break;
+      if (evt.type === 'chunk') {
+        send('chunk', { text: evt.text });
+      } else if (evt.type === 'final') {
+        finalText = evt.cleanText;
+        finalQuickReplies = evt.quickReplies || [];
+        finalType = evt.replyType || 'general';
+        send('final', { text: finalText, quickReplies: finalQuickReplies, type: finalType });
+      }
+    }
+
+    if (!aborted && conversation && finalText) {
+      try {
+        conversation.messages.push({
+          role: 'assistant',
+          text: finalText,
+          type: finalType,
+          quickReplies: finalQuickReplies
+        });
+        conversation.last_message_at = new Date();
+        await conversation.save();
+      } catch (saveErr) {
+        console.error('Error saving streamed conversation:', saveErr);
+      }
+    }
+
+    send('done', { ok: true });
+  } catch (error) {
+    console.error('Chat stream error:', error);
+    send('error', { message: 'Failed to generate response' });
+  } finally {
+    if (!res.writableEnded) res.end();
   }
 };
 
@@ -306,4 +392,4 @@ export const getStatus = async (req, res) => {
   }
 };
 
-export default { sendMessage, getChatHistory, getStatus, createConversation, getConversations, getConversation, deleteConversation };
+export default { sendMessage, sendMessageStream, getChatHistory, getStatus, createConversation, getConversations, getConversation, deleteConversation };

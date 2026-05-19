@@ -6,6 +6,7 @@
 import express from 'express';
 import {
   sendMessage,
+  sendMessageStream,
   getChatHistory,
   getStatus,
   createConversation,
@@ -23,6 +24,13 @@ const router = express.Router();
  * @access  Public (enhanced with user context if authenticated)
  */
 router.post('/message', optionalAuthenticate, sendMessage);
+
+/**
+ * @route   POST /api/chat/message/stream
+ * @desc    Stream Vi's reply token-by-token via Server-Sent Events.
+ * @access  Public (enhanced with user context if authenticated)
+ */
+router.post('/message/stream', optionalAuthenticate, sendMessageStream);
 
 /**
  * @route   GET /api/chat/history
