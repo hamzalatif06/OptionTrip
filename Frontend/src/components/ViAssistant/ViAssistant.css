@@ -749,12 +749,13 @@
 }
 
 /* ─── Voice mode button (phone icon in header) ─────────────────────────── */
-.vi-voice-mode-btn { color: #029e9d; }
+.vi-voice-mode-btn { color: rgba(255,255,255,0.92); }
 .vi-voice-mode-btn.active {
-  background: rgba(239,68,68,0.15) !important;
-  color: #ef4444 !important;
+  background: rgba(239,68,68,0.25) !important;
+  border-color: rgba(239,68,68,0.4) !important;
+  color: #fff !important;
 }
-.vi-voice-mode-btn.active:hover { background: rgba(239,68,68,0.25) !important; }
+.vi-voice-mode-btn.active:hover { background: rgba(239,68,68,0.35) !important; }
 
 /* ─── Speaking animation in avatar ─────────────────────────────────────── */
 .vi-speaking-animation {

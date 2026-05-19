@@ -106,17 +106,17 @@ const renderMarkdown = (raw) => {
 const PROMPT_STARTERS = {
   before: [
     { icon: 'fa-suitcase', label: 'Build me a packing list', text: 'Build me a packing list for my upcoming trip' },
-    { icon: 'fa-bowl-food', label: 'Best places to eat', text: 'What are the best places to eat at my destination?' },
+    { icon: 'fa-utensils', label: 'Best places to eat', text: 'What are the best places to eat at my destination?' },
     { icon: 'fa-landmark', label: 'Must-see experiences', text: 'What are the must-see experiences I should book in advance?' },
     { icon: 'fa-passport', label: 'Visa & documents', text: 'What documents and visa do I need for this trip?' },
     { icon: 'fa-money-bill-wave', label: 'Daily budget estimate', text: 'Estimate a realistic daily budget for my trip' },
     { icon: 'fa-cloud-sun', label: 'Weather & what to wear', text: 'What is the weather like, and what should I pack to wear?' }
   ],
   during: [
-    { icon: 'fa-location-dot', label: 'Nearby right now', text: 'What is worth seeing near me right now?' },
+    { icon: 'fa-map-marker-alt', label: 'Nearby right now', text: 'What is worth seeing near me right now?' },
     { icon: 'fa-utensils', label: 'Dinner tonight', text: 'Suggest a great dinner spot near my hotel tonight' },
     { icon: 'fa-bus', label: 'How to get around', text: 'What is the best way to get around the city?' },
-    { icon: 'fa-triangle-exclamation', label: 'I need help', text: 'I need help — what should I do?' },
+    { icon: 'fa-exclamation-triangle', label: 'I need help', text: 'I need help — what should I do?' },
     { icon: 'fa-mug-hot', label: 'Best cafés to work', text: 'Find me good cafés to work from with WiFi' },
     { icon: 'fa-camera', label: 'Photo spots', text: 'Where are the best photo spots nearby?' }
   ],
@@ -126,9 +126,9 @@ const PROMPT_STARTERS = {
     { icon: 'fa-star', label: 'Recommend somewhere new', text: 'Recommend a destination I would love based on my last trip' }
   ],
   planning: [
-    { icon: 'fa-wand-magic-sparkles', label: 'Plan a perfect weekend', text: 'Plan a perfect 3-day weekend escape for me' },
+    { icon: 'fa-magic', label: 'Plan a perfect weekend', text: 'Plan a perfect 3-day weekend escape for me' },
     { icon: 'fa-heart', label: 'Romantic getaway', text: 'Suggest a romantic getaway for two' },
-    { icon: 'fa-mountain-sun', label: 'Adventure trip', text: 'Plan an adventure trip with hiking and great food' },
+    { icon: 'fa-mountain', label: 'Adventure trip', text: 'Plan an adventure trip with hiking and great food' },
     { icon: 'fa-umbrella-beach', label: 'Beach vacation', text: 'Recommend a beach destination for next month' },
     { icon: 'fa-piggy-bank', label: 'Budget Europe', text: 'Plan a budget-friendly 7-day Europe trip' },
     { icon: 'fa-utensils', label: 'Food-focused trip', text: 'Plan a trip focused on amazing food and local culture' }
@@ -626,8 +626,12 @@ const ViAssistant = () => {
   };
 
   const toggleChat = () => {
-    setIsOpen(prev => !prev);
-    if (!isOpen) setTimeout(() => inputRef.current?.focus(), 300);
+    const opening = !isOpen;
+    setIsOpen(opening);
+    if (opening) {
+      setTimeout(() => inputRef.current?.focus(), 300);
+      if (isAuthenticated) setIsSidebarOpen(true);
+    }
   };
 
   const handleCopyMessage = async (text) => {
@@ -729,7 +733,7 @@ const ViAssistant = () => {
                         onClick={(e) => handleDeleteConversation(e, conv.conversation_id)}
                         title="Delete conversation"
                       >
-                        <i className="fas fa-trash-can"></i>
+                        <i className="fas fa-trash"></i>
                       </button>
                     </div>
                   ))
@@ -750,7 +754,7 @@ const ViAssistant = () => {
                     onClick={() => setIsSidebarOpen(prev => !prev)}
                     title="Conversation history"
                   >
-                    <i className="fas fa-clock-rotate-left"></i>
+                    <i className="fas fa-history"></i>
                   </button>
                 )}
                 <div className="vi-avatar">
@@ -790,7 +794,7 @@ const ViAssistant = () => {
                   <i className={`fas ${isFullscreen ? 'fa-compress' : 'fa-expand'}`}></i>
                 </button>
                 <button className="vi-btn-icon" onClick={handleNewConversation} title="New conversation">
-                  <i className="fas fa-pen-to-square"></i>
+                  <i className="fas fa-edit"></i>
                 </button>
                 <button className="vi-btn-icon" onClick={toggleChat} title="Close chat">
                   <i className="fas fa-times"></i>
@@ -866,7 +870,7 @@ const ViAssistant = () => {
             {showDisclaimer && (
               <div className="vi-disclaimer">
                 <div className="disclaimer-content">
-                  <i className="fas fa-circle-info"></i>
+                  <i className="fas fa-info-circle"></i>
                   <span>I give general travel guidance — always double-check critical details (prices, schedules, visa rules) before you book.</span>
                 </div>
                 <button className="disclaimer-close" onClick={() => setShowDisclaimer(false)} title="Got it">
@@ -921,7 +925,7 @@ const ViAssistant = () => {
                             onClick={() => playingMsgId === message.id ? stopAudio() : speakText(message.text, message.id)}
                             title={playingMsgId === message.id ? 'Stop audio' : 'Listen'}
                           >
-                            <i className={`fas ${playingMsgId === message.id ? 'fa-stop' : 'fa-volume-high'}`}></i>
+                            <i className={`fas ${playingMsgId === message.id ? 'fa-stop' : 'fa-volume-up'}`}></i>
                           </button>
                           <button
                             className="vi-msg-action"
@@ -937,7 +941,7 @@ const ViAssistant = () => {
                               title="Regenerate reply"
                               disabled={isTyping}
                             >
-                              <i className="fas fa-arrows-rotate"></i>
+                              <i className="fas fa-redo"></i>
                             </button>
                           )}
                         </div>
@@ -989,7 +993,7 @@ const ViAssistant = () => {
             <div className="vi-input-container">
               {(speechError || voiceStatus) && (
                 <p className={`vi-speech-error${voiceStatus && !speechError ? ' vi-speech-status' : ''}`}>
-                  <i className={`fas ${speechError ? 'fa-circle-exclamation' : 'fa-circle-info'}`}></i>
+                  <i className={`fas ${speechError ? 'fa-exclamation-circle' : 'fa-info-circle'}`}></i>
                   {speechError || voiceStatus}
                 </p>
               )}
