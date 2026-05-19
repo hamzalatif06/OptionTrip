@@ -27,9 +27,9 @@
     "dateFormat": "{{date}}"
   },
   "banner": {
-    "exploreWorld": "Fedezze fel a világot",
-    "planDreamTrip": "Kezdje el ma megtervezni álmai utazását!",
-    "bannerDescription": "Hagyja, hogy mesterséges intelligenciánk percek alatt létrehozza az Ön tökéletes utazási tervét. Egyszerűen írja le álmai utazását, és mi kezeljük a többit—a repülőjegyektől az aktivitásokig, mindent az Ön preferenciái szerint személyre szabva.",
+    "exploreWorld": "Explore The World",
+    "planDreamTrip": "Start Planning Your Dream Trip Today!",
+    "bannerDescription": "Let OptionTrip perfect your dream trip in minutes. Simply tell us where you want to go and what you love, and we’ll handle everything — from flights to activities — fully personalized to your preferences.",
     "camping": "Kemping",
     "hiking": "Túrázás",
     "beachTours": "Strand túrák",
@@ -78,4 +78,3 @@
     "id": "Indonéz"
   }
 }
-

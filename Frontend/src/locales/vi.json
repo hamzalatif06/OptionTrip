@@ -27,9 +27,9 @@
     "dateFormat": "{{date}}"
   },
   "banner": {
-    "exploreWorld": "Khám phá thế giới",
-    "planDreamTrip": "Bắt đầu lập kế hoạch cho chuyến đi trong mơ của bạn ngay hôm nay!",
-    "bannerDescription": "Để AI của chúng tôi tạo lịch trình hoàn hảo cho bạn trong vài phút. Chỉ cần mô tả chuyến đi trong mơ của bạn, và chúng tôi sẽ xử lý phần còn lại—từ chuyến bay đến hoạt động, tất cả đều được cá nhân hóa theo sở thích của bạn.",
+    "exploreWorld": "Explore The World",
+    "planDreamTrip": "Start Planning Your Dream Trip Today!",
+    "bannerDescription": "Let OptionTrip perfect your dream trip in minutes. Simply tell us where you want to go and what you love, and we’ll handle everything — from flights to activities — fully personalized to your preferences.",
     "camping": "Cắm trại",
     "hiking": "Đi bộ đường dài",
     "beachTours": "Tours bãi biển",
@@ -78,4 +78,3 @@
     "id": "Tiếng Indonesia"
   }
 }
-

@@ -9,6 +9,7 @@ import { enrichItineraryWithPlaces, enrichSingleDayWithPlaces } from '../service
 export const generateTripOptions = async (req, res) => {
   try {
     const {
+      origin,
       destination,
       start_date,
       end_date,
@@ -37,6 +38,7 @@ export const generateTripOptions = async (req, res) => {
 
     // PHASE 1: Generate 3 lightweight trip options (no detailed itinerary)
     const options = await generateLightweightTripOptions({
+      origin,
       destination,
       start_date,
       end_date,
@@ -53,6 +55,12 @@ export const generateTripOptions = async (req, res) => {
     const trip = new Trip({
       trip_id,
       user_id: user_id || 'guest',
+      origin: origin && origin.text ? {
+        text: origin.text,
+        place_id: origin.place_id,
+        name: origin.name,
+        geometry: origin.geometry
+      } : undefined,
       destination: {
         text: destination.text,
         place_id: destination.place_id,
@@ -83,6 +91,7 @@ export const generateTripOptions = async (req, res) => {
       message: 'Trip options generated successfully',
       data: {
         trip_id: trip.trip_id,
+        origin: trip.origin,
         destination: trip.destination,
         dates: trip.dates,
         options: trip.options, // Return lightweight options

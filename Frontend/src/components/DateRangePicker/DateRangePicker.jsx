@@ -5,13 +5,6 @@ import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 import './DateRangePicker.css';
 
-// Parse YYYY-MM-DD string safely in local timezone (avoids UTC midnight off-by-one)
-const parseLocalDate = (str) => {
-  if (!str) return null;
-  const [y, m, d] = str.split('-').map(Number);
-  return new Date(y, m - 1, d, 12, 0, 0);
-};
-
 const DateRangePickerComponent = ({
   selectedDates = [],
   onDateRangeChange,
@@ -25,23 +18,25 @@ const DateRangePickerComponent = ({
   });
   const pickerRef = useRef(null);
 
-  // Set default dates once on mount (only when no external dates provided)
-  useEffect(() => {
-    if (!selectedDates[0] && !selectedDates[1]) {
-      const defaultStart = addMonths(new Date(), 3);
-      const defaultEnd = addDays(defaultStart, 4);
-      setDateRange({ startDate: defaultStart, endDate: defaultEnd, key: 'selection' });
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // React to externally-set dates (e.g. AI auto-fill from speech / text input)
+  // Sync internal state with the controlled prop. Runs on mount AND whenever
+  // selectedDates changes (e.g. the AI / voice parser fills the form).
   useEffect(() => {
     if (selectedDates[0] && selectedDates[1]) {
-      setDateRange({
-        startDate: parseLocalDate(selectedDates[0]),
-        endDate: parseLocalDate(selectedDates[1]),
-        key: 'selection'
-      });
+      const nextStart = new Date(selectedDates[0]);
+      const nextEnd   = new Date(selectedDates[1]);
+      // Avoid stomping on identical values (and the infinite loop that would cause)
+      if (
+        !dateRange.startDate || !dateRange.endDate ||
+        nextStart.getTime() !== dateRange.startDate.getTime() ||
+        nextEnd.getTime()   !== dateRange.endDate.getTime()
+      ) {
+        setDateRange({ startDate: nextStart, endDate: nextEnd, key: 'selection' });
+      }
+    } else if (!dateRange.startDate && !dateRange.endDate) {
+      // First mount with no incoming dates → fall back to default placeholder range
+      const defaultStart = addMonths(new Date(), 3);
+      const defaultEnd   = addDays(defaultStart, 4);
+      setDateRange({ startDate: defaultStart, endDate: defaultEnd, key: 'selection' });
     }
   }, [selectedDates[0], selectedDates[1]]);
 

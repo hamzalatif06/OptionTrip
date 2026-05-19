@@ -2,11 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useAutocompleteContext } from './AutocompleteContext';
 import { useDebounce } from '../../hooks/useDebounce';
 
+const DEFAULT_CHIPS = ['Paris', 'Tokyo', 'Bali', 'Rome', 'Dubai', 'Barcelona', 'Santorini', 'New York'];
+
 const DestinationAutocomplete = ({
   value,
   onChange,
   error,
-  placeholder = 'e.g. Paris, France'
+  placeholder = 'e.g. Paris, France',
+  inputId = 'destination',
+  label = 'Destination',
+  labelExtra = null,
+  tooltip = 'Enter a country, city, region, landmark, or continent.\nExamples: Italy, Paris, Mediterranean, Alps, Bali.',
+  chips = DEFAULT_CHIPS,
+  showChips = true,
 }) => {
   const [inputValue, setInputValue] = useState(value?.text || '');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -105,17 +113,24 @@ const DestinationAutocomplete = ({
 
   return (
     <div className="autocomplete-wrapper">
-      <label htmlFor="destination">
-        Destination
-        <span className="field-tooltip-wrapper">
-          <span className="field-tooltip-icon">?</span>
-          <span className="field-tooltip-text">Enter a country, city, region, landmark, or continent.<br/>Examples: Italy, Paris, Mediterranean, Alps, Bali.</span>
-        </span>
+      <label htmlFor={inputId}>
+        {label}
+        {labelExtra}
+        {tooltip && (
+          <span className="field-tooltip-wrapper">
+            <span className="field-tooltip-icon">?</span>
+            <span className="field-tooltip-text">
+              {tooltip.split('\n').map((line, i, arr) => (
+                <React.Fragment key={i}>{line}{i < arr.length - 1 && <br />}</React.Fragment>
+              ))}
+            </span>
+          </span>
+        )}
       </label>
       <div className="autocomplete-input-container">
         <input
           type="text"
-          id="destination"
+          id={inputId}
           className={`autocomplete-input ${error ? 'error' : ''}`}
           value={inputValue}
           onChange={handleInputChange}
@@ -131,9 +146,9 @@ const DestinationAutocomplete = ({
       </div>
 
       {/* Popular destination chips */}
-      {!inputValue && (
+      {showChips && !inputValue && chips.length > 0 && (
         <div className="example-chips" style={{ marginTop: '8px' }}>
-          {['Paris', 'Tokyo', 'Bali', 'Rome', 'Dubai', 'Barcelona', 'Santorini', 'New York'].map((dest) => (
+          {chips.map((dest) => (
             <button
               key={dest}
               type="button"

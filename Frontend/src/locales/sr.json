@@ -27,9 +27,9 @@
     "dateFormat": "{{date}}"
   },
   "banner": {
-    "exploreWorld": "Истражите свет",
-    "planDreamTrip": "Почните да планирате своје снове путовање данас!",
-    "bannerDescription": "Дозволите нашој AI да створи ваш савршени план путовања за неколико минута. Једноставно опишите своје снове путовање, а ми ћемо се побринути за остало—од летова до активности, све персонализовано према вашим преференцама.",
+    "exploreWorld": "Explore The World",
+    "planDreamTrip": "Start Planning Your Dream Trip Today!",
+    "bannerDescription": "Let OptionTrip perfect your dream trip in minutes. Simply tell us where you want to go and what you love, and we’ll handle everything — from flights to activities — fully personalized to your preferences.",
     "camping": "Кампирање",
     "hiking": "Пешачење",
     "beachTours": "Плажне туре",
@@ -78,4 +78,3 @@
     "id": "Индонежански"
   }
 }
-

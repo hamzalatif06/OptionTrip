@@ -27,9 +27,9 @@
     "dateFormat": "{{date}}"
   },
   "banner": {
-    "exploreWorld": "استكشف العالم",
-    "planDreamTrip": "ابدأ في التخطيط لرحلتك المثالية اليوم!",
-    "bannerDescription": "دع ذكاءنا الاصطناعي ينشئ خط سير رحلتك المثالي في دقائق. ما عليك سوى وصف رحلتك المثالية، وسنهتم بكل شيء—من الرحلات الجوية إلى الأنشطة، كل شيء مخصص وفقًا لتفضيلاتك.",
+    "exploreWorld": "Explore The World",
+    "planDreamTrip": "Start Planning Your Dream Trip Today!",
+    "bannerDescription": "Let OptionTrip perfect your dream trip in minutes. Simply tell us where you want to go and what you love, and we’ll handle everything — from flights to activities — fully personalized to your preferences.",
     "camping": "التخييم",
     "hiking": "المشي لمسافات طويلة",
     "beachTours": "جولات الشاطئ",
@@ -78,4 +78,3 @@
     "id": "الإندونيسية"
   }
 }
-

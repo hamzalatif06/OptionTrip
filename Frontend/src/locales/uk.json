@@ -27,9 +27,9 @@
     "dateFormat": "{{date}}"
   },
   "banner": {
-    "exploreWorld": "Досліджуйте світ",
-    "planDreamTrip": "Почніть планувати свою мрію подорож сьогодні!",
-    "bannerDescription": "Дозвольте нашому ШІ створити ваш ідеальний маршрут за кілька хвилин. Просто опишіть подорож вашої мрії, і ми подбаємо про решту—від авіаквитків до активностей, все персоналізовано згідно з вашими уподобаннями.",
+    "exploreWorld": "Explore The World",
+    "planDreamTrip": "Start Planning Your Dream Trip Today!",
+    "bannerDescription": "Let OptionTrip perfect your dream trip in minutes. Simply tell us where you want to go and what you love, and we’ll handle everything — from flights to activities — fully personalized to your preferences.",
     "camping": "Кемпінг",
     "hiking": "Піші походи",
     "beachTours": "Пляжні тури",
@@ -78,4 +78,3 @@
     "id": "Індонезійська"
   }
 }
-

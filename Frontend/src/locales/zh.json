@@ -27,9 +27,9 @@
     "dateFormat": "{{date}}"
   },
   "banner": {
-    "exploreWorld": "探索世界",
-    "planDreamTrip": "今天开始计划您的梦想之旅！",
-    "bannerDescription": "让我们的AI在几分钟内为您创建完美的行程。只需描述您的梦想之旅，我们将处理其余的一切—从航班到活动，一切都根据您的喜好个性化定制。",
+    "exploreWorld": "Explore The World",
+    "planDreamTrip": "Start Planning Your Dream Trip Today!",
+    "bannerDescription": "Let OptionTrip perfect your dream trip in minutes. Simply tell us where you want to go and what you love, and we’ll handle everything — from flights to activities — fully personalized to your preferences.",
     "camping": "露营",
     "hiking": "徒步旅行",
     "beachTours": "海滩之旅",
@@ -78,4 +78,3 @@
     "id": "印度尼西亚语"
   }
 }
-

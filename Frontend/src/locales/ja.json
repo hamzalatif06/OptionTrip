@@ -27,9 +27,9 @@
     "dateFormat": "{{date}}"
   },
   "banner": {
-    "exploreWorld": "世界を探索",
-    "planDreamTrip": "今日から夢の旅を計画し始めましょう！",
-    "bannerDescription": "私たちのAIが数分で完璧な旅程を作成します。夢の旅を簡単に説明するだけで、残りはお任せください—フライトからアクティビティまで、すべてあなたの好みに合わせてパーソナライズされます。",
+    "exploreWorld": "Explore The World",
+    "planDreamTrip": "Start Planning Your Dream Trip Today!",
+    "bannerDescription": "Let OptionTrip perfect your dream trip in minutes. Simply tell us where you want to go and what you love, and we’ll handle everything — from flights to activities — fully personalized to your preferences.",
     "camping": "キャンプ",
     "hiking": "ハイキング",
     "beachTours": "ビーチツアー",
@@ -78,4 +78,3 @@
     "id": "インドネシア語"
   }
 }
-

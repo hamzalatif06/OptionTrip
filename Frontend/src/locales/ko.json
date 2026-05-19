@@ -27,9 +27,9 @@
     "dateFormat": "{{date}}"
   },
   "banner": {
-    "exploreWorld": "세계 탐험",
-    "planDreamTrip": "오늘 꿈의 여행을 계획하기 시작하세요!",
-    "bannerDescription": "우리의 AI가 몇 분 안에 완벽한 여행 일정을 만들어드립니다. 꿈의 여행을 간단히 설명하기만 하면, 나머지는 저희가 처리합니다—항공편부터 활동까지 모든 것이 여러분의 선호도에 맞게 개인화됩니다.",
+    "exploreWorld": "Explore The World",
+    "planDreamTrip": "Start Planning Your Dream Trip Today!",
+    "bannerDescription": "Let OptionTrip perfect your dream trip in minutes. Simply tell us where you want to go and what you love, and we’ll handle everything — from flights to activities — fully personalized to your preferences.",
     "camping": "캠핑",
     "hiking": "등산",
     "beachTours": "해변 투어",
@@ -78,4 +78,3 @@
     "id": "인도네시아어"
   }
 }
-

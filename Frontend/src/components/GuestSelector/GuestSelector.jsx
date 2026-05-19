@@ -11,6 +11,19 @@ const GuestSelector = ({
   const [guests, setGuests] = useState(initialGuests);
   const menuRef = useRef(null);
 
+  // Re-sync when the parent updates initialGuests (e.g. AI/voice parser fills the form).
+  // Compares values (not object identity) to avoid pointless re-renders.
+  useEffect(() => {
+    const a = initialGuests.adults   || 0;
+    const c = initialGuests.children || 0;
+    const i = initialGuests.infants  || 0;
+    setGuests(prev =>
+      (prev.adults === a && prev.children === c && prev.infants === i)
+        ? prev
+        : { adults: a, children: c, infants: i }
+    );
+  }, [initialGuests.adults, initialGuests.children, initialGuests.infants]);
+
   const GUEST_LIMIT = 10;
 
   // Calculate total and label

@@ -6,8 +6,8 @@ import { AutocompleteContextProvider } from '../GooglePlaces/AutocompleteContext
 import DateRangePickerComponent from '../DateRangePicker/DateRangePicker';
 import GuestSelector from '../GuestSelector/GuestSelector';
 import TripTypeSelector from '../TripTypeSelector/TripTypeSelector';
-import { generateTripOptions, parseTripDescription } from '../../services/tripsService';
 import Loader from '../Loader/Loader';
+import { generateTripOptions, parseTripDescription } from '../../services/tripsService';
 
 const TRIP_TYPE_LABELS = {
   Adventure: 'Adventure',
@@ -31,6 +31,7 @@ const TripPlannerForm = () => {
   const location = useLocation();
 
   const [formData, setFormData] = useState({
+    origin: { text: '', place_id: '', name: '', geometry: null },
     destination: { text: '', place_id: '', name: '', geometry: null },
     start_date: '',
     end_date: '',
@@ -46,6 +47,17 @@ const TripPlannerForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isParsing, setIsParsing]       = useState(false);
   const [aiDetected, setAiDetected]     = useState(null);
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+
+  const LOADING_MESSAGES = [
+    'Crafting your perfect trip...',
+    'Picking the best destinations for you...',
+    'Searching for amazing flights...',
+    'Finding the perfect places to stay...',
+    'Curating unique activities you will love...',
+    'Polishing the final details...',
+    'Almost there — bringing it all together...'
+  ];
 
   // Speech state
   const [isListening, setIsListening]   = useState(false);
@@ -54,7 +66,8 @@ const TripPlannerForm = () => {
 
   const debounceTimer   = useRef(null);
   const recognitionRef  = useRef(null);
-  const speechBaseRef   = useRef(''); // description text snapshot when mic starts
+  const speechBaseRef   = useRef('');  // description text snapshot when mic starts
+  const speechFinalRef  = useRef('');  // accumulated FINAL transcript for this recognition session
 
   // ─── Pre-selected destination from session / navigation state ───
   useEffect(() => {
@@ -87,21 +100,39 @@ const TripPlannerForm = () => {
     };
   }, []);
 
-  // Parse YYYY-MM-DD safely in local timezone
-  const parseLocalDate = (str) => {
-    if (!str) return null;
-    const [y, m, d] = str.split('-').map(Number);
-    return new Date(y, m - 1, d, 12, 0, 0);
-  };
+  // ─── Rotate loading messages while building the trip ──────────────
+  useEffect(() => {
+    if (!isSubmitting) {
+      setLoadingMessageIndex(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setLoadingMessageIndex(prev => (prev + 1) % LOADING_MESSAGES.length);
+    }, 2200);
+    return () => clearInterval(interval);
+  }, [isSubmitting]);
 
-  // Format a local Date to YYYY-MM-DD without UTC shift
-  const toDateStr = (date) =>
-    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  // ─── Lock body scroll while the fullpage loader is visible ───────
+  useEffect(() => {
+    if (!isSubmitting) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prevOverflow; };
+  }, [isSubmitting]);
 
   // ─── AI auto-fill from parsed data ───────────────────────────────
   const applyParsedData = useCallback((parsed) => {
     setFormData(prev => {
       const next = { ...prev };
+
+      if (parsed.origin?.text) {
+        next.origin = {
+          text: parsed.origin.text,
+          place_id: '',
+          name: parsed.origin.name || parsed.origin.text,
+          geometry: null
+        };
+      }
 
       if (parsed.destination?.text) {
         next.destination = {
@@ -112,28 +143,25 @@ const TripPlannerForm = () => {
         };
       }
 
-      // Apply dates — AI now always tries to provide both start_date and end_date
       if (parsed.start_date) next.start_date = parsed.start_date;
       if (parsed.end_date)   next.end_date   = parsed.end_date;
 
       if (parsed.start_date && parsed.duration_days && !parsed.end_date) {
-        // AI gave start + duration but not end → compute end
-        const s = parseLocalDate(parsed.start_date);
+        const s = new Date(parsed.start_date);
         s.setDate(s.getDate() + parsed.duration_days - 1);
-        next.end_date      = toDateStr(s);
+        next.end_date      = s.toISOString().split('T')[0];
         next.duration_days = parsed.duration_days;
       } else if (parsed.start_date && parsed.end_date) {
-        // Both provided → compute duration
-        const s = parseLocalDate(parsed.start_date);
-        const e = parseLocalDate(parsed.end_date);
+        const s = new Date(parsed.start_date);
+        const e = new Date(parsed.end_date);
         next.duration_days = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
-      } else if (parsed.duration_days && !parsed.start_date) {
+      } else if (parsed.duration_days) {
         next.duration_days = parsed.duration_days;
       }
 
       if (next.start_date) {
-        const s = parseLocalDate(next.start_date);
-        next.month_year = s.toLocaleString('default', { month: 'long', year: 'numeric' });
+        next.month_year = new Date(next.start_date)
+          .toLocaleString('default', { month: 'long', year: 'numeric' });
       }
 
       if (parsed.tripType && TRIP_TYPE_LABELS[parsed.tripType]) {
@@ -201,82 +229,149 @@ const TripPlannerForm = () => {
   };
 
   // ─── Speech-to-Text ───────────────────────────────────────────────
+  // Strategy:
+  //   • Lock recognition to en-US (most accurate; the LLM parser handles intent).
+  //   • Run continuous + interimResults so users can speak a full multi-clause sentence
+  //     ("plan a trip to paris from london and i am with my girlfriend...") without
+  //     being cut off after the first pause.
+  //   • Always re-build the textarea from base + (full accumulated final) + interim,
+  //     so React state matches what was actually heard.
+  //   • Send the FULL transcript to the parser (not per-segment), debounced so multiple
+  //     finals coalesce into a single backend call. Also force a final parse on stop.
+  const SPEECH_LANG = 'en-US';
+
+  const parseNowFromSpeech = useCallback((text) => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    if (!text || text.trim().length < 5) return;
+    (async () => {
+      try {
+        setIsParsing(true);
+        console.log('🎤 [speech] sending to parser:', text);
+        const result = await parseTripDescription(text);
+        console.log('🎯 [speech] parser response:', result);
+        if (result.success && result.data) {
+          const parsed = result.data;
+          const hasAny =
+            parsed.origin?.text || parsed.destination?.text || parsed.start_date ||
+            parsed.tripType || parsed.budget ||
+            (parsed.guests && ((parsed.guests.adults ?? 0) + (parsed.guests.children ?? 0) + (parsed.guests.infants ?? 0)) > 0);
+          if (hasAny) { setAiDetected(parsed); applyParsedData(parsed); }
+        }
+      } catch (err) {
+        console.error('[speech] parse failed:', err);
+      } finally {
+        setIsParsing(false);
+      }
+    })();
+  }, [applyParsedData]);
+
   const startListening = () => {
     if (!SpeechRecognitionAPI) return;
     setSpeechError('');
 
-    // Abort any existing session
-    recognitionRef.current?.abort();
+    // Abort any existing session cleanly
+    try { recognitionRef.current?.abort(); } catch { /* noop */ }
 
     const recognition = new SpeechRecognitionAPI();
     recognitionRef.current = recognition;
 
-    // Use browser/device language so ANY language works (Russian, Arabic, etc.)
-    recognition.lang          = navigator.language || 'en-US';
-    recognition.continuous    = false;   // better battery on mobile
-    recognition.interimResults = true;   // live feedback while speaking
+    recognition.lang            = SPEECH_LANG;
+    recognition.continuous      = true;   // capture full multi-clause sentences
+    recognition.interimResults  = true;   // live UI feedback
     recognition.maxAlternatives = 1;
 
-    // Snapshot the current description text so we can append to it
-    speechBaseRef.current = formData.description
-      ? formData.description.trimEnd() + ' '
-      : '';
+    // Snapshot the textarea so we append (don't overwrite typed text)
+    speechBaseRef.current  = formData.description ? formData.description.trimEnd() + ' ' : '';
+    speechFinalRef.current = '';
+
+    // Per-session flag: once recognition has ended, ignore any straggling onresult
+    // events that Chrome may emit with a reset event.results list (which would
+    // otherwise overwrite the accumulated transcript with just the tail fragment).
+    let sessionEnded = false;
 
     recognition.onstart = () => {
+      console.log('🎤 [speech] started, lang=' + SPEECH_LANG);
       setIsListening(true);
       setSpeechInterim('');
     };
 
     recognition.onresult = (event) => {
-      let interim = '';
-      let final   = '';
+      if (sessionEnded) {
+        console.log('🎤 [speech] ignoring onresult after session ended');
+        return;
+      }
 
+      // Only look at results AT OR AFTER event.resultIndex — those are the new ones
+      // this event brings. We accumulate finals into speechFinalRef ourselves rather
+      // than rebuilding from event.results (Chrome occasionally truncates that list
+      // mid-session in continuous mode).
+      let newFinal   = '';
+      let newInterim = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        const t = event.results[i][0].transcript;
-        if (event.results[i].isFinal) final += t;
-        else interim += t;
+        const transcript = event.results[i][0]?.transcript || '';
+        if (event.results[i].isFinal) newFinal   += transcript + ' ';
+        else                          newInterim += transcript;
+      }
+      newFinal   = newFinal.trim();
+      newInterim = newInterim.trim();
+
+      if (newFinal) {
+        speechFinalRef.current = (speechFinalRef.current
+          ? speechFinalRef.current + ' ' + newFinal
+          : newFinal).trim();
       }
 
-      if (interim) {
-        // Show live preview — don't commit yet
-        setSpeechInterim(interim);
-        setFormData(prev => ({
-          ...prev,
-          description: speechBaseRef.current + interim
-        }));
-      }
+      const displayed = speechBaseRef.current
+        + speechFinalRef.current
+        + (newInterim ? (speechFinalRef.current ? ' ' : '') + newInterim : '');
 
-      if (final) {
-        const committed = speechBaseRef.current + final.trim();
-        setSpeechInterim('');
-        setFormData(prev => ({ ...prev, description: committed }));
-        speechBaseRef.current = committed.trimEnd() + ' ';
-        // Trigger AI parse on the committed text
+      setSpeechInterim(newInterim);
+      setFormData(prev => ({ ...prev, description: displayed }));
+
+      if (newFinal) {
         if (errors.description) setErrors(prev => ({ ...prev, description: '' }));
-        triggerParse(committed);
+        // Debounced — multiple finals coalesce into a single backend call
+        triggerParse(speechBaseRef.current + speechFinalRef.current);
       }
     };
 
     recognition.onerror = (event) => {
-      setIsListening(false);
-      setSpeechInterim('');
-      if (event.error === 'not-allowed') {
-        setSpeechError('Microphone access denied. Please allow mic permission and try again.');
+      console.warn('[speech] error:', event.error);
+      // no-speech / aborted are noise; everything else is user-facing
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        setSpeechError('Microphone access denied. Please allow microphone permission and try again.');
+      } else if (event.error === 'audio-capture') {
+        setSpeechError('No microphone detected. Connect a microphone and try again.');
+      } else if (event.error === 'network') {
+        setSpeechError('Speech recognition needs an internet connection. Please retry.');
       } else if (event.error !== 'aborted' && event.error !== 'no-speech') {
-        setSpeechError('Speech recognition failed. Please try again.');
+        setSpeechError('Speech recognition failed (' + event.error + '). Please try again.');
       }
     };
 
     recognition.onend = () => {
+      sessionEnded = true;
+      console.log('🎤 [speech] ended. final transcript:', speechFinalRef.current);
       setIsListening(false);
       setSpeechInterim('');
+
+      // Force one final parse on the complete transcript so the user always gets
+      // a parsed result without waiting for the debounce timer.
+      if (speechFinalRef.current) {
+        parseNowFromSpeech(speechBaseRef.current + speechFinalRef.current);
+      }
     };
 
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (err) {
+      console.error('[speech] start() failed:', err);
+      setSpeechError('Could not start microphone. Please refresh the page and try again.');
+    }
   };
 
   const stopListening = () => {
-    recognitionRef.current?.stop();
+    try { recognitionRef.current?.stop(); } catch { /* noop */ }
     setIsListening(false);
     setSpeechInterim('');
   };
@@ -349,12 +444,15 @@ const TripPlannerForm = () => {
   const micSupported  = !!SpeechRecognitionAPI;
 
   return (
-    <>
-    {/* Full-screen loader while the trip is being created on the server */}
-    {isSubmitting && (
-      <Loader size="fullpage" text="Building your trip..." />
-    )}
     <form className="trip-planner-form" onSubmit={handleSubmit}>
+
+      {/* ── Fullpage loader while building the trip ─────────────── */}
+      {isSubmitting && (
+        <Loader
+          size="fullpage"
+          text={LOADING_MESSAGES[loadingMessageIndex]}
+        />
+      )}
 
       {/* ── Smart Description Box ─────────────────────────────── */}
       <div className="smart-description-section">
@@ -479,6 +577,24 @@ const TripPlannerForm = () => {
       <p className="form-required-note"><span className="form-required-star">*</span> Required fields</p>
 
       <div className="form-grid">
+        {/* Origin (optional) */}
+        <div className={`form-field${formData.origin?.text ? ' field-filled' : ''}`}>
+          <AutocompleteContextProvider map_id="map">
+            <DestinationAutocomplete
+              value={formData.origin}
+              onChange={(placeData) => {
+                setFormData(prev => ({ ...prev, origin: placeData }));
+              }}
+              placeholder="e.g. London, UK"
+              inputId="origin"
+              label="Flying from"
+              labelExtra={<span style={{ fontWeight: 400, opacity: 0.6, fontSize: '0.85em', marginLeft: 6 }}>(optional)</span>}
+              tooltip={'Where will you fly from?\nUseful when you say "from London to Paris" by voice.'}
+              showChips={false}
+            />
+          </AutocompleteContextProvider>
+        </div>
+
         {/* Destination */}
         <div className={`form-field${formData.destination?.text ? ' field-filled' : ''}`} data-required>
           <AutocompleteContextProvider map_id="map">
@@ -541,20 +657,13 @@ const TripPlannerForm = () => {
           </span>
         )}
         <button type="submit" className={`search-button${isSubmitting ? ' loading' : ''}`} disabled={isSubmitting}>
-          {isSubmitting ? (
-            <><span className="btn-spinner"></span><span>Building your trip...</span></>
-          ) : (
-            <>
-              <span>Show My Option Trip</span>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </>
-          )}
+          <span>Show My Option Trip</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
         </button>
       </div>
     </form>
-    </>
   );
 };
 

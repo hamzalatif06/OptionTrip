@@ -181,7 +181,14 @@ const PlannedTripPage = () => {
 
   // Loading State
   if (loading) {
-    return <Loader size="fullpage" text="Loading your trip..." />;
+    return (
+      <div className="planned-trip-page">
+        <PlannedTripHeader tripId={tripId} />
+        <div className="planned-trip-page__loading">
+          <Loader size="large" text="Loading..." />
+        </div>
+      </div>
+    );
   }
 
   // Error State

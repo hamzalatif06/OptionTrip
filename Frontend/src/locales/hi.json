@@ -27,9 +27,9 @@
     "dateFormat": "{{date}}"
   },
   "banner": {
-    "exploreWorld": "दुनिया का अन्वेषण करें",
-    "planDreamTrip": "आज ही अपनी सपनों की यात्रा की योजना बनाना शुरू करें!",
-    "bannerDescription": "हमारी AI को मिनटों में आपकी सही यात्रा योजना बनाने दें। बस अपनी सपनों की यात्रा का वर्णन करें, और हम बाकी सब कुछ संभाल लेंगे—उड़ानों से लेकर गतिविधियों तक, सभी आपकी प्राथमिकताओं के अनुसार व्यक्तिगत।",
+    "exploreWorld": "Explore The World",
+    "planDreamTrip": "Start Planning Your Dream Trip Today!",
+    "bannerDescription": "Let OptionTrip perfect your dream trip in minutes. Simply tell us where you want to go and what you love, and we’ll handle everything — from flights to activities — fully personalized to your preferences.",
     "camping": "कैम्पिंग",
     "hiking": "हाइकिंग",
     "beachTours": "बीच टूर",
@@ -78,4 +78,3 @@
     "id": "इंडोनेशियाई"
   }
 }
-

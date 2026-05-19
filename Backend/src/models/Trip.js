@@ -121,6 +121,15 @@ const tripSchema = new mongoose.Schema({
     type: String,
     index: true
   },
+  origin: {
+    text: String,
+    place_id: String,
+    name: String,
+    geometry: {
+      lat: Number,
+      lng: Number
+    }
+  },
   destination: {
     text: {
       type: String,

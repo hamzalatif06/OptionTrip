@@ -27,9 +27,9 @@
     "dateFormat": "{{date}}"
   },
   "banner": {
-    "exploreWorld": "Dünyayı Keşfedin",
-    "planDreamTrip": "Hayalinizdeki Gezisini Bugün Planlamaya Başlayın!",
-    "bannerDescription": "Yapay zekamızın birkaç dakika içinde mükemmel seyahat planınızı oluşturmasına izin verin. Sadece hayalinizdeki seyahati tarif edin, geri kalanını biz hallederiz—uçuşlardan aktivitelere kadar her şey tercihlerinize göre kişiselleştirilir.",
+    "exploreWorld": "Explore The World",
+    "planDreamTrip": "Start Planning Your Dream Trip Today!",
+    "bannerDescription": "Let OptionTrip perfect your dream trip in minutes. Simply tell us where you want to go and what you love, and we’ll handle everything — from flights to activities — fully personalized to your preferences.",
     "camping": "Kamp",
     "hiking": "Yürüyüş",
     "beachTours": "Plaj Turları",
@@ -78,4 +78,3 @@
     "id": "Endonezce"
   }
 }
-

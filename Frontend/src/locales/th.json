@@ -27,9 +27,9 @@
     "dateFormat": "{{date}}"
   },
   "banner": {
-    "exploreWorld": "สำรวจโลก",
-    "planDreamTrip": "เริ่มวางแผนการเดินทางในฝันของคุณวันนี้!",
-    "bannerDescription": "ให้ AI ของเราสร้างแผนการเดินทางที่สมบูรณ์แบบให้คุณในไม่กี่นาที เพียงอธิบายการเดินทางในฝันของคุณ และเราจะจัดการส่วนที่เหลือ—ตั้งแต่เที่ยวบินไปจนถึงกิจกรรม ทั้งหมดปรับแต่งตามความชอบของคุณ",
+    "exploreWorld": "Explore The World",
+    "planDreamTrip": "Start Planning Your Dream Trip Today!",
+    "bannerDescription": "Let OptionTrip perfect your dream trip in minutes. Simply tell us where you want to go and what you love, and we’ll handle everything — from flights to activities — fully personalized to your preferences.",
     "camping": "ตั้งแคมป์",
     "hiking": "เดินป่า",
     "beachTours": "ทัวร์ชายหาด",
@@ -78,4 +78,3 @@
     "id": "อินโดนีเซีย"
   }
 }
-

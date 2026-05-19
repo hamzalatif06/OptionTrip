@@ -27,9 +27,9 @@
     "dateFormat": "{{date}}"
   },
   "banner": {
-    "exploreWorld": "Explora el mundo",
-    "planDreamTrip": "¡Comienza a planificar tu viaje soñado hoy!",
-    "bannerDescription": "Deja que nuestra IA cree tu itinerario perfecto en minutos. Simplemente describe tu viaje soñado y nosotros nos encargamos del resto: desde vuelos hasta actividades, todo personalizado según tus preferencias.",
+    "exploreWorld": "Explore The World",
+    "planDreamTrip": "Start Planning Your Dream Trip Today!",
+    "bannerDescription": "Let OptionTrip perfect your dream trip in minutes. Simply tell us where you want to go and what you love, and we’ll handle everything — from flights to activities — fully personalized to your preferences.",
     "camping": "Camping",
     "hiking": "Senderismo",
     "beachTours": "Tours de playa",
@@ -78,4 +78,3 @@
     "id": "Indonesio"
   }
 }
-

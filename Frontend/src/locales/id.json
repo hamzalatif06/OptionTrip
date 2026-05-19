@@ -27,9 +27,9 @@
     "dateFormat": "{{date}}"
   },
   "banner": {
-    "exploreWorld": "Jelajahi Dunia",
-    "planDreamTrip": "Mulai Rencanakan Perjalanan Impian Anda Hari Ini!",
-    "bannerDescription": "Biarkan AI kami membuat rencana perjalanan sempurna Anda dalam hitungan menit. Cukup jelaskan perjalanan impian Anda, dan kami akan menangani sisanya—dari penerbangan hingga aktivitas, semuanya dipersonalisasi sesuai preferensi Anda.",
+    "exploreWorld": "Explore The World",
+    "planDreamTrip": "Start Planning Your Dream Trip Today!",
+    "bannerDescription": "Let OptionTrip perfect your dream trip in minutes. Simply tell us where you want to go and what you love, and we’ll handle everything — from flights to activities — fully personalized to your preferences.",
     "camping": "Kemah",
     "hiking": "Pendakian",
     "beachTours": "Tur Pantai",
@@ -78,4 +78,3 @@
     "id": "Bahasa Indonesia"
   }
 }
-

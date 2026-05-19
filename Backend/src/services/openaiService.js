@@ -22,6 +22,7 @@ const getOpenAIClient = () => {
  * Returns 3 trip options with NO detailed itinerary
  */
 export const generateLightweightTripOptions = async ({
+  origin,
   destination,
   start_date,
   end_date,
@@ -38,6 +39,7 @@ export const generateLightweightTripOptions = async ({
     }
 
     const prompt = createPhase1Prompt({
+      origin,
       destination,
       start_date,
       end_date,
@@ -196,6 +198,7 @@ Return ONLY valid JSON format with NO markdown, NO code blocks, NO backticks.`
  * PHASE 1 PROMPT: Generate lightweight trip options only
  */
 const createPhase1Prompt = ({
+  origin,
   destination,
   start_date,
   end_date,
@@ -208,6 +211,7 @@ const createPhase1Prompt = ({
   const resolvedTripType = tripType || 'General';
   const resolvedBudget   = budget   || 'moderate';
   const resolvedGuests   = guests   || { total: 1, adults: 1, children: 0, infants: 0 };
+  const originLine = origin && origin.name ? `\n- Origin (departure city): ${origin.name}` : '';
   const budgetDescriptions = {
     budget: 'Budget-friendly ($) - affordable activities, local eateries',
     moderate: 'Moderate ($$) - mix of paid and free activities',
@@ -226,7 +230,7 @@ const createPhase1Prompt = ({
 
 Generate exactly 3 different trip options.
 
-TRIP CONTEXT:
+TRIP CONTEXT:${originLine}
 - Destination: ${destination.name}
 - Duration: ${duration_days} days (${start_date} to ${end_date})
 - Trip Type: ${resolvedTripType}
@@ -519,8 +523,9 @@ export const generateSingleDayItinerary = async ({
 };
 
 /**
- * Parse a natural language trip description into structured trip data
- * Used by the "What you love" smart textarea feature
+ * Parse a natural language trip description into structured trip data.
+ * Powers both the "What you love" textarea and the voice (speech-to-text) input,
+ * so inputs may contain run-on sentences, filler words, and minor mistranscriptions.
  */
 export const parseTripDescription = async (text) => {
   const client = getOpenAIClient();
@@ -529,90 +534,217 @@ export const parseTripDescription = async (text) => {
   }
 
   const today = new Date().toISOString().split('T')[0];
+  const currentYear = new Date().getFullYear();
+
+  const systemPrompt = `You are a precise travel-information extractor. Input may come from a typed textbox OR a speech-to-text transcript — tolerate run-on sentences, filler words ("uh", "like"), missing punctuation, and homophone errors.
+
+Today's date is ${today}. The current year is ${currentYear}.
+
+Return ONLY a JSON object with this exact shape (no markdown, no commentary):
+
+{
+  "origin": { "text": "City, Country or as written", "name": "City only" } | null,
+  "destination": { "text": "City, Country or as written", "name": "City only" } | null,
+  "start_date": "YYYY-MM-DD" | null,
+  "end_date":   "YYYY-MM-DD" | null,
+  "duration_days": integer | null,
+  "tripType": "Adventure" | "Cultural" | "Relaxation" | "Family" | "Romantic" | "Business" | "Budget" | "Luxury" | null,
+  "guests": { "adults": integer | null, "children": integer | null, "infants": integer | null },
+  "budget":  "budget" | "moderate" | "luxury" | "premium" | null,
+  "activities": string[]
+}
+
+EXTRACTION RULES:
+
+1. ORIGIN vs DESTINATION (critical):
+   - "from X to Y" / "X to Y" → origin = X, destination = Y.
+   - "from X" / "leaving X" / "departing X" / "out of X" / "based in X" → origin = X.
+   - "to Y" / "going to Y" / "visit Y" / "trip to Y" / "fly to Y" / "in Y" / "vacation in Y" → destination = Y.
+   - If only ONE city is mentioned, it is the DESTINATION (never the origin).
+   - Never put the same city in both fields.
+   - Use the city's well-known country in the "text" field when obvious ("Paris" → "Paris, France").
+
+2. GUESTS:
+   - "solo" / "alone" / "by myself" / "just me" → 1 adult.
+   - "me and my girlfriend / boyfriend / partner / wife / husband / spouse / fiancé / fiancée" → 2 adults.
+   - "couple" / "the two of us" / "honeymoon" → 2 adults.
+   - "me and my friend" → 2 adults; "with my friends" (plural, no number) → 2 adults default.
+   - "family of N": N≤2 → N adults; N=3 → 2 adults + 1 child; N≥4 → 2 adults + (N-2) children.
+   - "wife and 2 kids" → adults includes speaker + spouse; kids → children.
+   - "infants" / "babies" → infants. Otherwise minors → children.
+   - Use explicit numbers when stated.
+   - If guests not mentioned at all → leave the three numbers as null.
+
+3. TRIP TYPE (single strongest signal; null if no signal):
+   - Romantic: girlfriend / boyfriend / partner / wife / husband / honeymoon / anniversary / couple / romantic.
+   - Family: kids / children / family / parents / in-laws.
+   - Adventure: hiking / climbing / surf / dive / ski / safari / trek / extreme / adrenaline.
+   - Cultural: museum / history / art / heritage / temple / monument / local culture.
+   - Relaxation: beach / spa / resort / chill / relax / unwind / yoga / wellness.
+   - Business: business / conference / meeting / work trip.
+   - Budget / Luxury: ONLY when user explicitly frames the *style* of the trip (rare; budget level usually goes in "budget").
+   - Tiebreakers: partner+kids → Romantic; sport/outdoor+culture → Adventure.
+
+4. DATES:
+   - Resolve relative dates from today (${today}): "next month", "this weekend", "in 3 weeks", "tomorrow".
+   - Bare month/day with no year ("July 23", "in July", "23rd of July"): use ${currentYear} if that date is today or later, otherwise use ${currentYear + 1}.
+   - "fly on X" / "leave on X" / "depart on X" / "arrive on X" → start_date = X.
+   - "come back on Y" / "return on Y" / "fly back on Y" → end_date = Y.
+   - "for N days" → duration_days = N. If start_date known, end_date = start_date + (N − 1).
+   - "for N nights" → duration_days = N + 1.
+   - "come back after N days" / "return after N days" / "stay for N days" → duration_days = N; end_date = start_date + (N − 1).
+   - "come back N days later" / "return N days later" → end_date = start_date + N; duration_days = N + 1.
+   - "weekend trip" → duration_days = 3.
+   - If only end_date + duration are known → start_date = end_date − (duration_days − 1).
+   - Emit only valid YYYY-MM-DD or null. Never partial dates.
+
+5. BUDGET:
+   - "cheap" / "backpacker" / "shoestring" / "hostel" / "economy" → "budget".
+   - "mid-range" / "moderate" / "normal" / "average" → "moderate".
+   - "luxury" / "high-end" / "5-star" / "premium hotels" → "luxury".
+   - "ultra-luxury" / "premium" / "first-class" / "private jet" → "premium".
+   - Explicit total amount: <$700 → budget, $700–$2000 → moderate, $2000–$5000 → luxury, >$5000 → premium.
+
+6. ACTIVITIES:
+   - Concrete interests only: "hiking", "local food", "art galleries", "beaches", "nightlife", "wine tasting", "diving".
+   - Skip generic words: "trip", "vacation", "fun", "experience".
+
+7. WHEN UNSURE → null for that field. Never invent.
+
+EXAMPLES:
+
+Input: "plan a trip to paris from london and i am with my girlfriend and i want to fly on july 23 and come back after 3 days"
+Output: {"origin":{"text":"London, UK","name":"London"},"destination":{"text":"Paris, France","name":"Paris"},"start_date":"<resolved-July-23>","end_date":"<start+2>","duration_days":3,"tripType":"Romantic","guests":{"adults":2,"children":0,"infants":0},"budget":null,"activities":[]}
+
+Input: "honeymoon in Bali for 10 nights, luxury resorts please"
+Output: {"origin":null,"destination":{"text":"Bali, Indonesia","name":"Bali"},"start_date":null,"end_date":null,"duration_days":11,"tripType":"Romantic","guests":{"adults":2,"children":0,"infants":0},"budget":"luxury","activities":[]}
+
+Input: "family of 4 to Rome next month for a week, we love food and art"
+Output: {"origin":null,"destination":{"text":"Rome, Italy","name":"Rome"},"start_date":"<resolved>","end_date":"<start+6>","duration_days":7,"tripType":"Family","guests":{"adults":2,"children":2,"infants":0},"budget":null,"activities":["local food","art"]}
+
+Input: "solo backpacking Vietnam, hostels, departing 5 March, 14 days"
+Output: {"origin":null,"destination":{"text":"Vietnam","name":"Vietnam"},"start_date":"<resolved-Mar-5>","end_date":"<start+13>","duration_days":14,"tripType":"Adventure","guests":{"adults":1,"children":0,"infants":0},"budget":"budget","activities":["backpacking"]}
+
+Return ONLY the JSON. No explanations, no markdown fences.`;
 
   const completion = await client.chat.completions.create({
     model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
     messages: [
-      {
-        role: 'system',
-        content: `You are a travel assistant that extracts structured trip information from natural language text.
-Today's date is ${today}.
-
-Extract the following fields and return ONLY valid JSON (no markdown, no explanation):
-
-{
-  "destination": {
-    "text": "City, Country or region the user wants to VISIT",
-    "name": "City or place name only"
-  },
-  "start_date": "YYYY-MM-DD or null",
-  "end_date": "YYYY-MM-DD or null",
-  "duration_days": number or null,
-  "tripType": one of ["Adventure", "Cultural", "Relaxation", "Family", "Romantic", "Business", "Budget", "Luxury"] or null,
-  "guests": {
-    "adults": number or null,
-    "children": number or null,
-    "infants": number or null
-  },
-  "budget": one of ["budget", "moderate", "luxury", "premium"] or null,
-  "activities": ["array", "of", "detected", "interests"] or []
-}
-
-DESTINATION rules:
-- destination is WHERE THE USER WANTS TO GO, NOT where they are leaving from
-- "from London to Paris" → destination = Paris (London is the origin, ignore it)
-- "fly from Dubai to Tokyo" → destination = Tokyo
-- "I want to visit Rome" → destination = Rome
-- "going to Barcelona" → destination = Barcelona
-
-DATE rules (very important — always compute both start_date AND end_date when possible):
-- Today is ${today}. Use this as the reference for all relative dates.
-- If the user gives a specific day+month (e.g. "23 May", "May 23rd"), infer the year: use current year if that date hasn't passed yet, otherwise next year.
-- "on 23 May" with today ${today} → start_date = "${new Date().getFullYear()}-05-23" (or next year if already past)
-- "go back in X days" / "return in X days" / "coming back in X days" after a start date → end_date = start_date + X days; duration_days = X + 1
-- "stay for X days" / "X-day trip" → duration_days = X; if start_date known, end_date = start_date + X - 1 days
-- "X nights" → duration_days = X + 1; if start_date known, end_date = start_date + X days
-- "next month" → first day of next calendar month
-- "in July" → July 1st of current or next year (whichever is upcoming)
-- Always try to produce BOTH start_date and end_date; compute the missing one when duration is given
-- Return all dates as YYYY-MM-DD strings
-
-GUEST rules:
-- "family of 4" = 2 adults + 2 children. "couple" = 2 adults. "solo" = 1 adult.
-- "wife and 2 kids" = 2 adults + 2 children. "me and my friend" = 2 adults. "3 adults" = 3 adults.
-- "with my partner" = 2 adults. "honeymoon" = 2 adults.
-
-BUDGET rules:
-- "cheap/backpacker/economy/low cost" = "budget"
-- "mid-range/moderate/normal/average" = "moderate"
-- "high-end/luxury/5-star/upscale" = "luxury"
-- "ultra-luxury/premium/first-class/private" = "premium"
-
-TRIP TYPE rules:
-- kids/family mentioned = "Family"; romantic/honeymoon/couple = "Romantic"
-- hiking/climbing/extreme/adventure = "Adventure"; history/museum/culture/heritage = "Cultural"
-- beach/spa/relax/chill/wellness = "Relaxation"; work/conference/meeting = "Business"
-
-- activities: extract hobbies/interests like "hiking", "local food", "art galleries", "beaches" etc.
-- If a field is not mentioned, return null (or [] for arrays).`
-      },
-      {
-        role: 'user',
-        content: text
-      }
+      { role: 'system', content: systemPrompt },
+      { role: 'user',   content: text }
     ],
-    temperature: 0.1,
-    max_tokens: 500,
+    temperature: 0,
+    max_tokens: 600,
+    response_format: { type: 'json_object' },
   });
 
   const raw = completion.choices[0]?.message?.content?.trim() || '{}';
+  let parsed;
   try {
-    return JSON.parse(raw);
+    parsed = JSON.parse(raw);
   } catch {
-    // Try to extract JSON from any surrounding text
     const match = raw.match(/\{[\s\S]*\}/);
-    return match ? JSON.parse(match[0]) : {};
+    parsed = match ? JSON.parse(match[0]) : {};
   }
+
+  console.log('🎤 parseTripDescription input:', text);
+  console.log('🎯 parseTripDescription raw model output:', raw);
+  const sanitized = sanitizeParsedTrip(parsed, today);
+  console.log('🧹 parseTripDescription sanitized:', JSON.stringify(sanitized));
+  return sanitized;
+};
+
+/**
+ * Defensive post-processing of the LLM output.
+ * Enforces shape and corrects common model slips (same city in origin+destination,
+ * invalid dates, past dates for future-intent phrases, missing derivable fields).
+ */
+const sanitizeParsedTrip = (p, todayStr) => {
+  const out = {
+    origin: null,
+    destination: null,
+    start_date: null,
+    end_date: null,
+    duration_days: null,
+    tripType: null,
+    guests: { adults: null, children: null, infants: null },
+    budget: null,
+    activities: [],
+  };
+
+  const isValidDate = (s) => typeof s === 'string'
+    && /^\d{4}-\d{2}-\d{2}$/.test(s)
+    && !isNaN(new Date(s).getTime());
+
+  if (!p || typeof p !== 'object') return out;
+
+  if (p.origin && p.origin.text) {
+    out.origin = { text: String(p.origin.text), name: String(p.origin.name || p.origin.text) };
+  }
+  if (p.destination && p.destination.text) {
+    out.destination = { text: String(p.destination.text), name: String(p.destination.name || p.destination.text) };
+  }
+  // Same-city protection (model occasionally echoes destination into origin)
+  if (out.origin && out.destination &&
+      out.origin.name.trim().toLowerCase() === out.destination.name.trim().toLowerCase()) {
+    out.origin = null;
+  }
+
+  if (isValidDate(p.start_date)) out.start_date = p.start_date;
+  if (isValidDate(p.end_date))   out.end_date   = p.end_date;
+
+  if (Number.isInteger(p.duration_days) && p.duration_days > 0 && p.duration_days <= 60) {
+    out.duration_days = p.duration_days;
+  }
+
+  // Derive missing fields from the others
+  if (out.start_date && out.end_date) {
+    const days = Math.round((new Date(out.end_date) - new Date(out.start_date)) / 86400000) + 1;
+    if (days > 0 && days <= 60) out.duration_days = days;
+  } else if (out.start_date && out.duration_days && !out.end_date) {
+    const s = new Date(out.start_date);
+    s.setDate(s.getDate() + out.duration_days - 1);
+    out.end_date = s.toISOString().split('T')[0];
+  } else if (out.end_date && out.duration_days && !out.start_date) {
+    const e = new Date(out.end_date);
+    e.setDate(e.getDate() - (out.duration_days - 1));
+    out.start_date = e.toISOString().split('T')[0];
+  }
+
+  // If model emitted past dates for a future-intent phrase, bump by one year
+  if (out.start_date && out.start_date < todayStr) {
+    const s = new Date(out.start_date);
+    s.setFullYear(s.getFullYear() + 1);
+    out.start_date = s.toISOString().split('T')[0];
+    if (out.end_date) {
+      const e = new Date(out.end_date);
+      e.setFullYear(e.getFullYear() + 1);
+      out.end_date = e.toISOString().split('T')[0];
+    }
+  }
+
+  const ALLOWED_TYPES = ['Adventure','Cultural','Relaxation','Family','Romantic','Business','Budget','Luxury'];
+  if (ALLOWED_TYPES.includes(p.tripType)) out.tripType = p.tripType;
+
+  if (p.guests && typeof p.guests === 'object') {
+    const a = Number.isInteger(p.guests.adults)   ? p.guests.adults   : null;
+    const c = Number.isInteger(p.guests.children) ? p.guests.children : null;
+    const i = Number.isInteger(p.guests.infants)  ? p.guests.infants  : null;
+    out.guests = {
+      adults:   a !== null && a >= 0 && a <= 20 ? a : null,
+      children: c !== null && c >= 0 && c <= 20 ? c : null,
+      infants:  i !== null && i >= 0 && i <= 10 ? i : null,
+    };
+  }
+
+  const ALLOWED_BUDGET = ['budget','moderate','luxury','premium'];
+  if (ALLOWED_BUDGET.includes(p.budget)) out.budget = p.budget;
+
+  if (Array.isArray(p.activities)) {
+    out.activities = p.activities.filter(a => typeof a === 'string' && a.trim()).slice(0, 10);
+  }
+
+  return out;
 };
 
 export default {

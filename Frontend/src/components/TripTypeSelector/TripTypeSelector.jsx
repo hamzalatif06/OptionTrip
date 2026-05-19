@@ -39,6 +39,11 @@ const TRIP_TYPE_SUGGESTIONS = [
 
 const TripTypeSelector = ({ value = '', onChange, error }) => {
   const [inputValue, setInputValue] = useState(value);
+
+  // Re-sync when the parent updates `value` (e.g. AI/voice parser fills the form).
+  useEffect(() => {
+    setInputValue(prev => (prev === value ? prev : value));
+  }, [value]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const inputRef = useRef(null);

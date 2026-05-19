@@ -6,7 +6,18 @@
       "Bash(node --input-type=module --eval \"import\\('./src/routes/trips.js'\\).then\\(\\(\\)=>console.log\\('OK'\\)\\).catch\\(e=>console.error\\('ERR',e.message\\)\\)\")",
       "Bash(node --input-type=module --eval \"import\\('./src/routes/trips.js'\\).then\\(m=>console.log\\('OK, routes:', Object.keys\\(m\\)\\)\\).catch\\(e=>console.error\\('ERR',e.message\\)\\)\")",
       "Bash(node --env-file=.env --input-type=module --eval \"import\\('./src/routes/trips.js'\\).then\\(m=>console.log\\('OK'\\)\\).catch\\(e=>console.error\\('ERR',e.message\\)\\)\")",
-      "PowerShell(Get-Process -Id 20072 -ErrorAction SilentlyContinue)"
+      "PowerShell(Get-Process -Id 20072 -ErrorAction SilentlyContinue)",
+      "Bash(mkdir -p /home/jawad/Downloads/OptionTrip-main/Frontend/src/components/TrustMicroBlock)",
+      "Bash(jq --version)",
+      "Bash(node --check src/services/openaiService.js)",
+      "Bash(node --check src/controllers/tripController.js)",
+      "Bash(node --check src/models/Trip.js)",
+      "Bash(timeout 60 npx vite build --logLevel error)",
+      "Bash(timeout 90 npx vite build)",
+      "Bash(node --input-type=module -e ' *)"
+    ],
+    "additionalDirectories": [
+      "/home/jawad/Downloads/OptionTrip-main/Frontend/src/components"
     ]
   }
 }
