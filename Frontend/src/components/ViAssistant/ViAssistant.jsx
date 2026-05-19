@@ -14,6 +14,11 @@ import './ViAssistant.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+// Streaming kill switch. Set VITE_VI_STREAMING=false in prod if your reverse
+// proxy buffers SSE (Cloudflare free tier, some Vercel/Heroku routers, etc.).
+// Defaults to true — Vi will attempt streaming and fall back automatically.
+const STREAMING_ENABLED = String(import.meta.env.VITE_VI_STREAMING ?? 'true').toLowerCase() !== 'false';
+
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 const formatRelativeTime = (dateString) => {
@@ -404,12 +409,14 @@ const ViAssistant = () => {
     // background timeout — when the user clicks Stop we don't want to fall back.
     controller.signal.addEventListener('abort', () => { aborted = true; }, { once: true });
 
-    const fallbackToNonStream = async (reason) => {
-      console.warn('Vi streaming fallback →', reason);
-      // Briefly show a "reconnecting" state so the user knows we're still working.
-      setMessages(prev => prev.map(m =>
-        m.id === botMsgId ? { ...m, text: '', isStreaming: false, isReconnecting: true } : m
-      ));
+    // Shared non-streaming path. Used as both the fallback when SSE fails AND
+    // as the primary path when streaming is disabled via env flag.
+    const useNonStream = async ({ reconnecting = false } = {}) => {
+      if (reconnecting) {
+        setMessages(prev => prev.map(m =>
+          m.id === botMsgId ? { ...m, text: '', isStreaming: false, isReconnecting: true } : m
+        ));
+      }
       try {
         const resp = await sendMessageNonStream(userText, token, currentTrip?.trip_id, activeConversationId);
         if (resp.success && resp.data) {
@@ -425,7 +432,6 @@ const ViAssistant = () => {
               ? { ...m, text: message, type, quickReplies: quickReplies?.length ? quickReplies : undefined, isReconnecting: false, isStreaming: false }
               : m
           ));
-          // Refresh conversation list
           if (isAuthenticated) {
             try {
               const listResp = await getConversations(token);
@@ -436,8 +442,8 @@ const ViAssistant = () => {
         } else {
           throw new Error(resp.message || 'Empty response');
         }
-      } catch (fallbackErr) {
-        console.error('Vi fallback failed:', fallbackErr);
+      } catch (err) {
+        console.error('Vi non-stream call failed:', err);
         setMessages(prev => prev.map(m =>
           m.id === botMsgId
             ? { ...m, text: `I'm having trouble reaching the server right now. Please try again in a moment.`, isReconnecting: false, isStreaming: false, isError: true }
@@ -448,6 +454,17 @@ const ViAssistant = () => {
         setIsStreaming(false);
         streamAbortRef.current = null;
       }
+    };
+
+    // ── Kill switch: skip streaming entirely if disabled via env ────────
+    if (!STREAMING_ENABLED) {
+      await useNonStream();
+      return;
+    }
+
+    const fallbackToNonStream = (reason) => {
+      console.warn('Vi streaming fallback →', reason);
+      return useNonStream({ reconnecting: true });
     };
 
     await streamMessage({

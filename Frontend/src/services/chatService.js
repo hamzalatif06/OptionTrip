@@ -71,8 +71,10 @@ export const streamMessage = async ({
   onError,
   // First byte from the server (including the priming `:ok` SSE comment) must
   // arrive within this window — otherwise we assume a proxy is buffering and
-  // give up so the UI can fall back to the non-streaming endpoint.
-  firstByteTimeoutMs = 9000,
+  // give up so the UI can fall back to the non-streaming endpoint. A healthy
+  // SSE backend emits the priming byte in <100ms, so 4s leaves big headroom
+  // while still feeling responsive when the proxy is hostile.
+  firstByteTimeoutMs = 4000,
   // Once the stream is flowing, abort if it goes completely silent for this
   // long. Heartbeats from the server (every 15s) keep this reset.
   idleTimeoutMs = 30000
