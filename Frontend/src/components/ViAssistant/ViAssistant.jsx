@@ -5,6 +5,7 @@ import { getAccessToken } from '../../services/authService';
 import { getMyTrips } from '../../services/tripsService';
 import {
   streamMessage,
+  sendMessage as sendMessageNonStream,
   getConversations,
   getConversation,
   deleteConversation
@@ -361,6 +362,15 @@ const ViAssistant = () => {
     setIsStreaming(false);
   };
 
+  /**
+   * Send the message via the streaming endpoint. If streaming fails for any
+   * reason (proxy buffering / timeout / network), automatically fall back to
+   * the non-streaming endpoint so the user always gets a reply.
+   *
+   * The fallback path also runs when only partial content was streamed before
+   * the failure — but only if we never saw a `final` event. If we got `final`,
+   * the message is already complete; treat the connection drop as a no-op.
+   */
   const dispatchMessage = async (userText) => {
     cancelStream();
     lastUserMessageRef.current = userText;
@@ -370,7 +380,6 @@ const ViAssistant = () => {
     const botMsgId  = `b-${Date.now() + 1}`;
 
     setMessages(prev => {
-      // Replace welcome on first user turn
       const stripped = prev.filter(m => !m.isWelcome);
       return [
         ...stripped,
@@ -384,9 +393,62 @@ const ViAssistant = () => {
     streamAbortRef.current = controller;
     const token = isAuthenticated ? getAccessToken() : null;
 
+    let receivedFinal = false;
     let finalText = '';
     let finalQuickReplies = [];
+    let finalType = 'general';
     let firstChunkReceived = false;
+    let aborted = false;
+
+    // Wire the AbortController so a manual Stop is distinguishable from a
+    // background timeout — when the user clicks Stop we don't want to fall back.
+    controller.signal.addEventListener('abort', () => { aborted = true; }, { once: true });
+
+    const fallbackToNonStream = async (reason) => {
+      console.warn('Vi streaming fallback →', reason);
+      // Briefly show a "reconnecting" state so the user knows we're still working.
+      setMessages(prev => prev.map(m =>
+        m.id === botMsgId ? { ...m, text: '', isStreaming: false, isReconnecting: true } : m
+      ));
+      try {
+        const resp = await sendMessageNonStream(userText, token, currentTrip?.trip_id, activeConversationId);
+        if (resp.success && resp.data) {
+          const { message, type, quickReplies, conversationId } = resp.data;
+          finalText = message;
+          finalQuickReplies = quickReplies || [];
+          finalType = type || 'general';
+          if (conversationId && conversationId !== activeConversationId) {
+            setActiveConversationId(conversationId);
+          }
+          setMessages(prev => prev.map(m =>
+            m.id === botMsgId
+              ? { ...m, text: message, type, quickReplies: quickReplies?.length ? quickReplies : undefined, isReconnecting: false, isStreaming: false }
+              : m
+          ));
+          // Refresh conversation list
+          if (isAuthenticated) {
+            try {
+              const listResp = await getConversations(token);
+              if (listResp.success) setConversations(listResp.data.conversations || []);
+            } catch { /* noop */ }
+          }
+          if (isVoiceMode && message) await speakText(message, botMsgId);
+        } else {
+          throw new Error(resp.message || 'Empty response');
+        }
+      } catch (fallbackErr) {
+        console.error('Vi fallback failed:', fallbackErr);
+        setMessages(prev => prev.map(m =>
+          m.id === botMsgId
+            ? { ...m, text: `I'm having trouble reaching the server right now. Please try again in a moment.`, isReconnecting: false, isStreaming: false, isError: true }
+            : m
+        ));
+      } finally {
+        setIsTyping(false);
+        setIsStreaming(false);
+        streamAbortRef.current = null;
+      }
+    };
 
     await streamMessage({
       message: userText,
@@ -410,8 +472,10 @@ const ViAssistant = () => {
         ));
       },
       onFinal: ({ text, quickReplies, type }) => {
+        receivedFinal = true;
         finalText = text;
         finalQuickReplies = quickReplies || [];
+        finalType = type || 'general';
         setMessages(prev => prev.map(m =>
           m.id === botMsgId
             ? { ...m, text: text || m.text, quickReplies: quickReplies?.length ? quickReplies : undefined, type, isStreaming: false }
@@ -425,7 +489,6 @@ const ViAssistant = () => {
 
         if (isVoiceMode && finalText) await speakText(finalText, botMsgId);
 
-        // Refresh conversation list (title/timestamp update)
         if (isAuthenticated) {
           try {
             const listResp = await getConversations(token);
@@ -433,18 +496,24 @@ const ViAssistant = () => {
           } catch { /* noop */ }
         }
       },
-      onError: (err) => {
-        console.error('Vi stream error:', err);
-        setIsTyping(false);
-        setIsStreaming(false);
-        streamAbortRef.current = null;
-        setMessages(prev => prev.map(m =>
-          m.id === botMsgId
-            ? { ...m, text: m.text || `I had trouble reaching the server. Try again in a moment.`, isStreaming: false, isError: true }
-            : m
-        ));
+      onError: async (err) => {
+        console.warn('Vi stream error:', err?.message || err);
+        // If the user manually hit Stop, don't fall back — just end gracefully.
+        if (aborted && !err?.name) {
+          setIsTyping(false); setIsStreaming(false); streamAbortRef.current = null;
+          return;
+        }
+        // If we already have a complete reply (got `final`), treat as success.
+        if (receivedFinal) {
+          setIsTyping(false); setIsStreaming(false); streamAbortRef.current = null;
+          return;
+        }
+        // Otherwise: fall back to the non-streaming endpoint so the user gets a reply.
+        await fallbackToNonStream(err?.message || 'stream-failed');
       }
     });
+
+    void finalQuickReplies; void finalType; // referenced for clarity in fallback closure
   };
 
   const handleSendMessage = async (e) => {
@@ -893,10 +962,12 @@ const ViAssistant = () => {
                     <div className="message-content">
                       {message.sender === 'bot'
                         ? (
-                          <div
-                            className={`vi-md${message.isStreaming ? ' vi-md--streaming' : ''}`}
-                            dangerouslySetInnerHTML={{ __html: renderMarkdown(message.text) || '<p class="vi-thinking-line">Thinking…</p>' }}
-                          />
+                          message.isReconnecting
+                            ? <p className="vi-thinking-line"><i className="fas fa-wifi" style={{ marginRight: 6 }}></i>Reconnecting…</p>
+                            : <div
+                                className={`vi-md${message.isStreaming ? ' vi-md--streaming' : ''}`}
+                                dangerouslySetInnerHTML={{ __html: renderMarkdown(message.text) || '<p class="vi-thinking-line">Thinking…</p>' }}
+                              />
                         )
                         : <p className="vi-user-text">{message.text}</p>
                       }

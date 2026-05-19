@@ -180,13 +180,24 @@ export const sendMessageStream = async (req, res) => {
     return res.status(400).json({ success: false, message: 'Message is required' });
   }
 
-  // ── SSE headers ─────────────────────────────────────────────────────
+  // ── SSE headers — set up to survive nginx / Cloudflare / Render proxies ──
   res.writeHead(200, {
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache, no-transform',
-    'Connection': 'keep-alive',
-    'X-Accel-Buffering': 'no'
+    'Content-Type':     'text/event-stream; charset=utf-8',
+    // Defeat every common proxy cache/transform behavior:
+    'Cache-Control':    'private, no-cache, no-store, no-transform, must-revalidate',
+    'Connection':       'keep-alive',
+    // nginx-specific: disable response buffering for this request
+    'X-Accel-Buffering': 'no',
+    // Tell upstream NOT to gzip — gzip buffers until the encoder has enough bytes
+    'Content-Encoding':  'identity'
   });
+  // Force the headers + first byte to go out immediately. Without this, some
+  // Node setups behind a proxy hold the response until the body is flushed.
+  if (typeof res.flushHeaders === 'function') res.flushHeaders();
+  // Priming comment — SSE allows lines starting with ":" as ignored heartbeats.
+  // Writing one immediately convinces proxies (and the browser fetch reader)
+  // that the connection is live and bytes will flow.
+  res.write(':ok\n\n');
 
   const send = (event, data) => {
     if (res.writableEnded) return;
@@ -194,8 +205,15 @@ export const sendMessageStream = async (req, res) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   };
 
+  // Heartbeat every 15s. Many proxies (Render, Heroku router, Cloudflare free
+  // tier) silently close idle connections after 30-60s. A periodic `:` comment
+  // keeps the pipe alive while OpenAI is still thinking.
+  const heartbeat = setInterval(() => {
+    if (!res.writableEnded) res.write(`: hb ${Date.now()}\n\n`);
+  }, 15000);
+
   let aborted = false;
-  req.on('close', () => { aborted = true; });
+  req.on('close', () => { aborted = true; clearInterval(heartbeat); });
 
   try {
     const { context, conversation, conversationHistory } =
@@ -239,6 +257,7 @@ export const sendMessageStream = async (req, res) => {
     console.error('Chat stream error:', error);
     send('error', { message: 'Failed to generate response' });
   } finally {
+    clearInterval(heartbeat);
     if (!res.writableEnded) res.end();
   }
 };
