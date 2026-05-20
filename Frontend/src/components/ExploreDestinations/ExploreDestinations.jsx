@@ -146,9 +146,21 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
             </div>
           </div>
           {geoStatus === 'detecting' && !origin && (
-            <span className="explore-header__loading">Detecting your location…</span>
+            <span className="explore-header__loading">
+              <span className="explore-plane-loader" aria-hidden="true">
+                <i className="fas fa-plane"></i>
+              </span>
+              Detecting your location…
+            </span>
           )}
-          {loading && <span className="explore-header__loading">Fetching prices…</span>}
+          {loading && (
+            <span className="explore-header__loading">
+              <span className="explore-plane-loader" aria-hidden="true">
+                <i className="fas fa-plane"></i>
+              </span>
+              Fetching prices…
+            </span>
+          )}
         </div>
 
         {/* Destination grid */}
@@ -164,11 +176,11 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
                 {/* Photo */}
                 <div className="explore-card__img-wrap">
                   <img
-                    src={imageMap[dest.iata] || getExploreImageUrl(dest.photo)}
+                    src={imageMap[dest.iata]}
                     alt={dest.city}
                     className="explore-card__img"
                     loading="lazy"
-                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = getExploreImageUrl(dest.photo); }}
+                    onError={(e) => { e.currentTarget.onerror = null; }}
                   />
                   <div className="explore-card__overlay" />
                 </div>

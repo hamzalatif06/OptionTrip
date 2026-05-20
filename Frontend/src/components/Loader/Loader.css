@@ -1,23 +1,89 @@
-/* Loader Component Styles */
+/* Loader Component Styles
+   ─────────────────────────────────────────────────────────────
+   CSS-only flying-aeroplane animation. A plane glides along an
+   arched dashed flight-path, bobs slightly, and loops. Sizing
+   is controlled per-variant via .plane-loader--{size}. */
 
-/* Loader GIF sizes */
-.loader-gif {
+.plane-loader {
+  position: relative;
+  display: inline-block;
+  color: #0A539D;
+}
+
+/* The arched dashed flight path that "draws" itself */
+.plane-loader__path {
   display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  opacity: 0.55;
+  animation: plane-path-flow 1.6s linear infinite;
 }
 
-.loader-small {
-  width: 24px;
-  height: 24px;
+/* The plane that flies along the arch */
+.plane-loader__plane {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: plane-fly 2.2s cubic-bezier(0.5, 0.1, 0.5, 1) infinite;
+}
+.plane-loader__plane i {
+  display: block;
+  color: #029e9d;
+  filter: drop-shadow(0 2px 3px rgba(2, 158, 157, 0.3));
 }
 
-.loader-medium {
-  width: 48px;
-  height: 48px;
+/* ── Size variants ──────────────────────────────────────────── */
+.plane-loader--small    { width: 60px;  height: 30px; }
+.plane-loader--small    .plane-loader__plane i { font-size: 14px; }
+
+.plane-loader--medium   { width: 90px;  height: 50px; }
+.plane-loader--medium   .plane-loader__plane i { font-size: 18px; }
+
+.plane-loader--large    { width: 140px; height: 70px; }
+.plane-loader--large    .plane-loader__plane i { font-size: 24px; }
+
+.plane-loader--fullpage { width: 220px; height: 110px; }
+.plane-loader--fullpage .plane-loader__plane i { font-size: 36px; }
+
+@media (max-width: 767px) {
+  .plane-loader--fullpage { width: 160px; height: 80px; }
+  .plane-loader--fullpage .plane-loader__plane i { font-size: 28px; }
 }
 
-.loader-large {
-  width: 80px;
-  height: 80px;
+/* The plane traces the arched path: starts low-left, peaks at top-center,
+   ends low-right. We approximate the arc with a multi-stop keyframe and
+   tilt the plane to match the local slope. */
+@keyframes plane-fly {
+  0% {
+    transform: translate(-8%, 50%) rotate(-30deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  25% {
+    transform: translate(15%, 10%) rotate(-15deg);
+  }
+  50% {
+    transform: translate(42%, -10%) rotate(0deg);
+  }
+  75% {
+    transform: translate(70%, 10%) rotate(15deg);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(95%, 50%) rotate(30deg);
+    opacity: 0;
+  }
+}
+
+/* Path dash offset shifts slightly so it feels alive */
+@keyframes plane-path-flow {
+  from { stroke-dashoffset: 0;   }
+  to   { stroke-dashoffset: -24; }
 }
 
 /* Inline loader */
@@ -50,18 +116,6 @@
   align-items: center;
   gap: 20px;
   animation: fadeIn 0.3s ease-out;
-}
-
-.loader-fullpage .loader-gif {
-  width: 300px;
-  height: 300px;
-}
-
-@media (max-width: 767px) {
-  .loader-fullpage .loader-gif {
-    width: 200px;
-    height: 200px;
-  }
 }
 
 /* Overlay loader */
@@ -117,11 +171,6 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-}
-
-.btn-loader .loader-gif {
-  width: 18px;
-  height: 18px;
 }
 
 /* Card loader */
