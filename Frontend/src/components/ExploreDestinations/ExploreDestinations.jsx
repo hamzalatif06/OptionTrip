@@ -38,6 +38,7 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
   const [originObj, setOriginObj] = useState(null);               // { iata, display }
   const [geoStatus, setGeoStatus] = useState('idle');             // 'idle'|'detecting'|'done'|'denied'
   const [imageMap,  setImageMap]  = useState({});                 // iata → imageUrl
+  const [loadedImages, setLoadedImages] = useState({});           // iata → true once <img> fires onLoad
 
   /** Set origin from a resolved { iata, display } object */
   const applyOrigin = (result) => {
@@ -146,21 +147,9 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
             </div>
           </div>
           {geoStatus === 'detecting' && !origin && (
-            <span className="explore-header__loading">
-              <span className="explore-plane-loader" aria-hidden="true">
-                <i className="fas fa-plane"></i>
-              </span>
-              Detecting your location…
-            </span>
+            <span className="explore-header__loading">Detecting your location…</span>
           )}
-          {loading && (
-            <span className="explore-header__loading">
-              <span className="explore-plane-loader" aria-hidden="true">
-                <i className="fas fa-plane"></i>
-              </span>
-              Fetching prices…
-            </span>
-          )}
+          {loading && <span className="explore-header__loading">Fetching prices…</span>}
         </div>
 
         {/* Destination grid */}
@@ -175,13 +164,23 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
               >
                 {/* Photo */}
                 <div className="explore-card__img-wrap">
-                  <img
-                    src={imageMap[dest.iata]}
-                    alt={dest.city}
-                    className="explore-card__img"
-                    loading="lazy"
-                    onError={(e) => { e.currentTarget.onerror = null; }}
-                  />
+                  {imageMap[dest.iata] && (
+                    <img
+                      src={imageMap[dest.iata]}
+                      alt={dest.city}
+                      className={`explore-card__img${loadedImages[dest.iata] ? ' is-loaded' : ''}`}
+                      loading="lazy"
+                      onLoad={() => setLoadedImages(prev => prev[dest.iata] ? prev : { ...prev, [dest.iata]: true })}
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        // Mark as loaded so the skeleton disappears even on error
+                        setLoadedImages(prev => prev[dest.iata] ? prev : { ...prev, [dest.iata]: true });
+                      }}
+                    />
+                  )}
+                  {!loadedImages[dest.iata] && (
+                    <div className="explore-card__img-skeleton" aria-hidden="true" />
+                  )}
                   <div className="explore-card__overlay" />
                 </div>
 

@@ -49,57 +49,31 @@
   font-size: 13px;
   color: #029e9d;
   font-weight: 600;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  animation: exploreLoadPulse 1.2s ease-in-out infinite;
   white-space: nowrap;
 }
 
-/* ── Flying-plane loader ────────────────────────────────────────────────────
-   A small aeroplane that flies across a dashed flight-path trail, on loop. */
-.explore-plane-loader {
-  position: relative;
-  display: inline-block;
-  width: 40px;
-  height: 14px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-/* The dashed "vapour trail" sitting behind the plane */
-.explore-plane-loader::before {
+.explore-header__loading::before {
   content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 1.5px;
-  transform: translateY(-50%);
-  background: repeating-linear-gradient(
-    to right,
-    rgba(2, 158, 157, 0.4) 0 4px,
-    transparent          4px 8px
-  );
-  opacity: 0.7;
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(2, 158, 157, 0.25);
+  border-top-color: #029e9d;
+  border-radius: 50%;
+  animation: exploreSpin 0.8s linear infinite;
 }
 
-.explore-plane-loader i {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  font-size: 12px;
-  color: #029e9d;
-  transform: translate(-100%, -50%) rotate(-12deg);
-  animation: explorePlaneFly 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-  filter: drop-shadow(0 1px 1px rgba(2, 158, 157, 0.25));
+@keyframes exploreSpin {
+  to { transform: rotate(360deg); }
 }
 
-@keyframes explorePlaneFly {
-  0%   { transform: translate(-110%, -50%) rotate(-14deg); opacity: 0;   }
-  15%  { opacity: 1;                                                      }
-  50%  { transform: translate(40%, -65%)  rotate(-4deg);  opacity: 1;    }
-  85%  { opacity: 1;                                                      }
-  100% { transform: translate(160%, -50%) rotate(4deg);   opacity: 0;    }
+@keyframes exploreLoadPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
 }
 
 /* ── Destination grid ───────────────────────────────────────────────────────── */
@@ -143,8 +117,32 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.4s ease;
+  transition: transform 0.4s ease, opacity 0.35s ease;
   display: block;
+  opacity: 0;
+}
+
+.explore-card__img.is-loaded {
+  opacity: 1;
+}
+
+/* Shimmer skeleton shown while the image is loading */
+.explore-card__img-skeleton {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    #e7eaf0 0%,
+    #f3f5f9 50%,
+    #e7eaf0 100%
+  );
+  background-size: 200% 100%;
+  animation: explore-img-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes explore-img-shimmer {
+  0%   { background-position:  200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .explore-card__overlay {
