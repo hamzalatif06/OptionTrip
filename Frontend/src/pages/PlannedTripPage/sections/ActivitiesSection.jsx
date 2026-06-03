@@ -8,11 +8,13 @@ import { getAccessToken } from '../../../services/authService';
 import { saveTrip } from '../../../services/tripsService';
 import FlightIcon from '@mui/icons-material/Flight';
 import HotelIcon from '@mui/icons-material/Hotel';
+import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import MapIcon from '@mui/icons-material/Map';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ExploreIcon from '@mui/icons-material/Explore';
 import FlightTab from './FlightTab';
 import HotelTab from './HotelTab';
+import CarRentalTab from './CarRentalTab';
 import TripMapTab from './TripMapTab';
 
 const ActivityCardSkeleton = () => (
@@ -105,21 +107,27 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
     },
     {
       id: 'tab3',
-      title: 'Flights',
-      icon: FlightIcon,
+      title: 'Rental Cars',
+      icon: DirectionsCarIcon,
       value: 2,
     },
     {
       id: 'tab4',
-      title: 'Map Your Trip',
-      icon: MapIcon,
+      title: 'Flights',
+      icon: FlightIcon,
       value: 3,
     },
     {
       id: 'tab5',
+      title: 'Map Your Trip',
+      icon: MapIcon,
+      value: 4,
+    },
+    {
+      id: 'tab6',
       title: 'Calendar',
       icon: CalendarMonthIcon,
-      value: 4,
+      value: 5,
     },
   ], []);
 
@@ -405,13 +413,12 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
         <div className="activities-section__tab-content">
           {activeTab === 0 && renderItineraryTab()}
           {activeTab === 1 && <HotelTab tripData={tripData} />}
-          {activeTab === 2 && (
-            <FlightTab tripData={tripData} />
-          )}
-          {activeTab === 3 && (
+          {activeTab === 2 && <CarRentalTab tripData={tripData} />}
+          {activeTab === 3 && <FlightTab tripData={tripData} />}
+          {activeTab === 4 && (
             <TripMapTab tripData={tripData} daysData={daysData} />
           )}
-          {activeTab === 4 && (
+          {activeTab === 5 && (
             <div className="activities-section__coming-soon">
               <p>Calendar view coming soon</p>
             </div>

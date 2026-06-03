@@ -1,12 +1,147 @@
+/* ── Root container ──────────────────────────────────────────────────────── */
+.tmt-root {
+  border-radius: 16px;
+  border: 1px solid #e8ecef;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+  overflow: hidden;
+  background: #fff;
+}
+
+/* ── Style picker bar ────────────────────────────────────────────────────── */
+.tmt-style-bar {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  padding: 10px 12px 8px;
+  background: #fff;
+  border-bottom: 1px solid #f0f4f8;
+  scrollbar-width: none;
+}
+
+.tmt-style-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.tmt-style-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 8px 7px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.tmt-style-tab:hover {
+  background: #f0fdfc;
+  border-color: rgba(2, 158, 157, 0.25);
+}
+
+.tmt-style-tab--active {
+  border-color: #029e9d !important;
+  background: rgba(2, 158, 157, 0.07) !important;
+}
+
+.tmt-style-tab__preview {
+  width: 52px;
+  height: 38px;
+  border-radius: 7px;
+  overflow: hidden;
+  border: 1.5px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tmt-style-tab--active .tmt-style-tab__preview {
+  border-color: #029e9d;
+  box-shadow: 0 0 0 2px rgba(2, 158, 157, 0.2);
+}
+
+.tmt-style-tab__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.tmt-style-tab--active .tmt-style-tab__label {
+  color: #029e9d;
+}
+
+/* ── Light preset bar ────────────────────────────────────────────────────── */
+.tmt-preset-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  background: #fafcfd;
+  border-bottom: 1px solid #f0f4f8;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tmt-preset-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.tmt-preset-bar__label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+
+.tmt-preset-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.tmt-preset-chip:hover {
+  border-color: #029e9d;
+  color: #029e9d;
+  background: #f0fdfc;
+}
+
+.tmt-preset-chip--active {
+  background: linear-gradient(135deg, #029e9d 0%, #027b7a 100%);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(2, 158, 157, 0.3);
+}
+
+.tmt-preset-chip--active:hover {
+  background: linear-gradient(135deg, #027b7a 0%, #025655 100%);
+  color: #fff;
+}
+
+/* ── Map container ───────────────────────────────────────────────────────── */
 .tmt-wrap {
   position: relative;
   width: 100%;
-  height: 600px;
-  border-radius: 12px;
+  height: 540px;
   overflow: hidden;
 }
 
-/* ── Destination pin ── */
+/* ── Destination pin ─────────────────────────────────────────────────────── */
 .tmt-pin {
   position: relative;
   display: flex;
@@ -24,7 +159,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
   transition: transform 0.15s ease;
 }
 
@@ -57,25 +192,25 @@
   font-weight: 600;
   color: var(--pc, #029e9d);
   white-space: nowrap;
-  text-shadow: 0 1px 3px rgba(255,255,255,0.9);
-  background: rgba(255,255,255,0.85);
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.88);
   padding: 1px 6px;
   border-radius: 8px;
 }
 
 [data-theme="dark"] .tmt-pin__label {
-  background: rgba(30,41,59,0.9);
+  background: rgba(30, 41, 59, 0.9);
   color: #5eead4;
 }
 
-/* ── Activity pin ── */
+/* ── Activity pin ────────────────────────────────────────────────────────── */
 .tmt-pin--sm .tmt-pin__dot {
   width: 14px;
   height: 14px;
   border-radius: 50%;
   background: var(--pc, #16a34a);
   border: 2px solid #fff;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
   transition: transform 0.15s ease;
 }
 
@@ -108,7 +243,7 @@
   border-top-color: #1e293b;
 }
 
-/* ── Popup ── */
+/* ── Popup ───────────────────────────────────────────────────────────────── */
 .tmt-popup {
   position: relative;
   padding: 10px 12px;
@@ -152,20 +287,21 @@
   font-weight: 600;
 }
 
-/* ── Legend ── */
+/* ── Legend ──────────────────────────────────────────────────────────────── */
 .tmt-legend {
   position: absolute;
   bottom: 36px;
   left: 12px;
-  background: rgba(255,255,255,0.92);
+  background: rgba(255, 255, 255, 0.92);
   border-radius: 8px;
   padding: 8px 12px;
   display: flex;
   gap: 14px;
   font-size: 12px;
   color: #334155;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   pointer-events: none;
+  backdrop-filter: blur(4px);
 }
 
 [data-theme="dark"] .tmt-legend {
@@ -186,7 +322,7 @@
   flex-shrink: 0;
 }
 
-/* ── No token ── */
+/* ── No token ────────────────────────────────────────────────────────────── */
 .tmt-no-token {
   display: flex;
   flex-direction: column;
@@ -196,6 +332,8 @@
   height: 300px;
   color: #64748b;
   text-align: center;
+  border-radius: 16px;
+  border: 1px solid #e8ecef;
 }
 
 .tmt-no-token h3 {
@@ -215,4 +353,24 @@
   padding: 1px 5px;
   border-radius: 4px;
   font-size: 12px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .tmt-wrap {
+    height: 440px;
+  }
+
+  .tmt-style-tab__preview {
+    width: 44px;
+    height: 32px;
+  }
+
+  .tmt-style-tab {
+    padding: 5px 6px 6px;
+  }
+
+  .tmt-style-tab__label {
+    font-size: 10px;
+  }
 }

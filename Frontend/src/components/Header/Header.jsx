@@ -271,6 +271,9 @@ const Header = () => {
                       <li>
                         <Link to="/hotels">Hotels <i className="fa fa-building"></i></Link>
                       </li>
+                      <li>
+                        <Link to="/car-rental">Car Rental <i className="fa fa-car"></i></Link>
+                      </li>
                     </ul>
                   </li>
                   <li className={`dropdown submenu ${isActive('/blog')}`}>

@@ -1,0 +1,44 @@
+.crs-hero {
+  background: linear-gradient(135deg, #122d46 0%, #1a3f5f 60%, #029e9d 100%);
+  padding: 80px 0 60px;
+  color: #fff;
+}
+
+.crs-hero h4 {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.crs-hero h1 {
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 14px;
+}
+
+.crs-hero__sub {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.75);
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.crs-content {
+  padding: 0 0 60px;
+  background: #f8fafc;
+  min-height: 50vh;
+}
+
+@media (max-width: 768px) {
+  .crs-hero {
+    padding: 60px 0 44px;
+  }
+
+  .crs-hero h1 {
+    font-size: 2rem;
+  }
+}

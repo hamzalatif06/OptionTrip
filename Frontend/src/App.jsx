@@ -38,6 +38,7 @@ import HelpCenterPage from './pages/HelpCenterPage';
 import FlightSearch from './pages/FlightSearch';
 import ExploreAnywhereDetailPage from './pages/ExploreAnywhereDetailPage';
 import HotelSearch from './pages/HotelSearch';
+import CarRentalSearch from './pages/CarRentalSearch';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -122,6 +123,7 @@ function App() {
                   <Route path="/flights/explore" element={<ExploreAnywhereDetailPage />} />
                   <Route path="/flights" element={<FlightSearch />} />
                   <Route path="/hotels"  element={<HotelSearch />} />
+                  <Route path="/car-rental" element={<CarRentalSearch />} />
 
                   {/* Support */}
                   <Route path="/help-center" element={<HelpCenterPage />} />

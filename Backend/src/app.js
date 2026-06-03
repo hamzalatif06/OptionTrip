@@ -24,6 +24,7 @@ import contactRouter from "./routes/contact.js";
 import voiceRouter from "./routes/voice.js";
 import flightsRouter from "./routes/flights.js";
 import hotelsRouter from "./routes/hotels.js";
+import carsRouter from "./routes/cars.js";
 import geoRouter from "./routes/geo.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { corsOptions } from "./middleware/security.js";
@@ -115,6 +116,7 @@ app.use("/api/contact", contactRouter);
 app.use("/api/voice", voiceRouter);
 app.use("/api/flights", flightsRouter);
 app.use("/api/hotels", hotelsRouter);
+app.use("/api/cars", carsRouter);
 app.use("/api/geo", geoRouter);
 
 // 404 Handler - must be after all routes
