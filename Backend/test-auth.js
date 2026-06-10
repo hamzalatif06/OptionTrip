@@ -12,6 +12,7 @@
  * node test-auth.js
  */
 
+
 const BASE_URL = 'http://localhost:5000/api/auth';
 
 // Colors for console output
