@@ -2,11 +2,9 @@ import React from 'react';
 import TravelpayoutsWidget from './TravelpayoutsWidget';
 import './CarRentalTab.css';
 
-// Travelpayouts car-rental affiliate widget (tpwdgt content widget).
-// Colors mirror the OptionTrip theme: primary teal button (#029e9d) on a
-// white card (#ffffff) — see Frontend/src/styles/themes.css.
+// Travelpayouts Economybookings.com car-rental affiliate widget (tpwdgt content widget).
 const CAR_RENTAL_WIDGET_SRC =
-  'https://tpwdgt.com/content?trs=176202&shmarker=370056&locale=en&country=153&city=68511&powered_by=true&campaign_id=87&promo_id=2466&plain=true&border_radius=10&color_background=%23ffffff&color_button=%23029e9d';
+  'https://tpwdgt.com/content?trs=176202&shmarker=370056&locale=en&powered_by=true&border_radius=5&plain=true&show_logo=true&color_background=%23009E9D&color_button=%23FEC704&color_text=%23000000&color_input_text=%23000000&color_button_text=%23ffffff&promo_id=4480&campaign_id=10';
 
 const CarRentalTab = () => (
   <div className="cr-root">
