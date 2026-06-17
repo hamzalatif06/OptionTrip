@@ -25,6 +25,7 @@ import voiceRouter from "./routes/voice.js";
 import flightsRouter from "./routes/flights.js";
 import hotelsRouter from "./routes/hotels.js";
 import geoRouter from "./routes/geo.js";
+import planMyDayRouter from "./routes/planMyDay.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { corsOptions } from "./middleware/security.js";
 import "./config/passport.js";
@@ -116,6 +117,7 @@ app.use("/api/voice", voiceRouter);
 app.use("/api/flights", flightsRouter);
 app.use("/api/hotels", hotelsRouter);
 app.use("/api/geo", geoRouter);
+app.use("/api/plan-my-day", planMyDayRouter);
 
 // 404 Handler - must be after all routes
 app.use(notFoundHandler);
