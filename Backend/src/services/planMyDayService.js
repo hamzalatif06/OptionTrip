@@ -18,6 +18,164 @@ const getOpenAIClient = () => {
 
 const MODEL = process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini';
 
+// ─── Google Places venue resolver ───────────────────────────────────────────
+//
+// We do NOT trust the LLM to give us accurate coordinates — it hallucinates
+// them. Instead, after the plan is generated, every activity + food pick is
+// resolved against Google Places API v1 (Text Search), which is the same
+// dataset that powers Google Maps. With a 50 km location-bias circle around
+// the trip's city, "Boot Café" finds the actual Boot Café in the right city
+// instead of one in a different country.
+//
+// The resolver attaches:
+//   - coordinates: { lat, lng }   — precise, from Google
+//   - place_id:    "ChIJ..."      — Google's place identifier (best for routing)
+//   - address:     full formatted address
+//
+// All resolutions run in parallel, so this only adds ~1s to plan generation.
+
+const GOOGLE_PLACES_BASE = 'https://places.googleapis.com/v1/places:searchText';
+
+const resolveVenueViaGoogle = async (textQuery, biasCenter) => {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey || !textQuery || textQuery.trim().length < 2) return null;
+
+  const body = {
+    textQuery,
+    maxResultCount: 1,
+    languageCode: 'en'
+  };
+
+  // Bias the search tightly to the trip's city — 25 km circle is enough for
+  // any urban area (catches outskirts + an airport but rejects accidental
+  // same-name matches in other cities).
+  if (biasCenter && typeof biasCenter.lat === 'number' && typeof biasCenter.lng === 'number') {
+    body.locationBias = {
+      circle: {
+        center: { latitude: biasCenter.lat, longitude: biasCenter.lng },
+        radius: 25000
+      }
+    };
+  }
+
+  // Only request the fields we actually use — Places v1 requires an explicit
+  // field mask, and a narrower mask means cheaper billing tier.
+  const fieldMask = 'places.id,places.displayName,places.location,places.formattedAddress';
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch(GOOGLE_PLACES_BASE, {
+      method: 'POST',
+      headers: {
+        'Content-Type':     'application/json',
+        'X-Goog-Api-Key':   apiKey,
+        'X-Goog-FieldMask': fieldMask
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const p = data?.places?.[0];
+    if (!p?.location?.latitude || !p?.location?.longitude) return null;
+    return {
+      place_id:          p.id,
+      name:              p.displayName?.text || null,
+      formatted_address: p.formattedAddress  || null,
+      lat:               p.location.latitude,
+      lng:               p.location.longitude
+    };
+  } catch (err) {
+    console.warn(`Google Places lookup failed for "${textQuery}":`, err.message);
+    return null;
+  }
+};
+
+/**
+ * Build the textQuery we hand to Google Places.
+ *
+ * Strategy: lead with the EXACT venue name + city. This is how a human would
+ * search Google Maps and it's what gives us the best hit rate. LLM-supplied
+ * street addresses are unreliable (invented numbers) so we ignore them here.
+ *
+ *   "Boot Café, Paris"
+ *   "Cooco's Den, Lahore"
+ *   "Borough Market, Southwark, London"
+ *
+ * The 25 km location-bias circle in the API call handles disambiguation
+ * across cities with the same business name.
+ */
+const venueQueryFor = (item, city) => {
+  const name = (item.title || item.name || '').trim();
+  if (!name) return null;
+  // Strip vague descriptors the LLM might still slip into the name field.
+  // ("A popular café in Le Marais" → "café in Le Marais" — Google's never
+  //  going to find that, so we just won't match. The fallback button kicks in.)
+  if (/^\s*(a|the|some|any)\s+/i.test(name) && name.split(/\s+/).length > 3) return null;
+  return [name, item.neighborhood, city].filter(Boolean).join(', ');
+};
+
+/**
+ * Resolve coordinates + place_id for every activity & food pick in the plan,
+ * mutating the plan object in place. Failures per-venue are silent — the
+ * frontend already has a fallback for missing coords.
+ */
+const enrichPlanWithGoogleVenues = async (plan, location) => {
+  if (!process.env.GOOGLE_PLACES_API_KEY) return;
+  const city       = location?.city || '';
+  const biasCenter = (typeof location?.lat === 'number' && typeof location?.lng === 'number')
+    ? { lat: location.lat, lng: location.lng }
+    : null;
+
+  const resolveOne = async (item) => {
+    const query = venueQueryFor(item, city);
+    if (!query) return null;
+    const r = await resolveVenueViaGoogle(query, biasCenter);
+    if (!r) {
+      // Optional debug — uncomment to trace miss rate per-city in dev.
+      // console.log(`[plan-my-day] no Google match for: ${query}`);
+    } else {
+      console.log(`[plan-my-day] ✓ ${query} → ${r.name} (${r.lat.toFixed(5)}, ${r.lng.toFixed(5)})`);
+    }
+    return r;
+  };
+
+  const tasks = [];
+
+  if (Array.isArray(plan.activities)) {
+    plan.activities.forEach((a) => {
+      tasks.push(
+        resolveOne(a)
+          .then(r => { if (r) {
+            a.coordinates   = { lat: r.lat, lng: r.lng };
+            a.place_id      = r.place_id;
+            a.address       = r.formatted_address || a.address || '';
+            a.resolved_name = r.name;
+          }})
+          .catch(() => {})
+      );
+    });
+  }
+  if (Array.isArray(plan.food_picks)) {
+    plan.food_picks.forEach((f) => {
+      tasks.push(
+        resolveOne(f)
+          .then(r => { if (r) {
+            f.coordinates   = { lat: r.lat, lng: r.lng };
+            f.place_id      = r.place_id;
+            f.address       = r.formatted_address || f.address || '';
+            f.resolved_name = r.name;
+          }})
+          .catch(() => {})
+      );
+    });
+  }
+
+  await Promise.all(tasks);
+};
+
 // ─── Weather (Open-Meteo — free, no API key) ────────────────────────────────
 
 /**
@@ -185,12 +343,37 @@ OUTPUT — return ONLY valid JSON, no surrounding prose, in this exact shape:
   ],
   "tips": ["<3-5 short, practical pro tips for this exact day & place>"],
   "transport_advice": "<1-2 sentences: best way to move around given the route>",
-  "rainy_plan": "<1 sentence: 'If it pours, swap X for Y' — concrete swap>"
+  "rainy_plan": "<1 sentence: 'If it pours, swap X for Y' — concrete swap>",
+  "local_phrases": [
+    {
+      "phrase":      "<word/phrase in the local language using local script if applicable>",
+      "pronunciation":"<simple Latin-letter pronunciation hint>",
+      "meaning":     "<English meaning>",
+      "when":        "<one-line: when/where to use it>"
+    }
+  ],
+  "insider_tips": [
+    "<each tip is a sentence that gives the traveler an edge — booking ahead, queue tricks, locals-only timing, free entry days, etiquette traps, hidden entrances, cash-only spots, etc.>"
+  ]
 }
 
-COORDINATE RULES
-- Coordinates are OPTIONAL. Only include the "coordinates" key when you are highly confident in the venue's real location. If unsure, OMIT the key entirely — do not guess. A wrong coordinate sends the user to the wrong place, which is worse than no coordinate.
-- The "address" field, on the other hand, should always be present. It can be a precise street address or just "Venue Name, Neighborhood, City". Google Maps can resolve either.`;
+LOCAL CULTURE RULES
+- "local_phrases": include EXACTLY 4 entries — pick high-utility phrases (greeting, thank-you, "the bill please", a polite excuse-me or basic order phrase). Use the actual local script (Arabic, Devanagari, etc.) when applicable; English-only destinations can return phrases like cultural slang or local nicknames.
+- "insider_tips": exactly 4 entries — none of these should duplicate the regular "tips" array; this is the "wish I'd known" content that gives an edge.
+
+VENUE-NAMING RULES — CRITICAL FOR ACCURACY
+The backend takes your "title" / "name" + "neighborhood" + city and runs it through Google Places. So:
+- "title" / "name" MUST be the actual, searchable, real business name a local would recognize. The exact string a user would type into Google Maps.
+  ✓ "Boot Café"
+  ✓ "Cooco's Den"
+  ✓ "Pizzeria Da Michele"
+  ✗ "A cozy café in Le Marais"       ← vague description, not a name
+  ✗ "Traditional Pakistani lunch spot" ← not a name
+  ✗ "The bridge with the great view"   ← describe it, then name a specific bridge: "Pont Alexandre III"
+- "neighborhood" must be a real district / area name in the city ("Shibuya", "Trastevere", "Gulberg") — not a building or street.
+- "address" — include if you know the street; otherwise repeat "Venue Name, Neighborhood, City". Either is fine; we lead with the venue name in the Google search.
+- "coordinates" — OMIT entirely; backend resolves them.
+- If you truly don't know a real named venue for a slot, pick something else you DO know — never invent a fake business name to fill the slot.`;
 };
 
 const getDayOfWeek = (iso) => {
@@ -249,6 +432,11 @@ export const generateDayPlan = async (params) => {
     } catch {
       return generateFallbackPlan({ location, dateISO, vibe, weather });
     }
+
+    // Resolve precise coordinates + Google place IDs for every venue in
+    // parallel (typically ~1s for 6-10 venues). Failures are silent — any
+    // un-resolved venue simply keeps the LLM's address fallback.
+    await enrichPlanWithGoogleVenues(parsed, location);
 
     return {
       success: true,

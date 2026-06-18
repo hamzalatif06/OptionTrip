@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { generateDayPlan, reverseGeocode, forwardGeocode } from '../services/planMyDayService';
+import {
+  generateDayPlan,
+  forwardGeocode,
+  detectPreciseLocation,
+  reverseGeocodeRobust,
+  ipGeolocate,
+  readCachedLocation,
+  writeCachedLocation,
+  clearCachedLocation
+} from '../services/planMyDayService';
 import './PlanMyDay.css';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -96,16 +105,36 @@ const formatCost = (val, currency) => {
 };
 
 /**
- * Build the best Google Maps Directions URL we can from whatever fields are
- * present. Falls back gracefully: prefer coordinates → address → name+area.
- * No origin = Google uses the user's current location.
+ * Build the best Google Maps Directions URL we can.
+ *
+ * Priority (best → worst):
+ *   1. coordinates + place_id  — pins the EXACT venue on Google's map. Both
+ *      params combined are how Google's own apps build deep links.
+ *   2. place_id alone          — Google resolves the venue from its ID.
+ *   3. coordinates alone       — drops a pin but no place name shown.
+ *   4. address string          — text search fallback.
+ *
+ * No `origin` parameter is passed → Google Maps uses the user's current
+ * location automatically when they tap "Directions".
  */
 const buildDirectionsUrl = (placeOrActivity, planLocation) => {
-  const { coordinates, address, title, name, neighborhood } = placeOrActivity || {};
+  const { coordinates, place_id, address, title, name, neighborhood } = placeOrActivity || {};
   const city    = planLocation?.city    || '';
   const country = planLocation?.country || '';
 
-  if (coordinates && typeof coordinates.lat === 'number' && typeof coordinates.lng === 'number') {
+  const hasCoords = coordinates && typeof coordinates.lat === 'number' && typeof coordinates.lng === 'number';
+
+  if (hasCoords && place_id) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${coordinates.lat},${coordinates.lng}` +
+           `&destination_place_id=${encodeURIComponent(place_id)}`;
+  }
+  if (place_id) {
+    // Google still requires a destination string with place_id; use a sensible label.
+    const label = title || name || address || 'Destination';
+    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(label)}` +
+           `&destination_place_id=${encodeURIComponent(place_id)}`;
+  }
+  if (hasCoords) {
     return `https://www.google.com/maps/dir/?api=1&destination=${coordinates.lat},${coordinates.lng}`;
   }
   const query = address && address.length > 4
@@ -119,15 +148,52 @@ const openDirections = (placeOrActivity, planLocation) => {
   window.open(url, '_blank', 'noopener,noreferrer');
 };
 
+/** Pull "HH:MM" out of Open-Meteo's naive ISO string (already destination-local). */
+const extractTime = (iso) => (iso || '').slice(11, 16);
+
+/** Haversine great-circle distance in meters between two {lat,lng}. */
+const haversineMeters = (a, b) => {
+  if (!a || !b || typeof a.lat !== 'number' || typeof b.lat !== 'number') return null;
+  const toRad = (x) => (x * Math.PI) / 180;
+  const R = 6371000;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const s = Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return Math.round(2 * R * Math.asin(Math.sqrt(s)));
+};
+
+/** Distance + (when walkable) walking-time label, e.g. "1.2 km · ~15 min walk". */
+const describeDistance = (meters) => {
+  if (meters == null) return null;
+  // Straight-line is ~0.8× actual walking distance in dense cities. Compensate
+  // by using a slower 70 m/min effective walking pace.
+  const walkMin = Math.round(meters / 70);
+  const distStr = meters < 1000 ? `${meters} m` : `${(meters / 1000).toFixed(1)} km`;
+  if (meters < 100)  return `Nearby · ${distStr}`;
+  if (meters < 4000) return `${distStr} · ~${walkMin} min walk`;
+  return                     `${distStr} away`;
+};
+
 // ─── Component ──────────────────────────────────────────────────────────────
 
 const PlanMyDay = () => {
   // Stage: 'setup' | 'loading' | 'results'
   const [stage, setStage] = useState('setup');
 
+  // Scroll to top whenever the stage changes. Without this, clicking
+  // "Build My Day" from the bottom of a tall setup page leaves the user
+  // scrolled past the loader animation (or past the result hero).
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' in document.documentElement.style ? 'instant' : 'auto' });
+  }, [stage]);
+
   // Location
   const [location, setLocation]           = useState({ city: '', country: '', neighborhood: '', lat: null, lng: null });
-  const [locStatus, setLocStatus]         = useState('idle'); // 'idle' | 'detecting' | 'detected' | 'denied' | 'manual'
+  // 'idle' | 'detecting' | 'improving' | 'detected' | 'ip-fallback' | 'denied' | 'manual'
+  const [locStatus, setLocStatus]         = useState('idle');
+  const [accuracyM, setAccuracyM]         = useState(null);
+  const [locSource, setLocSource]         = useState(null); // 'gps' | 'ip' | 'cache' | 'manual'
   const [manualCity, setManualCity]       = useState('');
   const [manualLoading, setManualLoading] = useState(false);
   const [manualError, setManualError]     = useState('');
@@ -152,30 +218,103 @@ const PlanMyDay = () => {
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const loadingTimerRef = useRef(null);
 
-  // ── Auto-detect location on mount ──────────────────────────────────────
-  useEffect(() => {
-    if (!('geolocation' in navigator)) { setLocStatus('denied'); return; }
+  // ── Robust multi-stage location detection ──────────────────────────────
+  // 1. Try session cache (fresh, accurate-enough fix from this session)
+  // 2. Progressive GPS (watchPosition, high accuracy, up to 12s)
+  // 3. Dual reverse-geocoder (Nominatim + BigDataCloud merged)
+  // 4. IP fallback if GPS denied/failed
+  const runLocationDetection = async ({ cancelledRef }) => {
+    // ── 1. Cache hit?
+    const cached = readCachedLocation();
+    if (cached && cached.location?.city) {
+      setLocation(cached.location);
+      setAccuracyM(cached.accuracy_m);
+      setLocSource('cache');
+      setLocStatus('detected');
+      return;
+    }
+
+    if (!('geolocation' in navigator)) {
+      // Skip straight to IP fallback if the API isn't there at all.
+      const ip = await ipGeolocate();
+      if (cancelledRef.current) return;
+      if (ip) {
+        setLocation({ city: ip.city, country: ip.country, neighborhood: ip.neighborhood, lat: ip.lat, lng: ip.lng });
+        setAccuracyM(ip.accuracy_m);
+        setLocSource('ip');
+        setLocStatus('ip-fallback');
+      } else {
+        setLocStatus('denied');
+      }
+      return;
+    }
+
+    // ── 2. Progressive GPS
     setLocStatus('detecting');
-    navigator.geolocation.getCurrentPosition(
-      async ({ coords: { latitude, longitude } }) => {
-        const rev = await reverseGeocode(latitude, longitude);
-        if (rev) {
-          setLocation({
-            city:         rev.city,
-            country:      rev.country,
-            neighborhood: rev.neighborhood,
-            lat:          latitude,
-            lng:          longitude
-          });
-          setLocStatus('detected');
-        } else {
-          setLocStatus('denied');
+    setAccuracyM(null);
+    try {
+      const fix = await detectPreciseLocation({
+        targetAccuracyM: 40,
+        hardTimeoutMs:   12000,
+        onUpdate: (f) => {
+          if (cancelledRef.current) return;
+          setAccuracyM(Math.round(f.accuracy));
+          setLocStatus(f.accuracy <= 80 ? 'detected' : 'improving');
         }
-      },
-      () => setLocStatus('denied'),
-      { timeout: 10000, maximumAge: 300000 }
-    );
+      });
+      if (cancelledRef.current) return;
+
+      // ── 3. Dual reverse-geocode
+      const rev = await reverseGeocodeRobust(fix.lat, fix.lng);
+      if (cancelledRef.current) return;
+
+      if (!rev || !rev.city) {
+        throw new Error('Reverse geocoding returned no city');
+      }
+      const next = {
+        city:         rev.city,
+        country:      rev.country,
+        neighborhood: rev.neighborhood,
+        lat:          fix.lat,
+        lng:          fix.lng
+      };
+      setLocation(next);
+      setAccuracyM(Math.round(fix.accuracy));
+      setLocSource('gps');
+      setLocStatus('detected');
+      writeCachedLocation(next, Math.round(fix.accuracy), 'gps');
+    } catch (err) {
+      console.warn('Precise GPS failed:', err?.message || err);
+      // ── 4. IP fallback
+      const ip = await ipGeolocate();
+      if (cancelledRef.current) return;
+      if (ip) {
+        const next = { city: ip.city, country: ip.country, neighborhood: ip.neighborhood, lat: ip.lat, lng: ip.lng };
+        setLocation(next);
+        setAccuracyM(ip.accuracy_m);
+        setLocSource('ip');
+        setLocStatus('ip-fallback');
+      } else {
+        setLocStatus('denied');
+      }
+    }
+  };
+
+  useEffect(() => {
+    const cancelledRef = { current: false };
+    runLocationDetection({ cancelledRef });
+    return () => { cancelledRef.current = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleRetryLocation = () => {
+    clearCachedLocation();
+    setLocation({ city: '', country: '', neighborhood: '', lat: null, lng: null });
+    setAccuracyM(null);
+    setLocSource(null);
+    const cancelledRef = { current: false };
+    runLocationDetection({ cancelledRef });
+  };
 
   // ── Loading message rotator ────────────────────────────────────────────
   useEffect(() => {
@@ -200,7 +339,10 @@ const PlanMyDay = () => {
       } else {
         setLocation(result);
         setLocStatus('manual');
+        setLocSource('manual');
+        setAccuracyM(null);
         setManualCity('');
+        writeCachedLocation(result, null, 'manual');
       }
     } catch (err) {
       setManualError(err.message || 'Failed to find location.');
@@ -222,9 +364,13 @@ const PlanMyDay = () => {
     const city = editCity.trim();
     const hood = editNeighborhood.trim();
     if (!city) return;
-    setLocation(prev => ({ ...prev, city, neighborhood: hood }));
+    const next = { ...location, city, neighborhood: hood };
+    setLocation(next);
+    setLocSource('manual');
+    setAccuracyM(null);
     setEditingLoc(false);
     setLocStatus('manual');
+    writeCachedLocation(next, null, 'manual');
   };
 
   const toggleInterest = (tag) => {
@@ -324,6 +470,8 @@ const PlanMyDay = () => {
         <div className="container pmd-form-wrap">
           <PlanSetupForm
             location={location} locStatus={locStatus}
+            accuracyM={accuracyM} locSource={locSource}
+            onRetryLocation={handleRetryLocation}
             manualCity={manualCity} setManualCity={setManualCity}
             manualLoading={manualLoading} manualError={manualError}
             onManualSubmit={handleManualLocation}
@@ -385,8 +533,18 @@ const PlanMyDay = () => {
 // ═══════════════════════════════════════════════════════════════════════════
 // Setup form
 // ═══════════════════════════════════════════════════════════════════════════
+// Returns { tier, label } based on accuracy radius in meters.
+const accuracyTier = (m) => {
+  if (m == null)        return { tier: 'unknown', label: '' };
+  if (m <= 60)          return { tier: 'great',   label: `Pinpointed within ~${m} m` };
+  if (m <= 250)         return { tier: 'good',    label: `Within ~${m} m` };
+  if (m <= 1000)        return { tier: 'rough',   label: `Approximate (~${m} m)` };
+  return                       { tier: 'coarse',  label: `Very approximate (~${(m / 1000).toFixed(1)} km)` };
+};
+
 const PlanSetupForm = ({
   location, locStatus,
+  accuracyM, locSource, onRetryLocation,
   manualCity, setManualCity,
   manualLoading, manualError,
   onManualSubmit,
@@ -414,28 +572,60 @@ const PlanSetupForm = ({
         </div>
       </div>
 
-      {locStatus === 'detecting' && (
+      {(locStatus === 'detecting' || locStatus === 'improving') && (
         <div className="pmd-loc-state pmd-loc-state--pending">
           <span className="pmd-mini-spinner" />
-          Detecting your location…
+          <span className="pmd-loc-state__text">
+            {locStatus === 'improving' ? 'Improving accuracy…' : 'Detecting your location…'}
+            {accuracyM != null && (
+              <span className="pmd-loc-state__country"> (~{accuracyM} m so far)</span>
+            )}
+          </span>
         </div>
       )}
 
-      {(locStatus === 'detected' || locStatus === 'manual') && location.city && !editingLoc && (
-        <div className="pmd-loc-state pmd-loc-state--ok">
-          <i className="fas fa-circle-check" />
+      {(locStatus === 'detected' || locStatus === 'manual' || locStatus === 'ip-fallback') && location.city && !editingLoc && (
+        <div className={`pmd-loc-state pmd-loc-state--ok${locStatus === 'ip-fallback' ? ' pmd-loc-state--ip' : ''}`}>
+          <i className={`fas ${locStatus === 'ip-fallback' ? 'fa-globe' : 'fa-circle-check'}`} />
           <span className="pmd-loc-state__text">
             <strong>{location.neighborhood ? `${location.neighborhood}, ` : ''}{location.city}</strong>
             {location.country ? <span className="pmd-loc-state__country">, {location.country}</span> : null}
+            {(() => {
+              if (locSource === 'manual') {
+                return <span className={`pmd-acc-badge pmd-acc-badge--manual`}><i className="fas fa-pencil" /> Set manually</span>;
+              }
+              if (locSource === 'ip') {
+                return <span className={`pmd-acc-badge pmd-acc-badge--rough`}><i className="fas fa-globe" /> Approx. from IP</span>;
+              }
+              const t = accuracyTier(accuracyM);
+              if (!t.label) return null;
+              return (
+                <span className={`pmd-acc-badge pmd-acc-badge--${t.tier}`}>
+                  <i className="fas fa-bullseye" /> {t.label}
+                </span>
+              );
+            })()}
           </span>
-          <button
-            type="button"
-            className="pmd-loc-state__edit"
-            onClick={onStartEditLocation}
-            title="Fix or refine this"
-          >
-            <i className="fas fa-pen" /> Edit
-          </button>
+          <div className="pmd-loc-state__btns">
+            {locSource !== 'manual' && (
+              <button
+                type="button"
+                className="pmd-loc-state__icon-btn"
+                onClick={onRetryLocation}
+                title="Re-detect location"
+              >
+                <i className="fas fa-arrows-rotate" />
+              </button>
+            )}
+            <button
+              type="button"
+              className="pmd-loc-state__edit"
+              onClick={onStartEditLocation}
+              title="Fix or refine this"
+            >
+              <i className="fas fa-pen" /> Edit
+            </button>
+          </div>
         </div>
       )}
 
@@ -694,6 +884,12 @@ const PlanResults = ({ plan, onStartOver, onRegenerate, onCopy, onShare }) => {
               <i className={`fas ${paceMeta.icon}`} />
               <span className="pmd-stat__lbl">{paceMeta.label}</span>
             </div>
+            {plan.weather?.sunrise && plan.weather?.sunset && (
+              <div className="pmd-stat pmd-stat--sun">
+                <div className="pmd-stat__sun-row"><i className="fas fa-sun" /> {extractTime(plan.weather.sunrise)}</div>
+                <div className="pmd-stat__sun-row"><i className="fas fa-moon" /> {extractTime(plan.weather.sunset)}</div>
+              </div>
+            )}
           </div>
 
           {/* Weather strip */}
@@ -729,12 +925,18 @@ const PlanResults = ({ plan, onStartOver, onRegenerate, onCopy, onShare }) => {
         </div>
       </div>
 
-      {/* Timeline */}
+      {/* Timeline — each card includes its own mini-map */}
       <div className="container pmd-timeline-wrap">
         <h2 className="pmd-section-heading"><i className="fas fa-route" /> Your day, hour by hour</h2>
         <div className="pmd-timeline">
           {(plan.activities || []).map((a, idx) => (
-            <ActivityCard key={idx} index={idx} activity={a} currency={plan.currency} planLocation={plan.location} />
+            <ActivityCard
+              key={idx}
+              index={idx}
+              activity={a}
+              currency={plan.currency}
+              planLocation={plan.location}
+            />
           ))}
         </div>
 
@@ -761,9 +963,42 @@ const PlanResults = ({ plan, onStartOver, onRegenerate, onCopy, onShare }) => {
                     <i className="fas fa-diamond-turn-right" />
                     Directions
                   </button>
+                  {/* `f` already carries place_id + coordinates resolved server-side; openDirections picks them up. */}
                 </div>
               ))}
             </div>
+          </>
+        )}
+
+        {/* Local phrases card */}
+        {plan.local_phrases?.length > 0 && (
+          <>
+            <h2 className="pmd-section-heading"><i className="fas fa-comment-dots" /> Speak like a local</h2>
+            <div className="pmd-phrase-grid">
+              {plan.local_phrases.map((p, i) => (
+                <div key={i} className="pmd-phrase">
+                  <div className="pmd-phrase__when">{p.when}</div>
+                  <div className="pmd-phrase__line">{p.phrase}</div>
+                  {p.pronunciation && <div className="pmd-phrase__pron">/ {p.pronunciation} /</div>}
+                  <div className="pmd-phrase__meaning">{p.meaning}</div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Insider tips card */}
+        {plan.insider_tips?.length > 0 && (
+          <>
+            <h2 className="pmd-section-heading"><i className="fas fa-key" /> Insider intel</h2>
+            <ul className="pmd-insider-list">
+              {plan.insider_tips.map((t, i) => (
+                <li key={i} className="pmd-insider-item">
+                  <i className="fas fa-circle-check" />
+                  <span>{t}</span>
+                </li>
+              ))}
+            </ul>
           </>
         )}
 
@@ -807,8 +1042,17 @@ const PlanResults = ({ plan, onStartOver, onRegenerate, onCopy, onShare }) => {
 // ─── Activity card ──────────────────────────────────────────────────────────
 const ActivityCard = ({ activity, index, currency, planLocation }) => {
   const cat = CATEGORY_META[activity.category] || CATEGORY_META.local;
+  const hasCoords =
+    activity.coordinates &&
+    typeof activity.coordinates.lat === 'number' &&
+    typeof activity.coordinates.lng === 'number';
+
   return (
-    <div className="pmd-activity" style={{ '--cat-color': cat.color, animationDelay: `${index * 0.06}s` }}>
+    <div
+      className="pmd-activity"
+      data-activity-idx={index}
+      style={{ '--cat-color': cat.color, animationDelay: `${index * 0.06}s` }}
+    >
       <div className="pmd-activity__time">
         <div className="pmd-activity__time-main">{formatTimeLabel(activity.time)}</div>
         <div className="pmd-activity__time-dur">{formatDuration(activity.duration_minutes)}</div>
@@ -845,17 +1089,168 @@ const ActivityCard = ({ activity, index, currency, planLocation }) => {
             {activity.tags.map((t, i) => <span key={i} className="pmd-activity__tag">{t}</span>)}
           </div>
         )}
-        <button
-          type="button"
-          className="pmd-directions-btn"
-          onClick={() => openDirections(activity, planLocation)}
-          title={activity.address || `${activity.title}${activity.neighborhood ? `, ${activity.neighborhood}` : ''}`}
-        >
-          <i className="fas fa-diamond-turn-right" />
-          Get directions
-          <i className="fas fa-arrow-up-right-from-square pmd-directions-btn__ext" />
-        </button>
+
+        {hasCoords ? (
+          <ActivityMap
+            lat={activity.coordinates.lat}
+            lng={activity.coordinates.lng}
+            placeId={activity.place_id}
+            title={activity.title}
+            address={activity.address}
+            neighborhood={activity.neighborhood}
+            planLocation={planLocation}
+            color={cat.color}
+          />
+        ) : (
+          /* Fallback when the AI didn't give us coords — keep the address-based directions link */
+          <button
+            type="button"
+            className="pmd-directions-btn"
+            onClick={() => openDirections(activity, planLocation)}
+            title={activity.address || `${activity.title}${activity.neighborhood ? `, ${activity.neighborhood}` : ''}`}
+          >
+            <i className="fas fa-diamond-turn-right" />
+            Get directions
+            <i className="fas fa-arrow-up-right-from-square pmd-directions-btn__ext" />
+          </button>
+        )}
       </div>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ActivityMap — small Leaflet map for a single activity, with a directions
+// overlay that opens Google Maps routing from the user's current location.
+//
+// Lazy-mounted via IntersectionObserver so we don't initialize 6+ Leaflet
+// instances on first render (each one pulls down tiles, eats memory, and
+// slows the page). The map mounts only when its card scrolls within ~250px
+// of the viewport.
+// ═══════════════════════════════════════════════════════════════════════════
+const ActivityMap = ({ lat, lng, placeId, title, address, neighborhood, planLocation, color }) => {
+  const wrapperRef = useRef(null);   // the container we observe for visibility
+  const nodeRef    = useRef(null);   // the actual map div
+  const mapInstRef = useRef(null);
+  const [visible, setVisible]       = useState(false);
+  const [leafletReady, setLeafletReady] = useState(typeof window !== 'undefined' && !!window.L);
+
+  // 1. Wait until this map is actually near the viewport.
+  useEffect(() => {
+    if (!wrapperRef.current || visible) return;
+    if (!('IntersectionObserver' in window)) { setVisible(true); return; } // graceful fallback
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) { setVisible(true); io.disconnect(); break; }
+        }
+      },
+      { rootMargin: '250px 0px' }
+    );
+    io.observe(wrapperRef.current);
+    return () => io.disconnect();
+  }, [visible]);
+
+  // 2. Wait for the Leaflet script (loaded with `defer` from index.html).
+  useEffect(() => {
+    if (leafletReady) return;
+    const start = Date.now();
+    const id = setInterval(() => {
+      if (window.L) { setLeafletReady(true); clearInterval(id); }
+      else if (Date.now() - start > 8000) { clearInterval(id); }
+    }, 100);
+    return () => clearInterval(id);
+  }, [leafletReady]);
+
+  // The user's plan location — used as the origin of the path line.
+  const userLat = planLocation && typeof planLocation.lat === 'number' ? planLocation.lat : null;
+  const userLng = planLocation && typeof planLocation.lng === 'number' ? planLocation.lng : null;
+  const hasUserPoint = userLat != null && userLng != null;
+
+  // 3. When both are ready, build the map.
+  useEffect(() => {
+    if (!visible || !leafletReady || !nodeRef.current) return;
+    const L = window.L;
+    if (mapInstRef.current) {
+      mapInstRef.current.remove();
+      mapInstRef.current = null;
+    }
+
+    const map = L.map(nodeRef.current, {
+      scrollWheelZoom:    false,
+      zoomControl:        true,
+      attributionControl: true,
+      dragging:           true,
+      doubleClickZoom:    true
+    });
+    mapInstRef.current = map;
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+    }).addTo(map);
+
+    // Always center tight on the destination so the activity location is
+    // clearly visible — distance from the user is shown as an overlay chip
+    // instead of forcing both points into the viewport (which over-zooms).
+    map.setView([lat, lng], 15);
+
+    const destPinHtml = `<div class="pmd-act-map__pin" style="background:${color || '#029e9d'}"><i class="fas fa-location-dot"></i></div>`;
+    const destIcon = L.divIcon({ className: 'pmd-act-map__pin-wrap', html: destPinHtml, iconSize: [36, 36], iconAnchor: [18, 18] });
+    const destMarker = L.marker([lat, lng], { icon: destIcon }).addTo(map);
+    const destPopupHtml = `
+      <div class="pmd-map-popup">
+        <div class="pmd-map-popup__title">${(title || 'Location').replace(/</g, '&lt;')}</div>
+        ${neighborhood ? `<div class="pmd-map-popup__hood">${neighborhood}</div>` : ''}
+      </div>`;
+    destMarker.bindPopup(destPopupHtml, { closeButton: false, offset: [0, -12] });
+
+    // Open the destination popup once so the place name is visible immediately.
+    setTimeout(() => destMarker.openPopup(), 0);
+
+    return () => { map.remove(); mapInstRef.current = null; };
+  }, [visible, leafletReady, lat, lng, title, neighborhood, color, userLat, userLng, hasUserPoint]);
+
+  // Distance / walking-time label
+  const distanceMeters = hasUserPoint
+    ? haversineMeters({ lat: userLat, lng: userLng }, { lat, lng })
+    : null;
+  const distanceLabel = describeDistance(distanceMeters);
+
+  const handleDirections = () => {
+    openDirections(
+      { coordinates: { lat, lng }, place_id: placeId, address, title, neighborhood },
+      planLocation
+    );
+  };
+
+  return (
+    <div ref={wrapperRef} className="pmd-act-map" style={{ '--accent': color || '#029e9d' }}>
+      <div ref={nodeRef} className="pmd-act-map__canvas">
+        {(!visible || !leafletReady) && (
+          <div className="pmd-act-map__placeholder">
+            <span className="pmd-mini-spinner" />
+          </div>
+        )}
+      </div>
+
+      {distanceLabel && (
+        <div className="pmd-act-map__distance" title="Straight-line distance from your location">
+          <i className={`fas ${distanceMeters != null && distanceMeters < 4000 ? 'fa-person-walking' : 'fa-location-arrow'}`} />
+          {distanceLabel}
+        </div>
+      )}
+
+      <button
+        type="button"
+        className="pmd-act-map__directions"
+        onClick={handleDirections}
+        title="Open Google Maps with directions from your current location"
+      >
+        <i className="fas fa-diamond-turn-right" />
+        Directions
+        <i className="fas fa-arrow-up-right-from-square pmd-act-map__ext" />
+      </button>
     </div>
   );
 };

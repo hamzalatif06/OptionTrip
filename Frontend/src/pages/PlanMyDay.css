@@ -158,9 +158,42 @@
   background: #fef3c7; color: #92400e;
 }
 .pmd-loc-state__country { color: var(--pmd-ink-muted); font-weight: 500; }
-.pmd-loc-state__text { flex: 1; min-width: 0; }
-.pmd-loc-state__edit {
+.pmd-loc-state__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  line-height: 1.35;
+}
+.pmd-loc-state--ip {
+  background: linear-gradient(90deg, rgba(245,158,11,0.08), rgba(245,158,11,0.03));
+  color: #92400e;
+}
+.pmd-loc-state__btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin-left: auto;
+  flex-shrink: 0;
+}
+.pmd-loc-state__icon-btn {
+  width: 30px; height: 30px;
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.7);
+  border: 1px solid rgba(2,158,157,0.25);
+  color: var(--pmd-teal);
+  font-size: 11px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+.pmd-loc-state__icon-btn:hover {
+  background: #fff;
+  transform: rotate(45deg);
+}
+.pmd-loc-state__edit {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -173,13 +206,51 @@
   border-radius: 999px;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
-  flex-shrink: 0;
 }
 .pmd-loc-state__edit:hover {
   background: #fff;
   border-color: var(--pmd-teal);
 }
 .pmd-loc-state__edit i { font-size: 10px; }
+
+/* ─── Accuracy badge ───────────────────────────────────────────────────── */
+.pmd-acc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+.pmd-acc-badge i { font-size: 9px; }
+.pmd-acc-badge--great {
+  background: rgba(34,197,94,0.12);
+  color: #15803d;
+  border-color: rgba(34,197,94,0.3);
+}
+.pmd-acc-badge--good {
+  background: rgba(2,158,157,0.12);
+  color: var(--pmd-teal);
+  border-color: rgba(2,158,157,0.3);
+}
+.pmd-acc-badge--rough {
+  background: rgba(245,158,11,0.14);
+  color: #b45309;
+  border-color: rgba(245,158,11,0.34);
+}
+.pmd-acc-badge--coarse {
+  background: rgba(239,68,68,0.12);
+  color: #b91c1c;
+  border-color: rgba(239,68,68,0.3);
+}
+.pmd-acc-badge--manual {
+  background: rgba(99,102,241,0.12);
+  color: #4338ca;
+  border-color: rgba(99,102,241,0.3);
+}
 
 /* ─── Inline location edit ───────────────────────────────────────────── */
 .pmd-loc-edit {
@@ -1068,6 +1139,241 @@
   font-size: 13px;
   color: var(--pmd-ink-soft);
   line-height: 1.5;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   ENHANCED RESULTS — added v2
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Sunrise/sunset stat in hero ────────────────────────────────────── */
+.pmd-stat--sun {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 12px;
+  background: rgba(255,255,255,0.16);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  align-self: center;
+}
+.pmd-stat__sun-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.pmd-stat__sun-row i:first-child { font-size: 11px; opacity: 0.9; }
+.pmd-stat__sun-row:first-child i { color: #fde68a; }
+.pmd-stat__sun-row:last-child  i { color: #cbd5e1; }
+
+/* ─── Per-activity Leaflet mini-map ───────────────────────────────────── */
+.pmd-act-map {
+  position: relative;
+  margin-top: 14px;
+  height: 200px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--pmd-border);
+  background: #f1f5f9;
+  isolation: isolate; /* keep the directions button stacked above tiles */
+}
+@media (max-width: 640px) {
+  .pmd-act-map { height: 180px; }
+}
+.pmd-act-map__canvas {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: #e2e8f0;
+}
+.pmd-act-map__placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(120deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+  background-size: 200% 100%;
+  animation: pmd-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes pmd-shimmer {
+  0%   { background-position:  100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* Leaflet divIcon — colored teardrop pin for the activity */
+.pmd-act-map__pin-wrap { background: transparent !important; border: none !important; }
+.pmd-act-map__pin {
+  width: 36px; height: 36px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: grid; place-items: center;
+  color: #fff;
+  font-size: 14px;
+  border: 2px solid #fff;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.3);
+}
+.pmd-act-map__pin i { transform: rotate(45deg); }
+
+/* Floating distance chip — bottom-left, away from Leaflet's top-left zoom controls.
+   Bigger + more prominent so it reads as a key piece of info, not a tooltip. */
+.pmd-act-map__distance {
+  position: absolute;
+  z-index: 500;
+  bottom: 14px;
+  left:   14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid var(--pmd-border);
+  color: var(--pmd-ink);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.1px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.22);
+  pointer-events: none;        /* never blocks map drag */
+}
+.pmd-act-map__distance i {
+  color: var(--accent, var(--pmd-teal));
+  font-size: 15px;
+}
+@media (max-width: 520px) {
+  .pmd-act-map__distance {
+    bottom: 12px;
+    left:   12px;
+    font-size: 12.5px;
+    padding: 8px 13px;
+    gap: 8px;
+  }
+  .pmd-act-map__distance i { font-size: 13px; }
+}
+
+.pmd-map-popup { font-family: inherit; min-width: 140px; }
+.pmd-map-popup__title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--pmd-ink);
+  line-height: 1.3;
+}
+.pmd-map-popup__hood {
+  font-size: 11.5px;
+  color: var(--pmd-ink-muted);
+  margin-top: 3px;
+}
+
+/* "Directions from my location" overlay button */
+.pmd-act-map__directions {
+  position: absolute;
+  z-index: 500;       /* above Leaflet's tile pane (default 200-400) */
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  background: #fff;
+  border: 1px solid var(--pmd-border);
+  color: var(--accent, var(--pmd-teal));
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.pmd-act-map__directions:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.22);
+  background: #fafafa;
+}
+.pmd-act-map__directions:active { transform: translateY(0); }
+.pmd-act-map__directions i:first-child { font-size: 12px; }
+.pmd-act-map__ext { font-size: 9px; opacity: 0.55; }
+
+@media (max-width: 520px) {
+  .pmd-act-map__directions {
+    /* On phones, anchor it to the bottom so it doesn't cover the pin */
+    top: auto;
+    bottom: 12px;
+    right: 12px;
+    font-size: 11.5px;
+    padding: 8px 13px;
+  }
+}
+
+/* ─── Local phrases ───────────────────────────────────────────────────── */
+.pmd-phrase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+.pmd-phrase {
+  background: #fff;
+  border: 1px solid var(--pmd-border);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: var(--pmd-shadow-sm);
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+.pmd-phrase:hover { transform: translateY(-2px); box-shadow: var(--pmd-shadow-md); }
+.pmd-phrase__when {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--pmd-teal);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+}
+.pmd-phrase__line {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--pmd-ink);
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+.pmd-phrase__pron {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  color: var(--pmd-ink-muted);
+  margin-bottom: 6px;
+}
+.pmd-phrase__meaning {
+  font-size: 13.5px;
+  color: var(--pmd-ink-soft);
+  line-height: 1.4;
+}
+
+/* ─── Insider tips list ───────────────────────────────────────────────── */
+.pmd-insider-list {
+  background: linear-gradient(135deg, rgba(99,102,241,0.05), rgba(2,158,157,0.04));
+  border: 1px solid rgba(99,102,241,0.18);
+  border-radius: 16px;
+  padding: 18px 20px;
+  list-style: none;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pmd-insider-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--pmd-ink);
+}
+.pmd-insider-item i {
+  color: #6366f1;
+  font-size: 14px;
+  margin-top: 3px;
+  flex-shrink: 0;
 }
 
 /* ─── Extras ────────────────────────────────────────────────────────────── */

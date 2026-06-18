@@ -15,7 +15,8 @@
       "Bash(timeout 60 npx vite build --logLevel error)",
       "Bash(timeout 90 npx vite build)",
       "Bash(node --input-type=module -e ' *)",
-      "Bash(timeout 180 npx vite build)"
+      "Bash(timeout 180 npx vite build)",
+      "Bash(node --check src/services/planMyDayService.js)"
     ],
     "additionalDirectories": [
       "/home/jawad/Downloads/OptionTrip-main/Frontend/src/components"
