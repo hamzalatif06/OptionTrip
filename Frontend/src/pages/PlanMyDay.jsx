@@ -163,16 +163,50 @@ const haversineMeters = (a, b) => {
   return Math.round(2 * R * Math.asin(Math.sqrt(s)));
 };
 
-/** Distance + (when walkable) walking-time label, e.g. "1.2 km · ~15 min walk". */
-const describeDistance = (meters) => {
-  if (meters == null) return null;
-  // Straight-line is ~0.8× actual walking distance in dense cities. Compensate
-  // by using a slower 70 m/min effective walking pace.
-  const walkMin = Math.round(meters / 70);
-  const distStr = meters < 1000 ? `${meters} m` : `${(meters / 1000).toFixed(1)} km`;
-  if (meters < 100)  return `Nearby · ${distStr}`;
-  if (meters < 4000) return `${distStr} · ~${walkMin} min walk`;
-  return                     `${distStr} away`;
+/**
+ * Estimate the on-the-ground "as you'd walk it" distance from a straight-line.
+ * In dense cities, road networks add roughly 1.3× to crow-flies distance
+ * (longer in some grid-pattern cities, shorter in others — 1.3× is a solid
+ * average). For ride distances at longer ranges, freeways and direct routes
+ * pull this closer to 1.15×.
+ */
+const estimateRouteDistance = (straightLineMeters) => {
+  if (straightLineMeters == null) return null;
+  if (straightLineMeters < 4000) return Math.round(straightLineMeters * 1.3);
+  return Math.round(straightLineMeters * 1.2);
+};
+
+/** Round to a sensible step so the number reads as an estimate, not GPS-exact. */
+const roundDistance = (meters) => {
+  if (meters < 100)   return Math.round(meters / 10) * 10;   // nearest 10 m
+  if (meters < 1000)  return Math.round(meters / 50) * 50;   // nearest 50 m
+  if (meters < 10000) return Math.round(meters / 100) * 100; // nearest 100 m → one-decimal km
+  return Math.round(meters / 1000) * 1000;                   // nearest km
+};
+
+const formatDistance = (meters) =>
+  meters < 1000 ? `${meters} m` : `${(meters / 1000).toFixed(meters < 10000 ? 1 : 0)} km`;
+
+/** Round walking time so it doesn't look deceptively precise. */
+const roundWalkMin = (m) => (m < 5 ? m : Math.round(m / 5) * 5);
+
+/**
+ * Builds a clear, approximate distance label like:
+ *   "Around 1.2 km · ~15 min walk"
+ *   "Around 8 km away"
+ *   "Just steps away"
+ */
+const describeDistance = (straightLineMeters) => {
+  if (straightLineMeters == null) return null;
+  const realistic = roundDistance(estimateRouteDistance(straightLineMeters));
+  const distStr   = formatDistance(realistic);
+  if (realistic < 100) return 'Just steps away';
+  if (realistic < 4000) {
+    // Walking pace ≈ 80 m/min (tourist pace) on the route-distance estimate.
+    const walkMin = roundWalkMin(Math.round(realistic / 80));
+    return `Around ${distStr} · ~${walkMin} min walk`;
+  }
+  return `Around ${distStr} away`;
 };
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -1235,7 +1269,10 @@ const ActivityMap = ({ lat, lng, placeId, title, address, neighborhood, planLoca
       </div>
 
       {distanceLabel && (
-        <div className="pmd-act-map__distance" title="Straight-line distance from your location">
+        <div
+          className="pmd-act-map__distance"
+          title="Estimated distance from your location — actual walking route may vary"
+        >
           <i className={`fas ${distanceMeters != null && distanceMeters < 4000 ? 'fa-person-walking' : 'fa-location-arrow'}`} />
           {distanceLabel}
         </div>
