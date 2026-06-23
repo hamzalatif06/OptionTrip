@@ -57,7 +57,7 @@ const Home = () => {
   return (
     <>
       <Banner />
-      <AboutUs />
+      {/* <AboutUs /> */}
       {/* <TopDestinations /> */}
       {/* <AboutSection /> */}
       <WhyChooseUs />
