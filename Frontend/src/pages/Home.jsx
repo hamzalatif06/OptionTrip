@@ -58,11 +58,11 @@ const Home = () => {
     <>
       <Banner />
       <AboutUs />
-      <TopDestinations />
-      <AboutSection />
+      {/* <TopDestinations /> */}
+      {/* <AboutSection /> */}
       <WhyChooseUs />
       <BestTours />
-      <LastMinuteDeals />
+      {/* <LastMinuteDeals /> */}
       <FeaturedBlogSection />
       {/* <DiscountAction /> */}
       {/* <OfferPackages /> */}

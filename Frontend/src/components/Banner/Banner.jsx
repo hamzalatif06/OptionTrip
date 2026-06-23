@@ -38,20 +38,7 @@ const Banner = () => {
               </div>
             </div>
           </div>
-          <div className="category-main-inner border-t pt-1">
-            <div className="row side-slider">
-              {categories.map((category, index) => (
-                <div key={index} className="col-lg-3 col-md-6 my-4">
-                  <div className="category-item box-shadow p-3 py-4 text-center bg-white rounded overflow-hidden">
-                    <div className="trending-topic-content">
-                      <img src={category.icon} className="mb-1 d-inline-block" alt={category.name} />
-                      <h4 className="mb-0"><Link to={category.link}>{category.name}</Link></h4>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Category cards (camping, hiking, beach tours, etc.) hidden */}
         </div>
       </div>
     </section>

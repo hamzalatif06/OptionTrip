@@ -4,7 +4,7 @@ import DOMPurify from 'dompurify';
 import {
   fetchPostBySlug, fetchPrevPost, fetchNextPost,
   fetchComments, submitComment,
-  getFeaturedImage, formatDate, getAIFallbackImage,
+  getFeaturedImage, formatDate, getAIFallbackImage, fetchSmartHeroImage,
 } from '../../services/wordpressApi';
 import './BlogDetail.css';
 
@@ -73,6 +73,7 @@ const BlogDetail = () => {
   const [submitError, setSubmitError]   = useState('');
 
   const [copied, setCopied] = useState(false);
+  const [smartImage, setSmartImage] = useState(null);
 
   // ── Load main post ──────────────────────────────────────────────
   useEffect(() => {
@@ -101,6 +102,16 @@ const BlogDetail = () => {
     load();
     return () => { cancelled = true; };
   }, [slug]);
+
+  // ── Fetch smart Unsplash hero image when WP has no featured image ──
+  useEffect(() => {
+    if (!post || getFeaturedImage(post, 'full') || getFeaturedImage(post, 'medium_large')) return;
+    let cancelled = false;
+    fetchSmartHeroImage(post).then(url => {
+      if (!cancelled && url) setSmartImage(url);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [post]);
 
   // ── Load prev/next + comments once post is available ────────────
   useEffect(() => {
@@ -191,9 +202,10 @@ const BlogDetail = () => {
   }
 
   // ── Derived data ─────────────────────────────────────────────────
-  const wpImage    = getFeaturedImage(post, 'full') || getFeaturedImage(post, 'medium_large');
-  const heroImage  = wpImage || getAIFallbackImage(post?.title?.rendered || 'travel', post?.id || 1);
-  const isAIImage  = !wpImage;
+  const wpImage   = getFeaturedImage(post, 'full') || getFeaturedImage(post, 'medium_large');
+  // Fallback chain: WP image → smart Unsplash (AI-selected) → Pollinations.ai
+  const heroImage = wpImage || smartImage || getAIFallbackImage(post?.title?.rendered || 'travel', post?.id || 1);
+  const isAIImage = !wpImage && !smartImage;
   const title      = post?.title?.rendered || '';
   const content    = DOMPurify.sanitize(post?.content?.rendered || '');
   const date       = formatDate(post?.date);

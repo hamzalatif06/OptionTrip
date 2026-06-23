@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const WP_BASE = 'https://blog.optiontrip.com/wp-json/wp/v2';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const FIELDS = 'id,slug,title,excerpt,content,link,date,featured_media,_links';
 const NAV_FIELDS = 'id,slug,title,date,featured_media,_links';
@@ -105,6 +106,31 @@ export const getFeaturedImage = (post, size = 'medium_large') => {
       media?.source_url ||
       null
     );
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Calls the backend to get a smart hero image for a post when WordPress has
+ * no featured image. Uses AI to pick the best Unsplash search term from the
+ * article content. Returns the image URL or null.
+ */
+export const fetchSmartHeroImage = async (post) => {
+  try {
+    const title = (post?.title?.rendered || '').replace(/<[^>]+>/g, '');
+    const content = post?.content?.rendered || '';
+    const postId = post?.id || 0;
+
+    const res = await fetch(`${API_BASE}/api/blog/hero-image`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, content, postId }),
+    });
+
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.imageUrl || null;
   } catch {
     return null;
   }
