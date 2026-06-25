@@ -18,11 +18,22 @@ const authHeaders = (token) => ({
  * @param {string|null}   tripId
  * @param {string|null}   conversationId
  * @param {AbortSignal?}  signal — pass to enable the "Stop" button to cancel the request
+ * @param {object|null}   location — { city, country, neighborhood, lat, lng, label }
  */
-export const sendMessage = async (message, token = null, tripId = null, conversationId = null, signal = undefined) => {
+export const sendMessage = async (
+  message,
+  token = null,
+  tripId = null,
+  conversationId = null,
+  signal = undefined,
+  location = null
+) => {
   const body = { message };
   if (tripId)          body.tripId = tripId;
   if (conversationId)  body.conversationId = conversationId;
+  if (location && (location.city || location.label || (typeof location.lat === 'number' && typeof location.lng === 'number'))) {
+    body.location = location;
+  }
 
   const response = await fetch(`${API_BASE_URL}/api/chat/message`, {
     method: 'POST',

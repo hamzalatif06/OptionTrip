@@ -1,7 +1,17 @@
 import React from 'react';
-import { Popup } from 'react-map-gl/mapbox';
 import { useNavigate } from 'react-router-dom';
 import './TripMapPopup.css';
+
+/**
+ * Trip popup card. Originally a `react-map-gl` Popup; now rendered as a plain
+ * React card the parent absolutely positions on top of the map using
+ * `map.latLngToContainerPoint(latLng)`.
+ *
+ * Props:
+ *   trip       — full trip doc
+ *   position   — { x, y } in CSS pixels relative to the map wrap
+ *   onClose    — close handler
+ */
 
 const STATUS_COLORS = {
   confirmed:           { bg: '#dcfce7', text: '#15803d' },
@@ -9,7 +19,7 @@ const STATUS_COLORS = {
   option_selected:     { bg: '#fef9c3', text: '#a16207' },
   options_generated:   { bg: '#f3e8ff', text: '#7c3aed' },
   draft:               { bg: '#f1f5f9', text: '#64748b' },
-  archived:            { bg: '#fee2e2', text: '#dc2626' },
+  archived:            { bg: '#fee2e2', text: '#dc2626' }
 };
 
 const StatusBadge = ({ status }) => {
@@ -18,22 +28,20 @@ const StatusBadge = ({ status }) => {
   return <span className="tmp-badge" style={{ background: bg, color: text }}>{label}</span>;
 };
 
-const TripMapPopup = ({ trip, onClose }) => {
-  const navigate  = useNavigate();
+const TripMapPopup = ({ trip, position, onClose }) => {
+  const navigate = useNavigate();
+  if (!trip || !position) return null;
+
   const { destination, dates, status, budget, description, trip_id } = trip;
+  const { x, y } = position;
 
   return (
-    <Popup
-      longitude={destination?.geometry?.lng || 0}
-      latitude={destination?.geometry?.lat || 0}
-      anchor="bottom"
-      offset={[0, -10]}
-      onClose={onClose}
-      closeButton={false}
-      maxWidth="320px"
+    <div
+      className="tmp-overlay"
+      style={{ left: `${x}px`, top: `${y}px` }}
+      onClick={(e) => e.stopPropagation()}
     >
       <div className="tmp-card">
-        {/* Header */}
         <div className="tmp-header">
           <div className="tmp-header__left">
             <h3 className="tmp-title">{destination?.name || 'Unknown Destination'}</h3>
@@ -46,7 +54,6 @@ const TripMapPopup = ({ trip, onClose }) => {
           </button>
         </div>
 
-        {/* Dates */}
         {dates?.start_date && (
           <div className="tmp-dates">
             <svg viewBox="0 0 24 24" fill="none" width="13" height="13">
@@ -65,7 +72,6 @@ const TripMapPopup = ({ trip, onClose }) => {
           </div>
         )}
 
-        {/* Budget */}
         {budget && (
           <div className="tmp-meta">
             <svg viewBox="0 0 24 24" fill="none" width="13" height="13">
@@ -76,12 +82,10 @@ const TripMapPopup = ({ trip, onClose }) => {
           </div>
         )}
 
-        {/* Description */}
         {description && (
           <p className="tmp-desc">{description.length > 100 ? description.slice(0, 97) + '…' : description}</p>
         )}
 
-        {/* Actions */}
         <div className="tmp-actions">
           <button
             className="tmp-btn tmp-btn--primary"
@@ -105,7 +109,7 @@ const TripMapPopup = ({ trip, onClose }) => {
           </button>
         </div>
       </div>
-    </Popup>
+    </div>
   );
 };
 

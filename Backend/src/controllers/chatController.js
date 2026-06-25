@@ -6,6 +6,10 @@
 import { generateViResponse } from '../services/chatService.js';
 import Trip from '../models/Trip.js';
 import Conversation from '../models/Conversation.js';
+import {
+  getUnfedActivities,
+  markActivitiesAsFed
+} from '../services/userActivityService.js';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -34,13 +38,18 @@ const buildPreferences = (trips) => {
  * Returns { context, conversation, conversationHistory } where conversation is a Mongoose
  * doc with the user message already appended (or null for anonymous users).
  */
-const prepareChat = async (user, { message, tripId, conversationId }) => {
+const prepareChat = async (user, { message, tripId, conversationId, location }) => {
   const context = {
     user: user ? { id: user._id, name: user.name, email: user.email } : null,
     currentTrip: null,
     tripPhase: 'planning',
     allTrips: [],
-    preferences: null
+    preferences: null,
+    currentLocation: location && (location.city || location.label || (typeof location.lat === 'number' && typeof location.lng === 'number'))
+      ? location
+      : null,
+    recentActivities: [],
+    unfedActivityIds: []
   };
 
   let conversation = null;
@@ -75,6 +84,17 @@ const prepareChat = async (user, { message, tripId, conversationId }) => {
       }
     } catch (tripErr) {
       console.error('Error fetching trips for chat context:', tripErr);
+    }
+
+    // Pull recent activities the assistant hasn't been told about yet.
+    try {
+      const unfed = await getUnfedActivities(user._id, 30);
+      if (unfed.length) {
+        context.recentActivities = unfed;
+        context.unfedActivityIds = unfed.map(a => a._id);
+      }
+    } catch (actErr) {
+      console.error('Error fetching unfed activities:', actErr);
     }
 
     try {
@@ -112,7 +132,7 @@ const prepareChat = async (user, { message, tripId, conversationId }) => {
  */
 export const sendMessage = async (req, res) => {
   try {
-    const { message, tripId, conversationId } = req.body;
+    const { message, tripId, conversationId, location } = req.body;
     const user = req.user;
 
     if (!message || typeof message !== 'string') {
@@ -120,7 +140,7 @@ export const sendMessage = async (req, res) => {
     }
 
     const { context, conversation, conversationHistory } =
-      await prepareChat(user, { message, tripId, conversationId });
+      await prepareChat(user, { message, tripId, conversationId, location });
 
     const response = await generateViResponse(message, context, conversationHistory);
 
@@ -137,6 +157,13 @@ export const sendMessage = async (req, res) => {
       } catch (saveErr) {
         console.error('Error saving conversation:', saveErr);
       }
+    }
+
+    // Mark every activity we just injected so we don't re-feed it next turn.
+    if (user && context.unfedActivityIds?.length) {
+      markActivitiesAsFed(user._id, context.unfedActivityIds).catch(err =>
+        console.error('Failed to mark activities as fed:', err.message)
+      );
     }
 
     return res.status(200).json({

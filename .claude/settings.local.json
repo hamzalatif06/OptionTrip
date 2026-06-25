@@ -16,7 +16,15 @@
       "Bash(timeout 90 npx vite build)",
       "Bash(node --input-type=module -e ' *)",
       "Bash(timeout 180 npx vite build)",
-      "Bash(node --check src/services/planMyDayService.js)"
+      "Bash(node --check src/services/planMyDayService.js)",
+      "Bash(npm run *)",
+      "Bash(node --check src/app.js)",
+      "Bash(node --check src/models/UserActivity.js)",
+      "Bash(node --check src/services/userActivityService.js)",
+      "Bash(node --check src/controllers/userActivityController.js)",
+      "Bash(node --check src/routes/userActivity.js)",
+      "Bash(grep -E \"\\\\.\\(jsx|js|tsx|ts\\)$\")",
+      "Bash(npm uninstall *)"
     ],
     "additionalDirectories": [
       "/home/jawad/Downloads/OptionTrip-main/Frontend/src/components"

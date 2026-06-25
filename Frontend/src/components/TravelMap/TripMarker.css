@@ -1,3 +1,6 @@
+/* Leaflet divIcon container — strip default white-box styling */
+.tm-marker-wrap { background: transparent !important; border: none !important; }
+
 /* ── Base marker ─────────────────────────────────────────────────────────── */
 .tm-marker {
   display: flex;

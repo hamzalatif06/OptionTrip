@@ -10,6 +10,7 @@ import FlightFilters, { DEFAULT_FILTERS, applyFilters } from '../components/Flig
 import CountryCityPicker from '../components/CountryCityPicker/CountryCityPicker';
 import NearbyAirportsBanner from '../components/NearbyAirportsBanner/NearbyAirportsBanner';
 import { searchFlightsDuffel, searchFlightsGoogle, searchFlightsTP, searchFlights as searchFlightsAmadeus } from '../services/flightService';
+import { logActivity } from '../services/activityService';
 import { searchHotels } from '../services/hotelService';
 import HotelCard from '../components/HotelCard/HotelCard';
 import useCurrency from '../hooks/useCurrency';
@@ -259,6 +260,20 @@ const FlightSearch = () => {
     setSearched(true);
     setLastSearch(params);
     resetResults();
+
+    logActivity({
+      type: 'flight',
+      action: 'searched',
+      title: `Searched flights ${params.originCode || ''} → ${params.destinationCode || ''}`.trim(),
+      metadata: {
+        origin: params.originDisplay || params.originCode,
+        destination: params.destinationDisplay || params.destinationCode,
+        dates: { start_date: params.departureDate, end_date: params.returnDate || null },
+        partySize: params.adults,
+        cabin: params.cabin || null,
+        roundTrip: !!params.returnDate
+      }
+    });
 
     // ── Hotel search (fire-and-forget — never blocks the flight cascade) ──────
     if (params.includeHotels && params.destinationCode && !/^[A-Z]{2}$/i.test(params.destinationCode)) {

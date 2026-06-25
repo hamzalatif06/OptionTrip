@@ -1,11 +1,30 @@
-/* Mapbox overrides for our popup */
-.mapboxgl-popup-content {
-  padding: 0 !important;
-  border-radius: 16px !important;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.22) !important;
-  overflow: hidden;
+/* ── Screen-anchored overlay ─────────────────────────────────────────────── */
+.tmp-overlay {
+  position: absolute;
+  z-index: 600;
+  transform: translate(-50%, calc(-100% - 18px));
+  pointer-events: auto;
+  filter: drop-shadow(0 20px 40px rgba(0,0,0,0.18));
+  animation: tmp-overlay-in 0.18s ease-out;
 }
-.mapboxgl-popup-tip { display: none; }
+.tmp-overlay::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  transform: translateX(-50%) rotate(45deg);
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  z-index: -1;
+  border-radius: 2px;
+}
+[data-theme="dark"] .tmp-overlay::after { background: #1e293b; }
+
+@keyframes tmp-overlay-in {
+  from { opacity: 0; transform: translate(-50%, calc(-100% - 6px)); }
+  to   { opacity: 1; transform: translate(-50%, calc(-100% - 18px)); }
+}
 
 /* ── Popup card ── */
 .tmp-card {

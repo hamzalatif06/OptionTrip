@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { searchHotelLocations, searchHotels } from '../services/hotelService';
+import { logActivity } from '../services/activityService';
 import HotelCard from '../components/HotelCard/HotelCard';
 import TripDatePicker from '../components/TripDatePicker/TripDatePicker';
 import PassengerSelector from '../components/PassengerSelector/PassengerSelector';
@@ -105,6 +106,17 @@ const HotelSearch = () => {
       const result = await searchHotels({ destId, searchType, checkIn, checkOut, adults, cityName: cityQuery });
       setHotels(result.hotels || []);
       setSearched(true);
+      logActivity({
+        type: 'hotel',
+        action: 'searched',
+        title: `Searched hotels in ${cityQuery}`,
+        metadata: {
+          destination: cityQuery,
+          dates: { start_date: checkIn, end_date: checkOut },
+          partySize: adults,
+          resultsCount: result?.hotels?.length || 0
+        }
+      });
     } catch (err) {
       console.error(err);
       setSearchError(err.message || 'Search failed');

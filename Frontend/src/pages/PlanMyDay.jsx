@@ -9,6 +9,7 @@ import {
   writeCachedLocation,
   clearCachedLocation
 } from '../services/planMyDayService';
+import { logActivity } from '../services/activityService';
 import './PlanMyDay.css';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -429,6 +430,23 @@ const PlanMyDay = () => {
       if (resp.success && resp.data) {
         setPlan(resp.data);
         setStage('results');
+        logActivity({
+          type: 'plan_my_day',
+          action: 'generated',
+          title: `Built a "Plan My Day" in ${location.city || 'their area'}`,
+          metadata: {
+            city: location.city,
+            country: location.country,
+            neighborhood: location.neighborhood,
+            vibe, budget, interests, partySize, durationHours,
+            startTime, date
+          },
+          location: {
+            city: location.city, country: location.country,
+            neighborhood: location.neighborhood,
+            lat: location.lat, lng: location.lng
+          }
+        });
       } else {
         throw new Error(resp.message || 'Empty response');
       }

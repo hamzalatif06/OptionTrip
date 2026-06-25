@@ -9,6 +9,8 @@ import {
   getConversation,
   deleteConversation
 } from '../../services/chatService';
+import { getActivityContext, logActivity } from '../../services/activityService';
+import { readCachedLocation, detectPreciseLocation, reverseGeocodeRobust } from '../../services/planMyDayService';
 import './ViAssistant.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -167,6 +169,10 @@ const ViAssistant = () => {
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen]               = useState(false);
 
+  // Personalization — activity summary + live location for "smart" greeting
+  const [activitySummary, setActivitySummary] = useState(null);
+  const [liveLocation, setLiveLocation]       = useState(null);
+
   // Voice state
   const [isRecording, setIsRecording]   = useState(false);
   const [isSpeaking, setIsSpeaking]     = useState(false);
@@ -187,6 +193,58 @@ const ViAssistant = () => {
   const tripPickerRef     = useRef(null);
   const shouldAutoScrollRef = useRef(true);
   const lastUserMessageRef  = useRef('');
+
+  // ── Personalization fetch (activity summary + live location) ───────────
+
+  /**
+   * On open, in parallel fetch:
+   *   1. The user's activity summary so the welcome line can mention their
+   *      recent destinations / interests.
+   *   2. A cached location (instant) plus a fresh GPS fix (a few seconds) so
+   *      the assistant can be "near-me" aware from the very first message.
+   */
+  useEffect(() => {
+    if (!isOpen) return;
+
+    if (isAuthenticated) {
+      getActivityContext()
+        .then(ctx => { if (ctx) setActivitySummary(ctx.summary || null); })
+        .catch(() => {});
+      logActivity({ type: 'chat', action: 'opened', title: 'Opened Vi assistant' });
+    }
+
+    // 1) Instant: read whatever PlanMyDay has cached this session.
+    try {
+      const cached = readCachedLocation();
+      const cachedLoc = cached?.location || null;
+      if (cachedLoc && (cachedLoc.city || (typeof cachedLoc.lat === 'number'))) {
+        setLiveLocation(cachedLoc);
+      }
+    } catch { /* noop */ }
+
+    // 2) Fresh: try to upgrade with a real GPS fix. Best-effort, never blocks.
+    let cancelled = false;
+    (async () => {
+      try {
+        const fix = await detectPreciseLocation({ targetAccuracyM: 80, hardTimeoutMs: 6000 });
+        if (!fix || cancelled) return;
+        const geo = await reverseGeocodeRobust(fix.lat, fix.lng).catch(() => null);
+        if (cancelled) return;
+        const next = {
+          lat: fix.lat,
+          lng: fix.lng,
+          accuracy: fix.accuracy,
+          city:         geo?.city         || null,
+          country:      geo?.country      || null,
+          neighborhood: geo?.neighborhood || null,
+          label:        geo?.label        || null
+        };
+        if (next.city || next.label) setLiveLocation(next);
+      } catch { /* permission denied / timeout — fine */ }
+    })();
+
+    return () => { cancelled = true; };
+  }, [isOpen, isAuthenticated]);
 
   // ── Trips ──────────────────────────────────────────────────────────────
 
@@ -317,22 +375,57 @@ const ViAssistant = () => {
 
   const makeWelcomeMessage = () => {
     let text = '';
-    if (isAuthenticated && user) {
-      const firstName = user.name?.split(' ')[0] || 'there';
-      text = `Hi ${firstName}! 👋 I'm **Vi**, your AI travel concierge. `;
-      if (currentTrip) {
-        const dest = currentTrip.destination?.name || 'your destination';
-        if (tripPhase === 'before') text += `I see your upcoming trip to **${dest}** — I can help you prep, build a packing list, line up must-do experiences, or refine your itinerary day-by-day.`;
-        else if (tripPhase === 'during') text += `Hope you're enjoying **${dest}**! I can help with nearby spots, directions, dinner picks, or anything that comes up on the ground.`;
-        else text += `How was **${dest}**? I can help you plan what's next, or capture memories from your trip.`;
-      } else {
-        text += `Tell me what you're thinking — a beach getaway, a city break, a road trip — and I'll help you shape it.`;
-      }
-    } else {
+
+    if (!isAuthenticated || !user) {
       text = `Hi! 👋 I'm **Vi**, your AI travel concierge. Ask me anything about destinations, packing, or trip planning — and sign in to save trips and unlock personalized help.`;
+      return { id: 'welcome', text, sender: 'bot', timestamp: new Date(), type: 'welcome', isWelcome: true };
     }
+
+    const firstName = user.name?.split(' ')[0] || 'there';
+    text = `Hi ${firstName}! 👋 I'm **Vi**, your AI travel concierge. `;
+
+    // 1) Location-aware opening line — only when we actually have a place
+    const placeLabel = liveLocation?.neighborhood
+      || liveLocation?.city
+      || liveLocation?.label
+      || null;
+    if (placeLabel) {
+      text += `I can see you're in **${placeLabel}** right now${liveLocation?.country ? `, ${liveLocation.country}` : ''} — happy to help with anything nearby. `;
+    }
+
+    // 2) Trip-anchored line (existing behaviour)
+    if (currentTrip) {
+      const dest = currentTrip.destination?.name || 'your destination';
+      if (tripPhase === 'before') text += `\n\nI also see your upcoming trip to **${dest}** — I can help you prep, build a packing list, line up must-do experiences, or refine your itinerary day-by-day.`;
+      else if (tripPhase === 'during') text += `\n\nHope you're enjoying **${dest}**! Ping me for nearby spots, directions, dinner picks, or anything that comes up on the ground.`;
+      else text += `\n\nHow was **${dest}**? I can help you plan what's next, or capture memories from your trip.`;
+    }
+
+    // 3) Activity-aware nudge — uses what we know about them so it feels smart.
+    const recentDest = activitySummary?.recentDestination;
+    const interests  = activitySummary?.interests || [];
+    if (!currentTrip && recentDest) {
+      text += `\n\nYou were just exploring **${recentDest}** — want to keep building on that, or start something new?`;
+    } else if (!currentTrip && interests.length) {
+      text += `\n\nBased on what you've been exploring (${interests.slice(0, 3).join(', ')}), I can suggest your next move — just say the word.`;
+    } else if (!currentTrip) {
+      text += `Tell me what you're thinking — a beach getaway, a city break, a road trip — and I'll help you shape it.`;
+    }
+
     return { id: 'welcome', text, sender: 'bot', timestamp: new Date(), type: 'welcome', isWelcome: true };
   };
+
+  // Refresh the welcome bubble when personalization data arrives after open.
+  useEffect(() => {
+    if (!isOpen) return;
+    setMessages(prev => {
+      if (!prev.length) return prev;
+      // Only swap the bubble if the current view is the welcome screen.
+      if (prev.length === 1 && prev[0].isWelcome) return [makeWelcomeMessage()];
+      return prev;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveLocation, activitySummary, currentTrip, tripPhase]);
 
   // ── Auto-scroll (only if user is near bottom) ──────────────────────────
 
@@ -390,7 +483,8 @@ const ViAssistant = () => {
         token,
         currentTrip?.trip_id,
         activeConversationId,
-        controller.signal
+        controller.signal,
+        liveLocation
       );
 
       if (!resp?.success || !resp.data) {

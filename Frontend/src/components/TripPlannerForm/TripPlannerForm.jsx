@@ -8,6 +8,7 @@ import GuestSelector from '../GuestSelector/GuestSelector';
 import TripTypeSelector from '../TripTypeSelector/TripTypeSelector';
 import Loader from '../Loader/Loader';
 import { generateTripOptions, parseTripDescription } from '../../services/tripsService';
+import { logActivity } from '../../services/activityService';
 
 const TRIP_TYPE_LABELS = {
   Adventure: 'Adventure',
@@ -429,6 +430,22 @@ const TripPlannerForm = () => {
       setIsSubmitting(true);
       const response = await generateTripOptions(formData);
       if (response.success && response.data?.trip_id) {
+        logActivity({
+          type: 'trip',
+          action: 'created',
+          title: `Started planning a trip to ${formData.destination?.name || formData.destination?.text || 'a destination'}`,
+          metadata: {
+            trip_id: response.data.trip_id,
+            destination: formData.destination?.name || formData.destination?.text,
+            origin: formData.origin?.name || formData.origin?.text || null,
+            dates: { start_date: formData.start_date, end_date: formData.end_date },
+            duration_days: formData.duration_days,
+            tripType: formData.tripType,
+            budget: formData.budget,
+            partySize: formData.guests?.total,
+            description: formData.description
+          }
+        });
         navigate(`/trips/${response.data.trip_id}`);
       } else {
         setErrors({ submit: 'Failed to generate trip options. Please try again.' });

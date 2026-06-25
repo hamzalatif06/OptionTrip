@@ -7,6 +7,7 @@
  */
 
 import OpenAI from 'openai';
+import { formatActivitiesForPrompt } from './userActivityService.js';
 
 let openai = null;
 
@@ -43,7 +44,10 @@ const formatItineraryForPrompt = (trip) => {
 };
 
 const buildSystemPrompt = (context) => {
-  const { user, currentTrip, tripPhase, allTrips, preferences } = context;
+  const {
+    user, currentTrip, tripPhase, allTrips, preferences,
+    currentLocation, recentActivities
+  } = context;
 
   let prompt = `You are Vi — an expert AI travel assistant for OptionTrip, a trip-planning, flight, hotel, and activity booking platform.
 
@@ -135,6 +139,30 @@ Respond ONLY with valid JSON, no surrounding prose, in this exact shape:
     if (itinSection) prompt += `\n${itinSection}`;
   } else if (allTrips?.length) {
     prompt += `\n\n# Current trip in focus\nNone selected. The user has ${allTrips.length} saved trip(s) — ask which one they want help with, or treat the message as general travel advice.`;
+  }
+
+  // ─── Live location (passed from the browser when the user opens the assistant)
+  if (currentLocation && (currentLocation.lat || currentLocation.city || currentLocation.label)) {
+    const parts = [];
+    if (currentLocation.label)        parts.push(currentLocation.label);
+    if (currentLocation.neighborhood) parts.push(currentLocation.neighborhood);
+    if (currentLocation.city)         parts.push(currentLocation.city);
+    if (currentLocation.country)      parts.push(currentLocation.country);
+    const place = [...new Set(parts)].join(', ');
+    prompt += `\n\n# Where the user is right now\n- Live location: ${place || 'Coordinates only'}`;
+    if (typeof currentLocation.lat === 'number' && typeof currentLocation.lng === 'number') {
+      prompt += `\n- Coordinates: ${currentLocation.lat.toFixed(4)}, ${currentLocation.lng.toFixed(4)}`;
+    }
+    prompt += `\nUse this to answer "near me" questions, ground walking-time / commute advice, and bias recommendations to their actual surroundings. If their saved trip is somewhere else, gently distinguish "today, where you are" from "for your upcoming trip".`;
+  }
+
+  // ─── Recent platform activity (un-fed slice, newest first)
+  if (Array.isArray(recentActivities) && recentActivities.length) {
+    const formatted = formatActivitiesForPrompt(recentActivities);
+    if (formatted) {
+      prompt += `\n\n# What the user has been doing on OptionTrip (recent, newest first)\n${formatted}`;
+      prompt += `\nUse this to reason about what they're actively planning. Reference specific actions when natural ("I see you just generated a Plan My Day for X — want me to extend it?"), but don't list everything back to them robotically.`;
+    }
   }
 
   return prompt;
