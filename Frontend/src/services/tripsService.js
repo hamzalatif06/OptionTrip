@@ -457,6 +457,58 @@ export const parseTripDescription = async (text) => {
   }
 };
 
+export const getMapData = async (token) => {
+  try {
+    const response = await authenticatedFetch(`${API_BASE_URL}/api/trips/map-data`, { method: 'GET' }, token);
+    if (!response.ok) throw new Error('Failed to fetch map data');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching map data:', error);
+    throw error;
+  }
+};
+
+export const getVisitedLocations = async (token) => {
+  try {
+    const response = await authenticatedFetch(`${API_BASE_URL}/api/trips/visited-locations`, { method: 'GET' }, token);
+    if (!response.ok) throw new Error('Failed to fetch visited locations');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching visited locations:', error);
+    throw error;
+  }
+};
+
+export const addVisitedLocation = async (locationData, token) => {
+  try {
+    const response = await authenticatedFetch(
+      `${API_BASE_URL}/api/trips/visited-locations`,
+      { method: 'POST', body: JSON.stringify(locationData) },
+      token
+    );
+    if (!response.ok) throw new Error('Failed to add visited location');
+    return await response.json();
+  } catch (error) {
+    console.error('Error adding visited location:', error);
+    throw error;
+  }
+};
+
+export const removeVisitedLocation = async (id, token) => {
+  try {
+    const response = await authenticatedFetch(
+      `${API_BASE_URL}/api/trips/visited-locations/${id}`,
+      { method: 'DELETE' },
+      token
+    );
+    if (!response.ok) throw new Error('Failed to remove visited location');
+    return await response.json();
+  } catch (error) {
+    console.error('Error removing visited location:', error);
+    throw error;
+  }
+};
+
 export default {
   generateTripOptions,
   generateItineraryForOption,

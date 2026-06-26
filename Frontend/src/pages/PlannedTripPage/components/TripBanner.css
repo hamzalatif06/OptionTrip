@@ -1,6 +1,35 @@
 /* TripBanner Styles - Matching TripTap Image */
 /* Full-width background with overlay text */
 
+/* Save Trip button */
+.trip-banner__save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 11px 24px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.trip-banner__save-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.28);
+  border-color: #fff;
+  transform: translateY(-1px);
+}
+.trip-banner__save-btn:disabled { cursor: default; }
+.trip-banner__save-btn.saved {
+  background: rgba(2, 158, 157, 0.7);
+  border-color: #029e9d;
+}
+
 .trip-banner {
   background-size: cover;
   background-position: center;
@@ -226,3 +255,4 @@
     height: 20px;
   }
 }
+

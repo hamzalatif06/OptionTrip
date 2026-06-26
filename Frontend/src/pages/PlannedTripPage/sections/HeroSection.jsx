@@ -44,6 +44,9 @@ const HeroSection = ({
   isLoading = false,
   isSuccess = true,
   error = null,
+  onSave = null,
+  isSaved = false,
+  isSaving = false,
 }) => {
   // Format date helper (similar to TripTap's date helpers)
   const formatDate = (dateString) => {
@@ -147,6 +150,9 @@ const HeroSection = ({
             description: tripData?.description,
             trip_type: tripData?.trip_type || tripData?.group_type,
           }}
+          onSave={onSave}
+          isSaved={isSaved}
+          isSaving={isSaving}
         />
 
         {/* TripTap: CardsHoverCarousel with HeroInfoCard[] */}

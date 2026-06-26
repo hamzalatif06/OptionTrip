@@ -1,4 +1,5 @@
 import Trip from '../models/Trip.js';
+import VisitedLocation from '../models/VisitedLocation.js';
 import { generateLightweightTripOptions, generateDetailedItinerary, generateSingleDayItinerary, parseTripDescription } from '../services/openaiService.js';
 import { enrichItineraryWithPlaces, enrichSingleDayWithPlaces } from '../services/placesService.js';
 
@@ -661,5 +662,55 @@ export const parseTripDescriptionController = async (req, res) => {
   } catch (error) {
     console.error('❌ Error parsing trip description:', error);
     res.status(500).json({ success: false, message: 'Failed to parse description', error: error.message });
+  }
+};
+
+// ── Visited Locations ────────────────────────────────────────────────────────
+
+export const getVisitedLocations = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const locations = await VisitedLocation.find({ user_id: userId }).sort({ visited_at: -1 });
+    res.json({ success: true, data: { locations, total: locations.length } });
+  } catch (err) {
+    console.error('Error fetching visited locations:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+export const addVisitedLocation = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { trip_id, name, city, country, coordinates, category, visited_at, notes, image } = req.body;
+    if (!name) return res.status(400).json({ success: false, message: 'Location name is required' });
+    const location = new VisitedLocation({
+      user_id: userId,
+      trip_id,
+      name,
+      city,
+      country,
+      coordinates,
+      category: category || 'destination',
+      visited_at: visited_at || new Date(),
+      notes,
+      image
+    });
+    await location.save();
+    res.status(201).json({ success: true, data: { location } });
+  } catch (err) {
+    console.error('Error adding visited location:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+export const removeVisitedLocation = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const result = await VisitedLocation.findOneAndDelete({ _id: req.params.id, user_id: userId });
+    if (!result) return res.status(404).json({ success: false, message: 'Location not found' });
+    res.json({ success: true, message: 'Location removed' });
+  } catch (err) {
+    console.error('Error removing visited location:', err);
+    res.status(500).json({ success: false, message: err.message });
   }
 };

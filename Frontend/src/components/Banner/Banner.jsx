@@ -18,7 +18,7 @@ const Banner = () => {
   ];
 
   return (
-    <section className="banner pt-10 pb-0 overflow-hidden" style={{backgroundImage: `url(/images/testimonial.png)`}}>
+    <section className="banner pt-10 pb-0" style={{backgroundImage: `url(/images/testimonial.png)`}}>
       <div className="container">
         <div className="banner-in">
           <div className="row align-items-center">

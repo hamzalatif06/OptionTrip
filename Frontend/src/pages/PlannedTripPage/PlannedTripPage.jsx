@@ -29,8 +29,11 @@ import {
   getTripById,
   generateAllDaysProgressively,
   getCachedItinerary,
-  setCachedItinerary
+  setCachedItinerary,
+  saveTrip,
 } from '../../services/tripsService';
+import { getAccessToken } from '../../services/authService';
+import { useAuth } from '../../contexts/AuthContext';
 import './PlannedTripPage.css';
 
 // Simple Header Component for Planned Trip Page
@@ -63,6 +66,7 @@ const PlannedTripHeader = ({ tripId }) => {
 const PlannedTripPage = () => {
   const { tripId } = useParams();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const generationStarted = useRef(false);
 
   // State management
@@ -70,6 +74,27 @@ const PlannedTripPage = () => {
   const [tripDaysData, setTripDaysData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Save trip state
+  const [isSaved, setIsSaved]   = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveTrip = async () => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: `/planned-trip/${tripId}` } });
+      return;
+    }
+    try {
+      setIsSaving(true);
+      const token = getAccessToken();
+      await saveTrip(tripId, token);
+      setIsSaved(true);
+    } catch (err) {
+      console.error('Error saving trip:', err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Progressive loading state
   const [isGenerating, setIsGenerating] = useState(false);
@@ -250,6 +275,9 @@ const PlannedTripPage = () => {
         dates={tripData.dates}
         guests={tripData.guests}
         budget={tripData.budget}
+        onSave={handleSaveTrip}
+        isSaved={isSaved}
+        isSaving={isSaving}
       />
 
       {/* Activities Section - Main Itinerary Content with Progressive Loading */}

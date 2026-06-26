@@ -1,3 +1,6 @@
 /* Banner styles imported from main CSS */
 
-
+.banner {
+  position: relative;
+  z-index: 2;
+}

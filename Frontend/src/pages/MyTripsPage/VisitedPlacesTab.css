@@ -1,0 +1,250 @@
+.visited-tab {
+  display: flex;
+  height: 560px;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+}
+
+/* ── Sidebar ── */
+.vt__sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  background: #fff;
+  border-right: 1px solid #e2e8f0;
+  overflow-y: auto;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.vt__sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.vt__sidebar-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #122d46;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.vt__sidebar-count {
+  background: #7c3aed;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 100px;
+}
+
+.vt__add-btn {
+  padding: 5px 12px;
+  background: #029e9d;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.vt__add-btn:hover { background: #017f7e; }
+
+/* ── Add Form ── */
+.vt__form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.vt__form-row {
+  display: flex;
+  gap: 6px;
+}
+
+.vt__input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #374151;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+.vt__input:focus {
+  outline: none;
+  border-color: #029e9d;
+  box-shadow: 0 0 0 2px rgba(2, 158, 157, 0.12);
+}
+
+.vt__select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #374151;
+  font-family: inherit;
+  background: #fff;
+  cursor: pointer;
+}
+
+.vt__submit-btn {
+  padding: 9px;
+  background: #029e9d;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.vt__submit-btn:hover:not(:disabled) { background: #017f7e; }
+.vt__submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Quick-mark trips ── */
+.vt__trips-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vt__trips-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.vt__trips-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.vt__trip-chip {
+  padding: 4px 10px;
+  background: #f0fdfa;
+  color: #029e9d;
+  border: 1px solid #ccfbf1;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.vt__trip-chip:hover {
+  background: #029e9d;
+  color: #fff;
+  border-color: #029e9d;
+}
+
+/* ── List ── */
+.vt__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.vt__empty {
+  font-size: 13px;
+  color: #94a3b8;
+  line-height: 1.6;
+  margin: 0;
+  padding: 8px 0;
+}
+
+.vt__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  transition: background 0.15s;
+}
+.vt__item:hover { background: #f1f5f9; }
+
+.vt__item-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.vt__item-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vt__item-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #122d46;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vt__item-meta {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.vt__remove-btn {
+  background: none;
+  border: none;
+  color: #cbd5e1;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.vt__remove-btn:hover { color: #ef4444; }
+
+/* ── Map ── */
+.vt__map {
+  flex: 1;
+  min-width: 0;
+  background: #e8edf2;
+}
+
+@media (max-width: 768px) {
+  .visited-tab {
+    flex-direction: column;
+    height: auto;
+  }
+  .vt__sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+    max-height: 280px;
+  }
+  .vt__map {
+    height: 360px;
+  }
+}

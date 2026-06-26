@@ -10,7 +10,10 @@ import {
   generateSingleDay,
   getDayItinerary,
   parseTripDescriptionController,
-  getMapData
+  getMapData,
+  getVisitedLocations,
+  addVisitedLocation,
+  removeVisitedLocation
 } from '../controllers/tripController.js';
 import {
   validateTripGeneration,
@@ -48,6 +51,11 @@ router.get('/my-trips', authenticate, getMyTrips);
 
 // GET /api/trips/map-data - Lightweight trip data for travel map (auth required)
 router.get('/map-data', authenticate, getMapData);
+
+// Visited locations
+router.get('/visited-locations', authenticate, getVisitedLocations);
+router.post('/visited-locations', authenticate, addVisitedLocation);
+router.delete('/visited-locations/:id', authenticate, removeVisitedLocation);
 
 // GET /api/trips/user/:userId - Get all trips for a user (public)
 router.get('/user/:userId', getUserTrips);

@@ -18,6 +18,9 @@ const TripBanner = ({
   isSuccess = true,
   error = null,
   data = {},
+  onSave = null,
+  isSaved = false,
+  isSaving = false,
 }) => {
   // Format date for display
   const formatDate = (dateString) => {
@@ -186,6 +189,33 @@ const TripBanner = ({
               </div>
             ))}
           </div>
+        )}
+
+        {/* Save Trip Button */}
+        {onSave && (
+          <button
+            className={`trip-banner__save-btn${isSaved ? ' saved' : ''}`}
+            onClick={onSave}
+            disabled={isSaved || isSaving}
+          >
+            {isSaved ? (
+              <>
+                <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                </svg>
+                Saved to My Trips
+              </>
+            ) : isSaving ? (
+              'Saving...'
+            ) : (
+              <>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                </svg>
+                Save Trip
+              </>
+            )}
+          </button>
         )}
       </div>
     </div>

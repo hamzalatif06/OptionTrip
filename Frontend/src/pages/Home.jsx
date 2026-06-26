@@ -60,7 +60,7 @@ const Home = () => {
       {/* <AboutUs /> */}
       {/* <TopDestinations /> */}
       {/* <AboutSection /> */}
-      <WhyChooseUs />
+      <WhyChooseUs ctaOnly />
       <BestTours />
       {/* <LastMinuteDeals /> */}
       <FeaturedBlogSection />
