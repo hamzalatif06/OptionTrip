@@ -32,14 +32,9 @@ const LatestVideo = () => {
             <h4 className="theme">Our Channel</h4>
             <h2>Latest from YouTube</h2>
           </div>
-          <a
-            href="https://www.youtube.com/@optiontrip"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="nir-btn"
-          >
+          <span className="nir-btn">
             View Channel
-          </a>
+          </span>
         </div>
 
         <div className="latest-video__wrapper">

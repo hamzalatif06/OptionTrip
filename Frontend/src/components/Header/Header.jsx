@@ -193,9 +193,9 @@ const Header = () => {
                 </a>
               </li>
               <li>
-                <a href="https://www.youtube.com/@optiontrip" target="_blank" rel="noopener noreferrer" className="white">
+                <span className="white">
                   <i className="fab fa-youtube"></i>
-                </a>
+                </span>
               </li>
             </ul>
 
@@ -426,7 +426,7 @@ const Header = () => {
           <a href="https://www.facebook.com/optiontrip" target="_blank" rel="noopener noreferrer"><i className="fab fa-facebook"></i></a>
           <a href="https://x.com/OptionTripCom" target="_blank" rel="noopener noreferrer"><i className="fab fa-twitter"></i></a>
           <a href="https://www.instagram.com/option_trip" target="_blank" rel="noopener noreferrer"><i className="fab fa-instagram"></i></a>
-          <a href="https://www.youtube.com/@optiontrip" target="_blank" rel="noopener noreferrer"><i className="fab fa-youtube"></i></a>
+          <span><i className="fab fa-youtube"></i></span>
         </div>
       </div>
     </header>
