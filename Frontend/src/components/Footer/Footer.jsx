@@ -154,7 +154,6 @@ const Footer = () => {
                 <a href="https://www.facebook.com/optiontrip" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i className="fab fa-facebook"></i></a>
                 <a href="https://www.x.com/OptionTripCom" target="_blank" rel="noopener noreferrer" aria-label="X / Twitter"><i className="fab fa-twitter"></i></a>
                 <a href="https://www.instagram.com/option_trip" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i className="fab fa-instagram"></i></a>
-                <span aria-label="YouTube"><i className="fab fa-youtube"></i></span>
               </div>
             </div>
           </div>
