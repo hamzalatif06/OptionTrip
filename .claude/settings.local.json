@@ -24,7 +24,11 @@
       "Bash(node --check src/controllers/userActivityController.js)",
       "Bash(node --check src/routes/userActivity.js)",
       "Bash(grep -E \"\\\\.\\(jsx|js|tsx|ts\\)$\")",
-      "Bash(npm uninstall *)"
+      "Bash(npm uninstall *)",
+      "Bash(node --check src/data/visaData.js)",
+      "Bash(node --check src/services/whereCanIGoService.js)",
+      "Bash(node --check src/controllers/whereCanIGoController.js)",
+      "Bash(node --check src/routes/whereCanIGo.js)"
     ],
     "additionalDirectories": [
       "/home/jawad/Downloads/OptionTrip-main/Frontend/src/components"

@@ -37,6 +37,7 @@ import DataProtectionPage from './pages/DataProtectionPage';
 import HelpCenterPage from './pages/HelpCenterPage';
 import FlightSearch from './pages/FlightSearch';
 import PlanMyDay from './pages/PlanMyDay';
+import WhereCanIGo from './pages/WhereCanIGo';
 import ExploreAnywhereDetailPage from './pages/ExploreAnywhereDetailPage';
 import HotelSearch from './pages/HotelSearch';
 import CarRentalSearch from './pages/CarRentalSearch';
@@ -126,6 +127,7 @@ function App() {
                   <Route path="/hotels"  element={<HotelSearch />} />
                   <Route path="/car-rental" element={<CarRentalSearch />} />
                   <Route path="/plan-my-day" element={<PlanMyDay />} />
+                  <Route path="/where-can-i-go" element={<WhereCanIGo />} />
 
                   {/* Support */}
                   <Route path="/help-center" element={<HelpCenterPage />} />
