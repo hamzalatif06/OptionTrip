@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import DOMPurify from 'dompurify';
 import {
   fetchPostBySlug, fetchPrevPost, fetchNextPost,
   fetchComments, submitComment,
   getFeaturedImage, formatDate, getAIFallbackImage, fetchSmartHeroImage,
+  stripHtml,
 } from '../../services/wordpressApi';
+import PageMeta from '../../hooks/usePageMeta';
 import './BlogDetail.css';
 
 // ─── Skeleton loader ──────────────────────────────────────────────
@@ -74,6 +76,8 @@ const BlogDetail = () => {
 
   const [copied, setCopied] = useState(false);
   const [smartImage, setSmartImage] = useState(null);
+  const [tripDestinations, setTripDestinations] = useState([]); // extracted destination names
+  const extractedRef = useRef(false); // prevent double-fetch
 
   // ── Load main post ──────────────────────────────────────────────
   useEffect(() => {
@@ -111,6 +115,23 @@ const BlogDetail = () => {
       if (!cancelled && url) setSmartImage(url);
     }).catch(() => {});
     return () => { cancelled = true; };
+  }, [post]);
+
+  // ── Extract destinations from article content for the booking strip ──
+  useEffect(() => {
+    if (!post || extractedRef.current) return;
+    extractedRef.current = true;
+    const title   = post?.title?.rendered   || '';
+    const content = post?.content?.rendered || '';
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    fetch(`${API_BASE}/api/blog/extract-destinations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, content })
+    })
+      .then(r => r.json())
+      .then(d => { if (d.data?.destinations?.length) setTripDestinations(d.data.destinations); })
+      .catch(() => {});
   }, [post]);
 
   // ── Load prev/next + comments once post is available ────────────
@@ -220,6 +241,12 @@ const BlogDetail = () => {
 
   return (
     <div className="blog-detail">
+      <PageMeta
+        title={title ? DOMPurify.sanitize(title) : 'Travel Article'}
+        description={stripHtml(post?.excerpt?.rendered || '', 160)}
+        image={wpImage || smartImage || undefined}
+        path={`/blog/${slug}`}
+      />
       <div className="blog-detail__container">
 
       <div> {/* Back link */}
@@ -274,6 +301,54 @@ const BlogDetail = () => {
 
         {/* Article content */}
         <div className="blog-detail__content wp-content" dangerouslySetInnerHTML={{ __html: content }} />
+
+        {/* Booking strip — shown when AI detects destinations */}
+        {tripDestinations.length > 0 && (
+          <aside className="blog-booking-strip">
+            <div className="blog-booking-strip__header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+              </svg>
+              <span>Book this trip</span>
+            </div>
+            <div className="blog-booking-strip__destinations">
+              {tripDestinations.map(dest => (
+                <div key={dest} className="blog-booking-strip__dest">
+                  <span className="blog-booking-strip__dest-name">{dest}</span>
+                  <div className="blog-booking-strip__actions">
+                    <Link
+                      to={`/flights?destination=${encodeURIComponent(dest)}`}
+                      className="blog-booking-strip__btn blog-booking-strip__btn--flight"
+                    >
+                      <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13">
+                        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                      </svg>
+                      Flights
+                    </Link>
+                    <Link
+                      to={`/hotels?destination=${encodeURIComponent(dest)}`}
+                      className="blog-booking-strip__btn blog-booking-strip__btn--hotel"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                      </svg>
+                      Hotels
+                    </Link>
+                    <Link
+                      to={`/?destination=${encodeURIComponent(dest)}`}
+                      className="blog-booking-strip__btn blog-booking-strip__btn--plan"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+                      </svg>
+                      Plan trip
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </aside>
+        )}
 
         {/* Share bar — bottom */}
         <ShareBar {...shareProp} className="blog-detail__share--bottom" />

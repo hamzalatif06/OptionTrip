@@ -9,6 +9,8 @@ import TripTypeSelector from '../TripTypeSelector/TripTypeSelector';
 import Loader from '../Loader/Loader';
 import { generateTripOptions, parseTripDescription } from '../../services/tripsService';
 import { logActivity } from '../../services/activityService';
+import { trackTripGenerated } from '../../services/analyticsService';
+import { useAuth } from '../../contexts/AuthContext';
 
 const TRIP_TYPE_LABELS = {
   Adventure: 'Adventure',
@@ -30,6 +32,7 @@ const SpeechRecognitionAPI =
 const TripPlannerForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState({
     origin: { text: '', place_id: '', name: '', geometry: null },
@@ -428,8 +431,18 @@ const TripPlannerForm = () => {
 
     try {
       setIsSubmitting(true);
-      const response = await generateTripOptions(formData);
+      const payload = { ...formData };
+      if (user?.preferences) {
+        const p = user.preferences;
+        const hasPrefs = p.travelStyle || p.preferredActivities?.length || p.seatClass || p.hotelStars || p.dietaryRestrictions?.length || p.accessibility?.length;
+        if (hasPrefs) payload.userPreferences = p;
+      }
+      const response = await generateTripOptions(payload);
       if (response.success && response.data?.trip_id) {
+        trackTripGenerated(
+          formData.destination?.name || formData.destination?.text || '',
+          formData.duration_days
+        );
         logActivity({
           type: 'trip',
           action: 'created',

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import PageMeta from '../hooks/usePageMeta';
 import FlightSearchForm from '../components/FlightSearchForm/FlightSearchForm';
 import FlightCardGF     from '../components/FlightCard/FlightCardGF';
 import FlightCardTP     from '../components/FlightCard/FlightCardTP';
@@ -585,6 +586,7 @@ const FlightSearch = () => {
 
   return (
     <>
+      <PageMeta title="Search Flights" description="Search and compare flights from Duffel, Google Flights, and more. Find the best prices for your next trip." path="/flights" />
       {/* Hero */}
       <section className="flight-hero">
         <div className="container">

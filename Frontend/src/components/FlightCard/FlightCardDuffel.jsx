@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import useCurrency from '../../hooks/useCurrency';
+import { trackBookingClick } from '../../services/analyticsService';
+import { logActivity } from '../../services/activityService';
 import './FlightCardDuffel.css';
 
 /* ── SVG icon set ── */
@@ -145,7 +147,11 @@ const FlightCardDuffel = ({ flight }) => {
             <ConditionPill allowed={refundable} label="Refundable" />
           </div>
 
-          <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="fcdf__select-btn">
+          <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="fcdf__select-btn"
+            onClick={() => {
+              trackBookingClick('duffel', 'flight', destination, price);
+              logActivity({ type: 'flight', action: 'clicked', title: `Book Now — flight to ${destName || destination}`, metadata: { provider: 'duffel', destination, price } });
+            }}>
             Book Now <span className="fcdf__btn-arrow">→</span>
           </a>
 
@@ -189,7 +195,11 @@ const FlightCardDuffel = ({ flight }) => {
             </div>
           )}
 
-          <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="fcdf__select-btn fcdf__select-btn--full">
+          <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="fcdf__select-btn fcdf__select-btn--full"
+            onClick={() => {
+              trackBookingClick('duffel', 'flight', destination, price);
+              logActivity({ type: 'flight', action: 'clicked', title: `Book Now — flight to ${destName || destination}`, metadata: { provider: 'duffel', destination, price } });
+            }}>
             Book on Aviasales ↗
           </a>
         </div>

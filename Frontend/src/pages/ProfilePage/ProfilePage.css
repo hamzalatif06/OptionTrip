@@ -703,3 +703,56 @@
     text-align: center;
   }
 }
+
+/* ── Travel Preferences ──────────────────────────────────────────────────── */
+.pref-form { display: flex; flex-direction: column; gap: 28px; }
+
+.pref-group { display: flex; flex-direction: column; gap: 10px; }
+
+.pref-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pref-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.pref-chip {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1.5px solid #e2e8f0;
+  background: transparent;
+  font-size: 13px;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.pref-chip:hover { border-color: #6366f1; color: #6366f1; }
+.pref-chip--active {
+  border-color: #6366f1;
+  background: #6366f1;
+  color: #fff;
+}
+
+.pref-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+.pref-select {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  font-size: 14px;
+  color: #1e293b;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.pref-select:focus { outline: none; border-color: #6366f1; }
+
+@media (prefers-color-scheme: dark) {
+  .pref-chip { border-color: #334155; color: #94a3b8; }
+  .pref-chip:hover { border-color: #818cf8; color: #818cf8; }
+  .pref-chip--active { border-color: #818cf8; background: #818cf8; color: #fff; }
+  .pref-select { background: #1e293b; border-color: #334155; color: #e2e8f0; }
+}

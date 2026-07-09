@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { trackPageView } from './services/analyticsService';
 import { AuthProvider } from './contexts/AuthContext';
 import { LocaleProvider } from './contexts/LocaleContext';
 import { ToastContainer } from 'react-toastify';
@@ -30,6 +31,8 @@ import TripIdeasPage from './pages/TripIdeasPage';
 import TravelMapPage from './pages/TravelMapPage';
 import PopularRoutesPage from './pages/PopularRoutesPage';
 import TravelTipsPage from './pages/TravelTipsPage';
+import AdminPage from './pages/AdminPage/AdminPage';
+import SharedTripPage from './pages/SharedTripPage/SharedTripPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import CookiePolicyPage from './pages/CookiePolicyPage';
@@ -43,7 +46,10 @@ import CarRentalSearch from './pages/CarRentalSearch';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
-  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    trackPageView(pathname);
+  }, [pathname]);
   return null;
 }
 
@@ -89,7 +95,9 @@ function App() {
             {/* Trip Routes - Without Layout */}
             <Route path="/trips/:tripId" element={<TripIterationsPage />} />
             <Route path="/planned-trip/:tripId" element={<PlannedTripPage />} />
+            <Route path="/shared/:shareToken" element={<SharedTripPage />} />
             <Route path="/my-trips" element={<MyTripsPage />} />
+            <Route path="/admin" element={<AdminPage />} />
             <Route path="/profile" element={<ProfilePage />} />
 
             {/* Main Routes - With Layout */}

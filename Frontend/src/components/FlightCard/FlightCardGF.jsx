@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import useCurrency from '../../hooks/useCurrency';
+import { trackBookingClick } from '../../services/analyticsService';
+import { logActivity } from '../../services/activityService';
 import './FlightCardGF.css';
 
 /* ── SVG icon set ── */
@@ -131,7 +133,11 @@ const FlightCardGF = ({ flight }) => {
             <span className="fcgf__price-per">/ person</span>
           </div>
 
-          <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="fcgf__select-btn">
+          <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="fcgf__select-btn"
+            onClick={() => {
+              trackBookingClick('google_flights', 'flight', destination, price);
+              logActivity({ type: 'flight', action: 'clicked', title: `Book Now — flight to ${destName || destination}`, metadata: { provider: 'google_flights', destination, price } });
+            }}>
             Book Now <span className="fcgf__btn-arrow">→</span>
           </a>
 
@@ -187,7 +193,11 @@ const FlightCardGF = ({ flight }) => {
             </div>
           )}
 
-          <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="fcgf__select-btn fcgf__select-btn--full">
+          <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="fcgf__select-btn fcgf__select-btn--full"
+            onClick={() => {
+              trackBookingClick('google_flights', 'flight', destination, price);
+              logActivity({ type: 'flight', action: 'clicked', title: `Book Now — flight to ${destName || destination}`, metadata: { provider: 'google_flights', destination, price } });
+            }}>
             Book on Aviasales ↗
           </a>
         </div>

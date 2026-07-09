@@ -1,7 +1,9 @@
 import Trip from '../models/Trip.js';
 import VisitedLocation from '../models/VisitedLocation.js';
-import { generateLightweightTripOptions, generateDetailedItinerary, generateSingleDayItinerary, parseTripDescription } from '../services/openaiService.js';
+import crypto from 'crypto';
+import { generateLightweightTripOptions, generateDetailedItinerary, generateSingleDayItinerary, parseTripDescription, suggestDestinations as aiSuggestDestinations } from '../services/openaiService.js';
 import { enrichItineraryWithPlaces, enrichSingleDayWithPlaces } from '../services/placesService.js';
+import { searchDestinationImage } from '../services/unsplashService.js';
 
 /**
  * PHASE 1: POST /api/trips/generate-options
@@ -20,7 +22,8 @@ export const generateTripOptions = async (req, res) => {
       guests,
       budget,
       description,
-      user_id
+      user_id,
+      userPreferences
     } = req.body;
 
     // Validate required fields
@@ -47,7 +50,8 @@ export const generateTripOptions = async (req, res) => {
       tripType,
       guests,
       budget,
-      description
+      description,
+      userPreferences
     });
 
     console.log(`✅ Generated ${options.length} trip options`);
@@ -360,13 +364,13 @@ export const getMyTrips = async (req, res) => {
 
     console.log(`📋 Fetching trips for user ${userId}...`);
 
-    const trips = await Trip.find({ user_id: userId })
+    const trips = await Trip.find({ user_id: userId, deleted: { $ne: true } })
       .sort({ saved_at: -1, createdAt: -1 })
       .limit(parseInt(limit))
       .skip(parseInt(skip))
       .select('-options.itinerary'); // Exclude detailed itinerary for list view
 
-    const total = await Trip.countDocuments({ user_id: userId });
+    const total = await Trip.countDocuments({ user_id: userId, deleted: { $ne: true } });
 
     console.log(`✅ Found ${trips.length} trips for user`);
 
@@ -700,6 +704,210 @@ export const addVisitedLocation = async (req, res) => {
   } catch (err) {
     console.error('Error adding visited location:', err);
     res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/**
+ * POST /api/trips/suggest-destinations
+ * Uses gpt-4o-mini to suggest 3–5 destinations for a vague query, then
+ * attaches an Unsplash photo to each suggestion.
+ */
+export const suggestDestinationsController = async (req, res) => {
+  try {
+    const { query, budget } = req.body;
+    if (!query || !query.trim()) {
+      return res.status(400).json({ success: false, message: 'query is required' });
+    }
+
+    const suggestions = await aiSuggestDestinations({ query: query.trim(), budget });
+    if (!suggestions.length) {
+      return res.json({ success: true, data: [] });
+    }
+
+    // Attach Unsplash images in parallel (fire-and-forget per suggestion)
+    const enriched = await Promise.all(
+      suggestions.map(async (s) => {
+        try {
+          const img = await searchDestinationImage(s.imageSearch || `${s.destination} travel`);
+          return { ...s, imageUrl: img?.imageUrl || null };
+        } catch {
+          return { ...s, imageUrl: null };
+        }
+      })
+    );
+
+    return res.json({ success: true, data: enriched });
+  } catch (err) {
+    console.error('suggestDestinations error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to generate suggestions' });
+  }
+};
+
+/**
+ * DELETE /api/trips/:tripId — soft delete (sets deleted: true)
+ */
+export const deleteTrip = async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const userId = req.user?._id?.toString();
+
+    const trip = await Trip.findOne({ trip_id: tripId });
+    if (!trip) return res.status(404).json({ success: false, message: 'Trip not found' });
+    if (trip.user_id && trip.user_id !== userId) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    await Trip.findOneAndUpdate({ trip_id: tripId }, { deleted: true });
+    return res.json({ success: true, message: 'Trip deleted' });
+  } catch (err) {
+    console.error('deleteTrip error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to delete trip' });
+  }
+};
+
+/**
+ * PATCH /api/trips/:tripId/rename — update customTitle
+ */
+export const renameTrip = async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const { customTitle } = req.body;
+    const userId = req.user?._id?.toString();
+
+    if (!customTitle || !customTitle.trim()) {
+      return res.status(400).json({ success: false, message: 'customTitle is required' });
+    }
+
+    const trip = await Trip.findOne({ trip_id: tripId });
+    if (!trip) return res.status(404).json({ success: false, message: 'Trip not found' });
+    if (trip.user_id && trip.user_id !== userId) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    const updated = await Trip.findOneAndUpdate(
+      { trip_id: tripId },
+      { customTitle: customTitle.trim() },
+      { new: true }
+    );
+    return res.json({ success: true, data: { customTitle: updated.customTitle } });
+  } catch (err) {
+    console.error('renameTrip error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to rename trip' });
+  }
+};
+
+/**
+ * PATCH /api/trips/:tripId/selection
+ * Save/update selectedFlight, selectedHotel, or selectedCar on a trip.
+ * Only the keys present in the request body are updated.
+ */
+export const updateTripSelection = async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const { selectedFlight, selectedHotel, selectedCar } = req.body;
+
+    const trip = await Trip.findOne({ trip_id: tripId });
+    if (!trip) {
+      return res.status(404).json({ success: false, message: 'Trip not found' });
+    }
+
+    const updates = {};
+    if (selectedFlight !== undefined) updates.selectedFlight = { ...selectedFlight, savedAt: new Date() };
+    if (selectedHotel !== undefined) updates.selectedHotel = { ...selectedHotel, savedAt: new Date() };
+    if (selectedCar   !== undefined) updates.selectedCar   = { ...selectedCar,   savedAt: new Date() };
+
+    // Recalculate total after merging with existing values
+    const flight = updates.selectedFlight ?? trip.selectedFlight;
+    const hotel  = updates.selectedHotel  ?? trip.selectedHotel;
+    const car    = updates.selectedCar    ?? trip.selectedCar;
+    updates.totalEstimatedCost = (flight?.price || 0) + (hotel?.price || 0) + (car?.price || 0);
+
+    // Mark intent to book when a flight or hotel is selected
+    if ((updates.selectedFlight || updates.selectedHotel) &&
+        !['confirmed', 'booked_externally'].includes(trip.status)) {
+      updates.status = 'booked_externally';
+    }
+
+    const updated = await Trip.findOneAndUpdate(
+      { trip_id: tripId },
+      { $set: updates },
+      { new: true }
+    );
+
+    return res.json({
+      success: true,
+      data: {
+        selectedFlight:     updated.selectedFlight,
+        selectedHotel:      updated.selectedHotel,
+        selectedCar:        updated.selectedCar,
+        totalEstimatedCost: updated.totalEstimatedCost,
+        status:             updated.status
+      }
+    });
+  } catch (err) {
+    console.error('updateTripSelection error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to update selection' });
+  }
+};
+
+export const markTripConfirmed = async (req, res) => {
+  try {
+    const updated = await Trip.findOneAndUpdate(
+      { trip_id: req.params.tripId },
+      { $set: { status: 'confirmed' } },
+      { new: true }
+    );
+    if (!updated) return res.status(404).json({ success: false, message: 'Trip not found' });
+    return res.json({ success: true, data: { status: updated.status } });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/**
+ * POST /api/trips/:tripId/share — generate a public share link
+ */
+export const shareTrip = async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const userId = req.user?._id?.toString();
+
+    const trip = await Trip.findOne({ trip_id: tripId });
+    if (!trip) return res.status(404).json({ success: false, message: 'Trip not found' });
+    if (trip.user_id && trip.user_id !== userId) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    const token = trip.shareToken || crypto.randomBytes(16).toString('hex');
+    const updated = await Trip.findOneAndUpdate(
+      { trip_id: tripId },
+      { $set: { shareToken: token, isPublic: true } },
+      { new: true }
+    );
+
+    const shareUrl = `${process.env.VITE_SITE_URL || 'https://optiontrip.com'}/shared/${token}`;
+    return res.json({ success: true, data: { shareToken: token, shareUrl, isPublic: updated.isPublic } });
+  } catch (err) {
+    console.error('shareTrip error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to generate share link' });
+  }
+};
+
+/**
+ * GET /api/trips/shared/:shareToken — public read-only trip view
+ */
+export const getSharedTrip = async (req, res) => {
+  try {
+    const { shareToken } = req.params;
+    const trip = await Trip.findOne({ shareToken, isPublic: true, deleted: { $ne: true } })
+      .select('-__v');
+
+    if (!trip) return res.status(404).json({ success: false, message: 'Shared trip not found or link is no longer active' });
+
+    return res.json({ success: true, data: trip });
+  } catch (err) {
+    console.error('getSharedTrip error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch shared trip' });
   }
 };
 

@@ -13,7 +13,14 @@ import {
   getMapData,
   getVisitedLocations,
   addVisitedLocation,
-  removeVisitedLocation
+  removeVisitedLocation,
+  updateTripSelection,
+  deleteTrip,
+  renameTrip,
+  suggestDestinationsController,
+  markTripConfirmed,
+  shareTrip,
+  getSharedTrip
 } from '../controllers/tripController.js';
 import {
   validateTripGeneration,
@@ -40,8 +47,14 @@ const router = express.Router();
  * Returns: Single day itinerary with Google Places data (~3-5 seconds per day)
  */
 
+// Public shared trip view (no auth required — must be before :tripId routes)
+router.get('/shared/:shareToken', getSharedTrip);
+
 // Natural language trip description parser (used by smart textarea)
 router.post('/parse-description', parseTripDescriptionController);
+
+// AI destination suggestions based on vague query
+router.post('/suggest-destinations', suggestDestinationsController);
 
 // PHASE 1: Generate lightweight trip options (FAST)
 router.post('/generate-options', validateTripGeneration, generateTripOptions);
@@ -77,5 +90,16 @@ router.patch('/:tripId/select-option', validateTripId, validateOptionSelection, 
 
 // POST /api/trips/:tripId/save - Save trip to user account (requires auth)
 router.post('/:tripId/save', authenticate, validateTripId, saveTrip);
+
+// PATCH /api/trips/:tripId/selection - Update selected flight/hotel/car
+router.patch('/:tripId/selection', authenticate, validateTripId, updateTripSelection);
+
+// DELETE /api/trips/:tripId - Soft delete (requires auth)
+router.delete('/:tripId', authenticate, validateTripId, deleteTrip);
+
+// PATCH /api/trips/:tripId/rename - Update trip custom title (requires auth)
+router.patch('/:tripId/rename',   authenticate, validateTripId, renameTrip);
+router.patch('/:tripId/confirm',  authenticate, validateTripId, markTripConfirmed);
+router.post('/:tripId/share',     authenticate, validateTripId, shareTrip);
 
 export default router;

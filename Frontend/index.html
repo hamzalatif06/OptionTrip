@@ -4,7 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#000000" />
-    <meta name="description" content="Option Trip - Travel Tour Booking HTML Templates" />
+    <meta name="description" content="OptionTrip — AI-powered travel planning. Describe your dream trip and get a personalized itinerary, flights, and hotels in minutes." />
+    <meta property="og:site_name" content="OptionTrip" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.png" />
     <!-- FontAwesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -12,7 +15,23 @@
     <!-- Leaflet (used by Plan My Day map). Free + no API key. -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" defer></script>
-    <title>Option Trip - Travel Tour Booking</title>
+    <title>OptionTrip — AI-Powered Travel Planning</title>
+
+    <!-- Google Analytics 4 — loads only when VITE_GA_MEASUREMENT_ID is set -->
+    <script>
+      (function() {
+        var gid = '__VITE_GA_ID__'; // replaced at build time via vite.config
+        if (!gid || gid === '__VITE_GA_ID__') return;
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + gid;
+        document.head.appendChild(s);
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function(){ window.dataLayer.push(arguments); };
+        window.gtag('js', new Date());
+        window.gtag('config', gid, { send_page_view: false });
+      })();
+    </script>
 
     <!-- Google Translate Element — hidden widget, auto-translates all page text -->
     <script type="text/javascript">

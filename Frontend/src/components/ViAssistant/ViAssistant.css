@@ -612,6 +612,22 @@
   30%            { transform: translateY(-9px); opacity: 1;    }
 }
 
+/* ─── Streaming cursor ─────────────────────────────────────────────────── */
+.vi-message.bot .vi-md::after {
+  content: none;
+}
+.vi-message.bot.is-streaming .vi-md::after {
+  content: '▌';
+  display: inline-block;
+  animation: vi-cursor-blink 0.7s step-end infinite;
+  color: var(--vi-accent, #6366f1);
+  margin-left: 1px;
+}
+@keyframes vi-cursor-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
 /* ─── Stop generating button ───────────────────────────────────────────── */
 .vi-stop-gen {
   margin: 0 auto 10px;

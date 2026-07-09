@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /my-trips
+Disallow: /profile
+Disallow: /planned-trip
+Disallow: /auth/
+
+Sitemap: https://optiontrip.com/sitemap.xml

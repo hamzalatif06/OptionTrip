@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { getHotelRooms, getHotelDetails } from '../../services/hotelService';
 import useCurrency from '../../hooks/useCurrency';
+import { trackBookingClick } from '../../services/analyticsService';
+import { logActivity } from '../../services/activityService';
 import './HotelCard.css';
 
 const Stars = ({ count }) => {
@@ -137,7 +139,12 @@ const HotelCard = ({ hotel }) => {
               <span className="hc-price__per">/ night</span>
             </div>
           )}
-          <a href={hotel.bookingUrl} target="_blank" rel="noopener noreferrer" className="hc-book-btn">
+          <a href={hotel.bookingUrl} target="_blank" rel="noopener noreferrer" className="hc-book-btn"
+            onClick={() => {
+              const provider = hotel.source === 'hotelbeds' ? 'hotellook' : 'booking_com';
+              trackBookingClick(provider, 'hotel', hotel.name, hotel.price);
+              logActivity({ type: 'hotel', action: 'clicked', title: `Book Now — ${hotel.name}`, metadata: { provider, hotelName: hotel.name, price: hotel.price } });
+            }}>
             Book Now
           </a>
           <button className="hc-rooms-btn" onClick={handleExpand}>
@@ -183,7 +190,12 @@ const HotelCard = ({ hotel }) => {
                           <span className="hc-room__price-per">/night</span>
                         </p>
                       )}
-                      <a href={room.bookingUrl} target="_blank" rel="noopener noreferrer" className="hc-room__book-btn">
+                      <a href={room.bookingUrl} target="_blank" rel="noopener noreferrer" className="hc-room__book-btn"
+                        onClick={() => {
+                          const provider = hotel.source === 'hotelbeds' ? 'hotellook' : 'booking_com';
+                          trackBookingClick(provider, 'hotel', hotel.name, room.price);
+                          logActivity({ type: 'hotel', action: 'clicked', title: `Book Room — ${room.name} at ${hotel.name}`, metadata: { provider, hotelName: hotel.name, roomName: room.name, price: room.price } });
+                        }}>
                         Book
                       </a>
                     </div>

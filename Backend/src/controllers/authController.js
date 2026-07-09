@@ -281,6 +281,35 @@ class AuthController {
   });
 
   /**
+   * Update travel preferences
+   * PATCH /api/auth/preferences
+   */
+  updatePreferences = asyncHandler(async (req, res) => {
+    const { travelStyle, preferredActivities, seatClass, hotelStars, dietaryRestrictions, accessibility } = req.body;
+    const user = req.user;
+
+    const update = {};
+    if (travelStyle !== undefined)           update['preferences.travelStyle']           = travelStyle || null;
+    if (preferredActivities !== undefined)   update['preferences.preferredActivities']   = Array.isArray(preferredActivities) ? preferredActivities : [];
+    if (seatClass !== undefined)             update['preferences.seatClass']             = seatClass || null;
+    if (hotelStars !== undefined)            update['preferences.hotelStars']            = hotelStars || null;
+    if (dietaryRestrictions !== undefined)   update['preferences.dietaryRestrictions']   = Array.isArray(dietaryRestrictions) ? dietaryRestrictions : [];
+    if (accessibility !== undefined)         update['preferences.accessibility']         = Array.isArray(accessibility) ? accessibility : [];
+
+    const updated = await user.constructor.findByIdAndUpdate(
+      user._id,
+      { $set: update },
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Preferences saved',
+      data: { preferences: updated.preferences }
+    });
+  });
+
+  /**
    * OAuth callback handler (universal for all providers)
    */
   oauthCallback = asyncHandler(async (req, res) => {

@@ -271,3 +271,108 @@
     font-size: 15px;
   }
 }
+
+/* ── Share Bar ───────────────────────────────────────────────────────────────── */
+.planned-trip-share-bar {
+  position: fixed;
+  top: 72px;
+  right: 16px;
+  z-index: 150;
+}
+.planned-trip-share-bar__btn,
+.planned-trip-share-bar__copy {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+.planned-trip-share-bar__btn {
+  background: #0A539D;
+  color: #fff;
+}
+.planned-trip-share-bar__btn:hover { background: #083d7a; }
+.planned-trip-share-bar__btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.planned-trip-share-bar__copy {
+  background: #027a79;
+  color: #fff;
+}
+.planned-trip-share-bar__copy:hover { background: #025f5e; }
+
+/* ── Trip Summary Sticky Bar ─────────────────────────────────────────────────── */
+.planned-trip-summary-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  background: #1e293b;
+  color: #f8fafc;
+  padding: 12px 16px;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.2);
+}
+.planned-trip-summary-bar__inner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+.planned-trip-summary-bar__label {
+  font-weight: 600;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+.planned-trip-summary-bar__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.planned-trip-summary-bar__item--flight {
+  background: rgba(56,189,248,0.15);
+  color: #7dd3fc;
+  border: 1px solid rgba(56,189,248,0.3);
+}
+.planned-trip-summary-bar__item--hotel {
+  background: rgba(167,243,208,0.12);
+  color: #6ee7b7;
+  border: 1px solid rgba(167,243,208,0.25);
+}
+.planned-trip-summary-bar__total {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  margin-left: 4px;
+}
+.planned-trip-summary-bar__confirm-btn {
+  margin-left: auto;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.planned-trip-summary-bar__confirm-btn:hover { background: rgba(255,255,255,0.2); }
+.planned-trip-summary-bar__confirm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.planned-trip-summary-bar__confirmed {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6ee7b7;
+  background: rgba(167,243,208,0.12);
+  border: 1px solid rgba(167,243,208,0.3);
+  padding: 5px 12px;
+  border-radius: 999px;
+}

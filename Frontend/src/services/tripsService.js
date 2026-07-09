@@ -509,6 +509,99 @@ export const removeVisitedLocation = async (id, token) => {
   }
 };
 
+/**
+ * PATCH /api/trips/:tripId/selection
+ * Save selected flight, hotel, or car to the trip.
+ * Pass only the keys you want to update (e.g. { selectedFlight: {...} }).
+ */
+export const updateTripSelection = async (tripId, selectionData, token) => {
+  try {
+    const response = await authenticatedFetch(
+      `${API_BASE_URL}/api/trips/${tripId}/selection`,
+      { method: 'PATCH', body: JSON.stringify(selectionData) },
+      token
+    );
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${response.status}`);
+    }
+    return response.json();
+  } catch (error) {
+    console.error('updateTripSelection error:', error);
+    throw error;
+  }
+};
+
+/**
+ * DELETE /api/trips/:tripId — soft delete a trip
+ */
+export const deleteTrip = async (tripId, token) => {
+  try {
+    const response = await authenticatedFetch(
+      `${API_BASE_URL}/api/trips/${tripId}`,
+      { method: 'DELETE' },
+      token
+    );
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${response.status}`);
+    }
+    return response.json();
+  } catch (error) {
+    console.error('deleteTrip error:', error);
+    throw error;
+  }
+};
+
+/**
+ * PATCH /api/trips/:tripId/rename — update trip custom title
+ */
+export const renameTrip = async (tripId, customTitle, token) => {
+  try {
+    const response = await authenticatedFetch(
+      `${API_BASE_URL}/api/trips/${tripId}/rename`,
+      { method: 'PATCH', body: JSON.stringify({ customTitle }) },
+      token
+    );
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${response.status}`);
+    }
+    return response.json();
+  } catch (error) {
+    console.error('renameTrip error:', error);
+    throw error;
+  }
+};
+
+export const confirmTrip = async (tripId, token) => {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/trips/${tripId}/confirm`,
+    { method: 'PATCH' },
+    token
+  );
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json();
+};
+
+export const shareTrip = async (tripId, token) => {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/trips/${tripId}/share`,
+    { method: 'POST' },
+    token
+  );
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json();
+};
+
+export const getSharedTrip = async (shareToken) => {
+  const response = await fetch(`${API_BASE_URL}/api/trips/shared/${shareToken}`, {
+    credentials: 'include'
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json();
+};
+
 export default {
   generateTripOptions,
   generateItineraryForOption,
@@ -524,4 +617,7 @@ export default {
   setCachedItinerary,
   clearCachedItinerary,
   parseTripDescription,
+  updateTripSelection,
+  deleteTrip,
+  renameTrip,
 };

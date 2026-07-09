@@ -1,0 +1,97 @@
+.shared-trip-page {
+  min-height: 100vh;
+  background: #F8F9FA;
+}
+
+.shared-trip-page__loading,
+.shared-trip-page__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  gap: 16px;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.shared-trip-page__error-icon { font-size: 56px; }
+
+.shared-trip-page__error h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #122D46;
+  margin: 0;
+}
+
+.shared-trip-page__error p {
+  font-size: 15px;
+  color: #596C7E;
+  margin: 0;
+}
+
+.shared-trip-page__header {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+}
+
+.shared-trip-page__logo img {
+  height: 40px;
+  width: auto;
+}
+
+.shared-trip-page__banner {
+  font-size: 13px;
+  color: #596C7E;
+  background: #EAF4FF;
+  padding: 6px 14px;
+  border-radius: 20px;
+}
+
+.shared-trip-page__banner a {
+  color: #0A539D;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.shared-trip-page__banner a:hover { text-decoration: underline; }
+
+.shared-trip-page__footer-cta {
+  text-align: center;
+  padding: 48px 20px;
+  background: linear-gradient(135deg, #EAF4FF 0%, #FFEEF7 100%);
+  margin-top: 40px;
+}
+
+.shared-trip-page__footer-cta p {
+  font-size: 18px;
+  color: #122D46;
+  margin: 0 0 16px;
+  font-weight: 500;
+}
+
+.shared-trip-page__cta {
+  display: inline-block;
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #0A539D, #F30F89);
+  color: #fff;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.shared-trip-page__cta:hover { opacity: 0.9; }
+
+@media (max-width: 640px) {
+  .shared-trip-page__header { padding: 10px 16px; }
+  .shared-trip-page__logo img { height: 32px; }
+}

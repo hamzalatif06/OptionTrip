@@ -1,9 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { exploreDestinations, searchAirports } from '../../services/flightService';
 import { EXPLORE_DESTINATIONS, getExploreImageUrl } from '../../data/exploreDestinations';
 import { getPlaceImagesForMultiplePlaces } from '../../utils/destinationImages';
+import { addToWishlist } from '../../services/wishlistService';
 import useCurrency from '../../hooks/useCurrency';
 import './ExploreDestinations.css';
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+const fetchAISuggestions = async (query) => {
+  const res = await fetch(`${API_BASE}/api/trips/suggest-destinations`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query })
+  });
+  if (!res.ok) throw new Error('suggestion_failed');
+  const data = await res.json();
+  return data.success ? data.data : [];
+};
 
 /** Resolve city string → { iata, display } or null */
 const resolveOrigin = async (cityName) => {
@@ -39,6 +53,53 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
   const [geoStatus, setGeoStatus] = useState('idle');             // 'idle'|'detecting'|'done'|'denied'
   const [imageMap,  setImageMap]  = useState({});                 // iata → imageUrl
   const [loadedImages, setLoadedImages] = useState({});           // iata → true once <img> fires onLoad
+
+  // AI destination suggestions
+  const [aiQuery,       setAiQuery]       = useState('');
+  const [aiSuggestions, setAiSuggestions] = useState([]);
+  const [aiLoading,     setAiLoading]     = useState(false);
+  const [aiError,       setAiError]       = useState('');
+  const aiSearched = useRef(false);
+
+  // Wishlist saves (iata → true)
+  const [wishlisted, setWishlisted] = useState({});
+
+  const handleWishlist = async (e, dest, imageUrl) => {
+    e.stopPropagation();
+    if (wishlisted[dest.iata]) return;
+    try {
+      await addToWishlist({ destinationName: dest.city, country: dest.country, imageUrl: imageUrl || '' });
+      setWishlisted(prev => ({ ...prev, [dest.iata]: true }));
+    } catch (err) {
+      if (err.message === 'not_authenticated') {
+        window.location.href = '/login';
+      }
+    }
+  };
+
+  const handleAiSearch = async (e) => {
+    e?.preventDefault();
+    if (!aiQuery.trim()) return;
+    setAiLoading(true);
+    setAiError('');
+    setAiSuggestions([]);
+    aiSearched.current = true;
+    try {
+      const results = await fetchAISuggestions(aiQuery.trim());
+      setAiSuggestions(results);
+    } catch {
+      setAiError('Could not fetch suggestions. Please try again.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const clearAi = () => {
+    setAiQuery('');
+    setAiSuggestions([]);
+    setAiError('');
+    aiSearched.current = false;
+  };
 
   /** Set origin from a resolved { iata, display } object */
   const applyOrigin = (result) => {
@@ -152,8 +213,63 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
           {loading && <span className="explore-header__loading">Fetching prices…</span>}
         </div>
 
+        {/* AI destination search */}
+        <form className="explore-ai-search" onSubmit={handleAiSearch}>
+          <input
+            className="explore-ai-input"
+            type="text"
+            placeholder="Describe your dream trip... e.g. 'warm beach in May under $1000'"
+            value={aiQuery}
+            onChange={e => setAiQuery(e.target.value)}
+          />
+          <button type="submit" className="explore-ai-btn" disabled={aiLoading || !aiQuery.trim()}>
+            {aiLoading ? 'Searching…' : 'Find Destinations'}
+          </button>
+          {aiSearched.current && (
+            <button type="button" className="explore-ai-clear" onClick={clearAi}>Show all</button>
+          )}
+        </form>
+
+        {/* AI suggestions */}
+        {aiLoading && (
+          <div className="explore-ai-loading">
+            <div className="explore-ai-spinner" />
+            <span>Finding the perfect destinations for you…</span>
+          </div>
+        )}
+        {aiError && <p className="explore-ai-error">{aiError}</p>}
+        {aiSuggestions.length > 0 && (
+          <>
+            <p className="explore-ai-label">AI Suggestions for "{aiQuery}"</p>
+            <div className="explore-grid explore-grid--ai">
+              {aiSuggestions.map((s, i) => (
+                <button
+                  key={i}
+                  className="explore-card explore-card--ai"
+                  onClick={() => onSelect({ city: s.destination, country: s.country, query: `${s.destination}, ${s.country}` })}
+                >
+                  <div className="explore-card__img-wrap">
+                    {s.imageUrl && (
+                      <img src={s.imageUrl} alt={s.destination} className="explore-card__img is-loaded" loading="lazy" />
+                    )}
+                    {!s.imageUrl && <div className="explore-card__img-skeleton" />}
+                    <div className="explore-card__overlay" />
+                  </div>
+                  <div className="explore-card__info">
+                    <div className="explore-card__city">{s.destination}</div>
+                    <div className="explore-card__country">{s.country}</div>
+                    <div className="explore-card__why">{s.why}</div>
+                    <div className="explore-card__best-months">{s.bestMonths}</div>
+                  </div>
+                  <span className="explore-card__plan-cta">Plan this trip →</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
         {/* Destination grid */}
-        <div className="explore-grid">
+        {!aiSuggestions.length && <div className="explore-grid">
           {EXPLORE_DESTINATIONS.map(dest => {
             const priceData = prices[dest.iata];
             return (
@@ -162,6 +278,17 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
                 className="explore-card"
                 onClick={() => onSelect({ iata: dest.iata, city: dest.city, country: dest.country })}
               >
+                {/* Wishlist heart */}
+                <button
+                  className={`explore-card__heart${wishlisted[dest.iata] ? ' explore-card__heart--saved' : ''}`}
+                  onClick={(e) => handleWishlist(e, dest, imageMap[dest.iata])}
+                  title={wishlisted[dest.iata] ? 'Saved to wishlist' : 'Save to wishlist'}
+                >
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill={wishlisted[dest.iata] ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                  </svg>
+                </button>
+
                 {/* Photo */}
                 <div className="explore-card__img-wrap">
                   {imageMap[dest.iata] && (
@@ -205,7 +332,7 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
               </button>
             );
           })}
-        </div>
+        </div>}
       </div>
     </section>
   );

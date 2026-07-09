@@ -88,3 +88,45 @@ export const getSmartHeroImage = async ({ title = '', content = '', postId = 0 }
   console.warn(`⚠️ No blog hero image found for postId: ${postId}`);
   return { imageUrl: null, source: 'none', searchUsed: null };
 };
+
+/**
+ * Uses AI to extract destination names and countries from article content.
+ * Returns { destinations: string[], countries: string[] }
+ */
+export const extractDestinations = async ({ title = '', content = '' }) => {
+  const client = getClient();
+  if (!client) return { destinations: [], countries: [] };
+
+  const plainText = stripHtml(content).slice(0, 3000);
+
+  try {
+    const completion = await client.chat.completions.create({
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `Extract travel destinations from an article. Return ONLY valid JSON:
+{"destinations":["City1","City2"],"countries":["Country1"]}
+Rules:
+- destinations: specific cities, regions, islands, or named places (max 5)
+- countries: countries mentioned (max 3)
+- Empty arrays if none found
+- No explanations, no markdown`
+        },
+        { role: 'user', content: `Title: ${title}\n\n${plainText}` }
+      ],
+      response_format: { type: 'json_object' },
+      max_tokens: 100,
+      temperature: 0.1
+    });
+
+    const parsed = JSON.parse(completion.choices[0]?.message?.content || '{}');
+    return {
+      destinations: Array.isArray(parsed.destinations) ? parsed.destinations.slice(0, 5) : [],
+      countries:    Array.isArray(parsed.countries)    ? parsed.countries.slice(0, 3)    : []
+    };
+  } catch (err) {
+    console.error('❌ Blog destination extraction failed:', err.message);
+    return { destinations: [], countries: [] };
+  }
+};

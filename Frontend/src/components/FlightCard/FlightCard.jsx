@@ -1,5 +1,7 @@
 import React from 'react';
 import useCurrency from '../../hooks/useCurrency';
+import { trackBookingClick } from '../../services/analyticsService';
+import { logActivity } from '../../services/activityService';
 import './FlightCard.css';
 
 /**
@@ -116,6 +118,11 @@ const FlightCard = ({ flight }) => {
           target="_blank"
           rel="noopener noreferrer"
           className="flight-book-btn"
+          onClick={() => {
+            const dest = lastSeg?.arrival?.iataCode || flight.destination || '';
+            trackBookingClick('amadeus', 'flight', dest, flight.price);
+            logActivity({ type: 'flight', action: 'clicked', title: `Book Now — flight to ${dest}`, metadata: { provider: 'amadeus', destination: dest, price: flight.price } });
+          }}
         >
           Book Now
         </a>
