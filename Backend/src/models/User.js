@@ -29,6 +29,13 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  // ISO-3 nationality code (e.g. 'PAK') — powers the "Where Can I Go?" feature.
+  nationality: {
+    type: String,
+    default: null,
+    uppercase: true,
+    match: [/^[A-Z]{3}$/, 'Nationality must be an ISO-3 country code']
+  },
   emailVerified: {
     type: Boolean,
     default: false
