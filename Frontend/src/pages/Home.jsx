@@ -15,6 +15,8 @@ import OurTeam from '../components/OurTeam/OurTeam';
 import Testimonials from '../components/Testimonials/Testimonials';
 import RecentArticles from '../components/RecentArticles/RecentArticles';
 import Loader from '../components/Loader/Loader';
+import HomeBookingSection from '../components/HomeBookingSection/HomeBookingSection';
+import WelcomeModal from '../components/WelcomeModal/WelcomeModal';
 import { setAccessToken } from '../services/authService';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -58,7 +60,9 @@ const Home = () => {
   return (
     <>
       <PageMeta title="AI-Powered Travel Planning" description="Plan your perfect trip with AI. Describe where you want to go and get a personalized itinerary, flights, and hotels in minutes." path="/" />
+      <WelcomeModal />
       <Banner />
+      <HomeBookingSection />
       {/* <AboutUs /> */}
       {/* <TopDestinations /> */}
       {/* <AboutSection /> */}

@@ -1,0 +1,339 @@
+/* ── Overlay ── */
+.wm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 15, 30, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: wm-fade-in 0.3s ease both;
+}
+
+.wm-overlay--out {
+  animation: wm-fade-out 0.32s ease both;
+}
+
+@keyframes wm-fade-in  { from { opacity: 0; } to   { opacity: 1; } }
+@keyframes wm-fade-out { from { opacity: 1; } to   { opacity: 0; } }
+
+/* ── Dialog ── */
+.wm {
+  position: relative;
+  width: 100%;
+  max-width: 740px;
+  background: var(--bg-card, #fff);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.24),
+    0 4px 16px rgba(0, 0, 0, 0.1);
+  animation: wm-slide-in 0.36s cubic-bezier(0.22, 1, 0.36, 1) both;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.wm::-webkit-scrollbar { display: none; }
+
+.wm--out {
+  animation: wm-slide-out 0.3s ease both;
+}
+
+@keyframes wm-slide-in {
+  from { opacity: 0; transform: translateY(28px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+@keyframes wm-slide-out {
+  from { opacity: 1; transform: translateY(0)   scale(1);    }
+  to   { opacity: 0; transform: translateY(16px) scale(0.97); }
+}
+
+/* ── Close button ── */
+.wm__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 10;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.18);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+  backdrop-filter: blur(4px);
+}
+
+.wm__close:hover {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+/* ── Hero band ── */
+.wm__hero {
+  position: relative;
+  padding: 40px 36px 36px;
+  background: var(--primary-gradient, linear-gradient(135deg, #012f3e 0%, #014d5c 50%, #029e9d 100%));
+  overflow: hidden;
+}
+
+.wm__hero-glow {
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(2, 158, 157, 0.45) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.wm__hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.03em;
+  margin-bottom: 16px;
+}
+
+.wm__hero-heading {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.22;
+  margin: 0 0 10px;
+  text-wrap: balance;
+}
+
+.wm__hero-accent {
+  color: #5eead4;
+}
+
+.wm__hero-sub {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+  line-height: 1.55;
+}
+
+/* ── Feature grid ── */
+.wm__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border, #e2e8f0);
+}
+
+.wm__card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 22px 20px;
+  background: var(--bg-card, #fff);
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+  position: relative;
+}
+
+.wm__card:hover {
+  background: var(--bg-section, #f8fafc);
+}
+
+.wm__card::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 2px;
+  background: var(--card-accent);
+  transition: width 0.2s ease;
+}
+
+.wm__card:hover::after {
+  width: 100%;
+}
+
+.wm__card-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+.wm__card:hover .wm__card-icon {
+  transform: scale(1.08);
+}
+
+.wm__card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.wm__card-label {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-heading, #122d46);
+  line-height: 1.2;
+}
+
+.wm__card-desc {
+  font-size: 0.78rem;
+  color: var(--text-muted, #64748b);
+  line-height: 1.45;
+}
+
+.wm__card-cta {
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+  align-self: flex-end;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.wm__card:hover .wm__card-cta {
+  opacity: 1;
+}
+
+/* ── Footer ── */
+.wm__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 24px;
+  border-top: 1px solid var(--border, #e2e8f0);
+}
+
+.wm__skip {
+  background: none;
+  border: none;
+  font-size: 0.84rem;
+  color: var(--text-muted, #64748b);
+  cursor: pointer;
+  padding: 8px 4px;
+  transition: color 0.15s;
+}
+
+.wm__skip:hover {
+  color: var(--text-base, #0f172a);
+}
+
+.wm__primary-cta {
+  display: inline-flex;
+  align-items: center;
+  height: 42px;
+  padding: 0 22px;
+  background: var(--primary-gradient, linear-gradient(135deg, #012f3e 0%, #014d5c 50%, #029e9d 100%));
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 21px;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.wm__primary-cta:hover {
+  opacity: 0.9;
+}
+
+.wm__primary-cta:active {
+  transform: scale(0.97);
+}
+
+/* ── Dark mode ── */
+[data-theme="dark"] .wm {
+  background: var(--bg-card, #1e293b);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .wm__grid {
+  background: var(--border, #2d3f55);
+}
+
+[data-theme="dark"] .wm__card {
+  background: var(--bg-card, #1e293b);
+}
+
+[data-theme="dark"] .wm__card:hover {
+  background: var(--bg-elevated, #243044);
+}
+
+[data-theme="dark"] .wm__card-label {
+  color: var(--text-heading, #f8fafc);
+}
+
+[data-theme="dark"] .wm__card-desc {
+  color: var(--text-muted, #94a3b8);
+}
+
+[data-theme="dark"] .wm__footer {
+  border-top-color: var(--border, #2d3f55);
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .wm__hero {
+    padding: 32px 20px 28px;
+  }
+
+  .wm__hero-heading {
+    font-size: 1.4rem;
+  }
+
+  .wm__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wm__card {
+    padding: 16px;
+  }
+
+  .wm__card-cta {
+    opacity: 1;
+  }
+
+  .wm__footer {
+    flex-direction: column-reverse;
+    gap: 8px;
+    padding: 16px;
+  }
+
+  .wm__primary-cta {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wm-overlay,
+  .wm {
+    animation: none;
+  }
+}

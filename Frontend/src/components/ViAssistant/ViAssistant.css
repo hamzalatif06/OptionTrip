@@ -449,25 +449,26 @@
 .message-time { font-size: 10px; opacity: 0.48; display: block; margin-top: 6px; }
 
 /* ─── Markdown rendering ───────────────────────────────────────────────── */
-.vi-md { font-size: 14px; line-height: 1.6; color: var(--vi-ink); }
-.vi-md p        { margin: 0 0 8px; }
+.vi-md { font-size: 14px; line-height: 1.7; color: var(--vi-ink); }
+.vi-md p        { margin: 0 0 12px; }
 .vi-md p:last-child { margin-bottom: 0; }
 .vi-md h3, .vi-md h4, .vi-md h5 {
-  margin: 6px 0 8px;
+  margin: 12px 0 6px;
   font-weight: 700;
   color: #0f172a;
   line-height: 1.3;
 }
+.vi-md h3:first-child, .vi-md h4:first-child, .vi-md h5:first-child { margin-top: 0; }
 .vi-md h3 { font-size: 15px; }
 .vi-md h4 { font-size: 14px; }
 .vi-md h5 { font-size: 13px; }
 .vi-md strong { color: #0b1d36; font-weight: 700; }
 .vi-md em     { font-style: italic; }
 .vi-md ul, .vi-md ol {
-  margin: 4px 0 10px;
+  margin: 4px 0 12px;
   padding-left: 22px;
 }
-.vi-md li { margin: 3px 0; }
+.vi-md li { margin: 5px 0; line-height: 1.55; }
 .vi-md a {
   color: var(--vi-teal);
   text-decoration: underline;

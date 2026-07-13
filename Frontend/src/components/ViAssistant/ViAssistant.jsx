@@ -201,12 +201,13 @@ const ViAssistant = () => {
   const [liveLocation, setLiveLocation]       = useState(null);
 
   // Voice state
-  const [isRecording, setIsRecording]   = useState(false);
-  const [isSpeaking, setIsSpeaking]     = useState(false);
-  const [isVoiceMode, setIsVoiceMode]   = useState(false);
-  const [voiceStatus, setVoiceStatus]   = useState('');
-  const [playingMsgId, setPlayingMsgId] = useState(null);
-  const [speechError, setSpeechError]   = useState('');
+  const [isRecording, setIsRecording]       = useState(false);
+  const [isSpeaking, setIsSpeaking]         = useState(false);
+  const [isVoiceMode, setIsVoiceMode]       = useState(false);
+  const [voiceStatus, setVoiceStatus]       = useState('');
+  const [playingMsgId, setPlayingMsgId]     = useState(null);
+  const [speechError, setSpeechError]       = useState('');
+  const [silenceCountdown, setSilenceCountdown] = useState(null); // 3→2→1→submit
 
   // Refs
   const messagesEndRef    = useRef(null);
@@ -220,6 +221,8 @@ const ViAssistant = () => {
   const tripPickerRef     = useRef(null);
   const shouldAutoScrollRef = useRef(true);
   const lastUserMessageRef  = useRef('');
+  const audioCtxRef       = useRef(null);  // AudioContext for silence detection
+  const animFrameRef      = useRef(null);  // rAF id for silence loop
 
   // ── Personalization fetch (activity summary + live location) ───────────
 
@@ -702,6 +705,62 @@ const ViAssistant = () => {
 
   // ── Voice: STT ─────────────────────────────────────────────────────────
 
+  const stopSilenceDetection = () => {
+    if (animFrameRef.current) { cancelAnimationFrame(animFrameRef.current); animFrameRef.current = null; }
+    if (audioCtxRef.current) { audioCtxRef.current.close().catch(() => {}); audioCtxRef.current = null; }
+    setSilenceCountdown(null);
+  };
+
+  // Analyse microphone volume on every animation frame.
+  // Auto-stops recording 3 s after the user first goes silent (hasSpoken guard
+  // prevents firing immediately if mic opens before the user starts talking).
+  const startSilenceDetection = (stream) => {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.8;
+      ctx.createMediaStreamSource(stream).connect(analyser);
+      audioCtxRef.current = ctx;
+
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      const THRESHOLD = 12;    // avg byte value below this = silence (0-255)
+      const DELAY_MS  = 3000;  // 3 s of silence → auto-submit
+      let hasSpoken    = false;
+      let silenceStart = null;
+
+      let lastCountdown = null; // track prev value to avoid redundant setState
+      const tick = () => {
+        if (!audioCtxRef.current) return;
+        analyser.getByteFrequencyData(data);
+        const avg = data.reduce((s, v) => s + v, 0) / data.length;
+
+        if (avg > THRESHOLD) {
+          hasSpoken    = true;
+          silenceStart = null;
+          if (lastCountdown !== null) { lastCountdown = null; setSilenceCountdown(null); }
+        } else if (hasSpoken) {
+          if (!silenceStart) silenceStart = Date.now();
+          const elapsed   = Date.now() - silenceStart;
+          const remaining = Math.ceil((DELAY_MS - elapsed) / 1000);
+          const next      = remaining > 0 ? remaining : null;
+          if (next !== lastCountdown) { lastCountdown = next; setSilenceCountdown(next); }
+          if (elapsed >= DELAY_MS) {
+            stopSilenceDetection();
+            stopRecording();
+            return; // exit loop
+          }
+        }
+        animFrameRef.current = requestAnimationFrame(tick);
+      };
+      animFrameRef.current = requestAnimationFrame(tick);
+    } catch (e) {
+      console.warn('Silence detection unavailable:', e);
+    }
+  };
+
   const startRecording = async () => {
     if (isRecording) { stopRecording(); return; }
     setSpeechError('');
@@ -725,7 +784,8 @@ const ViAssistant = () => {
       };
       recorder.start();
       setIsRecording(true);
-      stopTimeoutRef.current = setTimeout(() => stopRecording(), 30000);
+      startSilenceDetection(stream); // auto-submit after 3 s of silence
+      stopTimeoutRef.current = setTimeout(() => stopRecording(), 30000); // hard cap
     } catch (err) {
       console.error('Mic error:', err);
       setSpeechError(err.name === 'NotAllowedError' ? 'Microphone access denied.' : 'Could not access microphone.');
@@ -734,6 +794,7 @@ const ViAssistant = () => {
   };
 
   const stopRecording = () => {
+    stopSilenceDetection();
     clearTimeout(stopTimeoutRef.current);
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
@@ -777,13 +838,13 @@ const ViAssistant = () => {
   // Cleanup on close
   useEffect(() => {
     if (!isOpen) {
-      stopRecording(); stopAudio(); cancelRequest();
+      stopSilenceDetection(); stopRecording(); stopAudio(); cancelRequest();
       setIsVoiceMode(false); setVoiceStatus(''); setIsFullscreen(false);
     }
   }, [isOpen]);
 
   useEffect(() => () => {
-    stopRecording(); stopAudio(); cancelRequest();
+    stopSilenceDetection(); stopRecording(); stopAudio(); cancelRequest();
     clearTimeout(stopTimeoutRef.current);
   }, []);
 
@@ -952,7 +1013,7 @@ const ViAssistant = () => {
                   <span className="vi-status">
                     <span className={`status-dot${isSpeaking ? ' speaking' : isRecording ? ' recording' : ''}`}></span>
                     {isSpeaking      ? 'Vi is speaking...'
-                      : isRecording  ? '🎙️ Listening...'
+                      : isRecording  ? (silenceCountdown !== null ? `🎙️ Sending in ${silenceCountdown}s…` : '🎙️ Listening...')
                       : isTyping     ? 'Vi is thinking...'
                       : isAuthenticated ? `Ready when you are, ${user?.name?.split(' ')[0] || 'traveler'} 🌍`
                       : 'Your AI travel buddy'}
@@ -1041,7 +1102,13 @@ const ViAssistant = () => {
                     <i className={`fas ${isSpeaking ? 'fa-volume-high' : 'fa-microphone'}`}></i>
                   </div>
                   <span className="vi-voice-banner__label">
-                    {isRecording ? 'Listening... tap mic to stop' : isSpeaking ? 'Vi is responding...' : 'Voice mode — tap mic to speak'}
+                    {isRecording
+                      ? (silenceCountdown !== null
+                          ? `Sending in ${silenceCountdown}s…`
+                          : 'Listening… speak now')
+                      : isSpeaking
+                        ? 'Vi is responding…'
+                        : 'Voice mode — tap mic to speak'}
                   </span>
                 </div>
               </div>

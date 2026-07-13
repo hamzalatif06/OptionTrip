@@ -246,30 +246,18 @@ const Header = () => {
                   <li className={`dropdown submenu ${isActive('/')}`}>
                     <Link to="/" className="dropdown-toggle">{t('common.home')}</Link>
                   </li>
-                  <li className={isActive('/about')}>
-                    <Link to="/about">{t('common.about')}</Link>
-                  </li>
-                  <li className={`dropdown submenu ${isActive('/destinations')}`}>
-                    <Link to="/destinations" className="dropdown-toggle">{t('common.destinations')}</Link>
-                  </li>
-                  <li className={`dropdown submenu ${isActive('/tours')}`}>
-                    <Link to="/tours" className="dropdown-toggle">{t('common.tours')}</Link>
-                  </li>
                   <li className="dropdown submenu">
                     <a href="#bookings" className="dropdown-toggle" onClick={(e) => e.preventDefault()}>
-                      Bookings
+                      Booking
                     </a>
                     <ul className="dropdown-menu">
-                      <li>
-                        <Link to="/flights">Flights <i className="fa fa-plane"></i></Link>
-                      </li>
-                      <li>
-                        <Link to="/hotels">Hotels <i className="fa fa-building"></i></Link>
-                      </li>
-                      <li>
-                        <Link to="/car-rental">Car Rental <i className="fa fa-car"></i></Link>
-                      </li>
+                      <li><Link to="/flights">Flights <i className="fa fa-plane"></i></Link></li>
+                      <li><Link to="/hotels">Hotels <i className="fa fa-building"></i></Link></li>
+                      <li><Link to="/car-rental">Car Rental <i className="fa fa-car"></i></Link></li>
                     </ul>
+                  </li>
+                  <li className={`dropdown submenu ${isActive('/destinations')}`}>
+                    <Link to="/destinations" className="dropdown-toggle">Top Destinations</Link>
                   </li>
                   <li className={`dropdown submenu ${isActive('/plan-my-day')}`}>
                     <Link to="/plan-my-day" className="dropdown-toggle">Plan My Day</Link>
@@ -277,10 +265,16 @@ const Header = () => {
                   <li className={`dropdown submenu ${isActive('/where-can-i-go')}`}>
                     <Link to="/where-can-i-go" className="dropdown-toggle">Where Can I Go?</Link>
                   </li>
+                  <li className={`dropdown submenu ${isActive('/tours')}`}>
+                    <Link to="/tours" className="dropdown-toggle">{t('common.tours')}</Link>
+                  </li>
                   <li className={`dropdown submenu ${isActive('/blog')}`}>
                     <a href="https://blog.optiontrip.com" target="_blank" rel="noopener noreferrer" className="dropdown-toggle">
                       {t('common.blog')}
                     </a>
+                  </li>
+                  <li className={isActive('/about')}>
+                    <Link to="/about">About Us</Link>
                   </li>
                   <li className="search-main">
                     <a href="#search1" className="mt_search"><i className="fa fa-search"></i></a>
@@ -367,16 +361,17 @@ const Header = () => {
         <nav className="mobile-drawer__nav">
           <ul>
             <li className={isActive('/')}><Link to="/" onClick={toggleMenu}>{t('common.home')}</Link></li>
-            <li className={isActive('/about')}><Link to="/about" onClick={toggleMenu}>{t('common.about')}</Link></li>
-            <li className={isActive('/destinations')}><Link to="/destinations" onClick={toggleMenu}>{t('common.destinations')}</Link></li>
-            <li className={isActive('/tours')}><Link to="/tours" onClick={toggleMenu}>{t('common.tours')}</Link></li>
             <li className={isActive('/flights')}><Link to="/flights" onClick={toggleMenu}><i className="fa fa-plane"></i> Flights</Link></li>
             <li className={isActive('/hotels')}><Link to="/hotels" onClick={toggleMenu}><i className="fa fa-building"></i> Hotels</Link></li>
+            <li className={isActive('/car-rental')}><Link to="/car-rental" onClick={toggleMenu}><i className="fa fa-car"></i> Car Rental</Link></li>
+            <li className={isActive('/destinations')}><Link to="/destinations" onClick={toggleMenu}>Top Destinations</Link></li>
             <li className={isActive('/plan-my-day')}><Link to="/plan-my-day" onClick={toggleMenu}><i className="fa fa-calendar-check-o"></i> Plan My Day</Link></li>
-            <li className={isActive('/where-can-i-go')}><Link to="/where-can-i-go" onClick={toggleMenu}><i className="fa fa-passport"></i> Where Can I Go?</Link></li>
+            <li className={isActive('/where-can-i-go')}><Link to="/where-can-i-go" onClick={toggleMenu}><i className="fa fa-compass"></i> Where Can I Go?</Link></li>
+            <li className={isActive('/tours')}><Link to="/tours" onClick={toggleMenu}>{t('common.tours')}</Link></li>
             <li>
               <a href="https://blog.optiontrip.com" target="_blank" rel="noopener noreferrer" onClick={toggleMenu}>{t('common.blog')}</a>
             </li>
+            <li className={isActive('/about')}><Link to="/about" onClick={toggleMenu}>About Us</Link></li>
             <li className={isActive('/contact')}><Link to="/contact" onClick={toggleMenu}>{t('common.contact')}</Link></li>
           </ul>
         </nav>
