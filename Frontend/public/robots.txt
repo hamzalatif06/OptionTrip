@@ -1,0 +1,91 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# OptionTrip — robots.txt
+# https://www.optiontrip.com
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Default: allow all reputable crawlers ────────────────────────────────────
+User-agent: *
+Allow: /
+
+# ── Block user-specific & auth pages (zero SEO value, session-only content) ──
+Disallow: /login
+Disallow: /signup
+Disallow: /auth/
+Disallow: /profile
+Disallow: /my-trips
+Disallow: /trips/
+Disallow: /planned-trip/
+
+# ── Block internal / API surfaces ───────────────────────────────────────────
+Disallow: /api/
+Disallow: /uploads/
+
+# ── Block noisy query-string variants (prevent duplicate/thin content) ──────
+# Flight & hotel searches expose lots of parameterized URLs; canonicals stay clean.
+Disallow: /flights?*
+Disallow: /flights/explore?*
+Disallow: /hotels?*
+Disallow: /car-rental?*
+Disallow: /plan-my-day?*
+Disallow: /where-can-i-go?*
+
+# ── Assets crawlers should always be able to fetch ──────────────────────────
+Allow: /images/
+Allow: /assets/
+Allow: /*.css$
+Allow: /*.js$
+Allow: /*.woff2$
+Allow: /*.svg$
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.webp$
+Allow: /sitemap.xml
+Allow: /robots.txt
+
+# ── Bad / low-value bots — save crawl budget & bandwidth ────────────────────
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: DataForSeoBot
+Disallow: /
+
+# ── AI training crawlers ────────────────────────────────────────────────────
+# Left ALLOWED so OptionTrip can be cited in AI assistants (ChatGPT, Perplexity, etc.).
+# Uncomment the blocks below if you want to opt out of training on your content.
+#
+# User-agent: GPTBot
+# Disallow: /
+#
+# User-agent: ClaudeBot
+# Disallow: /
+#
+# User-agent: anthropic-ai
+# Disallow: /
+#
+# User-agent: Google-Extended
+# Disallow: /
+#
+# User-agent: CCBot
+# Disallow: /
+#
+# User-agent: PerplexityBot
+# Disallow: /
+
+# ── Sitemaps ─────────────────────────────────────────────────────────────────
+Sitemap: https://www.optiontrip.com/sitemap.xml
+Sitemap: https://blog.optiontrip.com/sitemap.xml
+
+# ── Host preference (mostly informational — Google no longer reads this) ────
+Host: www.optiontrip.com
