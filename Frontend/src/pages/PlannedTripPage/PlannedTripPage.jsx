@@ -24,6 +24,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import HeroSection from './sections/HeroSection';
 import ActivitiesSection from './sections/ActivitiesSection';
 import ViAssistant from '../../components/ViAssistant/ViAssistant';
+import PageMeta from '../../hooks/usePageMeta';
 import Loader from '../../components/Loader/Loader';
 import {
   getTripById,
@@ -286,6 +287,7 @@ const PlannedTripPage = () => {
   // Main Content
   return (
     <div className="planned-trip-page">
+      <PageMeta title="Your Planned Trip" description="Your personalized trip itinerary." noIndex />
       <PlannedTripHeader tripId={tripId} />
       {/* Hero Section - Trip Header with Metadata */}
       <HeroSection

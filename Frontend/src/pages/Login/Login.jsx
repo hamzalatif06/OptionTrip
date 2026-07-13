@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { showErrorToast } from '../../utils/toast';
+import PageMeta from '../../hooks/usePageMeta';
 import Input from '../../components/Auth/Input';
 import Button from '../../components/Auth/Button';
 import SocialButton from '../../components/Auth/SocialButton';
@@ -91,6 +92,7 @@ const Login = () => {
 
   return (
     <div className="auth-page">
+      <PageMeta title="Sign In" description="Sign in to your OptionTrip account." path="/login" noIndex />
       <div className="auth-container">
         {/* Left Side - Form */}
         <div className="auth-form-section">

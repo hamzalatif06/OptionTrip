@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { showErrorToast } from '../../utils/toast';
+import PageMeta from '../../hooks/usePageMeta';
 import Input from '../../components/Auth/Input';
 import Button from '../../components/Auth/Button';
 import SocialButton from '../../components/Auth/SocialButton';
@@ -253,6 +254,7 @@ const Signup = () => {
 
   return (
     <div className="auth-page">
+      <PageMeta title="Create Account" description="Join OptionTrip — plan smarter trips with AI." path="/signup" noIndex />
       <div className="auth-container signup-container">
         {/* Left Side - Form */}
         <div className="auth-form-section">

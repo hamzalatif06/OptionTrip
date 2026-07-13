@@ -1,4 +1,5 @@
 import React from 'react';
+import PageMeta from '../hooks/usePageMeta';
 import AboutUs from '../components/AboutUs/AboutUs';
 import AboutSection from '../components/AboutSection/AboutSection';
 import OurTeam from '../components/OurTeam/OurTeam';
@@ -7,6 +8,12 @@ import Testimonials from '../components/Testimonials/Testimonials';
 const About = () => {
   return (
     <>
+      <PageMeta
+        title="About Us"
+        description="Learn how OptionTrip is reimagining travel with AI — from personalized trip planning to real-time on-the-ground guidance from our AI concierge, Vi."
+        keywords="about optiontrip, AI travel company, our team, travel technology, AI trip planner"
+        path="/about"
+      />
       <div className="banner pt-10 pb-0 overflow-hidden" style={{backgroundImage: `url(/images/testimonial.png)`}}>
         <div className="container">
           <div className="banner-in">

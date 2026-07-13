@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import PageMeta from '../hooks/usePageMeta';
 
 const HowItWorksPage = () => {
   const steps = [
@@ -44,6 +45,12 @@ const HowItWorksPage = () => {
 
   return (
     <>
+      <PageMeta
+        title="How It Works"
+        description="See how OptionTrip turns a simple description into a full trip — options, itinerary, flights, hotels, and day-by-day plans powered by AI."
+        keywords="how optiontrip works, AI trip planner, itinerary generator, personalized travel"
+        path="/how-it-works"
+      />
       {/* Banner */}
       <div
         className="banner pt-10 pb-0 overflow-hidden"

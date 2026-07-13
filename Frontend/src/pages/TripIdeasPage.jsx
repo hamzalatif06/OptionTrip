@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import PageMeta from '../hooks/usePageMeta';
 
 const ideas = [
   {
@@ -56,6 +57,12 @@ const TripIdeasPage = () => {
 
   return (
     <>
+      <PageMeta
+        title="Trip Ideas"
+        description="Get inspired: adventure, romance, family, foodie, and off-the-beaten-path trip ideas curated for real travelers."
+        keywords="trip ideas, travel inspiration, adventure trips, romantic trips, family holidays, foodie travel"
+        path="/trip-ideas"
+      />
       {/* Banner */}
       <div
         className="banner pt-10 pb-0 overflow-hidden"

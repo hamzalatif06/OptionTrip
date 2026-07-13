@@ -1,4 +1,5 @@
 import React from 'react';
+import PageMeta from '../hooks/usePageMeta';
 
 const cookieTypes = [
   {
@@ -42,6 +43,12 @@ const cookieTypes = [
 const CookiePolicyPage = () => {
   return (
     <>
+      <PageMeta
+        title="Cookie Policy"
+        description="How OptionTrip uses cookies and similar technologies — what we store, why, and how to control it."
+        keywords="cookie policy, cookies, tracking, optiontrip cookies"
+        path="/cookie-policy"
+      />
       {/* Banner */}
       <div
         className="banner pt-10 pb-0 overflow-hidden"

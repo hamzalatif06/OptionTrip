@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTheme }     from '../contexts/ThemeContext';
 import { useAuth }      from '../contexts/AuthContext';
 import { getMyTrips }   from '../services/tripsService';
+import PageMeta         from '../hooks/usePageMeta';
 import TripMapPopup     from '../components/TravelMap/TripMapPopup';
 import TravelSidebar    from '../components/TravelMap/TravelSidebar';
 import TravelStats      from '../components/TravelMap/TravelStats';
@@ -256,6 +257,12 @@ const TravelMapPage = () => {
 
   return (
     <div className="tmp-page">
+      <PageMeta
+        title="Your Travel Map"
+        description="See every trip you've planned on a single interactive world map — routes, destinations, and activities in one view."
+        keywords="travel map, trip visualization, world map trips, journey tracker, my travels"
+        path="/travel-map"
+      />
       <TravelSidebar
         trips={trips}
         selectedTrip={selectedTrip}

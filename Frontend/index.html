@@ -3,12 +3,101 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#000000" />
-    <meta name="description" content="OptionTrip — AI-powered travel planning. Describe your dream trip and get a personalized itinerary, flights, and hotels in minutes." />
+    <meta name="theme-color" content="#029e9d" />
+    <meta name="color-scheme" content="light dark" />
+
+    <!-- ── Core SEO ─────────────────────────────────────────────────────── -->
+    <meta name="description" content="OptionTrip — AI-powered travel planning. Describe your dream trip and get a personalized itinerary, flights, hotels, activities, and single-day plans in minutes." />
+    <meta name="keywords" content="AI travel planner, trip planning, itinerary generator, flight search, hotel search, car rental, plan my day, visa requirements, travel assistant, personalized travel, cheap flights, holiday planner" />
+    <meta name="author" content="OptionTrip" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-image-preview:large" />
+    <meta name="application-name" content="OptionTrip" />
+    <meta name="apple-mobile-web-app-title" content="OptionTrip" />
+    <link rel="canonical" href="https://www.optiontrip.com/" />
+
+    <!-- ── Open Graph (Facebook, LinkedIn, WhatsApp, iMessage) ─────────── -->
     <meta property="og:site_name" content="OptionTrip" />
     <meta property="og:type" content="website" />
+    <meta property="og:title" content="OptionTrip — AI-Powered Travel Planning" />
+    <meta property="og:description" content="Describe your dream trip and get a personalized itinerary, flights, hotels, and activities in minutes. Vi, your AI concierge, keeps you smart from planning to landing." />
+    <meta property="og:image" content="https://www.optiontrip.com/images/travel.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="OptionTrip — AI travel planning platform" />
+    <meta property="og:url" content="https://www.optiontrip.com/" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- ── Twitter Card ─────────────────────────────────────────────────── -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@optiontrip" />
+    <meta name="twitter:creator" content="@optiontrip" />
+    <meta name="twitter:title" content="OptionTrip — AI-Powered Travel Planning" />
+    <meta name="twitter:description" content="Describe your dream trip and get a personalized itinerary, flights, hotels, and activities in minutes." />
+    <meta name="twitter:image" content="https://www.optiontrip.com/images/travel.png" />
+    <meta name="twitter:image:alt" content="OptionTrip — AI travel planning platform" />
+
+    <!-- ── Icons + PWA ──────────────────────────────────────────────────── -->
     <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.png" />
+    <link rel="apple-touch-icon" href="/images/favicon.png" />
+
+    <!-- ── Preconnect / DNS-prefetch to trim TTFB on external assets ────── -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+    <link rel="preconnect" href="https://unpkg.com" crossorigin />
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+    <link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin />
+    <link rel="preconnect" href="https://basemaps.cartocdn.com" crossorigin />
+    <link rel="dns-prefetch" href="https://server.arcgisonline.com" />
+    <link rel="dns-prefetch" href="https://api.open-meteo.com" />
+    <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org" />
+
+    <!-- ── Structured data: Organization + WebSite (SearchAction) ───────── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "OptionTrip",
+      "url": "https://www.optiontrip.com/",
+      "logo": "https://www.optiontrip.com/images/logo.png",
+      "description": "AI-powered travel planning platform.",
+      "sameAs": [
+        "https://blog.optiontrip.com/",
+        "https://twitter.com/optiontrip",
+        "https://www.instagram.com/optiontrip",
+        "https://www.facebook.com/optiontrip"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "url": "https://www.optiontrip.com/contact",
+        "availableLanguage": ["en"]
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "OptionTrip",
+      "url": "https://www.optiontrip.com/",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://www.optiontrip.com/flights?origin={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TravelAgency",
+      "name": "OptionTrip",
+      "url": "https://www.optiontrip.com/",
+      "image": "https://www.optiontrip.com/images/travel.png",
+      "priceRange": "$$",
+      "areaServed": "Worldwide"
+    }
+    </script>
     <!-- FontAwesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 

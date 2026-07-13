@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import TripIterationsCarousel from '../../components/TripIterationsCarousel/TripIterationsCarousel';
 import TripSummaryCard from '../../components/TripSummaryCard/TripSummaryCard';
 import ViAssistant from '../../components/ViAssistant/ViAssistant';
+import PageMeta from '../../hooks/usePageMeta';
 import Loader from '../../components/Loader/Loader';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -226,6 +227,7 @@ const TripIterationsPage = () => {
 
   return (
     <div className="trip-iterations-page">
+      <PageMeta title="Trip Options" description="Choose one of your generated trip options." noIndex />
       <TripIterationsHeader />
       <div className="trip-iterations-page__container">
         <div className="trip-iterations-page__breadcrumb">

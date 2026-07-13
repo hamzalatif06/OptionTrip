@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import PageMeta from '../hooks/usePageMeta';
 
 const faqs = [
   {
@@ -98,6 +99,12 @@ const HelpCenterPage = () => {
 
   return (
     <>
+      <PageMeta
+        title="Help Center"
+        description="Answers to common questions about OptionTrip — trip planning, bookings, Vi assistant, accounts, and more."
+        keywords="help center, support, FAQ, optiontrip help, travel help"
+        path="/help-center"
+      />
       {/* Banner */}
       <div
         className="banner pt-10 pb-0 overflow-hidden"

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import PageMeta from '../hooks/usePageMeta';
 import { logActivity } from '../services/activityService';
 import {
   readLocalNationality,
@@ -401,6 +402,22 @@ const WhereCanIGo = () => {
   // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="wcig-page">
+      <PageMeta
+        title="Where Can I Go? — Visa-Free Travel Discovery"
+        description="Tell us your passport, we show you where you can travel — visa-free, visa-on-arrival, e-visa, and embassy visa destinations, ranked by our Easy-to-Go score with halal, prayer, and solo-woman comfort filters."
+        keywords="visa requirements, visa free countries, where can I travel, visa on arrival, e-visa, passport travel, halal travel, muslim friendly destinations"
+        path="/where-can-i-go"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'WebApplication',
+          name: 'Where Can I Go?',
+          description: 'Passport-first travel discovery — see every country you can visit with your passport, ranked by real-trip hassle (visa type, processing, docs, transit).',
+          applicationCategory: 'TravelApplication',
+          operatingSystem: 'Web',
+          url: 'https://www.optiontrip.com/where-can-i-go',
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
+        }}
+      />
       {/* Hero band */}
       <section className="wcig-hero">
         <div className="container">

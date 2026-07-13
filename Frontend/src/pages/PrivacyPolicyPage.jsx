@@ -1,4 +1,5 @@
 import React from 'react';
+import PageMeta from '../hooks/usePageMeta';
 
 const sections = [
   {
@@ -125,6 +126,12 @@ const sections = [
 const PrivacyPolicyPage = () => {
   return (
     <>
+      <PageMeta
+        title="Privacy Policy"
+        description="How OptionTrip collects, uses, and protects your data — full transparency on cookies, personal info, and your rights."
+        keywords="privacy policy, data protection, GDPR, optiontrip privacy"
+        path="/privacy-policy"
+      />
       {/* Banner */}
       <div
         className="banner pt-10 pb-0 overflow-hidden"

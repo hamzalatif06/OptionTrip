@@ -369,7 +369,7 @@ const MyTripsPage = () => {
 
   return (
     <div className="mtp">
-      <PageMeta title="My Trips" description="View and manage all your planned trips, travel map, and visited destinations." path="/my-trips" />
+      <PageMeta title="My Trips" description="View and manage all your planned trips, travel map, and visited destinations." path="/my-trips" noIndex />
       {/* ── Header ── */}
       <header className="mtp__header">
         <div className="mtp__header-inner">

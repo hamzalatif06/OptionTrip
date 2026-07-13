@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import PageMeta from '../hooks/usePageMeta';
 
 const routes = [
   {
@@ -91,6 +92,12 @@ const PopularRoutesPage = () => {
 
   return (
     <>
+      <PageMeta
+        title="Popular Travel Routes"
+        description="The most popular travel routes right now — London to Paris, Bangkok to Bali, NYC to LA, and more, with typical stops and durations."
+        keywords="popular routes, travel routes, city to city, road trips, multi-city travel"
+        path="/popular-routes"
+      />
       {/* Banner */}
       <div
         className="banner pt-10 pb-0 overflow-hidden"

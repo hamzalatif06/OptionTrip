@@ -1,4 +1,5 @@
 import React from 'react';
+import PageMeta from '../hooks/usePageMeta';
 
 const principles = [
   { icon: 'fas fa-balance-scale', title: 'Lawfulness & Fairness', desc: 'We only process your data where we have a lawful basis to do so, and we are transparent about how your data is used.' },
@@ -21,6 +22,12 @@ const rights = [
 const DataProtectionPage = () => {
   return (
     <>
+      <PageMeta
+        title="Data Protection"
+        description="OptionTrip's approach to data protection — the principles we follow to keep your information safe and used responsibly."
+        keywords="data protection, GDPR, data rights, optiontrip"
+        path="/data-protection"
+      />
       {/* Banner */}
       <div
         className="banner pt-10 pb-0 overflow-hidden"

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import { getAccessToken } from '../../services/authService';
+import PageMeta from '../../hooks/usePageMeta';
 import Loader from '../../components/Loader/Loader';
 import './ProfilePage.css';
 
@@ -273,6 +274,7 @@ const ProfilePage = () => {
 
   return (
     <div className="profile-page">
+      <PageMeta title="Your Profile" description="Manage your OptionTrip profile." path="/profile" noIndex />
       <div className="profile-container">
         {/* Sidebar */}
         <aside className="profile-sidebar">

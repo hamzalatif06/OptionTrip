@@ -1,4 +1,5 @@
 import React from 'react';
+import PageMeta from '../hooks/usePageMeta';
 
 const sections = [
   {
@@ -62,6 +63,12 @@ const sections = [
 const TermsOfServicePage = () => {
   return (
     <>
+      <PageMeta
+        title="Terms of Service"
+        description="The terms you agree to when using OptionTrip — user responsibilities, service scope, and our commitments to you."
+        keywords="terms of service, user agreement, optiontrip terms"
+        path="/terms"
+      />
       {/* Banner */}
       <div
         className="banner pt-10 pb-0 overflow-hidden"

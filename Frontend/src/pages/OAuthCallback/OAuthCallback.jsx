@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import PageMeta from '../../hooks/usePageMeta';
 import './OAuthCallback.css';
 
 const OAuthCallback = () => {
@@ -40,6 +41,7 @@ const OAuthCallback = () => {
 
   return (
     <div className="oauth-callback-page">
+      <PageMeta title="Signing you in" description="Completing authentication." path="/auth/callback" noIndex />
       <div className="oauth-callback-container">
         <div className="oauth-callback-content">
           {status === 'processing' && (

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import PageMeta from '../hooks/usePageMeta';
 
 const features = [
   { icon: 'fas fa-robot', title: 'AI-Powered Conversations', desc: 'VI understands your travel preferences through natural conversation, just like talking to an expert travel advisor who knows you personally.' },
@@ -20,6 +21,12 @@ const steps = [
 const TravelBuddyPage = () => {
   return (
     <>
+      <PageMeta
+        title="Meet Vi — Your AI Travel Buddy"
+        description="Vi is OptionTrip's AI travel concierge — plans your trips, packs your list, and helps you on the ground with local knowledge in 22+ languages."
+        keywords="AI travel assistant, travel buddy, AI concierge, Vi, personalized travel, AI trip planner"
+        path="/travel-buddy"
+      />
       {/* Banner */}
       <div className="banner pt-10 pb-0 overflow-hidden" style={{ backgroundImage: `url(/images/bg/bg2.jpg)` }}>
         <div className="container">

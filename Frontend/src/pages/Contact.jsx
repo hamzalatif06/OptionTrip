@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageMeta from '../hooks/usePageMeta';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -41,6 +42,12 @@ const Contact = () => {
 
   return (
     <>
+      <PageMeta
+        title="Contact Us"
+        description="Get in touch with the OptionTrip team — questions about your trip, feedback on Vi, partnerships, or press enquiries all welcome."
+        keywords="contact optiontrip, travel support, customer service, help center"
+        path="/contact"
+      />
       <div className="banner pt-10 pb-0 overflow-hidden" style={{ backgroundImage: `url(/images/testimonial.png)` }}>
         <div className="container">
           <div className="banner-in">

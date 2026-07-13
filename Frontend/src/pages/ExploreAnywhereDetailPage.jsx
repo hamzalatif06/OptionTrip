@@ -5,6 +5,7 @@ import { EXPLORE_DESTINATIONS } from '../data/exploreDestinations';
 import { exploreDestinations, searchAirports, searchFlightsDuffel } from '../services/flightService';
 import { getDestinationFallbackImage, getPlaceImagesForMultiplePlaces } from '../utils/destinationImages';
 import useCurrency from '../hooks/useCurrency';
+import PageMeta from '../hooks/usePageMeta';
 import { useAuth } from '../contexts/AuthContext';
 import { getAccessToken } from '../services/authService';
 import { getReviews, createReview, deleteReview } from '../services/reviewService';
@@ -502,6 +503,12 @@ const ExploreAnywhereDetailPage = () => {
 
   return (
     <div className="explore-detail-page">
+      <PageMeta
+        title="Explore Cheap Flight Destinations"
+        description="Type your departure city and see everywhere you can fly cheaply, sorted by price. Perfect for open-ended trip planning and budget travel discovery."
+        keywords="explore flights, cheap destinations, anywhere flights, budget travel, cheapest flights, flight ideas"
+        path="/flights/explore"
+      />
       <section className="explore-detail-hero">
         <div className="container">
           <div className="explore-detail-hero__content">

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getAdminStats, getAdminUsers, getAdminActivity, deactivateUser } from '../../services/adminService';
+import PageMeta from '../../hooks/usePageMeta';
 import './AdminPage.css';
 
 const ACTIVITY_TYPES = ['', 'trip', 'flight', 'hotel', 'chat', 'plan_my_day', 'destination', 'page'];
@@ -100,6 +101,7 @@ const AdminPage = () => {
 
   return (
     <div className="adm-page">
+      <PageMeta title="Admin" description="OptionTrip admin panel." path="/admin" noIndex />
       <header className="adm-header">
         <h1 className="adm-header__title">Admin Panel</h1>
         <button className="adm-header__back" onClick={() => navigate('/')}>← Back to site</button>

@@ -4,6 +4,7 @@ import { getSharedTrip } from '../../services/tripsService';
 import HeroSection from '../PlannedTripPage/sections/HeroSection';
 import ActivitiesSection from '../PlannedTripPage/sections/ActivitiesSection';
 import Loader from '../../components/Loader/Loader';
+import PageMeta from '../../hooks/usePageMeta';
 import './SharedTripPage.css';
 
 const SharedTripPage = () => {
@@ -47,6 +48,7 @@ const SharedTripPage = () => {
 
   return (
     <div className="shared-trip-page">
+      <PageMeta title="Shared Trip" description="A trip itinerary shared with you." noIndex />
       <header className="shared-trip-page__header">
         <Link to="/" className="shared-trip-page__logo">
           <img src="/images/newLogo.png" alt="OptionTrip" />

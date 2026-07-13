@@ -1,4 +1,5 @@
 import React from 'react';
+import PageMeta from '../hooks/usePageMeta';
 import BestTours from '../components/BestTours/BestTours';
 import LastMinuteDeals from '../components/LastMinuteDeals/LastMinuteDeals';
 // import OfferPackages from '../components/OfferPackages/OfferPackages';
@@ -6,6 +7,12 @@ import LastMinuteDeals from '../components/LastMinuteDeals/LastMinuteDeals';
 const Tours = () => {
   return (
     <>
+      <PageMeta
+        title="Tours & Packages"
+        description="Browse curated tour packages and last-minute deals — inspiration for your next city break, beach escape, or adventure trip."
+        keywords="travel packages, tour deals, holiday packages, last minute travel, curated tours"
+        path="/tours"
+      />
       <div className="banner pt-10 pb-0 overflow-hidden" style={{backgroundImage: `url(/images/testimonial.png)`}}>
         <div className="container">
           <div className="banner-in">

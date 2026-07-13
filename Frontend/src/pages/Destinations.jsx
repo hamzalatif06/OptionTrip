@@ -1,9 +1,16 @@
 import React from 'react';
+import PageMeta from '../hooks/usePageMeta';
 import TopDestinations from '../components/TopDestinations/TopDestinations';
 
 const Destinations = () => {
   return (
     <>
+      <PageMeta
+        title="Top Travel Destinations"
+        description="Discover top-rated destinations worldwide, hand-picked for every travel style — from foodie city breaks to beach escapes and adventure trips."
+        keywords="top destinations, travel inspiration, popular destinations, best places to visit, world travel"
+        path="/destinations"
+      />
       <div className="banner pt-10 pb-0 overflow-hidden" style={{backgroundImage: `url(/images/testimonial.png)`}}>
         <div className="container">
           <div className="banner-in">
