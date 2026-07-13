@@ -2,8 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
+import { getAccessToken } from '../../services/authService';
 import Loader from '../../components/Loader/Loader';
 import './ProfilePage.css';
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+const ACTIVITY_OPTIONS = ['Beach', 'Hiking', 'Culture', 'Food & Dining', 'Shopping', 'Nightlife', 'Adventure Sports', 'Wildlife', 'History', 'Art & Museums'];
+const DIETARY_OPTIONS  = ['Vegetarian', 'Vegan', 'Halal', 'Kosher', 'Gluten-Free', 'Dairy-Free', 'Nut-Free'];
+const ACCESS_OPTIONS   = ['Wheelchair Accessible', 'Limited Mobility', 'Visual Impairment', 'Hearing Impairment'];
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -33,6 +40,17 @@ const ProfilePage = () => {
   const [deletePassword, setDeletePassword] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // Travel preferences state
+  const [prefForm, setPrefForm] = useState({
+    travelStyle: '',
+    preferredActivities: [],
+    seatClass: '',
+    hotelStars: '',
+    dietaryRestrictions: [],
+    accessibility: []
+  });
+  const [isSavingPrefs, setIsSavingPrefs] = useState(false);
+
   // Initialize form with user data
   useEffect(() => {
     if (user) {
@@ -41,6 +59,16 @@ const ProfilePage = () => {
         email: user.email || '',
         phoneNumber: user.phoneNumber || '',
       });
+      if (user.preferences) {
+        setPrefForm({
+          travelStyle:          user.preferences.travelStyle        || '',
+          preferredActivities:  user.preferences.preferredActivities || [],
+          seatClass:            user.preferences.seatClass           || '',
+          hotelStars:           user.preferences.hotelStars          || '',
+          dietaryRestrictions:  user.preferences.dietaryRestrictions || [],
+          accessibility:        user.preferences.accessibility        || []
+        });
+      }
     }
   }, [user]);
 
@@ -137,6 +165,35 @@ const ProfilePage = () => {
     } finally {
       setIsSaving(false);
       setShowDeleteConfirm(false);
+    }
+  };
+
+  const toggleMulti = (field, value) => {
+    setPrefForm(prev => {
+      const arr = prev[field];
+      return { ...prev, [field]: arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value] };
+    });
+  };
+
+  const handleSavePreferences = async (e) => {
+    e.preventDefault();
+    setIsSavingPrefs(true);
+    try {
+      const token = getAccessToken();
+      const res = await fetch(`${API_BASE}/api/auth/preferences`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          ...prefForm,
+          hotelStars: prefForm.hotelStars ? Number(prefForm.hotelStars) : null
+        })
+      });
+      if (!res.ok) throw new Error('Failed');
+      toast.success('Travel preferences saved!');
+    } catch {
+      toast.error('Failed to save preferences');
+    } finally {
+      setIsSavingPrefs(false);
     }
   };
 
@@ -271,6 +328,13 @@ const ProfilePage = () => {
             >
               <i className="fas fa-link"></i>
               <span>Connected Accounts</span>
+            </button>
+            <button
+              className={`profile-nav-item ${activeTab === 'preferences' ? 'active' : ''}`}
+              onClick={() => setActiveTab('preferences')}
+            >
+              <i className="fas fa-sliders-h"></i>
+              <span>Travel Preferences</span>
             </button>
             <button
               className="profile-nav-item profile-nav-trips"
@@ -553,6 +617,123 @@ const ProfilePage = () => {
                   </button>
                 </div>
               </div>
+            </div>
+          )}
+          {/* Travel Preferences Tab */}
+          {activeTab === 'preferences' && (
+            <div className="profile-section">
+              <div className="profile-section-header">
+                <div>
+                  <h3>Travel Preferences</h3>
+                  <p>Personalise your AI-generated trip plans</p>
+                </div>
+              </div>
+
+              <form className="pref-form" onSubmit={handleSavePreferences}>
+                {/* Travel Style */}
+                <div className="pref-group">
+                  <label className="pref-label">Travel style</label>
+                  <div className="pref-chips">
+                    {['budget', 'moderate', 'luxury', 'premium'].map(s => (
+                      <button
+                        type="button"
+                        key={s}
+                        className={`pref-chip${prefForm.travelStyle === s ? ' pref-chip--active' : ''}`}
+                        onClick={() => setPrefForm(p => ({ ...p, travelStyle: p.travelStyle === s ? '' : s }))}
+                      >
+                        {s.charAt(0).toUpperCase() + s.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Activities */}
+                <div className="pref-group">
+                  <label className="pref-label">Favourite activities</label>
+                  <div className="pref-chips">
+                    {ACTIVITY_OPTIONS.map(act => (
+                      <button
+                        type="button"
+                        key={act}
+                        className={`pref-chip${prefForm.preferredActivities.includes(act) ? ' pref-chip--active' : ''}`}
+                        onClick={() => toggleMulti('preferredActivities', act)}
+                      >
+                        {act}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Seat Class + Hotel Stars */}
+                <div className="pref-row">
+                  <div className="pref-group">
+                    <label className="pref-label">Preferred seat class</label>
+                    <select
+                      className="pref-select"
+                      value={prefForm.seatClass}
+                      onChange={e => setPrefForm(p => ({ ...p, seatClass: e.target.value }))}
+                    >
+                      <option value="">No preference</option>
+                      <option value="economy">Economy</option>
+                      <option value="premium_economy">Premium Economy</option>
+                      <option value="business">Business</option>
+                      <option value="first">First Class</option>
+                    </select>
+                  </div>
+
+                  <div className="pref-group">
+                    <label className="pref-label">Minimum hotel stars</label>
+                    <select
+                      className="pref-select"
+                      value={prefForm.hotelStars}
+                      onChange={e => setPrefForm(p => ({ ...p, hotelStars: e.target.value }))}
+                    >
+                      <option value="">No preference</option>
+                      {[1, 2, 3, 4, 5].map(n => (
+                        <option key={n} value={n}>{n} star{n > 1 ? 's' : ''}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Dietary Restrictions */}
+                <div className="pref-group">
+                  <label className="pref-label">Dietary restrictions</label>
+                  <div className="pref-chips">
+                    {DIETARY_OPTIONS.map(d => (
+                      <button
+                        type="button"
+                        key={d}
+                        className={`pref-chip${prefForm.dietaryRestrictions.includes(d) ? ' pref-chip--active' : ''}`}
+                        onClick={() => toggleMulti('dietaryRestrictions', d)}
+                      >
+                        {d}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Accessibility */}
+                <div className="pref-group">
+                  <label className="pref-label">Accessibility needs</label>
+                  <div className="pref-chips">
+                    {ACCESS_OPTIONS.map(a => (
+                      <button
+                        type="button"
+                        key={a}
+                        className={`pref-chip${prefForm.accessibility.includes(a) ? ' pref-chip--active' : ''}`}
+                        onClick={() => toggleMulti('accessibility', a)}
+                      >
+                        {a}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button type="submit" className="profile-save-btn" disabled={isSavingPrefs}>
+                  {isSavingPrefs ? 'Saving…' : 'Save Preferences'}
+                </button>
+              </form>
             </div>
           )}
         </main>

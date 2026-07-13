@@ -193,6 +193,26 @@ const buildMessages = (userMessage, context, conversationHistory) => {
   return messages;
 };
 
+// ─── Streaming response generator ──────────────────────────────────────────
+
+/**
+ * Returns an OpenAI async iterable stream. Each chunk has `.choices[0].delta.content`.
+ * Returns null if no API key is configured.
+ */
+export const streamViResponse = async (userMessage, context = {}, conversationHistory = []) => {
+  const client = getOpenAIClient();
+  if (!client) return null;
+  const messages = buildMessages(userMessage, context, conversationHistory);
+  return client.chat.completions.create({
+    model: MODEL,
+    messages,
+    temperature: 0.75,
+    max_tokens: 700,
+    response_format: { type: 'json_object' },
+    stream: true
+  });
+};
+
 // ─── Main response generator ────────────────────────────────────────────────
 
 export const generateViResponse = async (userMessage, context = {}, conversationHistory = []) => {

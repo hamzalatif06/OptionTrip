@@ -28,6 +28,10 @@ import geoRouter from "./routes/geo.js";
 import planMyDayRouter from "./routes/planMyDay.js";
 import blogRouter from "./routes/blog.js";
 import userActivityRouter from "./routes/userActivity.js";
+import seoRouter from "./routes/seo.js";
+import wishlistRouter from "./routes/wishlist.js";
+import adminRouter from "./routes/admin.js";
+import reviewsRouter from "./routes/reviews.js";
 import whereCanIGoRouter from "./routes/whereCanIGo.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { corsOptions } from "./middleware/security.js";
@@ -123,6 +127,10 @@ app.use("/api/geo", geoRouter);
 app.use("/api/plan-my-day", planMyDayRouter);
 app.use("/api/blog", blogRouter);
 app.use("/api/activity", userActivityRouter);
+app.use("/sitemap.xml", seoRouter);
+app.use("/api/wishlist", wishlistRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/reviews", reviewsRouter);
 app.use("/api/where-can-i-go", whereCanIGoRouter);
 
 // 404 Handler - must be after all routes

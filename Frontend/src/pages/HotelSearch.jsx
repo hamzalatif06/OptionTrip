@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import PageMeta from '../hooks/usePageMeta';
 import { searchHotelLocations, searchHotels } from '../services/hotelService';
 import { logActivity } from '../services/activityService';
 import HotelCard from '../components/HotelCard/HotelCard';
@@ -132,6 +133,7 @@ const HotelSearch = () => {
 
   return (
     <>
+      <PageMeta title="Search Hotels" description="Find and compare hotels worldwide. Search by destination, dates, and budget with real-time availability." path="/hotels" />
       {/* Hero */}
       <section className="hotel-search-hero">
         <div className="container">

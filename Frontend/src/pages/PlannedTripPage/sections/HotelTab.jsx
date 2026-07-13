@@ -1,7 +1,48 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { toast } from 'react-toastify';
 import { searchHotelLocations, searchHotels } from '../../../services/hotelService';
+import { updateTripSelection } from '../../../services/tripsService';
+import { getAccessToken } from '../../../services/authService';
 import HotelCard from '../../../components/HotelCard/HotelCard';
 import './HotelTab.css';
+
+const HotelSelectButton = ({ hotel, tripId, token, isSelected, onSelect }) => {
+  const [saving, setSaving] = useState(false);
+  if (!tripId) return null;
+
+  const handle = async () => {
+    setSaving(true);
+    try {
+      await updateTripSelection(tripId, {
+        selectedHotel: {
+          provider:   hotel.source === 'hotelbeds' ? 'hotellook' : 'booking_com',
+          bookingUrl: hotel.bookingUrl || '',
+          price:      hotel.price      || 0,
+          currency:   hotel.currency   || 'USD',
+          name:       hotel.name       || '',
+          address:    hotel.address    || '',
+          stars:      hotel.stars      || 0
+        }
+      }, token);
+      onSelect();
+      toast.success('Hotel saved to your trip!');
+    } catch {
+      toast.error('Could not save hotel — please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <button
+      className={`ht-select-btn${isSelected ? ' ht-select-btn--saved' : ''}`}
+      onClick={handle}
+      disabled={saving || isSelected}
+    >
+      {saving ? 'Saving…' : isSelected ? 'Selected ✓' : 'Select for this trip'}
+    </button>
+  );
+};
 
 const PAGE_SIZE = 8;
 
@@ -55,11 +96,15 @@ const HotelSkeleton = () => (
   </div>
 );
 
-const HotelTab = ({ tripData }) => {
+const HotelTab = ({ tripData, onHotelSelected }) => {
   const defaultCheckIn  = tripData?.dates?.start_date  || '';
   const defaultCheckOut = tripData?.dates?.end_date    || '';
   const defaultAdults   = tripData?.guests?.adults     || 1;
   const defaultChildren = tripData?.guests?.children   || 0;
+
+  const tripId = tripData?.trip_id || null;
+  const token  = getAccessToken();
+  const [selectedHotelKey, setSelectedHotelKey] = useState(null);
 
   // Destination autocomplete
   const [cityQuery,    setCityQuery]    = useState(tripData?.destination?.name || '');
@@ -348,7 +393,12 @@ const HotelTab = ({ tripData }) => {
                     {' · '}Prices in USD
                   </p>
                 </div>
-                {paginated.map(hotel => <HotelCard key={hotel.hotelId} hotel={hotel} />)}
+                {paginated.map(hotel => (
+                  <div key={hotel.hotelId}>
+                    <HotelCard hotel={hotel} />
+                    <HotelSelectButton hotel={hotel} tripId={tripId} token={token} isSelected={selectedHotelKey === hotel.hotelId} onSelect={() => { setSelectedHotelKey(hotel.hotelId); onHotelSelected?.(hotel); }} />
+                  </div>
+                ))}
                 {totalPages > 1 && (
                   <Pagination page={currentPage} total={totalPages} onChange={setCurrentPage} />
                 )}

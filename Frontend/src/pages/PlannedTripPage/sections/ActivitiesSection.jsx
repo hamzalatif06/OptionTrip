@@ -69,7 +69,7 @@ const ItinerarySkeletonSection = () => (
   </div>
 );
 
-const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerating, totalDays }) => {
+const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerating, totalDays, onFlightSelected, onHotelSelected }) => {
   const [activeTab, setActiveTab] = useState(0);
   const [activeDayTab, setActiveDayTab] = useState(1);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -412,9 +412,9 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
         {/* Tab Panels (from TripTap's FormTabPanel_V2) */}
         <div className="activities-section__tab-content">
           {activeTab === 0 && renderItineraryTab()}
-          {activeTab === 1 && <HotelTab tripData={tripData} />}
+          {activeTab === 1 && <HotelTab  tripData={tripData} onHotelSelected={onHotelSelected} />}
           {activeTab === 2 && <CarRentalTab tripData={tripData} />}
-          {activeTab === 3 && <FlightTab tripData={tripData} />}
+          {activeTab === 3 && <FlightTab tripData={tripData} onFlightSelected={onFlightSelected} />}
           {activeTab === 4 && (
             <TripMapTab tripData={tripData} daysData={daysData} />
           )}

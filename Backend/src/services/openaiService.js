@@ -30,7 +30,8 @@ export const generateLightweightTripOptions = async ({
   tripType,
   guests,
   budget,
-  description
+  description,
+  userPreferences
 }) => {
   try {
     const client = getOpenAIClient();
@@ -47,7 +48,8 @@ export const generateLightweightTripOptions = async ({
       tripType,
       guests,
       budget,
-      description
+      description,
+      userPreferences
     });
 
     console.log('🚀 Phase 1: Generating lightweight trip options...');
@@ -206,7 +208,8 @@ const createPhase1Prompt = ({
   tripType,
   guests,
   budget,
-  description
+  description,
+  userPreferences
 }) => {
   const resolvedTripType = tripType || 'General';
   const resolvedBudget   = budget   || 'moderate';
@@ -226,6 +229,20 @@ const createPhase1Prompt = ({
     premium: { min: 5000, max: 15000 }
   };
 
+  // Build user preferences line if available
+  let prefLines = '';
+  if (userPreferences) {
+    const p = userPreferences;
+    const bits = [];
+    if (p.travelStyle)                bits.push(`Travel style: ${p.travelStyle}`);
+    if (p.preferredActivities?.length) bits.push(`Favourite activities: ${p.preferredActivities.join(', ')}`);
+    if (p.seatClass)                   bits.push(`Preferred seat class: ${p.seatClass}`);
+    if (p.hotelStars)                  bits.push(`Minimum hotel: ${p.hotelStars} stars`);
+    if (p.dietaryRestrictions?.length) bits.push(`Dietary: ${p.dietaryRestrictions.join(', ')}`);
+    if (p.accessibility?.length)       bits.push(`Accessibility needs: ${p.accessibility.join(', ')}`);
+    if (bits.length) prefLines = `\n- User Preferences: ${bits.join(' | ')}`;
+  }
+
   return `You are an AI trip planner.
 
 Generate exactly 3 different trip options.
@@ -236,7 +253,7 @@ TRIP CONTEXT:${originLine}
 - Trip Type: ${resolvedTripType}
 - Travelers: ${resolvedGuests.total} guests (${resolvedGuests.adults} adults, ${resolvedGuests.children} children)
 - Budget Level: ${budgetDescriptions[resolvedBudget]}
-- Preferences: ${description || 'General sightseeing and experiences'}
+- Preferences: ${description || 'General sightseeing and experiences'}${prefLines}
 
 ESTIMATED COST RANGE: $${costRanges[resolvedBudget].min} - $${costRanges[resolvedBudget].max} total for ${duration_days} days
 
@@ -747,9 +764,45 @@ const sanitizeParsedTrip = (p, todayStr) => {
   return out;
 };
 
+/**
+ * Suggest 3–5 travel destinations matching a vague user query.
+ * Returns a lightweight array — cheap call, max 400 tokens.
+ */
+export const suggestDestinations = async ({ query, budget }) => {
+  const client = getOpenAIClient();
+  if (!client) throw new Error('OpenAI API key not configured');
+
+  const budgetHint = budget ? ` The user prefers a ${budget} trip.` : '';
+  const systemPrompt = `You are a travel recommendation engine.${budgetHint}
+Given a travel query, return a JSON object with a single key "suggestions" containing an array of 3–5 destination recommendations.
+Each item must have exactly these fields:
+{ "destination": "City or Region", "country": "Country", "why": "One sentence why it fits the query", "bestMonths": "e.g. April–October", "imageSearch": "2–3 word Unsplash search term" }
+Respond ONLY with the JSON. No markdown, no commentary.`;
+
+  const completion = await client.chat.completions.create({
+    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user',   content: query }
+    ],
+    temperature: 0.7,
+    max_tokens: 400,
+    response_format: { type: 'json_object' },
+  });
+
+  const raw = completion.choices[0]?.message?.content?.trim() || '{}';
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed.suggestions) ? parsed.suggestions : [];
+  } catch {
+    return [];
+  }
+};
+
 export default {
   generateLightweightTripOptions,
   generateDetailedItinerary,
   generateSingleDayItinerary,
-  parseTripDescription
+  parseTripDescription,
+  suggestDestinations
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import PageMeta from '../hooks/usePageMeta';
 import {
   generateDayPlan,
   forwardGeocode,
@@ -10,6 +11,7 @@ import {
   clearCachedLocation
 } from '../services/planMyDayService';
 import { logActivity } from '../services/activityService';
+import { trackPlanMyDayGenerated } from '../services/analyticsService';
 import './PlanMyDay.css';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -430,6 +432,10 @@ const PlanMyDay = () => {
       if (resp.success && resp.data) {
         setPlan(resp.data);
         setStage('results');
+        trackPlanMyDayGenerated(
+          location.city || location.neighborhood || 'unknown',
+          vibe
+        );
         logActivity({
           type: 'plan_my_day',
           action: 'generated',
@@ -571,6 +577,7 @@ const PlanMyDay = () => {
   // ── Render: RESULTS ────────────────────────────────────────────────────
   return (
     <div className="pmd-page">
+      <PageMeta title="Plan My Day" description="Tell us where you are and what you're into — get a personalised day plan with activities, food, and local tips." path="/plan-my-day" />
       <PlanResults
         plan={plan}
         onStartOver={handleStartOver}

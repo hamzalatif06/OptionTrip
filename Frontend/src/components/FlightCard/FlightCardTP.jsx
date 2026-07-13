@@ -1,5 +1,7 @@
 import React from 'react';
 import useCurrency from '../../hooks/useCurrency';
+import { trackBookingClick } from '../../services/analyticsService';
+import { logActivity } from '../../services/activityService';
 import './FlightCardTP.css';
 
 const formatTime = (isoString) => {
@@ -73,6 +75,10 @@ const FlightCardTP = ({ flight }) => {
             target="_blank"
             rel="noopener noreferrer"
             className="ftc-book-btn"
+            onClick={() => {
+              trackBookingClick('travelpayouts', 'flight', flight.destination, flight.price);
+              logActivity({ type: 'flight', action: 'clicked', title: `Book Now — flight to ${flight.destName || flight.destination}`, metadata: { provider: 'travelpayouts', destination: flight.destination, price: flight.price } });
+            }}
           >
             Book Now
           </a>

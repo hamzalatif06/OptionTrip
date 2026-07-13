@@ -1,5 +1,5 @@
 import express from 'express';
-import { getSmartHeroImage } from '../services/blogImageService.js';
+import { getSmartHeroImage, extractDestinations } from '../services/blogImageService.js';
 
 const router = express.Router();
 
@@ -19,6 +19,22 @@ router.post('/hero-image', async (req, res) => {
   } catch (err) {
     console.error('❌ /api/blog/hero-image error:', err.message);
     res.status(500).json({ imageUrl: null, source: 'error', searchUsed: null });
+  }
+});
+
+/**
+ * POST /api/blog/extract-destinations
+ * Body: { title: string, content: string }
+ * Response: { destinations: string[], countries: string[] }
+ */
+router.post('/extract-destinations', async (req, res) => {
+  try {
+    const { title = '', content = '' } = req.body;
+    const result = await extractDestinations({ title, content });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('❌ /api/blog/extract-destinations error:', err.message);
+    res.json({ success: true, data: { destinations: [], countries: [] } });
   }
 });
 

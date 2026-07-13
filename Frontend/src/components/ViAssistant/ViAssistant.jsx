@@ -103,6 +103,32 @@ const renderMarkdown = (raw) => {
   return out.join('\n');
 };
 
+// ─── Streaming JSON string parser ────────────────────────────────────────────
+// Reads characters from a partial JSON string value, unescaping sequences,
+// stopping at the first unescaped closing quote.
+const extractJsonStringValue = (s) => {
+  let result = '';
+  let i = 0;
+  while (i < s.length) {
+    if (s[i] === '\\' && i + 1 < s.length) {
+      const c = s[i + 1];
+      if (c === 'n')       result += '\n';
+      else if (c === 't')  result += '\t';
+      else if (c === '"')  result += '"';
+      else if (c === '\\') result += '\\';
+      else if (c === 'r')  result += '\r';
+      else                 result += c;
+      i += 2;
+    } else if (s[i] === '"') {
+      break;
+    } else {
+      result += s[i];
+      i++;
+    }
+  }
+  return result;
+};
+
 // ─── Suggested prompt starters (richer empty state) ─────────────────────────
 
 const PROMPT_STARTERS = {
@@ -154,7 +180,8 @@ const ViAssistant = () => {
   const [isFullscreen, setIsFullscreen]   = useState(false);
   const [messages, setMessages]           = useState([]);
   const [inputMessage, setInputMessage]   = useState('');
-  const [isTyping, setIsTyping]           = useState(false); // request in flight
+  const [isTyping, setIsTyping]           = useState(false); // "thinking" dots phase
+  const [isStreaming, setIsStreaming]     = useState(false); // text is streaming in
   const [showDisclaimer, setShowDisclaimer] = useState(true);
 
   // Trip context
@@ -450,26 +477,23 @@ const ViAssistant = () => {
       requestAbortRef.current = null;
     }
     setIsTyping(false);
+    setIsStreaming(false);
   };
 
   /**
-   * Send a message to Vi via the non-streaming endpoint and update the chat
-   * bubble with the reply. AbortController lets the "Stop" button cancel an
-   * in-flight request.
+   * Send a message to Vi via the streaming SSE endpoint.
+   * Shows typing dots while the model "thinks", then streams visible text
+   * character-by-character into a bot bubble. AbortController allows the
+   * "Stop" button to cancel mid-stream.
    */
   const dispatchMessage = async (userText) => {
     cancelRequest();
     lastUserMessageRef.current = userText;
     shouldAutoScrollRef.current = true;
 
-    const userMsgId = `u-${Date.now()}`;
-
     setMessages(prev => {
       const stripped = prev.filter(m => !m.isWelcome);
-      return [
-        ...stripped,
-        { id: userMsgId, text: userText, sender: 'user', timestamp: new Date() }
-      ];
+      return [...stripped, { id: `u-${Date.now()}`, text: userText, sender: 'user', timestamp: new Date() }];
     });
 
     setIsTyping(true);
@@ -477,62 +501,125 @@ const ViAssistant = () => {
     requestAbortRef.current = controller;
     const token = isAuthenticated ? getAccessToken() : null;
 
+    const body = { message: userText };
+    if (currentTrip?.trip_id)  body.tripId = currentTrip.trip_id;
+    if (activeConversationId)  body.conversationId = activeConversationId;
+    if (liveLocation && (liveLocation.city || liveLocation.label || typeof liveLocation.lat === 'number')) {
+      body.location = liveLocation;
+    }
+
+    const streamMsgId = `b-${Date.now()}`;
+    let rawBuffer  = '';
+    let msgStart   = -1; // position in rawBuffer after the opening " of "message" value
+    let streamText = '';
+
     try {
-      const resp = await sendMessage(
-        userText,
-        token,
-        currentTrip?.trip_id,
-        activeConversationId,
-        controller.signal,
-        liveLocation
-      );
+      const response = await fetch(`${API_BASE}/api/chat/message/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
+        credentials: 'include',
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
 
-      if (!resp?.success || !resp.data) {
-        throw new Error(resp?.message || 'Empty response from Vi');
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const reader  = response.body.getReader();
+      const decoder = new TextDecoder();
+      let lineBuf = '';
+
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        lineBuf += decoder.decode(value, { stream: true });
+        const lines = lineBuf.split('\n');
+        lineBuf = lines.pop();
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const payload = line.slice(6).trim();
+          if (!payload) continue;
+
+          let event;
+          try { event = JSON.parse(payload); } catch { continue; }
+
+          if (event.done) {
+            // Stream closed — finalize the message bubble
+            setMessages(prev => prev.map(m =>
+              m.id === streamMsgId
+                ? { ...m, text: streamText || m.text, type: event.type || 'general', quickReplies: event.quickReplies?.length ? event.quickReplies : undefined, isStreaming: false }
+                : m
+            ));
+            setIsTyping(false);
+            setIsStreaming(false);
+
+            if (event.conversationId && event.conversationId !== activeConversationId) {
+              setActiveConversationId(event.conversationId);
+            }
+            if (isVoiceMode && streamText) speakText(streamText, streamMsgId);
+            if (isAuthenticated) {
+              getConversations(token)
+                .then(r => { if (r.success) setConversations(r.data.conversations || []); })
+                .catch(() => {});
+            }
+            return;
+          }
+
+          if (event.error) throw new Error('Server stream error');
+
+          if (event.delta) {
+            rawBuffer += event.delta;
+
+            // Locate start of the "message" JSON value on first delta that contains it
+            if (msgStart === -1) {
+              const match = rawBuffer.match(/"message"\s*:\s*"/);
+              if (match) {
+                msgStart = match.index + match[0].length;
+                // Switch from typing dots to live streaming bubble
+                setIsTyping(false);
+                setIsStreaming(true);
+                setMessages(prev => {
+                  if (prev.some(m => m.id === streamMsgId)) return prev;
+                  return [...prev, { id: streamMsgId, text: '', sender: 'bot', timestamp: new Date(), type: 'general', isStreaming: true }];
+                });
+              }
+            }
+
+            if (msgStart !== -1) {
+              streamText = extractJsonStringValue(rawBuffer.slice(msgStart));
+              setMessages(prev => prev.map(m =>
+                m.id === streamMsgId ? { ...m, text: streamText } : m
+              ));
+            }
+          }
+        }
       }
-
-      const { message, type, quickReplies, conversationId } = resp.data;
-      if (conversationId && conversationId !== activeConversationId) {
-        setActiveConversationId(conversationId);
-      }
-
-      const botMsg = {
-        id: `b-${Date.now()}`,
-        text: message,
-        sender: 'bot',
-        timestamp: new Date(),
-        type: type || 'general',
-        quickReplies: quickReplies?.length ? quickReplies : undefined
-      };
-      setMessages(prev => [...prev, botMsg]);
-
-      // Refresh the conversation list so the sidebar title/timestamp update.
-      if (isAuthenticated) {
-        try {
-          const listResp = await getConversations(token);
-          if (listResp.success) setConversations(listResp.data.conversations || []);
-        } catch { /* noop */ }
-      }
-
-      if (isVoiceMode && message) await speakText(message, botMsg.id);
     } catch (err) {
-      // User-initiated cancel — silent.
       if (err?.name === 'AbortError') return;
 
-      console.error('Vi send error:', err);
-      setMessages(prev => [
-        ...prev,
-        {
-          id: `b-${Date.now()}`,
-          text: `I'm having trouble reaching the server right now. Please try again in a moment.`,
-          sender: 'bot',
-          timestamp: new Date(),
-          type: 'error',
-          isError: true
-        }
-      ]);
+      console.error('Vi stream error:', err);
+      setMessages(prev => {
+        const withoutPlaceholder = prev.filter(m => !(m.id === streamMsgId && m.isStreaming));
+        return [
+          ...withoutPlaceholder,
+          {
+            id: `b-${Date.now()}`,
+            text: "I'm having trouble reaching the server right now. Please try again in a moment.",
+            sender: 'bot',
+            timestamp: new Date(),
+            type: 'error',
+            isError: true
+          }
+        ];
+      });
     } finally {
       setIsTyping(false);
+      setIsStreaming(false);
       requestAbortRef.current = null;
     }
   };
@@ -978,7 +1065,7 @@ const ViAssistant = () => {
               {messages.map((message) => {
                 const isLastBot = message.id === lastBotMessageId;
                 return (
-                  <div key={message.id} className={`vi-message ${message.sender}${message.isError ? ' is-error' : ''}`}>
+                  <div key={message.id} className={`vi-message ${message.sender}${message.isError ? ' is-error' : ''}${message.isStreaming ? ' is-streaming' : ''}`}>
                     {message.sender === 'bot' && (
                       <div className="message-avatar">
                         <i className="fas fa-plane vi-msg-icon"></i>
@@ -1003,7 +1090,7 @@ const ViAssistant = () => {
                               key={idx}
                               className="quick-reply-btn"
                               onClick={() => handleQuickReply(reply)}
-                              disabled={isTyping}
+                              disabled={isTyping || isStreaming}
                             >
                               {reply}
                             </button>
@@ -1012,7 +1099,7 @@ const ViAssistant = () => {
                       )}
 
                       {/* Bot message actions */}
-                      {message.sender === 'bot' && !message.isWelcome && message.text && (
+                      {message.sender === 'bot' && !message.isWelcome && !message.isStreaming && message.text && (
                         <div className="vi-msg-actions">
                           <button
                             className={`vi-msg-action${playingMsgId === message.id ? ' vi-msg-action--active' : ''}`}
@@ -1033,7 +1120,7 @@ const ViAssistant = () => {
                               className="vi-msg-action"
                               onClick={handleRegenerate}
                               title="Regenerate reply"
-                              disabled={isTyping}
+                              disabled={isTyping || isStreaming}
                             >
                               <i className="fas fa-redo"></i>
                             </button>
@@ -1092,8 +1179,8 @@ const ViAssistant = () => {
                 </p>
               )}
 
-              {/* Stop generation button (replaces send while streaming) */}
-              {(isTyping) && (
+              {/* Stop generation button (replaces send while thinking or streaming) */}
+              {(isTyping || isStreaming) && (
                 <button type="button" className="vi-stop-gen" onClick={cancelRequest}>
                   <i className="fas fa-stop"></i> Stop generating
                 </button>
@@ -1136,7 +1223,7 @@ const ViAssistant = () => {
                 <button
                   type="submit"
                   className="vi-send-btn"
-                  disabled={!inputMessage.trim() || isTyping || isVoiceMode}
+                  disabled={!inputMessage.trim() || isTyping || isStreaming || isVoiceMode}
                   title="Send message"
                 >
                   <i className="fas fa-paper-plane"></i>

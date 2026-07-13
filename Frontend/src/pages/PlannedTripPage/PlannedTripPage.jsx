@@ -31,6 +31,8 @@ import {
   getCachedItinerary,
   setCachedItinerary,
   saveTrip,
+  confirmTrip,
+  shareTrip,
 } from '../../services/tripsService';
 import { getAccessToken } from '../../services/authService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -79,6 +81,14 @@ const PlannedTripPage = () => {
   const [isSaved, setIsSaved]   = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Selections from Flight/Hotel tabs
+  const [selectedFlight, setSelectedFlight] = useState(tripData?.selectedFlight || null);
+  const [selectedHotel,  setSelectedHotel]  = useState(tripData?.selectedHotel  || null);
+  const [tripStatus,     setTripStatus]     = useState(tripData?.status || null);
+  const [markingBooked,  setMarkingBooked]  = useState(false);
+  const [shareUrl,       setShareUrl]       = useState(null);
+  const [isSharing,      setIsSharing]      = useState(false);
+
   const handleSaveTrip = async () => {
     if (!isAuthenticated) {
       navigate('/login', { state: { from: `/planned-trip/${tripId}` } });
@@ -108,6 +118,15 @@ const PlannedTripPage = () => {
       setLoading(false);
     }
   }, [tripId]);
+
+  // Sync selections from loaded trip data
+  useEffect(() => {
+    if (tripData) {
+      if (tripData.selectedFlight) setSelectedFlight(tripData.selectedFlight);
+      if (tripData.selectedHotel)  setSelectedHotel(tripData.selectedHotel);
+      if (tripData.status)         setTripStatus(tripData.status);
+    }
+  }, [tripData]);
 
   // Start progressive generation when trip data loads and itinerary is empty
   useEffect(() => {
@@ -289,8 +308,88 @@ const PlannedTripPage = () => {
         onRefreshData={loadTripData}
         isGenerating={isGenerating}
         totalDays={generationProgress.total}
+        onFlightSelected={f => setSelectedFlight(f)}
+        onHotelSelected={h => setSelectedHotel(h)}
       />
       <ViAssistant />
+
+      {/* Share Button — always visible for authenticated users */}
+      {isAuthenticated && (
+        <div className="planned-trip-share-bar">
+          {shareUrl ? (
+            <button
+              className="planned-trip-share-bar__copy"
+              onClick={() => { navigator.clipboard?.writeText(shareUrl); }}
+              title={shareUrl}
+            >
+              Link copied! {shareUrl.split('/').pop().slice(0, 8)}…
+            </button>
+          ) : (
+            <button
+              className="planned-trip-share-bar__btn"
+              disabled={isSharing}
+              onClick={async () => {
+                setIsSharing(true);
+                try {
+                  const token = getAccessToken();
+                  const res = await shareTrip(tripId, token);
+                  if (res.success) {
+                    const url = `${window.location.origin}/shared/${res.data.shareToken}`;
+                    setShareUrl(url);
+                    navigator.clipboard?.writeText(url);
+                  }
+                } catch { /* noop */ } finally { setIsSharing(false); }
+              }}
+            >
+              {isSharing ? 'Generating…' : '🔗 Share trip'}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Sticky Trip Summary Bar — appears when flight or hotel is selected */}
+      {(selectedFlight || selectedHotel) && (
+        <div className="planned-trip-summary-bar">
+          <div className="planned-trip-summary-bar__inner">
+            <span className="planned-trip-summary-bar__label">Trip Summary:</span>
+            {selectedFlight && (
+              <span className="planned-trip-summary-bar__item planned-trip-summary-bar__item--flight">
+                ✈ {selectedFlight.departure} → {selectedFlight.arrival}
+                {selectedFlight.price ? ` · $${selectedFlight.price}` : ''}
+              </span>
+            )}
+            {selectedHotel && (
+              <span className="planned-trip-summary-bar__item planned-trip-summary-bar__item--hotel">
+                🏨 {selectedHotel.name}
+                {selectedHotel.price ? ` · $${selectedHotel.price}/night` : ''}
+              </span>
+            )}
+            {(selectedFlight?.price || selectedHotel?.price) && (
+              <span className="planned-trip-summary-bar__total">
+                Est. total: ${((selectedFlight?.price || 0) + (selectedHotel?.price || 0)).toLocaleString()}
+              </span>
+            )}
+            {tripStatus === 'confirmed' ? (
+              <span className="planned-trip-summary-bar__confirmed">✓ Booked</span>
+            ) : (
+              <button
+                className="planned-trip-summary-bar__confirm-btn"
+                disabled={markingBooked}
+                onClick={async () => {
+                  setMarkingBooked(true);
+                  try {
+                    const token = getAccessToken();
+                    await confirmTrip(tripId, token);
+                    setTripStatus('confirmed');
+                  } catch { /* noop */ } finally { setMarkingBooked(false); }
+                }}
+              >
+                {markingBooked ? 'Saving…' : 'Mark as booked'}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

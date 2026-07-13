@@ -297,6 +297,20 @@
   backdrop-filter: blur(6px);
 }
 
+.mtp__card-status-badge {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 100px;
+  backdrop-filter: blur(6px);
+  letter-spacing: 0.03em;
+}
+.mtp__card-status-badge--pending   { background: rgba(251,191,36,0.9); color: #78350f; }
+.mtp__card-status-badge--confirmed { background: rgba(16,185,129,0.9); color: #fff; }
+
 .mtp__card-body {
   padding: 20px;
 }
@@ -457,3 +471,156 @@
 [data-theme="dark"] .mtp__card-title { color: #f8fafc; }
 [data-theme="dark"] .mtp__card-btn.secondary { background: #334155; color: #cbd5e1; }
 [data-theme="dark"] .mtp__map-hint { background: #1e293b; border-color: #334155; color: #94a3b8; }
+
+/* ── Kebab Menu ──────────────────────────────────────────────────────────────── */
+.mtp__card-menu {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+.mtp__card-menu-btn {
+  background: rgba(0,0,0,0.45);
+  border: none;
+  color: #fff;
+  border-radius: 6px;
+  padding: 4px 7px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.mtp__card-menu-btn:hover { background: rgba(0,0,0,0.7); }
+.mtp__card-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  min-width: 130px;
+  overflow: hidden;
+  z-index: 50;
+}
+.mtp__card-menu-dropdown button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  color: #334155;
+  text-align: left;
+  transition: background 0.12s;
+}
+.mtp__card-menu-dropdown button:hover { background: #f1f5f9; }
+.mtp__card-menu-delete { color: #dc2626 !important; }
+.mtp__card-menu-delete:hover { background: #fef2f2 !important; }
+
+/* ── Inline rename ───────────────────────────────────────────────────────────── */
+.mtp__card-rename {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.mtp__card-rename-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1.5px solid #3b82f6;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+}
+.mtp__card-rename-save,
+.mtp__card-rename-cancel {
+  padding: 5px 10px;
+  border-radius: 5px;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+}
+.mtp__card-rename-save { background: #3b82f6; color: #fff; }
+.mtp__card-rename-save:hover:not(:disabled) { background: #2563eb; }
+.mtp__card-rename-cancel { background: #e2e8f0; color: #475569; }
+
+/* ── Delete modal ────────────────────────────────────────────────────────────── */
+.mtp__modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.mtp__modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 28px 32px;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+.mtp__modal h3 { font-size: 18px; font-weight: 700; margin: 0 0 10px; color: #0f172a; }
+.mtp__modal p  { font-size: 14px; color: #475569; margin: 0 0 22px; }
+.mtp__modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.mtp__modal-btn { padding: 9px 18px; border: none; border-radius: 7px; font-size: 14px; font-weight: 500; cursor: pointer; }
+.mtp__modal-btn--cancel { background: #f1f5f9; color: #475569; }
+.mtp__modal-btn--cancel:hover { background: #e2e8f0; }
+.mtp__modal-btn--delete { background: #dc2626; color: #fff; }
+.mtp__modal-btn--delete:hover:not(:disabled) { background: #b91c1c; }
+
+/* ── Better empty state ──────────────────────────────────────────────────────── */
+.mtp__empty-title { font-size: 20px; font-weight: 700; margin: 16px 0 8px; color: #1e293b; }
+.mtp__empty-text  { font-size: 14px; color: #64748b; margin: 0 0 20px; max-width: 280px; text-align: center; }
+
+/* ── Dark mode overrides ─────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  .mtp__card-menu-dropdown { background: #1e293b; border: 1px solid #334155; }
+  .mtp__card-menu-dropdown button { color: #cbd5e1; }
+  .mtp__card-menu-dropdown button:hover { background: #334155; }
+  .mtp__modal { background: #1e293b; }
+  .mtp__modal h3 { color: #f8fafc; }
+  .mtp__modal p  { color: #94a3b8; }
+  .mtp__modal-btn--cancel { background: #334155; color: #cbd5e1; }
+  .mtp__card-rename-input { background: #334155; color: #f8fafc; border-color: #3b82f6; }
+  .mtp__empty-title { color: #f8fafc; }
+}
+[data-theme="dark"] .mtp__card-menu-dropdown { background: #1e293b; border: 1px solid #334155; }
+[data-theme="dark"] .mtp__card-menu-dropdown button { color: #cbd5e1; }
+[data-theme="dark"] .mtp__card-menu-dropdown button:hover { background: #334155; }
+[data-theme="dark"] .mtp__modal { background: #1e293b; }
+[data-theme="dark"] .mtp__modal h3 { color: #f8fafc; }
+[data-theme="dark"] .mtp__modal p  { color: #94a3b8; }
+[data-theme="dark"] .mtp__modal-btn--cancel { background: #334155; color: #cbd5e1; }
+[data-theme="dark"] .mtp__card-rename-input { background: #334155; color: #f8fafc; border-color: #3b82f6; }
+[data-theme="dark"] .mtp__empty-title { color: #f8fafc; }
+
+/* ── Wishlist ────────────────────────────────────────────────────────────────── */
+.mtp__wishlist { padding: 4px 0; }
+.mtp__card--wishlist {}
+.mtp__wishlist-remove {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(220,38,38,0.85);
+  border: none;
+  color: #fff;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.mtp__wishlist-remove:hover { background: #dc2626; }
+.mtp__card-country { font-size: 12px; color: #64748b; margin: -4px 0 6px; }
+.mtp__card-notes   { font-size: 12px; color: #64748b; font-style: italic; margin: 0 0 10px; line-height: 1.4; }

@@ -188,6 +188,8 @@ const tripSchema = new mongoose.Schema({
     enum: ['budget', 'moderate', 'luxury', 'premium', null, ''],
   },
   description: String,
+  customTitle: String,
+  deleted: { type: Boolean, default: false, index: true },
 
   // Phase 1: Trip options (lightweight)
   options: [tripOptionSchema],
@@ -199,12 +201,51 @@ const tripSchema = new mongoose.Schema({
   // Selected option
   selected_option_id: String,
 
+  // Bookings selected by the user from flight/hotel/car search tabs
+  selectedFlight: {
+    provider: String,
+    bookingUrl: String,
+    price: Number,
+    currency: { type: String, default: 'USD' },
+    departure: String,
+    arrival: String,
+    airline: String,
+    flightNumber: String,
+    savedAt: { type: Date, default: Date.now }
+  },
+  selectedHotel: {
+    provider: String,
+    bookingUrl: String,
+    price: Number,
+    currency: { type: String, default: 'USD' },
+    name: String,
+    address: String,
+    checkIn: String,
+    checkOut: String,
+    stars: Number,
+    savedAt: { type: Date, default: Date.now }
+  },
+  selectedCar: {
+    provider: String,
+    bookingUrl: String,
+    price: Number,
+    currency: { type: String, default: 'USD' },
+    carType: String,
+    pickupLocation: String,
+    savedAt: { type: Date, default: Date.now }
+  },
+  totalEstimatedCost: { type: Number, default: 0 },
+
   // Trip status
   status: {
     type: String,
-    enum: ['draft', 'options_generated', 'option_selected', 'itinerary_generated', 'confirmed', 'archived'],
+    enum: ['draft', 'options_generated', 'option_selected', 'itinerary_generated', 'confirmed', 'booked_externally', 'archived'],
     default: 'draft'
-  }
+  },
+
+  // Trip sharing
+  shareToken: { type: String, index: true, sparse: true },
+  isPublic: { type: Boolean, default: false }
 }, {
   timestamps: true
 });

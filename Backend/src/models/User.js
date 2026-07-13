@@ -70,6 +70,21 @@ const userSchema = new mongoose.Schema({
       expires: '30d' // Auto-delete after 30 days
     }
   }],
+  // Admin role
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
+  },
+  // Travel preferences
+  preferences: {
+    travelStyle: { type: String, enum: ['budget', 'moderate', 'luxury', 'premium'], default: null },
+    preferredActivities: { type: [String], default: [] },
+    seatClass: { type: String, enum: ['economy', 'premium_economy', 'business', 'first'], default: null },
+    hotelStars: { type: Number, min: 1, max: 5, default: null },
+    dietaryRestrictions: { type: [String], default: [] },
+    accessibility: { type: [String], default: [] }
+  },
   // Account status
   isActive: {
     type: Boolean,

@@ -6,6 +6,7 @@
 import express from 'express';
 import {
   sendMessage,
+  streamMessage,
   getChatHistory,
   getStatus,
   createConversation,
@@ -23,6 +24,7 @@ const router = express.Router();
  * @access  Public (enhanced with user context if authenticated)
  */
 router.post('/message', optionalAuthenticate, sendMessage);
+router.post('/message/stream', optionalAuthenticate, streamMessage);
 
 /**
  * @route   GET /api/chat/history

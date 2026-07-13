@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import PageMeta from '../hooks/usePageMeta';
 import Banner from '../components/Banner/Banner';
 import AboutUs from '../components/AboutUs/AboutUs';
 import TopDestinations from '../components/TopDestinations/TopDestinations';
@@ -56,6 +57,7 @@ const Home = () => {
 
   return (
     <>
+      <PageMeta title="AI-Powered Travel Planning" description="Plan your perfect trip with AI. Describe where you want to go and get a personalized itinerary, flights, and hotels in minutes." path="/" />
       <Banner />
       {/* <AboutUs /> */}
       {/* <TopDestinations /> */}

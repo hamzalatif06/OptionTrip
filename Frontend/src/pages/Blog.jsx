@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchPosts } from '../services/wordpressApi';
 import BlogCard from '../components/BlogCard/BlogCard';
+import PageMeta from '../hooks/usePageMeta';
 import './Blog.css';
 
 // ─── Skeleton placeholder while loading ──────────────────────────
@@ -54,6 +55,7 @@ const Blog = () => {
 
   return (
     <>
+      <PageMeta title="Travel Blog" description="Explore travel guides, destination tips, and insider advice from the OptionTrip team." path="/blog" />
       {/* Hero Banner */}
       <div
         className="banner pt-10 pb-0 overflow-hidden"

@@ -295,4 +295,16 @@ router.delete(
   authController.deleteAccount
 );
 
+/**
+ * @route   PATCH /api/auth/preferences
+ * @desc    Update user travel preferences
+ * @access  Private
+ */
+router.patch(
+  '/preferences',
+  authenticate,
+  generalRateLimiter,
+  authController.updatePreferences
+);
+
 export default router;

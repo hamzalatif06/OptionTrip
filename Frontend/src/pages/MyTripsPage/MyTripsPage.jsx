@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import PageMeta from '../../hooks/usePageMeta';
 import { useAuth } from '../../contexts/AuthContext';
 import { getAccessToken } from '../../services/authService';
 import {
@@ -8,7 +10,10 @@ import {
   getVisitedLocations,
   addVisitedLocation,
   removeVisitedLocation,
+  deleteTrip,
+  renameTrip,
 } from '../../services/tripsService';
+import { getWishlist, removeFromWishlist } from '../../services/wishlistService';
 import TravelMapTab from './TravelMapTab';
 import VisitedPlacesTab from './VisitedPlacesTab';
 import ViAssistant from '../../components/ViAssistant/ViAssistant';
@@ -51,81 +56,163 @@ const fmtDate = (d) =>
 
 const BUDGET_LABELS = { budget: 'Budget', moderate: 'Moderate', luxury: 'Luxury', premium: 'Premium' };
 
+// ── Single trip card with kebab menu ──────────────────────────────────────────
+const TripCard = ({ trip, onDelete, onRename }) => {
+  const dest          = trip.customTitle || trip.destination?.name || 'Unknown Destination';
+  const [menuOpen,    setMenuOpen]    = useState(false);
+  const [renaming,    setRenaming]    = useState(false);
+  const [draft,       setDraft]       = useState(dest);
+  const [savingRename, setSavingRename] = useState(false);
+  const menuRef = useRef(null);
+
+  // Close menu on outside click
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e) => { if (!menuRef.current?.contains(e.target)) setMenuOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [menuOpen]);
+
+  const submitRename = async () => {
+    if (!draft.trim() || draft.trim() === dest) { setRenaming(false); return; }
+    setSavingRename(true);
+    try {
+      await onRename(trip.trip_id, draft.trim());
+    } finally {
+      setSavingRename(false);
+      setRenaming(false);
+    }
+  };
+
+  return (
+    <div className="mtp__card">
+      <div className="mtp__card-img" style={{ backgroundImage: `url(${getDestinationImage(trip.destination?.name || dest)})` }}>
+        <span className="mtp__card-badge">{trip.dates?.duration_days || 0} Days</span>
+        {trip.trip_type && <span className="mtp__card-type-badge">{trip.trip_type}</span>}
+        {trip.status === 'booked_externally' && <span className="mtp__card-status-badge mtp__card-status-badge--pending">Booking in progress</span>}
+        {trip.status === 'confirmed' && <span className="mtp__card-status-badge mtp__card-status-badge--confirmed">✓ Booked</span>}
+
+        {/* Kebab menu */}
+        <div className="mtp__card-menu" ref={menuRef}>
+          <button className="mtp__card-menu-btn" onClick={() => setMenuOpen(v => !v)} aria-label="Trip options">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+              <circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>
+            </svg>
+          </button>
+          {menuOpen && (
+            <div className="mtp__card-menu-dropdown">
+              <button onClick={() => { setMenuOpen(false); setDraft(dest); setRenaming(true); }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14">
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Rename
+              </button>
+              <button className="mtp__card-menu-delete" onClick={() => { setMenuOpen(false); onDelete(trip.trip_id, dest); }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                </svg>
+                Delete
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="mtp__card-body">
+        {renaming ? (
+          <div className="mtp__card-rename">
+            <input
+              className="mtp__card-rename-input"
+              value={draft}
+              onChange={e => setDraft(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') submitRename(); if (e.key === 'Escape') setRenaming(false); }}
+              autoFocus
+            />
+            <button className="mtp__card-rename-save" onClick={submitRename} disabled={savingRename}>
+              {savingRename ? '…' : 'Save'}
+            </button>
+            <button className="mtp__card-rename-cancel" onClick={() => setRenaming(false)}>✕</button>
+          </div>
+        ) : (
+          <h3 className="mtp__card-title">{dest}</h3>
+        )}
+
+        <div className="mtp__card-meta">
+          <span className="mtp__card-meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="14" height="14">
+              <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+            </svg>
+            {fmtDate(trip.dates?.start_date)} – {fmtDate(trip.dates?.end_date)}
+          </span>
+          {(trip.guests?.total || 0) > 0 && (
+            <span className="mtp__card-meta-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="14" height="14">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+              </svg>
+              {trip.guests.total} traveler{trip.guests.total !== 1 ? 's' : ''}
+            </span>
+          )}
+          {trip.budget && (
+            <span className="mtp__card-meta-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="14" height="14">
+                <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+              </svg>
+              {BUDGET_LABELS[trip.budget] || trip.budget}
+            </span>
+          )}
+        </div>
+
+        <div className="mtp__card-actions">
+          <Link to={`/planned-trip/${trip.trip_id}`} className="mtp__card-btn primary">View Itinerary</Link>
+          <Link to={`/trips/${trip.trip_id}`} className="mtp__card-btn secondary">Options</Link>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── Delete confirmation modal ──────────────────────────────────────────────────
+const DeleteModal = ({ tripName, onConfirm, onCancel, deleting }) => (
+  <div className="mtp__modal-overlay" onClick={onCancel}>
+    <div className="mtp__modal" onClick={e => e.stopPropagation()}>
+      <h3>Delete trip?</h3>
+      <p>Remove <strong>{tripName}</strong> from your saved trips? This cannot be undone.</p>
+      <div className="mtp__modal-actions">
+        <button className="mtp__modal-btn mtp__modal-btn--cancel" onClick={onCancel} disabled={deleting}>Cancel</button>
+        <button className="mtp__modal-btn mtp__modal-btn--delete" onClick={onConfirm} disabled={deleting}>
+          {deleting ? 'Deleting…' : 'Delete'}
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 // ── My Trips tab: cards grid ───────────────────────────────────────────────────
-const MyTripsGrid = ({ trips, onSaveVisit }) => {
+const MyTripsGrid = ({ trips, onDelete, onRename }) => {
   if (trips.length === 0) {
     return (
       <div className="mtp__empty">
         <div className="mtp__empty-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" width="48" height="48">
-            <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+          <svg viewBox="0 0 80 80" fill="none" width="80" height="80">
+            <circle cx="40" cy="40" r="38" stroke="#e2e8f0" strokeWidth="2"/>
+            <path d="M25 40 Q40 20 55 40 Q40 60 25 40z" stroke="#94a3b8" strokeWidth="2" fill="none"/>
+            <circle cx="40" cy="40" r="4" fill="#94a3b8"/>
+            <path d="M40 30v-8M30 40h-8M40 50v8M50 40h8" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round"/>
           </svg>
         </div>
-        <h3>No trips saved yet</h3>
-        <p>Generate your first trip and click "Save Trip" to see it here.</p>
-        <Link to="/" className="mtp__cta-btn">Plan Your First Trip</Link>
+        <h3 className="mtp__empty-title">No trips saved yet</h3>
+        <p className="mtp__empty-text">Plan your first adventure and save it to see it here.</p>
+        <Link to="/plan-my-day" className="mtp__cta-btn">Start Planning Free</Link>
       </div>
     );
   }
 
   return (
     <div className="mtp__grid">
-      {trips.map((trip) => {
-        const dest = trip.destination?.name || 'Unknown Destination';
-        return (
-          <div key={trip.trip_id} className="mtp__card">
-            <div
-              className="mtp__card-img"
-              style={{ backgroundImage: `url(${getDestinationImage(dest)})` }}
-            >
-              <span className="mtp__card-badge">{trip.dates?.duration_days || 0} Days</span>
-              {trip.trip_type && (
-                <span className="mtp__card-type-badge">{trip.trip_type}</span>
-              )}
-            </div>
-
-            <div className="mtp__card-body">
-              <h3 className="mtp__card-title">{dest}</h3>
-
-              <div className="mtp__card-meta">
-                <span className="mtp__card-meta-item">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="14" height="14">
-                    <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
-                  </svg>
-                  {fmtDate(trip.dates?.start_date)} – {fmtDate(trip.dates?.end_date)}
-                </span>
-                {(trip.guests?.total || 0) > 0 && (
-                  <span className="mtp__card-meta-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="14" height="14">
-                      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                      <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-                    </svg>
-                    {trip.guests.total} traveler{trip.guests.total !== 1 ? 's' : ''}
-                  </span>
-                )}
-                {trip.budget && (
-                  <span className="mtp__card-meta-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="14" height="14">
-                      <circle cx="12" cy="12" r="10"/>
-                      <path d="M12 6v6l4 2"/>
-                    </svg>
-                    {BUDGET_LABELS[trip.budget] || trip.budget}
-                  </span>
-                )}
-              </div>
-
-              <div className="mtp__card-actions">
-                <Link to={`/planned-trip/${trip.trip_id}`} className="mtp__card-btn primary">
-                  View Itinerary
-                </Link>
-                <Link to={`/trips/${trip.trip_id}`} className="mtp__card-btn secondary">
-                  Options
-                </Link>
-              </div>
-            </div>
-          </div>
-        );
-      })}
+      {trips.map((trip) => (
+        <TripCard key={trip.trip_id} trip={trip} onDelete={onDelete} onRename={onRename} />
+      ))}
     </div>
   );
 };
@@ -139,8 +226,13 @@ const MyTripsPage = () => {
   const [trips, setTrips]               = useState([]);
   const [mapTrips, setMapTrips]         = useState([]);
   const [visited, setVisited]           = useState([]);
+  const [wishlist, setWishlist]         = useState([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState(null);
+
+  // Delete modal state
+  const [deleteTarget, setDeleteTarget] = useState(null); // { tripId, tripName }
+  const [deleting, setDeleting]         = useState(false);
 
   // Auth guard
   useEffect(() => {
@@ -158,10 +250,11 @@ const MyTripsPage = () => {
         setError(null);
         const token = getAccessToken();
 
-        const [tripsRes, mapRes, visitedRes] = await Promise.allSettled([
+        const [tripsRes, mapRes, visitedRes, wishlistRes] = await Promise.allSettled([
           getMyTrips(token),
           getMapData(token),
           getVisitedLocations(token),
+          getWishlist(),
         ]);
 
         const savedTrips = tripsRes.status === 'fulfilled' && tripsRes.value?.success
@@ -178,6 +271,9 @@ const MyTripsPage = () => {
         }
         if (visitedRes.status === 'fulfilled' && visitedRes.value?.success) {
           setVisited(visitedRes.value.data?.locations || []);
+        }
+        if (wishlistRes.status === 'fulfilled') {
+          setWishlist(Array.isArray(wishlistRes.value) ? wishlistRes.value : []);
         }
       } catch (err) {
         setError(err.message || 'Failed to load dashboard');
@@ -210,6 +306,48 @@ const MyTripsPage = () => {
     }
   };
 
+  // Delete trip
+  const handleDeleteRequest = (tripId, tripName) => setDeleteTarget({ tripId, tripName });
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const token = getAccessToken();
+      await deleteTrip(deleteTarget.tripId, token);
+      setTrips(prev => prev.filter(t => t.trip_id !== deleteTarget.tripId));
+      toast.success('Trip deleted.');
+      setDeleteTarget(null);
+    } catch {
+      toast.error('Failed to delete trip. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // Rename trip
+  const handleRenameTrip = async (tripId, customTitle) => {
+    try {
+      const token = getAccessToken();
+      await renameTrip(tripId, customTitle, token);
+      setTrips(prev => prev.map(t => t.trip_id === tripId ? { ...t, customTitle } : t));
+      toast.success('Trip renamed.');
+    } catch {
+      toast.error('Failed to rename trip. Please try again.');
+      throw new Error('rename_failed'); // re-throw so TripCard keeps rename mode open
+    }
+  };
+
+  // Remove wishlist item
+  const handleRemoveWishlist = async (id) => {
+    try {
+      await removeFromWishlist(id);
+      setWishlist(prev => prev.filter(w => w._id !== id));
+      toast.success('Removed from wishlist.');
+    } catch {
+      toast.error('Failed to remove item.');
+    }
+  };
+
   // Dashboard stats
   const stats = useMemo(() => ({
     trips:       trips.length,
@@ -219,9 +357,10 @@ const MyTripsPage = () => {
   }), [trips, visited]);
 
   const TABS = [
-    { id: 'trips',   label: 'My Trips',       icon: '🗺️' },
-    { id: 'map',     label: 'Travel Map',      icon: '🌍' },
-    { id: 'visited', label: 'Visited Places',  icon: '📍' },
+    { id: 'trips',    label: 'My Trips',       icon: '🗺️' },
+    { id: 'map',      label: 'Travel Map',      icon: '🌍' },
+    { id: 'visited',  label: 'Visited Places',  icon: '📍' },
+    { id: 'wishlist', label: 'Wishlist',         icon: '❤️' },
   ];
 
   if (authLoading || loading) {
@@ -230,6 +369,7 @@ const MyTripsPage = () => {
 
   return (
     <div className="mtp">
+      <PageMeta title="My Trips" description="View and manage all your planned trips, travel map, and visited destinations." path="/my-trips" />
       {/* ── Header ── */}
       <header className="mtp__header">
         <div className="mtp__header-inner">
@@ -317,7 +457,15 @@ const MyTripsPage = () => {
           )}
 
           {activeTab === 'trips' && (
-            <MyTripsGrid trips={trips} />
+            <MyTripsGrid trips={trips} onDelete={handleDeleteRequest} onRename={handleRenameTrip} />
+          )}
+          {deleteTarget && (
+            <DeleteModal
+              tripName={deleteTarget.tripName}
+              onConfirm={handleDeleteConfirm}
+              onCancel={() => setDeleteTarget(null)}
+              deleting={deleting}
+            />
           )}
 
           {activeTab === 'map' && (
@@ -342,6 +490,54 @@ const MyTripsPage = () => {
                 onAdd={handleAddVisited}
                 onRemove={handleRemoveVisited}
               />
+            </div>
+          )}
+
+          {activeTab === 'wishlist' && (
+            <div className="mtp__wishlist">
+              {wishlist.length === 0 ? (
+                <div className="mtp__empty">
+                  <div className="mtp__empty-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" width="48" height="48">
+                      <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                    </svg>
+                  </div>
+                  <h3 className="mtp__empty-title">Your wishlist is empty</h3>
+                  <p className="mtp__empty-text">Save destinations you want to visit using the heart icon on destination cards.</p>
+                  <Link to="/" className="mtp__cta-btn">Explore Destinations</Link>
+                </div>
+              ) : (
+                <div className="mtp__grid">
+                  {wishlist.map(item => (
+                    <div key={item._id} className="mtp__card mtp__card--wishlist">
+                      <div
+                        className="mtp__card-img"
+                        style={{ backgroundImage: `url(${item.imageUrl || getDestinationImage(item.destinationName)})` }}
+                      >
+                        <button
+                          className="mtp__wishlist-remove"
+                          onClick={() => handleRemoveWishlist(item._id)}
+                          title="Remove from wishlist"
+                        >
+                          <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+                            <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                          </svg>
+                        </button>
+                      </div>
+                      <div className="mtp__card-body">
+                        <h3 className="mtp__card-title">{item.destinationName}</h3>
+                        {item.country && <p className="mtp__card-country">{item.country}</p>}
+                        {item.notes && <p className="mtp__card-notes">{item.notes}</p>}
+                        <div className="mtp__card-actions">
+                          <Link to={`/?destination=${encodeURIComponent(item.destinationName)}`} className="mtp__card-btn primary">
+                            Plan this trip
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -1,11 +1,72 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { toast } from 'react-toastify';
 import { searchAirports, searchFlightsDuffel, searchFlightsGoogle, searchFlightsTP, searchFlights as searchFlightsAmadeus, getCheapPrice } from '../../../services/flightService';
+import { updateTripSelection } from '../../../services/tripsService';
+import { getAccessToken } from '../../../services/authService';
 import FlightCardGF     from '../../../components/FlightCard/FlightCardGF';
 import FlightCardTP     from '../../../components/FlightCard/FlightCardTP';
 import FlightCard       from '../../../components/FlightCard/FlightCard';
 import FlightCardDuffel from '../../../components/FlightCard/FlightCardDuffel';
 import FlightFilters, { DEFAULT_FILTERS, applyFilters } from '../../../components/FlightFilters/FlightFilters';
 import './FlightTab.css';
+
+/* ── Flight selection helpers ───────────────────────────────────────────────── */
+const buildFlightPayload = (flight, provider) => {
+  if (provider === 'amadeus') {
+    const outbound = flight.itineraries?.[0];
+    const firstSeg = outbound?.segments?.[0];
+    const lastSeg  = outbound?.segments?.[outbound.segments.length - 1];
+    return {
+      provider,
+      bookingUrl:   flight.bookingUrl   || '',
+      price:        flight.price        || 0,
+      currency:     flight.currency     || 'USD',
+      departure:    firstSeg?.departure?.iataCode || '',
+      arrival:      lastSeg?.arrival?.iataCode    || '',
+      airline:      flight.validatingCarrier || firstSeg?.carrierCode || '',
+      flightNumber: firstSeg ? `${firstSeg.carrierCode}${firstSeg.flightNumber}` : ''
+    };
+  }
+  return {
+    provider,
+    bookingUrl:   flight.bookingUrl    || '',
+    price:        flight.price         || 0,
+    currency:     flight.currency      || 'USD',
+    departure:    flight.origin        || '',
+    arrival:      flight.destination   || '',
+    airline:      flight.airline       || '',
+    flightNumber: flight.flightNumber  || ''
+  };
+};
+
+const FlightSelectButton = ({ flight, provider, tripId, token, isSelected, onSelect }) => {
+  const [saving, setSaving] = useState(false);
+  if (!tripId) return null;
+
+  const handle = async () => {
+    setSaving(true);
+    try {
+      const payload = buildFlightPayload(flight, provider);
+      await updateTripSelection(tripId, { selectedFlight: payload }, token);
+      onSelect();
+      toast.success('Flight saved to your trip!');
+    } catch {
+      toast.error('Could not save flight — please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <button
+      className={`ft-select-btn${isSelected ? ' ft-select-btn--saved' : ''}`}
+      onClick={handle}
+      disabled={saving || isSelected}
+    >
+      {saving ? 'Saving…' : isSelected ? 'Selected ✓' : 'Select for this trip'}
+    </button>
+  );
+};
 
 const CABIN_OPTIONS = ['Economy', 'Premium Economy', 'Business', 'First'];
 
@@ -151,11 +212,20 @@ const getCityFromGeolocation = () => new Promise((resolve) => {
 });
 
 /* ── Main component ─────────────────────────────────────────────────────────── */
-const FlightTab = ({ tripData }) => {
+const FlightTab = ({ tripData, onFlightSelected }) => {
   const defaultDeparture = tripData?.dates?.start_date || '';
   const defaultReturn    = tripData?.dates?.end_date   || '';
   const defaultAdults    = tripData?.guests?.adults    || 1;
   const defaultChildren  = tripData?.guests?.children  || 0;
+
+  const tripId = tripData?.trip_id || null;
+  const token  = getAccessToken();
+  const [selectedFlightKey, setSelectedFlightKey] = useState(null);
+
+  const handleFlightSelect = (flight) => {
+    setSelectedFlightKey(flight.id || `${flight.origin}-${flight.destination}-${flight.price}`);
+    onFlightSelected?.(buildFlightPayload(flight, 'selected'));
+  };
 
   const [tripType, setTripType] = useState(defaultReturn ? 'round-trip' : 'one-way');
   const [origin,   setOrigin]   = useState(null);
@@ -518,8 +588,18 @@ const FlightTab = ({ tripData }) => {
                 {' · '}{sourceTag} · {list.length} flights found
               </p>
               {autoSource === 'duffel'
-                ? paginated.map(f => <FlightCardDuffel key={f.id} flight={f} />)
-                : paginated.map(f => <FlightCardGF     key={f.id} flight={f} />)
+                ? paginated.map(f => (
+                    <div key={f.id}>
+                      <FlightCardDuffel flight={f} />
+                      <FlightSelectButton flight={f} provider="duffel" tripId={tripId} token={token} isSelected={selectedFlightKey === f.id} onSelect={() => handleFlightSelect(f)} />
+                    </div>
+                  ))
+                : paginated.map(f => (
+                    <div key={f.id}>
+                      <FlightCardGF flight={f} />
+                      <FlightSelectButton flight={f} provider="gf" tripId={tripId} token={token} isSelected={selectedFlightKey === f.id} onSelect={() => handleFlightSelect(f)} />
+                    </div>
+                  ))
               }
               {totalPages > 1 && (
                 <Pagination page={autoPage} total={totalPages} onChange={setAutoPage} />
@@ -735,7 +815,12 @@ const FlightTab = ({ tripData }) => {
                           </div>
                           {pSlice.length === 0
                             ? <p className="ft-suggested__empty">No flights match your filters.</p>
-                            : pSlice.map(f => <FlightCardDuffel key={f.id} flight={f} />)
+                            : pSlice.map(f => (
+                                <div key={f.id}>
+                                  <FlightCardDuffel flight={f} />
+                                  <FlightSelectButton flight={f} provider="duffel" tripId={tripId} token={token} isSelected={selectedFlightKey === f.id} onSelect={() => handleFlightSelect(f)} />
+                                </div>
+                              ))
                           }
                         </>
                       );
@@ -763,7 +848,12 @@ const FlightTab = ({ tripData }) => {
                                 </div>
                                 <span className="ft-section-header__badge">{filtTop.length}</span>
                               </div>
-                              {pTop.map(f => <FlightCardGF key={f.id} flight={f} />)}
+                              {pTop.map(f => (
+                                <div key={f.id}>
+                                  <FlightCardGF flight={f} />
+                                  <FlightSelectButton flight={f} provider="gf" tripId={tripId} token={token} isSelected={selectedFlightKey === f.id} onSelect={() => handleFlightSelect(f)} />
+                                </div>
+                              ))}
                             </>
                           )}
                           {pOther.length > 0 && (
@@ -778,7 +868,12 @@ const FlightTab = ({ tripData }) => {
                                 </div>
                                 <span className="ft-section-header__badge">{filtOther.length}</span>
                               </div>
-                              {pOther.map(f => <FlightCardGF key={f.id} flight={f} />)}
+                              {pOther.map(f => (
+                                <div key={f.id}>
+                                  <FlightCardGF flight={f} />
+                                  <FlightSelectButton flight={f} provider="gf" tripId={tripId} token={token} isSelected={selectedFlightKey === f.id} onSelect={() => handleFlightSelect(f)} />
+                                </div>
+                              ))}
                             </>
                           )}
                           {allFilt.length === 0 && (
@@ -806,7 +901,12 @@ const FlightTab = ({ tripData }) => {
                           </div>
                           {pSlice.length === 0
                             ? <p className="ft-suggested__empty">No flights match your filters.</p>
-                            : pSlice.map(f => <FlightCardTP key={f.id} flight={f} />)
+                            : pSlice.map(f => (
+                                <div key={f.id}>
+                                  <FlightCardTP flight={f} />
+                                  <FlightSelectButton flight={f} provider="tp" tripId={tripId} token={token} isSelected={selectedFlightKey === f.id} onSelect={() => handleFlightSelect(f)} />
+                                </div>
+                              ))
                           }
                         </>
                       );
@@ -827,7 +927,12 @@ const FlightTab = ({ tripData }) => {
                             </div>
                             <span className="ft-section-header__badge">{amadFlights.length}</span>
                           </div>
-                          {pSlice.map((f, i) => <FlightCard key={f.id || i} flight={f} />)}
+                          {pSlice.map((f, i) => (
+                            <div key={f.id || i}>
+                              <FlightCard flight={f} />
+                              <FlightSelectButton flight={f} provider="amadeus" tripId={tripId} token={token} isSelected={selectedFlightKey === (f.id || String(i))} onSelect={() => handleFlightSelect({ ...f, id: f.id || String(i) })} />
+                            </div>
+                          ))}
                         </>
                       );
                     })()}

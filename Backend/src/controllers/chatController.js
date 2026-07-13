@@ -3,7 +3,7 @@
  * Handles Vi AI Assistant chat endpoints with conversation persistence
  */
 
-import { generateViResponse } from '../services/chatService.js';
+import { generateViResponse, streamViResponse } from '../services/chatService.js';
 import Trip from '../models/Trip.js';
 import Conversation from '../models/Conversation.js';
 import {
@@ -185,6 +185,84 @@ export const sendMessage = async (req, res) => {
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
+};
+
+// ── Streaming message handler ──────────────────────────────────────────────
+
+/**
+ * POST /api/chat/message/stream
+ * SSE endpoint. Sends `data: {delta}` events for each chunk, then a final
+ * `data: {done, type, quickReplies, conversationId}` event.
+ */
+export const streamMessage = async (req, res) => {
+  const { message, tripId, conversationId, location } = req.body;
+  const user = req.user;
+
+  if (!message || typeof message !== 'string') {
+    return res.status(400).json({ success: false, message: 'Message is required' });
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  const send = (data) => res.write(`data: ${JSON.stringify(data)}\n\n`);
+
+  try {
+    const { context, conversation, conversationHistory } =
+      await prepareChat(user, { message, tripId, conversationId, location });
+
+    const aiStream = await streamViResponse(message, context, conversationHistory);
+
+    let fullText = '';
+
+    if (!aiStream) {
+      // No API key — fall back to non-streaming
+      const fallback = await generateViResponse(message, context, conversationHistory);
+      send({ delta: JSON.stringify({ message: fallback.text, type: fallback.type, quickReplies: fallback.quickReplies }) });
+      send({ done: true, type: fallback.type, quickReplies: fallback.quickReplies, conversationId: conversation?.conversation_id || null });
+      return res.end();
+    }
+
+    for await (const chunk of aiStream) {
+      const delta = chunk.choices[0]?.delta?.content || '';
+      if (delta) {
+        fullText += delta;
+        send({ delta });
+      }
+    }
+
+    let parsed = {};
+    try { parsed = JSON.parse(fullText); } catch { /* noop */ }
+
+    const responseText = parsed.message || parsed.text || fullText;
+    const quickReplies = Array.isArray(parsed.quickReplies) ? parsed.quickReplies.slice(0, 4) : [];
+    const type = parsed.type || 'general';
+
+    let savedConvId = conversation?.conversation_id || null;
+    if (conversation) {
+      try {
+        conversation.messages.push({ role: 'assistant', text: responseText, type, quickReplies });
+        conversation.last_message_at = new Date();
+        await conversation.save();
+        savedConvId = conversation.conversation_id;
+      } catch (saveErr) {
+        console.error('Error saving streamed conversation:', saveErr);
+      }
+    }
+
+    if (user && context.unfedActivityIds?.length) {
+      markActivitiesAsFed(user._id, context.unfedActivityIds).catch(() => {});
+    }
+
+    send({ done: true, type, quickReplies, conversationId: savedConvId });
+  } catch (err) {
+    if (err?.name !== 'AbortError') console.error('Stream chat error:', err);
+    send({ error: 'Stream failed' });
+  }
+
+  res.end();
 };
 
 // ── Conversation CRUD ──────────────────────────────────────────────────────

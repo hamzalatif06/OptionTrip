@@ -5,6 +5,9 @@ import { EXPLORE_DESTINATIONS } from '../data/exploreDestinations';
 import { exploreDestinations, searchAirports, searchFlightsDuffel } from '../services/flightService';
 import { getDestinationFallbackImage, getPlaceImagesForMultiplePlaces } from '../utils/destinationImages';
 import useCurrency from '../hooks/useCurrency';
+import { useAuth } from '../contexts/AuthContext';
+import { getAccessToken } from '../services/authService';
+import { getReviews, createReview, deleteReview } from '../services/reviewService';
 import './FlightSearch.css';
 import './ExploreAnywhereDetailPage.css';
 
@@ -62,8 +65,27 @@ const normalizeDuffelFlight = (flight, fallbackOrigin, fallbackDestination) => {
   };
 };
 
+const StarRating = ({ value, onChange, size = 20 }) => (
+  <div style={{ display: 'flex', gap: 4 }}>
+    {[1,2,3,4,5].map(n => (
+      <svg
+        key={n}
+        width={size} height={size} viewBox="0 0 24 24"
+        fill={n <= value ? '#f59e0b' : 'none'}
+        stroke={n <= value ? '#f59e0b' : '#94a3b8'}
+        strokeWidth="1.5"
+        style={{ cursor: onChange ? 'pointer' : 'default' }}
+        onClick={() => onChange?.(n)}
+      >
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+      </svg>
+    ))}
+  </div>
+);
+
 const ExploreAnywhereDetailPage = () => {
   const { formatPrice } = useCurrency();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [priceMap, setPriceMap] = useState({});
@@ -80,6 +102,17 @@ const ExploreAnywhereDetailPage = () => {
   const [imageFetchKey, setImageFetchKey] = useState(0);
   const [tripType, setTripType] = useState('one-way'); // 'one-way' or 'round-trip'
   const [modalReturnDate, setModalReturnDate] = useState('');
+
+  // Reviews
+  const [reviews, setReviews] = useState([]);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewText, setReviewText] = useState('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState('');
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewsAvgRating, setReviewsAvgRating] = useState(0);
+
   const lookedUpIatasRef = useRef(new Set());
   const inFlightIatasRef = useRef(new Set());
   const imageRequestIdsRef = useRef(new Set());
@@ -294,6 +327,50 @@ const ExploreAnywhereDetailPage = () => {
     };
   }, [isModalOpen]);
 
+  const loadReviews = async (destination) => {
+    if (!destination?.city) return;
+    setIsLoadingReviews(true);
+    setReviews([]);
+    try {
+      const res = await getReviews(destination.city);
+      if (res.success) {
+        setReviews(res.data.reviews || []);
+        setReviewsAvgRating(res.data.avgRating || 0);
+      }
+    } catch { /* noop */ } finally { setIsLoadingReviews(false); }
+  };
+
+  const handleSubmitReview = async () => {
+    if (!reviewText.trim()) return;
+    setIsSubmittingReview(true);
+    setReviewError('');
+    try {
+      const token = getAccessToken();
+      const res = await createReview({
+        destinationName: selectedDestination.city,
+        country: selectedDestination.country,
+        rating: reviewRating,
+        text: reviewText.trim()
+      }, token);
+      if (res.success) {
+        setReviews(prev => [res.data.review, ...prev]);
+        setReviewText('');
+        setReviewRating(5);
+        setShowReviewForm(false);
+      }
+    } catch (err) {
+      setReviewError(err.message || 'Failed to submit review');
+    } finally { setIsSubmittingReview(false); }
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    try {
+      const token = getAccessToken();
+      await deleteReview(reviewId, token);
+      setReviews(prev => prev.filter(r => r._id !== reviewId));
+    } catch { /* noop */ }
+  };
+
   const handleCardClick = async (destination) => {
     if (!origin || !departureDate) return;
 
@@ -304,6 +381,8 @@ const ExploreAnywhereDetailPage = () => {
     setIsLoadingTickets(true);
     setTicketError('');
     setTickets([]);
+    setShowReviewForm(false);
+    loadReviews(destination);
 
     try {
       const response = await searchFlightsDuffel({
@@ -337,6 +416,9 @@ const ExploreAnywhereDetailPage = () => {
     setIsLoadingTickets(false);
     setTripType('one-way');
     setModalReturnDate('');
+    setReviews([]);
+    setReviewError('');
+    setShowReviewForm(false);
   };
 
   const handleTripTypeChange = async (newTripType) => {
@@ -651,6 +733,71 @@ const ExploreAnywhereDetailPage = () => {
                 ))}
               </div>
             )}
+
+            {/* ── Reviews Section ─────────────────────────────────────── */}
+            <div className="explore-reviews">
+              <div className="explore-reviews__header">
+                <h4 className="explore-reviews__title">
+                  Traveller Reviews
+                  {reviewsAvgRating > 0 && (
+                    <span className="explore-reviews__avg">
+                      <StarRating value={Math.round(reviewsAvgRating)} size={14} />
+                      {reviewsAvgRating.toFixed(1)}
+                    </span>
+                  )}
+                </h4>
+                {isAuthenticated && !showReviewForm && (
+                  <button className="explore-reviews__write-btn" onClick={() => setShowReviewForm(true)}>
+                    Write a review
+                  </button>
+                )}
+              </div>
+
+              {showReviewForm && (
+                <div className="explore-reviews__form">
+                  <StarRating value={reviewRating} onChange={setReviewRating} size={22} />
+                  <textarea
+                    className="explore-reviews__textarea"
+                    placeholder={`Share your experience in ${selectedDestination?.city}…`}
+                    value={reviewText}
+                    onChange={e => setReviewText(e.target.value)}
+                    maxLength={1000}
+                    rows={3}
+                  />
+                  {reviewError && <p className="explore-reviews__error">{reviewError}</p>}
+                  <div className="explore-reviews__form-actions">
+                    <button className="explore-reviews__cancel" onClick={() => { setShowReviewForm(false); setReviewError(''); }}>Cancel</button>
+                    <button className="explore-reviews__submit" disabled={isSubmittingReview || !reviewText.trim()} onClick={handleSubmitReview}>
+                      {isSubmittingReview ? 'Submitting…' : 'Submit'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {isLoadingReviews && <p className="explore-reviews__state">Loading reviews…</p>}
+
+              {!isLoadingReviews && reviews.length === 0 && (
+                <p className="explore-reviews__state">No reviews yet. Be the first!</p>
+              )}
+
+              {reviews.length > 0 && (
+                <div className="explore-reviews__list">
+                  {reviews.map(r => (
+                    <div key={r._id} className="explore-reviews__item">
+                      <div className="explore-reviews__item-header">
+                        <span className="explore-reviews__author">{r.userId?.name || 'Traveller'}</span>
+                        <StarRating value={r.rating} size={13} />
+                        {user && r.userId?._id === user._id && (
+                          <button className="explore-reviews__delete" onClick={() => handleDeleteReview(r._id)} title="Delete review">×</button>
+                        )}
+                      </div>
+                      <p className="explore-reviews__text">{r.text}</p>
+                      <span className="explore-reviews__date">{new Date(r.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
