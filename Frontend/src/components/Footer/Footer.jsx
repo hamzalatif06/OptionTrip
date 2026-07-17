@@ -60,7 +60,7 @@ const Footer = () => {
               <div className="footer-col footer-col--about">
                 <img src="/images/logo-white.png" alt="Option Trip" className="footer-logo" />
                 <p className="footer-about-desc">
-                  Option Trip is an AI-powered travel planning platform that helps users create personalized trips using intelligent recommendations.
+                  Option Trip is powered by Travel Partner Vi, a smart travel planning platform that helps users create personalized trips using intelligent recommendations.
                 </p>
                 <ul className="footer-contact-list">
                   <li>
@@ -76,7 +76,7 @@ const Footer = () => {
                 {/* Trust block */}
                 <div className="footer-trust-block">
                   <ul className="footer-trust-list">
-                    <li><i className="fas fa-robot"></i> AI-powered travel planning</li>
+                    <li><i className="fas fa-robot"></i> Powered by Travel Partner Vi</li>
                     <li><i className="fas fa-route"></i> Personalized travel routes</li>
                     <li><i className="fas fa-star"></i> Smart travel recommendations</li>
                   </ul>

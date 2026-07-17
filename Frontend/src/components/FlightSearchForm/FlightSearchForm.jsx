@@ -426,7 +426,7 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
                   <path d="M2 20h20M3 20V8l9-5 9 5v12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   <path d="M9 20v-6h6v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                <span>Add a hotel <span className="fsf-nearby-hint">(show hotels in destination)</span></span>
+                <span>Add a stay <span className="fsf-nearby-hint">(show stays in destination)</span></span>
               </label>
             </div>
           </form>

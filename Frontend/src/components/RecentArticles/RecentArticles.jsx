@@ -64,7 +64,7 @@ const RecentArticles = () => {
         <div className="section-title mb-6 w-75 mx-auto text-center">
           <h4 className="mb-1 theme1">From Our Blog</h4>
           <h2 className="mb-1">Recent <span className="theme">Articles &amp; Posts</span></h2>
-          <p>Stay updated with the latest travel trends, AI insights, destination guides, and expert tips to make your next trip extraordinary.</p>
+          <p>Stay updated with the latest travel trends, destination guides, and expert tips to make your next trip extraordinary.</p>
         </div>
 
         <div className="recent-articles-inner">

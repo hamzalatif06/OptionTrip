@@ -294,7 +294,7 @@ const BlogDetail = () => {
           {isAIImage && (
             <div className="blog-detail__ai-badge">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-              AI Generated
+              Suggested Image
             </div>
           )}
         </div>
@@ -332,7 +332,7 @@ const BlogDetail = () => {
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
                       </svg>
-                      Hotels
+                      Stays
                     </Link>
                     <Link
                       to={`/?destination=${encodeURIComponent(dest)}`}

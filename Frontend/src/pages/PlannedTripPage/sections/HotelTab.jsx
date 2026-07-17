@@ -25,9 +25,9 @@ const HotelSelectButton = ({ hotel, tripId, token, isSelected, onSelect }) => {
         }
       }, token);
       onSelect();
-      toast.success('Hotel saved to your trip!');
+      toast.success('Stay saved to your trip!');
     } catch {
-      toast.error('Could not save hotel — please try again.');
+      toast.error('Could not save stay — please try again.');
     } finally {
       setSaving(false);
     }
@@ -237,7 +237,7 @@ const HotelTab = ({ tripData, onHotelSelected }) => {
               </svg>
               <input
                 className="ht-field__input"
-                placeholder="City, region or hotel name"
+                placeholder="City, region, or property name"
                 value={cityQuery}
                 onChange={(e) => { setCityQuery(e.target.value); setDestId(''); setErrors(p => ({ ...p, city: '' })); }}
                 onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
@@ -347,7 +347,7 @@ const HotelTab = ({ tripData, onHotelSelected }) => {
                   <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" />
                   <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
-                Search Hotels
+                Search Stays
               </>
             )}
           </button>
@@ -375,7 +375,7 @@ const HotelTab = ({ tripData, onHotelSelected }) => {
           ) : hotels.length === 0 ? (
             <div className="ht-empty">
               <div className="ht-empty__icon">🏨</div>
-              <h3>No hotels found</h3>
+              <h3>No stays found</h3>
               <p>No results for <strong>{lastCityName}</strong>. Try different dates or a nearby city.</p>
             </div>
           ) : (() => {
@@ -384,7 +384,7 @@ const HotelTab = ({ tripData, onHotelSelected }) => {
             return (
               <>
                 <div className="ht-results__header">
-                  <h3>{hotels.length} hotel{hotels.length !== 1 ? 's' : ''} found</h3>
+                  <h3>{hotels.length} stay{hotels.length !== 1 ? 's' : ''} found</h3>
                   <p>
                     {lastCityName}
                     {nights > 0 ? ` · ${nights} night${nights !== 1 ? 's' : ''}` : ''}

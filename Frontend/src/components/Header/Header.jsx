@@ -252,7 +252,7 @@ const Header = () => {
                     </a>
                     <ul className="dropdown-menu">
                       <li><Link to="/flights">Flights <i className="fa fa-plane"></i></Link></li>
-                      <li><Link to="/hotels">Hotels <i className="fa fa-building"></i></Link></li>
+                      <li><Link to="/hotels">Stays <i className="fa fa-building"></i></Link></li>
                       <li><Link to="/car-rental">Car Rental <i className="fa fa-car"></i></Link></li>
                     </ul>
                   </li>
@@ -362,7 +362,7 @@ const Header = () => {
           <ul>
             <li className={isActive('/')}><Link to="/" onClick={toggleMenu}>{t('common.home')}</Link></li>
             <li className={isActive('/flights')}><Link to="/flights" onClick={toggleMenu}><i className="fa fa-plane"></i> Flights</Link></li>
-            <li className={isActive('/hotels')}><Link to="/hotels" onClick={toggleMenu}><i className="fa fa-building"></i> Hotels</Link></li>
+            <li className={isActive('/hotels')}><Link to="/hotels" onClick={toggleMenu}><i className="fa fa-building"></i> Stays</Link></li>
             <li className={isActive('/car-rental')}><Link to="/car-rental" onClick={toggleMenu}><i className="fa fa-car"></i> Car Rental</Link></li>
             <li className={isActive('/destinations')}><Link to="/destinations" onClick={toggleMenu}>Top Destinations</Link></li>
             <li className={isActive('/plan-my-day')}><Link to="/plan-my-day" onClick={toggleMenu}><i className="fa fa-calendar-check-o"></i> Plan My Day</Link></li>

@@ -61,7 +61,11 @@ const renderMarkdown = (raw) => {
       // Links: [label](url)
       .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) =>
         `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`
-      );
+      )
+      // Some model replies omit the space around emphasis markers (more common
+      // in Cyrillic-script languages) — reinsert it so words don't run together.
+      .replace(/([\p{L}\p{N}])(<(?:strong|em|code|a)(?=[>\s]))/gu, '$1 $2')
+      .replace(/(<\/(?:strong|em|code|a)>)([\p{L}\p{N}])/gu, '$1 $2');
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -142,7 +146,7 @@ const PROMPT_STARTERS = {
   ],
   during: [
     { icon: 'fa-map-marker-alt', label: 'Nearby right now', text: 'What is worth seeing near me right now?' },
-    { icon: 'fa-utensils', label: 'Dinner tonight', text: 'Suggest a great dinner spot near my hotel tonight' },
+    { icon: 'fa-utensils', label: 'Dinner tonight', text: 'Suggest a great dinner spot near my stay tonight' },
     { icon: 'fa-bus', label: 'How to get around', text: 'What is the best way to get around the city?' },
     { icon: 'fa-exclamation-triangle', label: 'I need help', text: 'I need help — what should I do?' },
     { icon: 'fa-mug-hot', label: 'Best cafés to work', text: 'Find me good cafés to work from with WiFi' },
@@ -407,12 +411,12 @@ const ViAssistant = () => {
     let text = '';
 
     if (!isAuthenticated || !user) {
-      text = `Hi! 👋 I'm **Vi**, your AI travel concierge. Ask me anything about destinations, packing, or trip planning — and sign in to save trips and unlock personalized help.`;
+      text = `Hi! 👋 I'm **Vi**, your Travel Partner. Ask me anything about destinations, packing, or trip planning — and sign in to save trips and unlock personalized help.`;
       return { id: 'welcome', text, sender: 'bot', timestamp: new Date(), type: 'welcome', isWelcome: true };
     }
 
     const firstName = user.name?.split(' ')[0] || 'there';
-    text = `Hi ${firstName}! 👋 I'm **Vi**, your AI travel concierge. `;
+    text = `Hi ${firstName}! 👋 I'm **Vi**, your Travel Partner. `;
 
     // 1) Location-aware opening line — only when we actually have a place
     const placeLabel = liveLocation?.neighborhood
@@ -1009,14 +1013,14 @@ const ViAssistant = () => {
                   )}
                 </div>
                 <div className="vi-header-info">
-                  <span className="vi-header-name">Vi <span className="vi-header-tag">AI Concierge</span></span>
+                  <span className="vi-header-name">Vi <span className="vi-header-tag">Travel Partner</span></span>
                   <span className="vi-status">
                     <span className={`status-dot${isSpeaking ? ' speaking' : isRecording ? ' recording' : ''}`}></span>
                     {isSpeaking      ? 'Vi is speaking...'
                       : isRecording  ? (silenceCountdown !== null ? `🎙️ Sending in ${silenceCountdown}s…` : '🎙️ Listening...')
                       : isTyping     ? 'Vi is thinking...'
                       : isAuthenticated ? `Ready when you are, ${user?.name?.split(' ')[0] || 'traveler'} 🌍`
-                      : 'Your AI travel buddy'}
+                      : 'Your Personal Travel Partner'}
                   </span>
                 </div>
               </div>

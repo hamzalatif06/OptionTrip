@@ -30,7 +30,7 @@ const LastMinuteDeals = () => {
         <div className="section-title mb-6 w-75 mx-auto text-center">
           <h4 className="mb-1 theme1">Top Deals</h4>
           <h2 className="mb-1">The Last <span className="theme">Minute Deals</span></h2>
-          <p>Discover incredible last-minute deals on handpicked destinations. Our AI finds the best prices and creates personalized itineraries for spontaneous travelers.</p>
+          <p>Discover incredible last-minute deals on handpicked destinations. Travel Partner Vi finds the best prices and creates personalized itineraries for spontaneous travelers.</p>
         </div>
         <div className="trend-box">
           <div className="row">

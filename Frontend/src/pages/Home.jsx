@@ -59,7 +59,7 @@ const Home = () => {
 
   return (
     <>
-      <PageMeta title="AI-Powered Travel Planning" description="Plan your perfect trip with AI. Describe where you want to go and get a personalized itinerary, flights, and hotels in minutes." path="/" />
+      <PageMeta title="Your Personal Travel Partner Vi" description="Plan your perfect trip with Travel Partner Vi. Describe where you want to go and get a personalized itinerary, flights, and stays in minutes." path="/" />
       <WelcomeModal />
       <Banner />
       <HomeBookingSection />

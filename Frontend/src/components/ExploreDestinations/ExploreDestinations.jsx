@@ -240,7 +240,7 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
         {aiError && <p className="explore-ai-error">{aiError}</p>}
         {aiSuggestions.length > 0 && (
           <>
-            <p className="explore-ai-label">AI Suggestions for "{aiQuery}"</p>
+            <p className="explore-ai-label">Vi's Suggestions for "{aiQuery}"</p>
             <div className="explore-grid explore-grid--ai">
               {aiSuggestions.map((s, i) => (
                 <button

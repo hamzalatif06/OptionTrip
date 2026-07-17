@@ -14,7 +14,7 @@ export const searchHotels = async ({ destId, searchType = 'CITY', checkIn, check
   const res  = await fetch(`${API_URL}/api/hotels/search?${params}`);
   const data = await res.json();
   if (!data.success) {
-    const msg = typeof data.message === 'object' ? JSON.stringify(data.message) : (data.message || 'Hotel search failed');
+    const msg = typeof data.message === 'object' ? JSON.stringify(data.message) : (data.message || 'Stay search failed');
     throw new Error(msg);
   }
   return data.data;

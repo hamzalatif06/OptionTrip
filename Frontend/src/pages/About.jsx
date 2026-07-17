@@ -10,7 +10,7 @@ const About = () => {
     <>
       <PageMeta
         title="About Us"
-        description="Learn how OptionTrip is reimagining travel with AI — from personalized trip planning to real-time on-the-ground guidance from our AI concierge, Vi."
+        description="Learn how OptionTrip is reimagining travel with Travel Partner Vi — from personalized trip planning to real-time on-the-ground guidance."
         keywords="about optiontrip, AI travel company, our team, travel technology, AI trip planner"
         path="/about"
       />

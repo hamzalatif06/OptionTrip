@@ -17,7 +17,7 @@ const TABS = [
   },
   {
     id: 'hotels',
-    label: 'Hotels',
+    label: 'Stays',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -213,7 +213,7 @@ const HomeBookingSection = () => {
                 <input
                   className="hbs__input"
                   type="text"
-                  placeholder="City, region, or hotel name"
+                  placeholder="City, region, or property name"
                   value={hCity}
                   onChange={e => setHCity(e.target.value)}
                   required

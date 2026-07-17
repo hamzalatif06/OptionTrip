@@ -220,7 +220,7 @@ const Login = () => {
             <div className="auth-illustration-pattern"></div>
             <div className="auth-illustration-text">
               <h2>Discover Your Next Adventure</h2>
-              <p>Plan unforgettable trips with AI-powered recommendations tailored just for you</p>
+              <p>Plan unforgettable trips with Travel Partner Vi — recommendations tailored just for you</p>
             </div>
             <div className="auth-illustration-image">
               <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">

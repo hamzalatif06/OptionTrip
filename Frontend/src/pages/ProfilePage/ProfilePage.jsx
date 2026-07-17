@@ -627,7 +627,7 @@ const ProfilePage = () => {
               <div className="profile-section-header">
                 <div>
                   <h3>Travel Preferences</h3>
-                  <p>Personalise your AI-generated trip plans</p>
+                  <p>Personalise your trip plans from Travel Partner Vi</p>
                 </div>
               </div>
 
@@ -684,7 +684,7 @@ const ProfilePage = () => {
                   </div>
 
                   <div className="pref-group">
-                    <label className="pref-label">Minimum hotel stars</label>
+                    <label className="pref-label">Minimum stay rating</label>
                     <select
                       className="pref-select"
                       value={prefForm.hotelStars}

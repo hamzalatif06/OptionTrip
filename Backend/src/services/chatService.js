@@ -68,6 +68,7 @@ const buildSystemPrompt = (context) => {
 
 # Formatting rules (apply inside the "message" field of the JSON output)
 - Use clean Markdown: short paragraphs, **bold** for key terms, bullet points (\`-\`) and numbered lists where they help scanability.
+- Always keep a normal space before and after \`**bold**\` markers, e.g. "word **bold** word" — never "word**bold**word". This applies in every language, including Cyrillic and other non-Latin scripts.
 - Headings (\`###\`) only when the answer has clearly distinct sections.
 - Inline links allowed: \`[label](url)\`. Do not invent URLs you aren't sure of — prefer naming the source.
 - Keep replies tight: under ~180 words unless the user explicitly asks for depth.
@@ -268,7 +269,7 @@ const generateFallbackResponse = (userMessage, context) => {
 
   if (/(emergency|sos|urgent|help me)/.test(lower)) {
     return {
-      text: `**Emergency numbers**\n- International: **112**\n- US: 911 · UK: 999 · AU: 000\n\n${dest ? `In ${dest}, save your hotel front desk and nearest embassy contact in your phone.` : ''}\n\nWhat happened — can I help you find a hospital, embassy, or police?`,
+      text: `**Emergency numbers**\n- International: **112**\n- US: 911 · UK: 999 · AU: 000\n\n${dest ? `In ${dest}, save your accommodation's front desk and nearest embassy contact in your phone.` : ''}\n\nWhat happened — can I help you find a hospital, embassy, or police?`,
       type: 'emergency',
       quickReplies: ['Nearest embassy', 'Hospital info', 'Lost passport', 'Local police']
     };
@@ -293,7 +294,7 @@ const generateFallbackResponse = (userMessage, context) => {
 
   if (/(restaurant|food|eat|cuisine|dinner)/.test(lower)) {
     return {
-      text: `Quick way to eat well${dest ? ` in ${dest}` : ''}:\n\n- Search **Google Maps** with "open now" + rating 4.5+ filter\n- Ask your hotel concierge for two picks — pick the smaller one\n- Skip anywhere with a host on the street pulling people in\n- Lunch menus are usually a steal at fine-dining spots\n\nWhat kind of vibe — casual local, romantic, or splurge?`,
+      text: `Quick way to eat well${dest ? ` in ${dest}` : ''}:\n\n- Search **Google Maps** with "open now" + rating 4.5+ filter\n- Ask your host or front desk for two picks — pick the smaller one\n- Skip anywhere with a host on the street pulling people in\n- Lunch menus are usually a steal at fine-dining spots\n\nWhat kind of vibe — casual local, romantic, or splurge?`,
       type: 'recommendation',
       quickReplies: ['Local favorites', 'Budget eats', 'Romantic dinner', 'Brunch spots']
     };

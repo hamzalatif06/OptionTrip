@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import PageMeta from '../hooks/usePageMeta';
 
 const features = [
-  { icon: 'fas fa-robot', title: 'AI-Powered Conversations', desc: 'VI understands your travel preferences through natural conversation, just like talking to an expert travel advisor who knows you personally.' },
+  { icon: 'fas fa-robot', title: 'Natural Conversations', desc: 'VI understands your travel preferences through natural conversation, just like talking to an expert travel advisor who knows you personally.' },
   { icon: 'fas fa-route', title: 'Smart Itinerary Builder', desc: 'From flights to accommodations, VI builds a complete day-by-day itinerary tailored to your budget, pace, and interests.' },
   { icon: 'fas fa-map-marked-alt', title: 'Real-Time Recommendations', desc: 'Get live suggestions for restaurants, attractions, and hidden gems based on your current location and travel style.' },
   { icon: 'fas fa-language', title: 'Multilingual Support', desc: 'VI speaks 22+ languages, so you can plan your trip in your native language and communicate effortlessly worldwide.' },
@@ -22,8 +22,8 @@ const TravelBuddyPage = () => {
   return (
     <>
       <PageMeta
-        title="Meet Vi — Your AI Travel Buddy"
-        description="Vi is OptionTrip's AI travel concierge — plans your trips, packs your list, and helps you on the ground with local knowledge in 22+ languages."
+        title="Meet Vi — Your Personal Travel Partner"
+        description="Vi is your Travel Partner — plans your trips, packs your list, and helps you on the ground with local knowledge in 22+ languages."
         keywords="AI travel assistant, travel buddy, AI concierge, Vi, personalized travel, AI trip planner"
         path="/travel-buddy"
       />
@@ -36,8 +36,8 @@ const TravelBuddyPage = () => {
                 <div className="banner-content text-center">
                   <h4 className="theme mb-0" style={{ color: '#fdc703', textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>Meet VI</h4>
                   <h1 style={{ color: 'rgb(255 255 255 / 85%)', textShadow: '0 3px 12px rgba(0,0,0,0.5)' }}>Your Personal TravelBuddy</h1>
-                  <p className="mb-4" style={{ color: 'rgba(255,255,255,0.9)', textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>VI is Option Trip's intelligent AI travel companion — designed to plan, guide, and inspire your every journey.</p>
-                  <Link to="/" className="btn-main">Start Planning with VI</Link>
+                  <p className="mb-4" style={{ color: 'rgba(255,255,255,0.9)', textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>VI is Option Trip's intelligent Travel Partner — designed to plan, guide, and inspire your every journey.</p>
+                  <Link to="/" className="btn-main">Start Planning with Travel Partner Vi</Link>
                 </div>
               </div>
             </div>
@@ -54,7 +54,7 @@ const TravelBuddyPage = () => {
             </div>
             <div className="col-lg-6">
               <h4 style={{ color: '#029e9d', marginBottom: '8px' }}>Why VI?</h4>
-              <h2 style={{ color: '#17233e', marginBottom: '20px' }}>Travel Planning Reimagined by AI</h2>
+              <h2 style={{ color: '#17233e', marginBottom: '20px' }}>Travel Planning Reimagined by Vi</h2>
               <p style={{ color: '#777', lineHeight: '1.8', marginBottom: '20px' }}>
                 VI — short for <strong>Virtual Intelligence</strong> — is not just a chatbot. It's a comprehensive travel companion that learns your preferences, anticipates your needs, and crafts journeys that feel truly yours.
               </p>

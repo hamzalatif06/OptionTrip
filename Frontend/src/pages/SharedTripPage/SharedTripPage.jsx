@@ -84,7 +84,7 @@ const SharedTripPage = () => {
       />
 
       <div className="shared-trip-page__footer-cta">
-        <p>Inspired? Plan your own personalised trip with AI.</p>
+        <p>Inspired? Plan your own personalised trip with Travel Partner Vi.</p>
         <Link to="/" className="shared-trip-page__cta">Start planning for free →</Link>
       </div>
     </div>

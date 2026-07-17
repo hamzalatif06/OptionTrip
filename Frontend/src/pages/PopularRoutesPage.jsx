@@ -111,7 +111,7 @@ const PopularRoutesPage = () => {
                   <h4 className="theme mb-0" style={{ color: '#fdc703', textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>Top Picks</h4>
                   <h1 style={{ color: 'rgb(255 255 255 / 85%)', textShadow: '0 3px 12px rgba(0,0,0,0.5)' }}>Popular Travel Routes</h1>
                   <p className="mb-4" style={{ color: 'rgba(255,255,255,0.9)', textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>
-                    Discover the world's most loved travel routes — curated by thousands of real travelers and powered by VI's AI insights.
+                    Discover the world's most loved travel routes — curated by thousands of real travelers and powered by Travel Partner Vi.
                   </p>
                 </div>
               </div>

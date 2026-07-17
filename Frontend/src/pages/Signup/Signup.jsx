@@ -254,7 +254,7 @@ const Signup = () => {
 
   return (
     <div className="auth-page">
-      <PageMeta title="Create Account" description="Join OptionTrip — plan smarter trips with AI." path="/signup" noIndex />
+      <PageMeta title="Create Account" description="Join OptionTrip — plan smarter trips with Travel Partner Vi." path="/signup" noIndex />
       <div className="auth-container signup-container">
         {/* Left Side - Form */}
         <div className="auth-form-section">

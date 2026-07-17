@@ -7,13 +7,13 @@ const Testimonials = () => {
       name: 'Sarah Chen',
       role: 'Travel Enthusiast',
       image: '/images/testimonial/img1.jpg',
-      text: 'OptionTrip\'s AI planner created the perfect 10-day itinerary for my European adventure. It understood my preferences for art, history, and local cuisine, and suggested hidden gems I never would have found on my own. The personalized recommendations saved me hours of research!'
+      text: 'Travel Partner Vi created the perfect 10-day itinerary for my European adventure. It understood my preferences for art, history, and local cuisine, and suggested hidden gems I never would have found on my own. The personalized recommendations saved me hours of research!'
     },
     {
       name: 'Michael Rodriguez',
       role: 'Business Traveler',
       image: '/images/testimonial/img1.jpg',
-      text: 'As someone who travels frequently for work, I love how OptionTrip adapts to my schedule and budget. The AI assistant suggested the most efficient routes and even found last-minute deals that fit my tight timeline. It\'s like having a personal travel agent available 24/7.'
+      text: 'As someone who travels frequently for work, I love how OptionTrip adapts to my schedule and budget. Travel Partner Vi suggested the most efficient routes and even found last-minute deals that fit my tight timeline. It\'s like having a personal travel agent available 24/7.'
     }
   ];
 
@@ -23,7 +23,7 @@ const Testimonials = () => {
         <div className="section-title mb-6 text-center w-75 mx-auto">
           <h4 className="mb-1 theme1">Our Testimonials</h4>
           <h2 className="mb-1">Loved by <span className="theme">Our Travelers</span></h2>
-          <p>Discover how our AI-powered trip planner has transformed travel experiences for thousands of satisfied customers worldwide.</p>
+          <p>Discover how Travel Partner Vi has transformed travel experiences for thousands of satisfied customers worldwide.</p>
         </div>
         <div className="row align-items-center">
           <div className="col-lg-5 pe-4">

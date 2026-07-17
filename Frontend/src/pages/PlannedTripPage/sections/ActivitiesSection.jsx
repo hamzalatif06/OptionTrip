@@ -101,7 +101,7 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
     },
     {
       id: 'tab2',
-      title: 'Hotels',
+      title: 'Stays',
       icon: HotelIcon,
       value: 1,
     },

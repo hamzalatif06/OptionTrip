@@ -986,7 +986,7 @@ const FlightSearch = () => {
                 </div>
                 <div>
                   <div className="fs-section-header__title">
-                    Hotels in {hotelsFor}
+                    Stays in {hotelsFor}
                   </div>
                   <div className="fs-section-header__sub">
                     {lastSearch?.departureDate && (
@@ -1003,7 +1003,7 @@ const FlightSearch = () => {
               </div>
               {!hotelsLoading && hotelResults.length > 0 && (
                 <span className="fs-section-header__badge">
-                  {hotelResults.length} hotel{hotelResults.length !== 1 ? 's' : ''}
+                  {hotelResults.length} stay{hotelResults.length !== 1 ? 's' : ''}
                 </span>
               )}
               {hotelsLoading && (
@@ -1029,7 +1029,7 @@ const FlightSearch = () => {
             )}
 
             {!hotelsLoading && hotelError && (
-              <p className="flt-hotels-error">Could not load hotels — {hotelError}</p>
+              <p className="flt-hotels-error">Could not load stays — {hotelError}</p>
             )}
 
             {!hotelsLoading && !hotelError && hotelResults.length > 0 && (

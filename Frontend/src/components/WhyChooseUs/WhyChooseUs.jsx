@@ -11,7 +11,7 @@ const features = [
     ),
     label: 'Personalized Planning',
     title: 'Trips Tailored to You',
-    desc: 'Our AI learns your travel style — budget, pace, interests — and builds a day-by-day itinerary that feels handcrafted, not generic.',
+    desc: 'Travel Partner Vi learns your travel style — budget, pace, interests — and builds a day-by-day itinerary that feels handcrafted, not generic.',
     accent: '#029e9d',
   },
   {
@@ -24,7 +24,7 @@ const features = [
     ),
     label: 'Integrated Management',
     title: 'Everything in One Place',
-    desc: 'Flights, hotels, activities, and budgets — all tracked in a single dashboard. No more juggling between tabs or losing booking confirmations.',
+    desc: 'Flights, stays, activities, and budgets — all tracked in a single dashboard. No more juggling between tabs or losing booking confirmations.',
     accent: '#2563eb',
   },
   {
@@ -34,7 +34,7 @@ const features = [
         <path d="M8 10h8M8 14h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
       </svg>
     ),
-    label: 'AI Travel Companion',
+    label: 'Your Travel Partner',
     title: 'Vi — Your Smart Assistant',
     desc: 'Ask Vi anything about your trip — visa requirements, local customs, weather, or hidden gems. Get instant, context-aware answers 24/7.',
     accent: '#7c3aed',
@@ -46,7 +46,7 @@ const features = [
       </svg>
     ),
     label: 'Real-Time Prices',
-    title: 'Live Flights & Hotels',
+    title: 'Live Flights & Stays',
     desc: 'Search across Duffel, Google Flights, Hotelbeds, and more simultaneously. Always see the best available price — not cached or outdated data.',
     accent: '#ea580c',
   },
@@ -70,7 +70,7 @@ const features = [
     ),
     label: 'Smart Budgeting',
     title: 'Spend Wisely, Travel More',
-    desc: 'Set your budget and let OptionTrip optimize every choice — from flights to hotels to activities — so you get the most out of every trip.',
+    desc: 'Set your budget and let OptionTrip optimize every choice — from flights to stays to activities — so you get the most out of every trip.',
     accent: '#e11d48',
   },
 ];

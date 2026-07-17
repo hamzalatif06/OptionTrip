@@ -168,7 +168,7 @@ const BestTours = () => {
             <div className="section-title text-center">
               <h4 className="mb-1 theme1">Top Pick</h4>
               <h2 className="mb-1">Best <span className="theme">Tour Packages</span></h2>
-              <p>Explore our curated collection of handpicked tour packages, each carefully designed by our AI to match different travel styles and preferences.</p>
+              <p>Explore our curated collection of handpicked tour packages, each carefully designed by Travel Partner Vi to match different travel styles and preferences.</p>
             </div>
           </div>
         </div>

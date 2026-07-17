@@ -36,8 +36,8 @@ const PageMeta = ({
   jsonLd    = null,
   ogType    = 'website'
 }) => {
-  const fullTitle = title ? `${title} — ${SITE_NAME}` : `${SITE_NAME} — AI-Powered Travel Planning`;
-  const metaDesc  = description || 'AI-powered travel planning. Describe your dream trip and get a personalized itinerary, flights, hotels, and single-day plans in minutes.';
+  const fullTitle = title ? `${title} — ${SITE_NAME}` : `${SITE_NAME} — Your Personal Travel Partner Vi`;
+  const metaDesc  = description || 'Powered by Travel Partner Vi. Describe your dream trip and get a personalized itinerary, flights, stays, and single-day plans in minutes.';
   const metaImage = image
     ? (image.startsWith('http') ? image : `${SITE_URL}${image}`)
     : `${SITE_URL}${DEFAULT_IMAGE}`;

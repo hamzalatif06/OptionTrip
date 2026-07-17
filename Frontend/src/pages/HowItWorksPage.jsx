@@ -8,7 +8,7 @@ const HowItWorksPage = () => {
       num: '01',
       icon: 'fas fa-search-location',
       title: 'Tell Us Where You Want to Go',
-      desc: 'Enter your destination, travel dates, and group size in the trip planner. Not sure where to go? Let our AI suggest trending destinations based on your interests and budget.',
+      desc: 'Enter your destination, travel dates, and group size in the trip planner. Not sure where to go? Let Travel Partner Vi suggest trending destinations based on your interests and budget.',
     },
     {
       num: '02',
@@ -19,8 +19,8 @@ const HowItWorksPage = () => {
     {
       num: '03',
       icon: 'fas fa-magic',
-      title: 'AI Builds Your Itinerary',
-      desc: 'Our VI TravelBuddy AI analyzes thousands of data points — reviews, local insights, seasonality, and pricing — to craft your perfect day-by-day itinerary.',
+      title: 'Vi Builds Your Itinerary',
+      desc: 'Travel Partner Vi analyzes thousands of data points — reviews, local insights, seasonality, and pricing — to craft your perfect day-by-day itinerary.',
     },
     {
       num: '04',
@@ -47,7 +47,7 @@ const HowItWorksPage = () => {
     <>
       <PageMeta
         title="How It Works"
-        description="See how OptionTrip turns a simple description into a full trip — options, itinerary, flights, hotels, and day-by-day plans powered by AI."
+        description="See how OptionTrip turns a simple description into a full trip — options, itinerary, flights, stays, and day-by-day plans powered by Travel Partner Vi."
         keywords="how optiontrip works, AI trip planner, itinerary generator, personalized travel"
         path="/how-it-works"
       />

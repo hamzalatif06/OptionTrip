@@ -14,7 +14,7 @@ const FEATURES = [
         <circle cx="12" cy="12" r="2" fill="currentColor"/>
       </svg>
     ),
-    label: 'AI Trip Planner',
+    label: 'Your Personal Travel Partner Vi',
     desc: 'Tell us where you want to go — we generate a full day-by-day itinerary in seconds.',
     cta: 'Plan a trip',
     path: '/',
@@ -43,9 +43,9 @@ const FEATURES = [
         <path d="M9 22V12h6v10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
     ),
-    label: 'Hotels',
-    desc: 'Browse thousands of hotels, resorts, and boutique stays worldwide.',
-    cta: 'Find hotels',
+    label: 'Stays',
+    desc: 'Browse thousands of hotels, apartments, resorts, and boutique stays worldwide.',
+    cta: 'Find stays',
     path: '/hotels',
     accent: '#d97706',
     bg: '#fffbeb',
@@ -108,11 +108,11 @@ const WelcomeModal = () => {
           <div className="wm__hero-glow" aria-hidden="true" />
           <div className="wm__hero-badge">✨ All-in-one travel platform</div>
           <h2 className="wm__hero-heading">
-            Your entire trip,<br />
-            <span className="wm__hero-accent">planned in minutes</span>
+            Your Personal Travel Partner Vi<br />
+            <span className="wm__hero-accent">Plan Your Entire Trip in Minutes</span>
           </h2>
           <p className="wm__hero-sub">
-            AI-powered itineraries · Flights · Hotels · Car Rentals — everything in one place.
+            Powered by Travel Partner Vi · Flights · Stays · Car Rentals — everything in one place.
           </p>
         </div>
 
@@ -149,7 +149,7 @@ const WelcomeModal = () => {
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
               <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
-            Start planning with AI
+            Start Planning with Travel Partner Vi
           </button>
         </div>
 

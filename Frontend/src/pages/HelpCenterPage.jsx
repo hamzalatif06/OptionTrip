@@ -19,7 +19,7 @@ const faqs = [
       },
       {
         q: 'What is VI TravelBuddy?',
-        a: 'VI is our AI-powered travel assistant. It creates personalized travel itineraries, suggests destinations, answers travel questions, and adapts plans based on your preferences — all through a simple conversation.',
+        a: 'VI is your Travel Partner — a personal travel assistant that creates personalized travel itineraries, suggests destinations, answers travel questions, and adapts plans based on your preferences, all through a simple conversation.',
       },
       {
         q: 'Which languages does Option Trip support?',
@@ -82,7 +82,7 @@ const faqs = [
         a: 'Yes. We use industry-standard encryption (TLS) for all data in transit and encrypt sensitive stored data. We never sell your personal data to third parties. Read our Privacy Policy for full details.',
       },
       {
-        q: 'Does Option Trip share my data with airlines or hotels?',
+        q: 'Does Option Trip share my data with airlines or stay providers?',
         a: 'No. We do not share your personal data with travel providers. Option Trip helps you plan trips, but booking is done directly with providers. We are not a booking platform.',
       },
       {
@@ -133,7 +133,7 @@ const HelpCenterPage = () => {
           <div className="row g-4">
             {[
               { icon: 'fas fa-envelope', title: 'Email Support', desc: 'Get a response within 24 hours.', action: 'optiontripcom@gmail.com', href: 'mailto:optiontripcom@gmail.com', color: '#e8f0fe', accent: '#0A539D' },
-              { icon: 'fas fa-robot', title: 'Ask VI', desc: 'Our AI assistant is available 24/7 on the home page.', action: 'Chat with VI', href: '/', color: '#e8f8f6', accent: '#029e9d' },
+              { icon: 'fas fa-robot', title: 'Ask VI', desc: 'Your Travel Partner is available 24/7 on the home page.', action: 'Chat with VI', href: '/', color: '#e8f8f6', accent: '#029e9d' },
               { icon: 'fab fa-twitter', title: 'Twitter Support', desc: 'Reach us @OptionTripCom for quick help.', action: '@OptionTripCom', href: 'https://www.x.com/OptionTripCom', color: '#e0f7fa', accent: '#00838f' },
             ].map((c, i) => (
               <div className="col-lg-4" key={i}>

@@ -110,7 +110,7 @@ const HotelSearch = () => {
       logActivity({
         type: 'hotel',
         action: 'searched',
-        title: `Searched hotels in ${cityQuery}`,
+        title: `Searched stays in ${cityQuery}`,
         metadata: {
           destination: cityQuery,
           dates: { start_date: checkIn, end_date: checkOut },
@@ -133,15 +133,15 @@ const HotelSearch = () => {
 
   return (
     <>
-      <PageMeta title="Search Hotels" description="Find and compare hotels worldwide. Search by destination, dates, and budget with real-time availability." path="/hotels" />
+      <PageMeta title="Search Stays" description="Find and compare stays worldwide — hotels, apartments, resorts, and more. Search by destination, dates, and budget with real-time availability." path="/hotels" />
       {/* Hero */}
       <section className="hotel-search-hero">
         <div className="container">
           <div className="text-center">
             <h4 className="mb-2 theme1">Search & Compare</h4>
-            <h1 className="mb-3">Find Your <span className="theme">Perfect Hotel</span></h1>
+            <h1 className="mb-3">Find Your <span className="theme">Perfect Stay</span></h1>
             <p className="hotel-search-hero__sub">
-              Real-time hotel availability from Hotelbeds. Compare and book via our trusted partners.
+              Real-time availability from Hotelbeds. Compare and book via our trusted partners.
             </p>
           </div>
         </div>
@@ -161,7 +161,7 @@ const HotelSearch = () => {
                 </svg>
                 <input
                   className="hs-field__input"
-                  placeholder="City, region or hotel name"
+                  placeholder="City, region, or property name"
                   value={cityQuery}
                   onChange={(e) => { setCityQuery(e.target.value); setDestId(''); setErrors(p => ({ ...p, city: '' })); }}
                   onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
@@ -239,7 +239,7 @@ const HotelSearch = () => {
                   <><svg viewBox="0 0 24 24" fill="none" width="17" height="17">
                     <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/>
                     <path d="M16.5 16.5l4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                  </svg> Search Hotels</>
+                  </svg> Search Stays</>
                 )}
               </button>
             </div>
@@ -271,14 +271,14 @@ const HotelSearch = () => {
             ) : hotels.length === 0 ? (
               <div className="hs-empty">
                 <div className="hs-empty__icon">🏨</div>
-                <h3>No hotels found</h3>
+                <h3>No stays found</h3>
                 <p>No results for <strong>{lastCityName}</strong>. Try different dates or a nearby city.</p>
               </div>
             ) : (
               <>
                 <div className="hs-results-header">
                   <h2 className="hs-results-title">
-                    Hotels in <span className="theme">{lastCityName}</span>
+                    Stays in <span className="theme">{lastCityName}</span>
                   </h2>
                   <p className="hs-results-note">
                     {hotels.length} result{hotels.length !== 1 ? 's' : ''}

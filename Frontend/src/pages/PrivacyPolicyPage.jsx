@@ -37,7 +37,7 @@ const sections = [
     content: [
       {
         subtitle: '',
-        text: 'Option Trip uses artificial intelligence (including our VI TravelBuddy) to process your travel preferences and generate personalized itineraries. This involves automated decision-making to suggest destinations, activities, and routes. You may request human review of any AI-generated recommendation. The AI processes your data only to improve your travel experience and does not make decisions with legal or similarly significant effects.',
+        text: 'Option Trip uses artificial intelligence (including our Travel Partner Vi) to process your travel preferences and generate personalized itineraries. This involves automated decision-making to suggest destinations, activities, and routes. You may request human review of any AI-generated recommendation. The AI processes your data only to improve your travel experience and does not make decisions with legal or similarly significant effects.',
       },
     ],
   },

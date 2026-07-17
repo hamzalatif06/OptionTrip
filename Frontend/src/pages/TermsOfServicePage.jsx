@@ -8,7 +8,7 @@ const sections = [
   },
   {
     title: '2. Description of Service',
-    text: 'Option Trip is an AI-powered travel planning platform that enables users to create personalized travel itineraries, discover destinations, and plan trips using our VI TravelBuddy assistant. The Service is provided "as is" and we reserve the right to modify, suspend, or discontinue it at any time.',
+    text: 'Option Trip is a travel planning platform, powered by Travel Partner Vi, that enables users to create personalized travel itineraries, discover destinations, and plan trips using our Travel Partner Vi assistant. The Service is provided "as is" and we reserve the right to modify, suspend, or discontinue it at any time.',
   },
   {
     title: '3. User Accounts',
@@ -20,7 +20,7 @@ const sections = [
   },
   {
     title: '5. AI-Generated Content',
-    text: 'Our VI TravelBuddy uses artificial intelligence to generate travel itineraries and recommendations. While we strive for accuracy, AI-generated content may contain errors or outdated information. Option Trip is not responsible for inaccuracies in AI-generated travel plans. Users are responsible for verifying travel requirements, visa conditions, safety advisories, and booking details independently before traveling.',
+    text: 'Our Travel Partner Vi uses artificial intelligence to generate travel itineraries and recommendations. While we strive for accuracy, AI-generated content may contain errors or outdated information. Option Trip is not responsible for inaccuracies in AI-generated travel plans. Users are responsible for verifying travel requirements, visa conditions, safety advisories, and booking details independently before traveling.',
   },
   {
     title: '6. Intellectual Property',

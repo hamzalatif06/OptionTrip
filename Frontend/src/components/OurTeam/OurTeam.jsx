@@ -16,7 +16,7 @@ const OurTeam = () => {
         <div className="section-title mb-6 w-75 mx-auto text-center">
           <h4 className="mb-1 theme1">Tour Guides</h4>
           <h2 className="mb-1">Meet Our <span className="theme">Excellent Guides</span></h2>
-          <p>Our expert team of travel specialists and AI engineers work together to ensure every trip is perfectly tailored to your unique preferences and dreams.</p>
+          <p>Our expert team of travel specialists and engineers work together to ensure every trip is perfectly tailored to your unique preferences and dreams.</p>
         </div>
         <div className="team-main">
           <div className="row shop-slider">

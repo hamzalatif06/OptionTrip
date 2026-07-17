@@ -499,7 +499,7 @@ const PlanMyDay = () => {
   const handleShare = async () => {
     if (!plan) return;
     const title = `My day in ${plan.location?.city || ''}`;
-    const text  = plan.summary || 'Check out my AI-planned day';
+    const text  = plan.summary || 'Check out my Vi-planned day';
     try {
       if (navigator.share) await navigator.share({ title, text, url: window.location.href });
       else await handleCopyPlan();
@@ -517,7 +517,7 @@ const PlanMyDay = () => {
           <div className="pmd-hero__blob pmd-hero__blob--1" />
           <div className="pmd-hero__blob pmd-hero__blob--2" />
           <div className="container pmd-hero__inner">
-            <span className="pmd-hero__eyebrow">AI Day Planner</span>
+            <span className="pmd-hero__eyebrow">Powered by Travel Partner Vi</span>
             <h1 className="pmd-hero__title">Plan My Day</h1>
             <p className="pmd-hero__sub">
               Tell us where you are and what you're in the mood for — we'll craft a real, walkable day with food, sights, and pro tips, tuned to today's weather.
