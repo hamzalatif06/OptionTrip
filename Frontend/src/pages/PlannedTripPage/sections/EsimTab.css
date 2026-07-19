@@ -1,0 +1,63 @@
+.est-root {
+  padding: 32px 24px 48px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.est-card__header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f1f4f9;
+}
+
+.est-card__header--standalone {
+  background: #ffffff;
+  border-radius: 16px 16px 0 0;
+  padding: 24px 24px 20px;
+  margin-bottom: 0;
+  border: 1px solid #e8ecef;
+  border-bottom: none;
+}
+
+.est-card__header-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(2, 158, 157, 0.12) 0%, rgba(2, 123, 122, 0.08) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #029e9d;
+  flex-shrink: 0;
+}
+
+.est-card__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #122d46;
+  margin: 0 0 3px;
+}
+
+.est-card__sub {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ── Travelpayouts widget ─────────────────────────────────────────────────── */
+.est-root .cr-tp-widget {
+  background: #ffffff;
+  border-radius: 0 0 16px 16px;
+  padding: 20px 24px 24px;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.07);
+  border: 1px solid #e8ecef;
+  border-top: none;
+}
+
+.est-root .cr-tp-widget__slot {
+  min-height: 60px;
+}

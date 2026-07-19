@@ -250,6 +250,23 @@
   transform: scale(0.97);
 }
 
+/* ── eSIM promo panel ── */
+.hbs__esim-promo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.hbs__esim-promo__text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted, #64748b);
+  max-width: 440px;
+  line-height: 1.5;
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .hbs {

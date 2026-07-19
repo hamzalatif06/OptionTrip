@@ -20,7 +20,7 @@ const userActivitySchema = new mongoose.Schema({
     type: String,
     required: true,
     enum: [
-      'trip', 'flight', 'hotel', 'car', 'plan_my_day',
+      'trip', 'flight', 'hotel', 'car', 'esim', 'plan_my_day',
       'page', 'profile', 'chat', 'destination', 'misc'
     ],
     index: true

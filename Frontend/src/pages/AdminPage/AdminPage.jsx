@@ -5,7 +5,7 @@ import { getAdminStats, getAdminUsers, getAdminActivity, deactivateUser } from '
 import PageMeta from '../../hooks/usePageMeta';
 import './AdminPage.css';
 
-const ACTIVITY_TYPES = ['', 'trip', 'flight', 'hotel', 'chat', 'plan_my_day', 'destination', 'page'];
+const ACTIVITY_TYPES = ['', 'trip', 'flight', 'hotel', 'car', 'esim', 'chat', 'plan_my_day', 'destination', 'page'];
 
 const StatCard = ({ label, value, sub }) => (
   <div className="adm-stat">

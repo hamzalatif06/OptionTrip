@@ -9,12 +9,14 @@ import { saveTrip } from '../../../services/tripsService';
 import FlightIcon from '@mui/icons-material/Flight';
 import HotelIcon from '@mui/icons-material/Hotel';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
+import SimCardIcon from '@mui/icons-material/SimCard';
 import MapIcon from '@mui/icons-material/Map';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import ExploreIcon from '@mui/icons-material/Explore';
 import FlightTab from './FlightTab';
 import HotelTab from './HotelTab';
 import CarRentalTab from './CarRentalTab';
+import EsimTab from './EsimTab';
 import TripMapTab from './TripMapTab';
 
 const ActivityCardSkeleton = () => (
@@ -128,6 +130,12 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
       title: 'Calendar',
       icon: CalendarMonthIcon,
       value: 5,
+    },
+    {
+      id: 'tab7',
+      title: 'eSIM',
+      icon: SimCardIcon,
+      value: 6,
     },
   ], []);
 
@@ -423,6 +431,7 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
               <p>Calendar view coming soon</p>
             </div>
           )}
+          {activeTab === 6 && <EsimTab tripData={tripData} source="trip_itinerary" />}
         </div>
 
         {/* Trip Actions Footer (from TripTap's TravelTicketWidget pattern) */}

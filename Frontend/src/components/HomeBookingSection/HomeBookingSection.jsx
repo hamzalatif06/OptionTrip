@@ -36,6 +36,17 @@ const TABS = [
       </svg>
     ),
   },
+  {
+    id: 'esim',
+    label: 'eSIM',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+        <rect x="4" y="2" width="16" height="20" rx="3" stroke="currentColor" strokeWidth="2"/>
+        <rect x="8" y="6" width="8" height="6" rx="1" stroke="currentColor" strokeWidth="2"/>
+        <path d="M8 16h.01M12 16h.01M16 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    ),
+  },
 ];
 
 const SearchIcon = () => (
@@ -107,6 +118,11 @@ const HomeBookingSection = () => {
   const handleCarSearch = (e) => {
     e.preventDefault();
     navigate('/car-rental');
+  };
+
+  const handleEsimGo = (e) => {
+    e.preventDefault();
+    navigate('/esim');
   };
 
   return (
@@ -285,6 +301,20 @@ const HomeBookingSection = () => {
 
               <button type="submit" className="hbs__search-btn">
                 <SearchIcon /> Find Cars
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* ── eSIM ── */}
+        {tab === 'esim' && (
+          <form className="hbs__form" onSubmit={handleEsimGo}>
+            <div className="hbs__esim-promo">
+              <p className="hbs__esim-promo__text">
+                Instant travel data plans for 200+ destinations — no roaming fees, activated by QR code.
+              </p>
+              <button type="submit" className="hbs__search-btn">
+                <SearchIcon /> Browse eSIM Plans
               </button>
             </div>
           </form>

@@ -144,9 +144,10 @@
 .adm-badge--admin { background: #fef3c7; color: #92400e; }
 .adm-badge--user  { background: #e0e7ff; color: #3730a3; }
 .adm-badge--type  { background: #f0fdf4; color: #166534; }
-.adm-badge--flight,.adm-badge--hotel { background: #eff6ff; color: #1e40af; }
+.adm-badge--flight,.adm-badge--hotel,.adm-badge--car { background: #eff6ff; color: #1e40af; }
 .adm-badge--trip  { background: #fdf4ff; color: #7e22ce; }
 .adm-badge--chat  { background: #fff7ed; color: #9a3412; }
+.adm-badge--esim  { background: #ecfeff; color: #0e7490; }
 
 .adm-deactivate-btn {
   padding: 4px 10px;
