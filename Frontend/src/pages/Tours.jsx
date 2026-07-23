@@ -2,6 +2,7 @@ import React from 'react';
 import PageMeta from '../hooks/usePageMeta';
 import BestTours from '../components/BestTours/BestTours';
 import LastMinuteDeals from '../components/LastMinuteDeals/LastMinuteDeals';
+import ToursTab from './PlannedTripPage/sections/ToursTab';
 // import OfferPackages from '../components/OfferPackages/OfferPackages';
 
 const Tours = () => {
@@ -30,6 +31,7 @@ const Tours = () => {
       </div>
       <BestTours />
       <LastMinuteDeals />
+      <ToursTab source="landing_page" />
       {/* <OfferPackages /> */}
     </>
   );

@@ -3,7 +3,6 @@ import { Helmet } from 'react-helmet-async';
 const SITE_NAME     = 'OptionTrip';
 const DEFAULT_IMAGE = '/images/travel.png';
 const SITE_URL      = import.meta.env.VITE_SITE_URL || 'https://www.optiontrip.com';
-const HREFLANG_LANGS = ['en', 'ru', 'de', 'fr', 'it', 'es', 'pl', 'uk', 'tr', 'hu', 'sv', 'pt', 'sr', 'ar', 'zh', 'ja', 'vi', 'th', 'ko', 'hi', 'bn', 'id'];
 
 /**
  * Drop-in <head> meta component for every page.
@@ -75,18 +74,10 @@ const PageMeta = ({
       <meta name="twitter:image"       content={metaImage} />
       <meta name="twitter:image:alt"   content={title || SITE_NAME} />
 
-      {/* hreflang — only when indexable */}
+      {/* No per-language alternates: language switching is client-side only, so "?lang=xx" isn't a real distinct URL. */}
       {!noIndex && (
         <link rel="alternate" hrefLang="x-default" href={canonical} />
       )}
-      {!noIndex && HREFLANG_LANGS.map(lang => (
-        <link
-          key={lang}
-          rel="alternate"
-          hrefLang={lang}
-          href={`${canonical}${canonical.includes('?') ? '&' : '?'}lang=${lang}`}
-        />
-      ))}
 
       {/* Extra JSON-LD structured data (breadcrumbs, articles, product, etc.) */}
       {jsonLdArr.map((schema, i) => (
