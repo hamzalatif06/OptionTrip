@@ -33,6 +33,8 @@ import wishlistRouter from "./routes/wishlist.js";
 import adminRouter from "./routes/admin.js";
 import reviewsRouter from "./routes/reviews.js";
 import whereCanIGoRouter from "./routes/whereCanIGo.js";
+import notificationsRouter from "./routes/notifications.js";
+import internalCronRouter from "./routes/internalCron.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { corsOptions } from "./middleware/security.js";
 import "./config/passport.js";
@@ -132,6 +134,8 @@ app.use("/api/wishlist", wishlistRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/reviews", reviewsRouter);
 app.use("/api/where-can-i-go", whereCanIGoRouter);
+app.use("/api/notifications", notificationsRouter);
+app.use("/api/internal/cron", internalCronRouter);
 
 // 404 Handler - must be after all routes
 app.use(notFoundHandler);

@@ -8,8 +8,18 @@ import Trip from '../models/Trip.js';
 import Conversation from '../models/Conversation.js';
 import {
   getUnfedActivities,
+  getRecentActivities,
   markActivitiesAsFed
 } from '../services/userActivityService.js';
+import {
+  getOrCreateProfile,
+  needsResummarization,
+  summarizeUserForMemory,
+  markUpsellSuggested,
+  wasUpsellSuggestedRecently,
+  formatMemoryForPrompt
+} from '../services/memoryProfileService.js';
+import { computeServiceSignals } from '../services/serviceSignalsService.js';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -49,7 +59,9 @@ const prepareChat = async (user, { message, tripId, conversationId, location }) 
       ? location
       : null,
     recentActivities: [],
-    unfedActivityIds: []
+    unfedActivityIds: [],
+    memoryProfile: '',
+    serviceSignals: []
   };
 
   let conversation = null;
@@ -95,6 +107,39 @@ const prepareChat = async (user, { message, tripId, conversationId, location }) 
       }
     } catch (actErr) {
       console.error('Error fetching unfed activities:', actErr);
+    }
+
+    // Long-term memory profile + proactive service-suggestion signals.
+    try {
+      const profile = await getOrCreateProfile(user._id);
+      context.memoryProfile = formatMemoryForPrompt(profile);
+
+      // Signal detection needs the FULL recent window (fed + unfed) — using
+      // only unfed activities would make an already-mentioned service look
+      // "never tried" again once its activity row ages into fed status.
+      const allRecent = await getRecentActivities(user._id, 60);
+      context.serviceSignals = computeServiceSignals(user, context.currentTrip, allRecent)
+        .filter(s => !wasUpsellSuggestedRecently(profile, s.service));
+
+      // Optimistic mark: once a signal is handed to the model it's considered
+      // "suggested" for cooldown purposes, whether or not Vi actually used it
+      // in this particular reply — simplest correct anti-nag behavior.
+      context.serviceSignals.forEach(s => {
+        markUpsellSuggested(user._id, s.service).catch(() => {});
+      });
+
+      // Fire-and-forget re-summarization — never blocks the reply.
+      needsResummarization(profile)
+        .then(should => {
+          if (should) {
+            summarizeUserForMemory(user._id).catch(err =>
+              console.error('Memory summarization failed:', err.message)
+            );
+          }
+        })
+        .catch(() => {});
+    } catch (memErr) {
+      console.error('Error building memory profile context:', memErr);
     }
 
     try {
