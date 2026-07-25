@@ -46,7 +46,7 @@ const formatItineraryForPrompt = (trip) => {
 const buildSystemPrompt = (context) => {
   const {
     user, currentTrip, tripPhase, allTrips, preferences,
-    currentLocation, recentActivities
+    currentLocation, recentActivities, memoryProfile, serviceSignals
   } = context;
 
   let prompt = `You are Vi — an expert AI travel assistant for OptionTrip, a trip-planning, flight, hotel, and activity booking platform.
@@ -55,6 +55,9 @@ const buildSystemPrompt = (context) => {
 - Warm, friendly, and genuinely enthusiastic about travel.
 - Speak like a savvy, well-traveled friend, not a brochure.
 - Be confident and decisive. Give specific recommendations, not "you could consider X or Y or Z".
+- Genuinely funny in a dry, clever way — at most one light quip per reply, never forced, never at the user's expense. Skip the humor entirely on "emergency"-type replies.
+- Act like you actually remember this user: weave in facts from their long-term memory profile naturally ("since you're usually budget-first..."), rather than re-asking things you already know.
+- Cooperative and proactive: offer the sensible next step instead of waiting to be asked for it.
 - Use light emojis sparingly — at most 1-2 per reply, only when they add warmth.
 - Never be condescending; never apologize for things outside your control.
 
@@ -63,8 +66,9 @@ const buildSystemPrompt = (context) => {
 - Destination knowledge: neighborhoods, when-to-visit, must-do experiences, hidden gems
 - Practical: packing, visa & docs, currency, transit, SIM/eSIM, tipping, etiquette, safety
 - Restaurant, café, and bar recommendations by neighborhood and vibe
-- Flight & hotel guidance (search tactics, booking timing, loyalty tips) — point to OptionTrip's tools where relevant
+- Flight & hotel guidance (search tactics, booking timing, loyalty tips)
 - On-trip help: directions, nearby places, weather expectations, emergencies
+- Steering the user toward the right OptionTrip service at the right moment — see "Contextual service opportunities" below
 
 # Formatting rules (apply inside the "message" field of the JSON output)
 - Use clean Markdown: short paragraphs, **bold** for key terms, bullet points (\`-\`) and numbered lists where they help scanability.
@@ -164,6 +168,19 @@ Respond ONLY with valid JSON, no surrounding prose, in this exact shape:
       prompt += `\n\n# What the user has been doing on OptionTrip (recent, newest first)\n${formatted}`;
       prompt += `\nUse this to reason about what they're actively planning. Reference specific actions when natural ("I see you just generated a Plan My Day for X — want me to extend it?"), but don't list everything back to them robotically.`;
     }
+  }
+
+  // ─── Long-term memory (persists across all history, not just this window)
+  if (memoryProfile) {
+    prompt += `\n\n# Long-term memory (persistent, across all history)\n${memoryProfile}`;
+    prompt += `\nTreat this as things you already know about the user — reference it naturally, don't quote it verbatim or announce that you "have a profile" on them.`;
+  }
+
+  // ─── Contextual service opportunities (deterministic signals, not guesses)
+  if (Array.isArray(serviceSignals) && serviceSignals.length) {
+    const lines = serviceSignals.map(s => `- ${s.service} → [${s.url}] — ${s.reason}`);
+    prompt += `\n\n# Contextual service opportunities\n${lines.join('\n')}`;
+    prompt += `\nMention AT MOST ONE of these per reply, and only if it fits naturally in context — never force it. Phrase it as a helpful tip, not an ad ("Since your trip's in a week and you haven't sorted data yet, might be worth grabbing an eSIM — [here](/esim)."). Use the exact url given; never invent a different one. Skip entirely if none fit the current message.`;
   }
 
   return prompt;
@@ -325,15 +342,33 @@ const generateFallbackResponse = (userMessage, context) => {
   };
 };
 
+const SERVICE_QUICK_REPLY_LABELS = {
+  esim: 'Check eSIM plans',
+  car: 'Browse rental cars',
+  hotel: 'Find a stay',
+  tours: 'See tours',
+  flight: 'Find flights'
+};
+
 const getContextualQuickReplies = (context) => {
-  const { user, currentTrip, tripPhase } = context;
-  if (!user) return ['Travel tips', 'Popular destinations', 'How to plan'];
-  if (currentTrip) {
-    if (tripPhase === 'before') return ['Packing list', 'Local customs', 'Top experiences', 'Visa info'];
-    if (tripPhase === 'during') return ['Nearby places', 'Restaurant tips', 'Emergency help', 'Transport'];
-    return ['Plan a new trip', 'Share experience', 'Travel tips'];
-  }
-  return ['Plan a trip', 'My trips', 'Travel tips', 'Inspire me'];
+  const { user, currentTrip, tripPhase, serviceSignals } = context;
+
+  const base = !user
+    ? ['Travel tips', 'Popular destinations', 'How to plan']
+    : currentTrip
+    ? tripPhase === 'before'
+      ? ['Packing list', 'Local customs', 'Top experiences', 'Visa info']
+      : tripPhase === 'during'
+      ? ['Nearby places', 'Restaurant tips', 'Emergency help', 'Transport']
+      : ['Plan a new trip', 'Share experience', 'Travel tips']
+    : ['Plan a trip', 'My trips', 'Travel tips', 'Inspire me'];
+
+  const topSignal = Array.isArray(serviceSignals) && serviceSignals[0];
+  const serviceReply = topSignal && SERVICE_QUICK_REPLY_LABELS[topSignal.service];
+  if (!serviceReply) return base;
+
+  // Swap in the service suggestion in place of the last generic reply, capped at 4.
+  return [...base.slice(0, 3), serviceReply];
 };
 
 export default { generateViResponse };

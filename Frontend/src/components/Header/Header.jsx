@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import ThemeSwitcher from '../ThemeSwitcher/ThemeSwitcher';
+import NotificationBell from '../NotificationBell/NotificationBell';
 import './Header.css';
 
 const LANGUAGES = [
@@ -193,6 +194,9 @@ const Header = () => {
                 </a>
               </li>
             </ul>
+
+            {/* Notifications */}
+            <NotificationBell />
 
             {/* Theme Switcher */}
             <ThemeSwitcher />
