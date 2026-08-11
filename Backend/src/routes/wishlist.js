@@ -4,7 +4,6 @@ import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// GET /api/wishlist — list all wishlist items for authenticated user
 router.get('/', authenticate, async (req, res) => {
   try {
     const items = await Wishlist.find({ user_id: req.user._id }).sort({ addedAt: -1 });
@@ -14,7 +13,6 @@ router.get('/', authenticate, async (req, res) => {
   }
 });
 
-// POST /api/wishlist — add a destination to wishlist
 router.post('/', authenticate, async (req, res) => {
   try {
     const { destinationName, country, imageUrl, notes } = req.body;
@@ -34,7 +32,6 @@ router.post('/', authenticate, async (req, res) => {
   }
 });
 
-// DELETE /api/wishlist/:id — remove a wishlist item
 router.delete('/:id', authenticate, async (req, res) => {
   try {
     const result = await Wishlist.findOneAndDelete({ _id: req.params.id, user_id: req.user._id });

@@ -29,7 +29,7 @@
   color: #5ef5f4;
 }
 
-/* ── Coming Soon ──────────────────────────────────── */
+
 .hs-coming-soon-section {
   padding: 60px 0 80px;
 }
@@ -73,12 +73,12 @@
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
 }
 
-/* Full-width container for the hotel search form only */
+
 .hotel-search-form-section .container {
   max-width: none !important;
 }
 
-/* ── Form section ── */
+
 .hotel-search-form-section {
   padding: 40px 0 24px;
   background: #fff;
@@ -235,7 +235,7 @@
   flex-wrap: wrap;
 }
 
-/* ── Select field styling ── */
+
 .hs-field select.hs-field__input {
   appearance: none;
   padding-right: 36px;
@@ -294,7 +294,7 @@
   display: inline-block;
 }
 
-/* ── Results ── */
+
 .hotel-search-results {
   padding: 40px 0 80px;
   background: #f8fafc;
@@ -324,12 +324,12 @@
   align-items: start;
 }
 
-/* Remove card's own bottom margin — grid gap handles spacing */
+
 .hs-results-grid .hc-card {
   margin-bottom: 0;
 }
 
-/* At 3-up the body is wide enough for the side-by-side layout to work well */
+
 
 @media (max-width: 1100px) {
   .hs-results-grid {
@@ -343,7 +343,7 @@
   }
 }
 
-/* ── Empty state ── */
+
 .hs-empty {
   text-align: center;
   padding: 60px 0;
@@ -374,7 +374,7 @@
   color: #64748b;
 }
 
-/* ── Skeleton cards ── */
+
 .hs-skeleton {
   display: flex;
   gap: 16px;

@@ -1,4 +1,4 @@
-/* ─── Blog Detail Page ──────────────────────────────────────── */
+
 .blog-detail {
   min-height: 60vh;
   padding: 48px 0 80px;
@@ -30,14 +30,14 @@
   color: #C2CAD2;
 }
 
-/* Constrained article column */
+
 .blog-detail__container {
   max-width: 780px;
   margin: 0 auto;
   padding: 0 20px;
 }
 
-/* Category badge */
+
 .blog-detail__category {
   display: inline-block;
   background: linear-gradient(135deg, #0A539D, #F30F89);
@@ -51,7 +51,7 @@
   margin-bottom: 18px;
 }
 
-/* Title */
+
 .blog-detail__title {
   font-size: clamp(26px, 4vw, 38px);
   font-weight: 800;
@@ -60,7 +60,7 @@
   margin: 0 0 20px;
 }
 
-/* Meta row */
+
 .blog-detail__meta {
   display: flex;
   align-items: center;
@@ -96,7 +96,7 @@
   color: #9FAAB6;
 }
 
-/* Hero image */
+
 .blog-detail__hero {
   border-radius: 16px;
   overflow: hidden;
@@ -119,7 +119,7 @@
   margin-bottom: 36px;
 }
 
-/* ─── WordPress Content Styles ──────────────────────────────── */
+
 .wp-content {
   font-size: 16px;
   line-height: 1.8;
@@ -199,7 +199,7 @@
   padding: 2px 6px;
 }
 
-/* WP Gutenberg block spacing fixes */
+
 .wp-content .wp-block-image {
   margin: 1.5em 0;
 }
@@ -215,7 +215,7 @@
   margin-top: 8px;
 }
 
-/* ─── Footer / Back button ──────────────────────────────────── */
+
 .blog-detail__footer {
   margin-top: 52px;
   padding-top: 28px;
@@ -253,7 +253,7 @@
   color: #0A539D;
 }
 
-/* ─── Not Found / Error ─────────────────────────────────────── */
+
 .blog-detail__not-found {
   display: flex;
   flex-direction: column;
@@ -277,7 +277,7 @@
   margin: 0;
 }
 
-/* ─── Skeleton shimmer ──────────────────────────────────────── */
+
 .blog-skeleton-line {
   background: linear-gradient(90deg, #f0f2f5 25%, #e4e8ec 50%, #f0f2f5 75%);
   background-size: 200% 100%;
@@ -291,7 +291,7 @@
   100% { background-position: -200% 0; }
 }
 
-/* ─── Back link ─────────────────────────────────────────────── */
+
 .blog-detail__back-link {
   display: inline-flex;
   align-items: center;
@@ -305,13 +305,13 @@
 }
 .blog-detail__back-link:hover { color: #0A539D; }
 
-/* ─── Read time ──────────────────────────────────────────────── */
+
 .blog-detail__read-time { color: #9FAAB6; }
 
-/* ─── Hero image: position relative for AI badge ────────────── */
+
 .blog-detail__hero { position: relative; }
 
-/* ─── AI badge ───────────────────────────────────────────────── */
+
 .blog-detail__ai-badge {
   position: absolute;
   bottom: 12px;
@@ -329,14 +329,14 @@
   pointer-events: none;
 }
 
-/* ─── Share bar ──────────────────────────────────────────────── */
+
 .blog-detail__share {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
-/* ── Booking strip ──────────────────────────────────────────────── */
+
 .blog-booking-strip {
   margin: 32px 0 0;
   padding: 20px 24px;
@@ -438,7 +438,7 @@
 .blog-detail__share-btn--copy.blog-detail__share-btn--copied { background: #029e9d; }
 .blog-detail__share-btn--print    { background: #596C7E; }
 
-/* ─── Prev / Next navigation ─────────────────────────────────── */
+
 .blog-detail__nav {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -483,7 +483,7 @@
   overflow: hidden;
 }
 
-/* ─── Comment section wrapper ────────────────────────────────── */
+
 .blog-detail__comments-wrap {
   margin-top: 60px;
   padding: 44px 0 64px;
@@ -515,7 +515,7 @@
   margin-bottom: 32px;
 }
 
-/* ─── Comment list ────────────────────────────────────────────── */
+
 .blog-detail__comment-list {
   display: flex;
   flex-direction: column;
@@ -561,7 +561,7 @@
 }
 .blog-detail__comment-text p { margin: 0; }
 
-/* ─── Comment form ────────────────────────────────────────────── */
+
 .blog-detail__comment-form-wrap { margin-top: 8px; }
 .blog-detail__comment-form-title {
   font-size: 18px;
@@ -635,7 +635,7 @@
   margin: 0;
 }
 
-/* ─── Responsive ────────────────────────────────────────────── */
+
 @media (max-width: 640px) {
   .blog-detail {
     padding: 32px 0 60px;
@@ -664,7 +664,7 @@
   }
 }
 
-/* ─── Print styles ───────────────────────────────────────────── */
+
 @media print {
   .blog-detail__back-link,
   .blog-detail__share,

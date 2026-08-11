@@ -25,9 +25,9 @@ const FlightCardTP = ({ flight }) => {
 
   return (
     <div className="ftc-card">
-      {/* Main row: airline + route + cta */}
+
       <div className="ftc-card__main">
-        {/* Airline badge */}
+
         <div className="ftc-airline">
           <span className="ftc-airline__code">{flight.airline}</span>
           {flight.flightNumber && (
@@ -35,7 +35,7 @@ const FlightCardTP = ({ flight }) => {
           )}
         </div>
 
-        {/* Route visualization */}
+
         <div className="ftc-route">
           <div className="ftc-route__point">
             <span className="ftc-iata">{flight.origin}</span>
@@ -62,7 +62,7 @@ const FlightCardTP = ({ flight }) => {
           </div>
         </div>
 
-        {/* Price + CTA */}
+
         <div className="ftc-cta">
           <div className="ftc-price">
             <span className="ftc-price__from">from</span>
@@ -86,7 +86,7 @@ const FlightCardTP = ({ flight }) => {
         </div>
       </div>
 
-      {/* Return leg row (TP only has departure time) */}
+
       {flight.isRoundTrip && flight.returnDepartureTime && (
         <div className="ftc-return-row">
           <span className="ftc-return-label">↩ Return from {flight.returnOrigin}</span>

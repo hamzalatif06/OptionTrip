@@ -1,8 +1,3 @@
-/**
- * Chat Service
- * Handles communication with Vi AI Assistant backend
- */
-
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const authHeaders = (token) => ({
@@ -11,15 +6,6 @@ const authHeaders = (token) => ({
   ...(token ? { Authorization: `Bearer ${token}` } : {})
 });
 
-/**
- * Send a message to Vi assistant.
- * @param {string}        message
- * @param {string|null}   token
- * @param {string|null}   tripId
- * @param {string|null}   conversationId
- * @param {AbortSignal?}  signal — pass to enable the "Stop" button to cancel the request
- * @param {object|null}   location — { city, country, neighborhood, lat, lng, label }
- */
 export const sendMessage = async (
   message,
   token = null,
@@ -45,15 +31,12 @@ export const sendMessage = async (
 
   if (!response.ok) {
     let err = {};
-    try { err = await response.json(); } catch { /* noop */ }
+    try { err = await response.json(); } catch {}
     throw new Error(err.message || `Failed to send message (HTTP ${response.status})`);
   }
   return response.json();
 };
 
-/**
- * Get list of past conversations for authenticated user
- */
 export const getConversations = async (token) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/chat/conversations`, {
@@ -68,9 +51,6 @@ export const getConversations = async (token) => {
   }
 };
 
-/**
- * Load a specific conversation by ID
- */
 export const getConversation = async (conversationId, token) => {
   const response = await fetch(`${API_BASE_URL}/api/chat/conversations/${conversationId}`, {
     headers: authHeaders(token),
@@ -80,9 +60,6 @@ export const getConversation = async (conversationId, token) => {
   return response.json();
 };
 
-/**
- * Delete a conversation
- */
 export const deleteConversation = async (conversationId, token) => {
   const response = await fetch(`${API_BASE_URL}/api/chat/conversations/${conversationId}`, {
     method: 'DELETE',
@@ -93,9 +70,6 @@ export const deleteConversation = async (conversationId, token) => {
   return response.json();
 };
 
-/**
- * Get Vi assistant status
- */
 export const getViStatus = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/chat/status`, {
@@ -108,9 +82,6 @@ export const getViStatus = async () => {
   }
 };
 
-/**
- * Legacy chat history endpoint
- */
 export const getChatHistory = async (token) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/chat/history`, {

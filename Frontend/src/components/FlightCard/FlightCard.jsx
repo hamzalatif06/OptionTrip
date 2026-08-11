@@ -4,18 +4,12 @@ import { trackBookingClick } from '../../services/analyticsService';
 import { logActivity } from '../../services/activityService';
 import './FlightCard.css';
 
-/**
- * Formats "2024-11-15T08:45:00" → "08:45"
- */
 const formatTime = (isoStr) => {
   if (!isoStr) return '--';
   const d = new Date(isoStr);
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 };
 
-/**
- * Formats "2024-11-15T08:45:00" → "15 Nov"
- */
 const formatDate = (isoStr) => {
   if (!isoStr) return '';
   return new Date(isoStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
@@ -24,7 +18,7 @@ const formatDate = (isoStr) => {
 const FlightCard = ({ flight }) => {
   const { formatPriceFromCurrency } = useCurrency();
   const outbound = flight.itineraries?.[0];
-  const inbound  = flight.itineraries?.[1]; // round-trip return leg
+  const inbound  = flight.itineraries?.[1];
   const firstSeg = outbound?.segments?.[0];
   const lastSeg  = outbound?.segments?.[outbound.segments.length - 1];
 
@@ -36,7 +30,7 @@ const FlightCard = ({ flight }) => {
     <div className="flight-card">
       <div className="flight-card__body">
 
-        {/* Outbound leg */}
+
         <div className="flight-leg">
           <div className="flight-leg__carrier">
             <span className="carrier-badge">{flight.validatingCarrier || firstSeg?.carrierCode || '??'}</span>
@@ -69,7 +63,7 @@ const FlightCard = ({ flight }) => {
           </div>
         </div>
 
-        {/* Return leg (round-trip) */}
+
         {inbound && (() => {
           const retFirst = inbound.segments?.[0];
           const retLast  = inbound.segments?.[inbound.segments.length - 1];
@@ -107,7 +101,7 @@ const FlightCard = ({ flight }) => {
         })()}
       </div>
 
-      {/* Price + CTA */}
+
       <div className="flight-card__cta">
         <div className="flight-price">
           <span className="price-amount">{flight.price != null ? formatPriceFromCurrency(flight.price, flight.currency || 'USD') : '—'}</span>

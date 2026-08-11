@@ -1,14 +1,9 @@
-/**
- * Google Places API Service
- * Handles fetching place images from Google Places API with caching
- */
-
 import PlaceImage from '../models/PlaceImage.js';
 import env from '../config/env.js';
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || '';
 const GOOGLE_PLACES_API_URL = 'https://places.googleapis.com/v1';
-const CACHE_TTL_DAYS = 30; // Refresh cache every 30 days
+const CACHE_TTL_DAYS = 30;
 const MAX_IMAGES_TO_CACHE = 5;
 
 const FALLBACK_IMAGES = [
@@ -19,9 +14,6 @@ const FALLBACK_IMAGES = [
   '/images/destination/destination5.jpg',
 ];
 
-/**
- * Normalize place name for caching (e.g., "Dubai" -> "dubai")
- */
 const normalizePlaceName = (name) => {
   return String(name || '')
     .trim()
@@ -29,17 +21,10 @@ const normalizePlaceName = (name) => {
     .replace(/\s+/g, ' ');
 };
 
-/**
- * Create a deterministic placeId from place name
- */
 const createPlaceId = (placeName) => {
   return `place_${normalizePlaceName(placeName).replace(/\s+/g, '_')}`;
 };
 
-/**
- * Get a deterministic fallback image based on place name so the same
- * destination always gets the same fallback (no random repeats across cards)
- */
 const getFallbackImage = (placeName = '') => {
   let hash = 0;
   const text = normalizePlaceName(placeName) || String(Date.now());
@@ -50,10 +35,6 @@ const getFallbackImage = (placeName = '') => {
   return FALLBACK_IMAGES[Math.abs(hash) % FALLBACK_IMAGES.length];
 };
 
-/**
- * Search for a place using Google Places Text Search API v1
- * REQUIRED: X-Goog-FieldMask header with fields to return
- */
 export const searchGooglePlace = async (placeName) => {
   try {
     if (!placeName || placeName.trim().length < 2) {
@@ -68,7 +49,6 @@ export const searchGooglePlace = async (placeName) => {
 
     console.log(`🔍 Searching Google Places for: ${placeName}`);
 
-    // Use AbortController for proper timeout handling
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
@@ -78,8 +58,6 @@ export const searchGooglePlace = async (placeName) => {
       languageCode: 'en'
     };
 
-    // Required fields for Places API v1
-    // X-Goog-FieldMask specifies which fields to return
     const fieldMask = 'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.types,places.websiteUri,places.internationalPhoneNumber,places.photos';
 
     console.log(`📤 Request URL: ${GOOGLE_PLACES_API_URL}/places:searchText`);
@@ -92,7 +70,7 @@ export const searchGooglePlace = async (placeName) => {
       headers: {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
-        'X-Goog-FieldMask': fieldMask  // ← REQUIRED HEADER
+        'X-Goog-FieldMask': fieldMask
       },
       body: JSON.stringify(requestBody),
       signal: controller.signal
@@ -105,15 +83,12 @@ export const searchGooglePlace = async (placeName) => {
       console.error(`❌ Google Places API error: ${response.status} ${response.statusText}`);
       console.error(`   Error body: ${errorBody}`);
       
-      // Try to parse error details
       try {
         const errorJson = JSON.parse(errorBody);
         if (errorJson.error) {
           console.error(`   Error details: ${JSON.stringify(errorJson.error)}`);
         }
-      } catch (e) {
-        // Not JSON
-      }
+      } catch (e) {}
       return null;
     }
 
@@ -150,11 +125,6 @@ export const searchGooglePlace = async (placeName) => {
   }
 };
 
-/**
- * Get photo URL from Google Places using photoReference
- * photo.name from Places API v1 is already "places/{id}/photos/{photoId}"
- * so we must NOT add an extra "/places/" prefix
- */
 export const getGooglePlacePhotoUrl = (photoReference, maxWidth = 800, maxHeight = 600) => {
   if (!photoReference || !GOOGLE_PLACES_API_KEY) {
     return null;
@@ -163,10 +133,6 @@ export const getGooglePlacePhotoUrl = (photoReference, maxWidth = 800, maxHeight
   return `${GOOGLE_PLACES_API_URL}/${photoReference}/media?maxHeightPx=${maxHeight}&maxWidthPx=${maxWidth}&key=${GOOGLE_PLACES_API_KEY}`;
 };
 
-/**
- * Fetch place photos from Google Places API
- * REQUIRED: X-Goog-FieldMask header with fields to return
- */
 const fetchPlacePhotos = async (placeId, displayName) => {
   try {
     if (!placeId || !GOOGLE_PLACES_API_KEY) {
@@ -176,14 +142,11 @@ const fetchPlacePhotos = async (placeId, displayName) => {
 
     console.log(`📸 Fetching photos for place: ${displayName}`);
 
-    // Use AbortController for proper timeout handling
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-    // For GET requests, use query parameter 'fields' instead of header
     const fields = 'places.photos,places.displayName,places.formattedAddress';
     
-    // URL encode the fields parameter
     const url = `${GOOGLE_PLACES_API_URL}/places/${placeId}?fields=${encodeURIComponent(fields)}`;
 
     console.log(`📸 Fetching from: ${url}`);
@@ -234,15 +197,8 @@ const fetchPlacePhotos = async (placeId, displayName) => {
   }
 };
 
-// In-process deduplication: if two requests arrive for the same uncached place
-// at the same time, the second one waits for the first's Google API call instead
-// of making its own. Keyed by placeId, value is the in-flight Promise.
 const pendingFetches = new Map();
 
-/**
- * Save a record to DB so the next request hits cache instead of calling the API again.
- * Used for both successful fetches and failures (with a short TTL for failures).
- */
 const saveToDb = async (placeId, placeName, normalized, primaryImageUrl, photos, placeDetails, ttlDays) => {
   try {
     const now = new Date();
@@ -272,11 +228,6 @@ const saveToDb = async (placeId, placeName, normalized, primaryImageUrl, photos,
   }
 };
 
-/**
- * Core fetch-and-cache logic. Only called on a DB miss.
- * Always saves a DB record — either real photos (90-day TTL) or fallback (1-hour TTL)
- * so the next request for this place hits DB instead of calling Google API.
- */
 const fetchFromApiAndCache = async (placeName, normalized, placeId) => {
   const fallbackUrl = getFallbackImage(placeName);
 
@@ -318,34 +269,26 @@ const fetchFromApiAndCache = async (placeName, normalized, placeId) => {
 
   } catch (error) {
     console.error(`❌ fetchFromApiAndCache error for ${placeName}:`, error.message);
-    // Still cache the fallback so we don't retry the failing API immediately
     await saveToDb(placeId, placeName, normalized, fallbackUrl, [], null, 1 / 24);
     return { imageUrl: fallbackUrl, source: 'fallback', cacheStatus: 'error', error: error.message };
   }
 };
 
-/**
- * Get place image: DB cache first, Google Places API only on miss.
- * Concurrent requests for the same uncached place share one API call.
- */
 export const getPlaceImageWithCache = async (placeName) => {
   const normalized = normalizePlaceName(placeName);
   const placeId = createPlaceId(placeName);
 
-  // STEP 1: DB cache hit → return immediately, no API call
   const cached = await PlaceImage.getCachedImage(placeId);
   if (cached?.primaryImageUrl) {
     console.log(`✅ DB cache HIT: ${placeName}`);
     return { imageUrl: cached.primaryImageUrl, source: 'cached', placeDetails: cached.placeDetails, cacheStatus: 'hit' };
   }
 
-  // STEP 2: Deduplicate concurrent misses — share one in-flight API call per place
   if (pendingFetches.has(placeId)) {
     console.log(`⏳ Waiting for in-flight fetch: ${placeName}`);
     return pendingFetches.get(placeId);
   }
 
-  // STEP 3: Cache miss — call Google Places API, then save to DB
   console.log(`🔄 DB miss — calling Google Places API: ${placeName}`);
   const promise = fetchFromApiAndCache(placeName, normalized, placeId);
   pendingFetches.set(placeId, promise);
@@ -353,21 +296,15 @@ export const getPlaceImageWithCache = async (placeName) => {
   return promise;
 };
 
-/**
- * Batch get images for multiple places.
- * Does ONE bulk DB query first, then calls Google API only for the misses.
- */
 export const getPlaceImagesForMultiplePlaces = async (placeNames) => {
   if (!Array.isArray(placeNames) || placeNames.length === 0) return {};
 
   console.log(`\n📦 Batch image fetch for ${placeNames.length} places`);
 
-  // Build placeId → placeName map
   const placeIdMap = {};
   placeNames.forEach(name => { placeIdMap[createPlaceId(name)] = name; });
   const allPlaceIds = Object.keys(placeIdMap);
 
-  // STEP 1: One bulk DB query for all places
   const cachedDocs = await PlaceImage.find({
     placeId: { $in: allPlaceIds },
     isActive: true,
@@ -381,15 +318,13 @@ export const getPlaceImagesForMultiplePlaces = async (placeNames) => {
   const misses = allPlaceIds.filter(id => !cachedById[id]);
   console.log(`📊 DB: ${hits} hits, ${misses.length} misses`);
 
-  // STEP 2: Fetch only cache misses from Google Places API (in parallel)
   const missResults = await Promise.allSettled(
     misses.map(placeId => {
       const name = placeIdMap[placeId];
-      return getPlaceImageWithCache(name); // uses pendingFetches dedup internally
+      return getPlaceImageWithCache(name);
     })
   );
 
-  // STEP 3: Assemble final imageMap keyed by original placeName
   const imageMap = {};
 
   placeNames.forEach(name => {
@@ -413,9 +348,6 @@ export const getPlaceImagesForMultiplePlaces = async (placeNames) => {
   return imageMap;
 };
 
-/**
- * Clear expired cache entries
- */
 export const clearExpiredCache = async () => {
   try {
     console.log(`🧹 Clearing expired cache entries...`);
@@ -432,9 +364,6 @@ export const clearExpiredCache = async () => {
   }
 };
 
-/**
- * Get cache statistics
- */
 export const getCacheStats = async () => {
   try {
     const totalEntries = await PlaceImage.countDocuments();

@@ -1,9 +1,3 @@
-/**
- * Travelpayouts / Hotellook API Configuration
- *
- * Token:  Dashboard → API → copy API Token
- * Marker: Dashboard → Affiliate Tools → copy your Marker (affiliate ID)
- */
 export const TP_CONFIG = {
   token:          process.env.TRAVELPAYOUTS_TOKEN  || '',
   marker:         process.env.TRAVELPAYOUTS_MARKER || '',

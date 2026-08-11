@@ -1,15 +1,9 @@
-/**
- * User Activity Service
- * Reads/writes UserActivity docs and shapes them for prompt injection.
- */
-
 import UserActivity from '../models/UserActivity.js';
 
 const MAX_UNFED_TO_INJECT      = 40;
 const MAX_FOR_GREETING_SUMMARY = 60;
 const MAX_FORMATTED_IN_PROMPT  = 25;
 
-/** Insert a single activity. Returns the doc, or null if anything fails. */
 export const logActivity = async ({ userId, type, action, title, metadata, location }) => {
   if (!userId || !type || !action) return null;
   try {
@@ -27,7 +21,6 @@ export const logActivity = async ({ userId, type, action, title, metadata, locat
   }
 };
 
-/** Recent activities NOT yet fed to the assistant (newest first). */
 export const getUnfedActivities = async (userId, limit = MAX_UNFED_TO_INJECT) => {
   if (!userId) return [];
   return UserActivity.find({ user_id: userId, fed_to_assistant: false })
@@ -36,7 +29,6 @@ export const getUnfedActivities = async (userId, limit = MAX_UNFED_TO_INJECT) =>
     .lean();
 };
 
-/** All recent activities (fed or not) — used for summary/greeting. */
 export const getRecentActivities = async (userId, limit = MAX_FOR_GREETING_SUMMARY) => {
   if (!userId) return [];
   return UserActivity.find({ user_id: userId })
@@ -45,7 +37,6 @@ export const getRecentActivities = async (userId, limit = MAX_FOR_GREETING_SUMMA
     .lean();
 };
 
-/** Bulk-mark activities as having been fed into the assistant. */
 export const markActivitiesAsFed = async (userId, ids = []) => {
   if (!userId || !ids.length) return 0;
   try {
@@ -60,10 +51,6 @@ export const markActivitiesAsFed = async (userId, ids = []) => {
   }
 };
 
-/**
- * Derive a lightweight summary the frontend can show in the assistant's
- * opening bubble (interests, recent destinations, last meaningful action).
- */
 export const summarizeActivities = (activities = []) => {
   const summary = {
     totalActivities:   activities.length,
@@ -99,10 +86,6 @@ export const summarizeActivities = (activities = []) => {
   return summary;
 };
 
-/**
- * Render activities as compact bullet lines for direct injection into the
- * assistant's system prompt. Caps length to keep tokens bounded.
- */
 export const formatActivitiesForPrompt = (activities = []) => {
   if (!activities.length) return '';
   const lines = [];

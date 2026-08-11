@@ -1,11 +1,3 @@
-/**
- * Service Signals Service
- * Deterministic (non-AI) detection of moments where nudging a user toward one
- * of OptionTrip's own services (eSIM, stays, car rental, tours, flights) is
- * genuinely useful — not just "AI decided to upsell". Used by both Vi's chat
- * replies (chatService.js) and the notification sweep (Phase 2).
- */
-
 const ROAD_TRIP_TYPES = ['road trip', 'adventure', 'nature', 'safari', 'countryside'];
 const CULTURAL_TYPES  = ['cultural', 'culture', 'adventure', 'city break', 'history', 'sightseeing'];
 
@@ -32,12 +24,6 @@ const matchesAny = (value, list) => {
   return list.some(t => v.includes(t));
 };
 
-/**
- * @param {object} user
- * @param {object|null} trip  The current trip in focus (context.currentTrip).
- * @param {Array} recentActivities  UserActivity docs (fed or unfed).
- * @returns {Array<{service:string, reason:string, destination:string, url:string}>}
- */
 export const computeServiceSignals = (user, trip, recentActivities = []) => {
   if (!trip) return [];
 
@@ -46,7 +32,6 @@ export const computeServiceSignals = (user, trip, recentActivities = []) => {
   const daysOut = daysUntil(trip.dates?.start_date);
   const isUpcoming = daysOut !== null && daysOut >= 0;
 
-  // eSIM — upcoming international-feeling trip, no eSIM activity logged yet.
   if (isUpcoming && daysOut <= 14 && !hasActivityForDestination(recentActivities, 'esim', destination)) {
     signals.push({
       service: 'esim',
@@ -56,7 +41,6 @@ export const computeServiceSignals = (user, trip, recentActivities = []) => {
     });
   }
 
-  // Car rental — road-trip/adventure style or a larger party, not yet booked.
   const roadTripSignal = matchesAny(trip.trip_type, ROAD_TRIP_TYPES) || (trip.guests?.total || 0) >= 3;
   if (roadTripSignal && !trip.selectedCar?.bookingUrl && !hasActivityForDestination(recentActivities, 'car', destination)) {
     signals.push({
@@ -67,7 +51,6 @@ export const computeServiceSignals = (user, trip, recentActivities = []) => {
     });
   }
 
-  // Stays — an option is selected/itinerary built but no hotel booked or searched.
   if (['option_selected', 'itinerary_generated'].includes(trip.status) &&
       !trip.selectedHotel?.bookingUrl &&
       !hasActivityForDestination(recentActivities, 'hotel', destination)) {
@@ -79,7 +62,6 @@ export const computeServiceSignals = (user, trip, recentActivities = []) => {
     });
   }
 
-  // Tours — cultural/adventure interest signal, nothing booked/viewed yet.
   const culturalSignal = matchesAny(trip.trip_type, CULTURAL_TYPES) ||
     recentActivities.some(a => ['plan_my_day', 'destination'].includes(a.type) &&
       matchesAny(a.metadata?.vibe || a.metadata?.tripType, CULTURAL_TYPES));
@@ -92,7 +74,6 @@ export const computeServiceSignals = (user, trip, recentActivities = []) => {
     });
   }
 
-  // Flights — an option is chosen but no flight booked.
   if (trip.status === 'option_selected' && !trip.selectedFlight?.bookingUrl) {
     signals.push({
       service: 'flight',

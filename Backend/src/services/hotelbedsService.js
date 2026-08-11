@@ -1,11 +1,3 @@
-/**
- * Hotelbeds API Service
- *
- * Availability API:  POST /hotel-api/1.0/hotels
- * Content API:       GET  /hotel-content-api/1.0/hotels
- * Auth:              Api-key header + X-Signature = SHA256(apiKey + secret + unixTimestamp)
- */
-
 import { createHash } from 'crypto';
 
 const API_KEY   = process.env.HOTELBEDS_API_KEY || '';
@@ -15,11 +7,7 @@ const TP_MARKER = process.env.TRAVELPAYOUTS_MARKER || '370056';
 
 const PHOTO_BASE = 'https://photos.hotelbeds.com/giata';
 
-// Hotel IDs are prefixed so the controller can route to the right service.
-// Format: "HB_{hotelCode}_{destinationCode}"
 export const HB_PREFIX = 'HB_';
-
-// ── Auth ─────────────────────────────────────────────────────────────────────
 
 const getSignature = () => {
   const ts = Math.floor(Date.now() / 1000);
@@ -33,8 +21,6 @@ const getHeaders = () => ({
   'Accept-Encoding':'gzip',
   'Content-Type':   'application/json',
 });
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
 
 const nightCount = (checkIn, checkOut) =>
   Math.max(1, Math.ceil((new Date(checkOut) - new Date(checkIn)) / 86400000));
@@ -58,10 +44,7 @@ const boardLabel = (code) => {
   return map[code] || code || '';
 };
 
-// ── Normalisers ───────────────────────────────────────────────────────────────
-
 const normaliseRoom = (room, rate, { checkIn, checkOut, adults, destinationCode, hotelCode, currency }) => {
-  // Non-refundable: rateClass NRF or first cancellation policy has no free window
   const isRefundable = rate.rateClass !== 'NRF' &&
     (rate.cancellationPolicies || []).every(p => parseFloat(p.amount || '1') === 0);
 
@@ -80,10 +63,8 @@ const normaliseRoom = (room, rate, { checkIn, checkOut, adults, destinationCode,
 };
 
 const normaliseHotel = (h, photos, { cityName, destinationCode, checkIn, checkOut, adults }) => {
-  // Currency is at the hotel level, not the rate level
   const currency = h.currency || 'EUR';
 
-  // Best (cheapest) rate across all room types
   let minPrice  = null;
   const preloadedRooms = [];
 
@@ -122,8 +103,6 @@ const normaliseHotel = (h, photos, { cityName, destinationCode, checkIn, checkOu
   };
 };
 
-// ── Batch image fetch ─────────────────────────────────────────────────────────
-
 const PREFERRED_TYPES = new Set(['GEN', 'FAC', 'HAB', 'PIS', 'COM']);
 
 const fetchImages = async (hotelCodes) => {
@@ -147,13 +126,6 @@ const fetchImages = async (hotelCodes) => {
   }
 };
 
-// ── Public API ────────────────────────────────────────────────────────────────
-
-/**
- * Search available hotels via Hotelbeds Availability API.
- * @param {{ destinationCode, checkIn, checkOut, adults?, rooms?, cityName? }}
- * @returns {Promise<Array>} Normalised hotel objects sorted by price
- */
 export const searchHotelsHotelbeds = async ({
   destinationCode,
   checkIn,
@@ -198,11 +170,6 @@ export const searchHotelsHotelbeds = async ({
     .sort((a, b) => a.price - b.price);
 };
 
-/**
- * Get hotel details (facilities, description, photos) for a single hotel.
- * @param {number|string} hotelCode  Raw Hotelbeds hotel code (without HB_ prefix)
- * @returns {Promise<{facilities, description, photos}>}
- */
 export const getHotelbedsDetails = async (hotelCode) => {
   try {
     const url = `${BASE}/hotel-content-api/1.0/hotels?fields=images,facilities,description&codes=${hotelCode}&language=ENG&from=1&to=1&useSecondaryLanguage=false`;
@@ -230,12 +197,6 @@ export const getHotelbedsDetails = async (hotelCode) => {
   }
 };
 
-/**
- * Get available rooms for a specific Hotelbeds hotel.
- * Re-calls the availability API filtered to a single hotel.
- * @param {{ hotelCode, destinationCode, checkIn, checkOut, adults?, rooms? }}
- * @returns {Promise<Array>} Normalised room objects
- */
 export const getHotelbedsRooms = async ({
   hotelCode,
   destinationCode,

@@ -1,9 +1,5 @@
 import { toast } from 'react-toastify';
 
-/**
- * Utility functions for showing toast notifications
- */
-
 export const showSuccessToast = (message) => {
   toast.success(message, {
     position: "top-right",
@@ -71,5 +67,4 @@ export const dismissToast = (toastId) => {
   toast.dismiss(toastId);
 };
 
-// Export default toast for custom usage
 export default toast;

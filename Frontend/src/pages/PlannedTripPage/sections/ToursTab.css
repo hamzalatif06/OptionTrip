@@ -4,7 +4,7 @@
   margin: 0 auto;
 }
 
-/* ── Header ───────────────────────────────────────────────────────────────── */
+
 .tt-card__header {
   display: flex;
   align-items: center;
@@ -48,7 +48,7 @@
   margin: 0;
 }
 
-/* ── Travelpayouts widget ─────────────────────────────────────────────────── */
+
 .tt-root .cr-tp-widget {
   background: #ffffff;
   border-radius: 0 0 16px 16px;

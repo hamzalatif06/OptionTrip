@@ -1,6 +1,6 @@
-/* Loader Component Styles */
 
-/* Loader GIF sizes */
+
+
 .loader-gif {
   display: block;
 }
@@ -20,7 +20,7 @@
   height: 80px;
 }
 
-/* Inline loader */
+
 .loader-inline {
   display: flex;
   flex-direction: column;
@@ -30,7 +30,7 @@
   padding: 20px;
 }
 
-/* Fullpage loader */
+
 .loader-fullpage {
   position: fixed;
   top: 0;
@@ -64,7 +64,7 @@
   }
 }
 
-/* Overlay loader */
+
 .loader-overlay {
   position: absolute;
   top: 0;
@@ -86,7 +86,7 @@
   gap: 12px;
 }
 
-/* Loader text */
+
 .loader-text {
   font-size: 14px;
   color: #596C7E;
@@ -100,7 +100,7 @@
   color: #122D46;
 }
 
-/* Animations */
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -112,7 +112,7 @@
   }
 }
 
-/* Button loader - for inline button loading states */
+
 .btn-loader {
   display: inline-flex;
   align-items: center;
@@ -124,7 +124,7 @@
   height: 18px;
 }
 
-/* Card loader */
+
 .card-loader {
   min-height: 200px;
   display: flex;
@@ -132,7 +132,7 @@
   justify-content: center;
 }
 
-/* Section loader */
+
 .section-loader {
   min-height: 300px;
   display: flex;
@@ -142,7 +142,7 @@
   gap: 16px;
 }
 
-/* Page content loader */
+
 .page-loader {
   min-height: 60vh;
   display: flex;

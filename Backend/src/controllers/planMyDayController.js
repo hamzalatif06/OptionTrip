@@ -1,22 +1,5 @@
-/**
- * Plan My Day Controller
- */
-
 import { generateDayPlan } from '../services/planMyDayService.js';
 
-/**
- * POST /api/plan-my-day/generate
- * Body: {
- *   location:      { city, country, neighborhood, lat, lng },
- *   date:          'YYYY-MM-DD',
- *   startTime:     'HH:MM',
- *   durationHours: number,
- *   vibe:          'foodie'|'cultural'|'adventure'|'relaxed'|'romantic'|'family'|'local'|'nightlife'|'workcafe',
- *   budget:        'budget'|'moderate'|'premium'|'luxury',
- *   interests:     string[],
- *   partySize:     number
- * }
- */
 export const generate = async (req, res) => {
   try {
     const {

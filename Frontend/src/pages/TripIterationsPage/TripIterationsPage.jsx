@@ -12,7 +12,6 @@ import {
 } from '../../services/tripsService';
 import './TripIterationsPage.css';
 
-// Simple Header Component for Trip Iterations Page
 const TripIterationsHeader = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -53,7 +52,7 @@ const TripIterationsHeader = () => {
             Blogs
           </Link>
 
-          {/* Auth Section */}
+
           <div
             className="trip-iterations-header__auth"
             onMouseEnter={openDropdown}
@@ -140,8 +139,6 @@ const TripIterationsPage = () => {
 
       if (response.success && response.data) {
         setTripData(response.data);
-        // Only set selected option if one was already selected (returning user)
-        // Don't auto-select the first option for new trips
         if (response.data.selected_option_id) {
           setSelectedOptionId(response.data.selected_option_id);
         }
@@ -159,23 +156,19 @@ const TripIterationsPage = () => {
   const handleSelectOption = async (optionId) => {
     setSelectedOptionId(optionId);
 
-    // Update selection on backend
     try {
       await selectTripOption(tripId, optionId);
     } catch (err) {
       console.error('Error selecting option:', err);
-      // Don't show error to user for selection failure, just log it
     }
   };
 
   const handleConfirm = async () => {
-    // Make sure an option is selected
     if (!selectedOptionId) {
       alert('Please select a trip option first');
       return;
     }
 
-    // Navigate to the planned trip page with the selected option
     navigate(`/planned-trip/${tripId}`);
   };
 

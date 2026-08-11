@@ -69,7 +69,7 @@ const TermsOfServicePage = () => {
         keywords="terms of service, user agreement, optiontrip terms"
         path="/terms"
       />
-      {/* Banner */}
+
       <div
         className="banner pt-10 pb-0 overflow-hidden"
         style={{ backgroundImage: `url(/images/testimonial.png)` }}
@@ -94,12 +94,12 @@ const TermsOfServicePage = () => {
         </div>
       </div>
 
-      {/* Content */}
+
       <section style={{ padding: '80px 0', background: '#fff' }}>
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-lg-9">
-              {/* Intro Box */}
+
               <div
                 style={{
                   background: 'linear-gradient(135deg, rgba(10,83,157,0.05), rgba(2,158,157,0.08))',
@@ -114,7 +114,7 @@ const TermsOfServicePage = () => {
                 </p>
               </div>
 
-              {/* Quick Navigation */}
+
               <div
                 style={{
                   background: '#f8f9fa',
@@ -147,7 +147,7 @@ const TermsOfServicePage = () => {
                 </div>
               </div>
 
-              {/* Sections */}
+
               {sections.map((section, i) => (
                 <div key={i} id={`section-${i}`} style={{ marginBottom: '40px' }}>
                   <h3
@@ -164,7 +164,7 @@ const TermsOfServicePage = () => {
                 </div>
               ))}
 
-              {/* Agreement Box */}
+
               <div
                 style={{
                   background: 'linear-gradient(135deg, #0A539D, #029e9d)',

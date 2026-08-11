@@ -1,4 +1,4 @@
-/* ── Toggle (mobile) ─────────────────────────────────────────────────────── */
+
 .tsb-toggle {
   position: fixed;
   top: 80px;
@@ -21,7 +21,7 @@
 
 @media (max-width: 900px) { .tsb-toggle { display: flex; } }
 
-/* ── Sidebar ─────────────────────────────────────────────────────────────── */
+
 .tsb {
   position: absolute;
   top: 0;
@@ -43,7 +43,7 @@
   .tsb--open { transform: translateX(0); }
 }
 
-/* Header */
+
 .tsb-header {
   display: flex;
   align-items: center;
@@ -73,7 +73,7 @@
   border-radius: 100px;
 }
 
-/* Search */
+
 .tsb-search {
   display: flex;
   align-items: center;
@@ -104,7 +104,7 @@
   padding: 0 2px;
 }
 
-/* Filters */
+
 .tsb-filters {
   display: flex;
   gap: 4px;
@@ -127,7 +127,7 @@
 [data-theme="dark"] .tsb-filter { border-color: #2d3f55; color: #94a3b8; }
 [data-theme="dark"] .tsb-filter--active { background: #029e9d; color: #fff; border-color: #029e9d; }
 
-/* List */
+
 .tsb-list {
   flex: 1;
   overflow-y: auto;
@@ -138,7 +138,7 @@
   scrollbar-width: thin;
 }
 
-/* Empty */
+
 .tsb-empty {
   display: flex;
   flex-direction: column;
@@ -151,7 +151,7 @@
 }
 .tsb-empty p { margin: 0; }
 
-/* Trip card */
+
 .tsb-card {
   display: flex;
   align-items: center;

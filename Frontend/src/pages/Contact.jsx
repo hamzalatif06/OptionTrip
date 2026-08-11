@@ -5,7 +5,7 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const Contact = () => {
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
-  const [status, setStatus]     = useState('idle'); // idle | loading | success | error
+  const [status, setStatus]     = useState('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleChange = (e) => {
@@ -68,7 +68,7 @@ const Contact = () => {
         <div className="container">
           <div className="row">
 
-            {/* ── Form ── */}
+
             <div className="col-lg-8 mb-4">
               <div className="box-shadow bg-white p-4 rounded">
                 <h3 className="mb-4">Send us a Message</h3>
@@ -208,7 +208,7 @@ const Contact = () => {
               </div>
             </div>
 
-            {/* ── Contact Info ── */}
+
             <div className="col-lg-4">
               <div className="box-shadow bg-white p-4 rounded">
                 <h3 className="mb-4">Contact Information</h3>

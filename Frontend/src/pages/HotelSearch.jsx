@@ -31,7 +31,6 @@ const HotelSearch = () => {
   const today    = new Date().toISOString().split('T')[0];
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
-  // Destination autocomplete
   const [cityQuery,    setCityQuery]    = useState('');
   const [destId,       setDestId]       = useState('');
   const [searchType,   setSearchType]   = useState('CITY');
@@ -41,20 +40,17 @@ const HotelSearch = () => {
   const cityRef        = useRef(null);
   const debouncedQuery = useDebounce(cityQuery, 350);
 
-  // Form fields
   const [checkIn,   setCheckIn]   = useState(today);
   const [checkOut,  setCheckOut]  = useState(tomorrow);
   const [adults,    setAdults]    = useState(1);
   const [errors,    setErrors]    = useState({});
 
-  // Results
   const [isLoading,   setIsLoading]   = useState(false);
   const [hotels,      setHotels]      = useState([]);
   const [searchError, setSearchError] = useState(null);
   const [searched,    setSearched]    = useState(false);
   const [lastCityName, setLastCityName] = useState('');
 
-  // Fetch destination suggestions
   useEffect(() => {
     if (!debouncedQuery || debouncedQuery.length < 2) {
       setSuggestions([]); setShowDropdown(false); return;
@@ -67,7 +63,6 @@ const HotelSearch = () => {
     });
   }, [debouncedQuery]);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e) => { if (cityRef.current && !cityRef.current.contains(e.target)) setShowDropdown(false); };
     document.addEventListener('mousedown', handler);
@@ -134,7 +129,7 @@ const HotelSearch = () => {
   return (
     <>
       <PageMeta title="Search Stays" description="Find and compare stays worldwide — hotels, apartments, resorts, and more. Search by destination, dates, and budget with real-time availability." path="/hotels" />
-      {/* Hero */}
+
       <section className="hotel-search-hero">
         <div className="container">
           <div className="text-center">
@@ -147,12 +142,12 @@ const HotelSearch = () => {
         </div>
       </section>
 
-      {/* Search form */}
+
       <section className="hotel-search-form-section">
         <div className="container">
           <form className="hs-form" onSubmit={handleSearch} noValidate>
 
-            {/* Destination */}
+
             <div className={`hs-field hs-field--city${errors.city ? ' hs-field--error' : ''}`} ref={cityRef}>
               <label className="hs-field__label">Destination</label>
               <div className="hs-ac-wrap">
@@ -197,7 +192,7 @@ const HotelSearch = () => {
             </div>
 
             <div className="hs-form__row">
-              {/* Check-in / Check-out — date range picker */}
+
               <div className="hs-field hs-field--datepicker">
                 <TripDatePicker
                   mode="range"
@@ -218,7 +213,7 @@ const HotelSearch = () => {
                 />
               </div>
 
-              {/* Guests */}
+
               <div className="hs-field hs-field--adults">
                 <PassengerSelector
                   passengers={[
@@ -247,7 +242,7 @@ const HotelSearch = () => {
         </div>
       </section>
 
-      {/* Loading skeletons */}
+
       {isLoading && (
         <section className="hotel-search-results">
           <div className="container">
@@ -258,7 +253,7 @@ const HotelSearch = () => {
         </section>
       )}
 
-      {/* Results */}
+
       {searched && !isLoading && (
         <section className="hotel-search-results">
           <div className="container">

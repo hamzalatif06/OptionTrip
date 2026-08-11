@@ -1,14 +1,6 @@
 import React from 'react';
 import './NearbyAirportsBanner.css';
 
-/**
- * Shown in the empty-results state when no flights were found and the user
- * has NOT yet tried the "include nearby airports" option.
- *
- * Props:
- *  lastSearch  — the params object from the last search
- *  onRetry     — called with { ...lastSearch, includeNearby: true }
- */
 const NearbyAirportsBanner = ({ lastSearch, onRetry }) => {
   if (!lastSearch) return null;
 

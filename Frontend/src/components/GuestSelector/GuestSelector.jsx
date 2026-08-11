@@ -11,8 +11,6 @@ const GuestSelector = ({
   const [guests, setGuests] = useState(initialGuests);
   const menuRef = useRef(null);
 
-  // Re-sync when the parent updates initialGuests (e.g. AI/voice parser fills the form).
-  // Compares values (not object identity) to avoid pointless re-renders.
   useEffect(() => {
     const a = initialGuests.adults   || 0;
     const c = initialGuests.children || 0;
@@ -26,7 +24,6 @@ const GuestSelector = ({
 
   const GUEST_LIMIT = 10;
 
-  // Calculate total and label
   const guestInfo = useMemo(() => {
     const { adults, children, infants } = guests;
     const total = adults + children + infants;
@@ -45,7 +42,6 @@ const GuestSelector = ({
     };
   }, [guests]);
 
-  // Debounce the guest info before calling callback
   const debouncedGuestInfo = useDebounce(guestInfo, 300);
 
   useEffect(() => {
@@ -54,7 +50,6 @@ const GuestSelector = ({
     }
   }, [debouncedGuestInfo]);
 
-  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -115,7 +110,7 @@ const GuestSelector = ({
               </div>
             )}
 
-            {/* Adults Counter */}
+
             <div className="guest-selector-item">
               <div className="guest-selector-item-info">
                 <span className="guest-selector-item-label">Adults</span>
@@ -146,7 +141,7 @@ const GuestSelector = ({
               </div>
             </div>
 
-            {/* Children Counter */}
+
             <div className="guest-selector-item">
               <div className="guest-selector-item-info">
                 <span className="guest-selector-item-label">Children</span>
@@ -177,7 +172,7 @@ const GuestSelector = ({
               </div>
             </div>
 
-            {/* Infants Counter */}
+
             <div className="guest-selector-item">
               <div className="guest-selector-item-info">
                 <span className="guest-selector-item-label">Infants</span>

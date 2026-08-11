@@ -1,14 +1,9 @@
-/**
- * Chat Controller
- * Handles Vi AI Assistant chat endpoints with conversation persistence
- */
-
 import {
   generateViResponse,
   streamViResponse,
   generateViResponseWithTools,
   detectFlightToolCall,
-  resolveFlightToolCall
+  resolveFlightToolCall,
 } from '../services/chatService.js';
 import Trip from '../models/Trip.js';
 import Conversation from '../models/Conversation.js';
@@ -29,19 +24,12 @@ import {
 import { computeServiceSignals } from '../services/serviceSignalsService.js';
 import { checkFlightToolBudget } from '../middleware/chatToolLimiter.js';
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-
 const generateConversationId = () =>
   `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 const autoTitle = (text) =>
   text.length > 45 ? text.substring(0, 42).trimEnd() + '...' : text;
 
-/**
- * Log a UserActivity entry when Vi's flight tool actually ran, so
- * serviceSignalsService's "have they searched flights" signal stays accurate
- * whether the search happened on /flights or via chat.
- */
 const logFlightToolActivity = (user, response) => {
   if (!user || response?.resultsType !== 'flights') return;
   const params = response.results?.length ? { origin: response.results[0].origin, destination: response.results[0].destination } : {};
@@ -60,25 +48,18 @@ const logFlightToolActivity = (user, response) => {
   }).catch(err => console.error('Failed to log chat flight search activity:', err.message));
 };
 
-/** Infer user travel preferences from their trip history */
 const buildPreferences = (trips) => {
   const destinations = [...new Set(trips.map(t => t.destination?.name).filter(Boolean))];
   const tripTypes    = [...new Set(trips.map(t => t.trip_type).filter(Boolean))];
   const budgets      = trips.map(t => t.budget).filter(Boolean);
   const descriptions = trips.map(t => t.description).filter(Boolean);
 
-  // Most common budget
   const budgetCount = budgets.reduce((acc, b) => { acc[b] = (acc[b] || 0) + 1; return acc; }, {});
   const preferredBudget = Object.entries(budgetCount).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
 
   return { destinations, tripTypes, preferredBudget, loveDescriptions: descriptions };
 };
 
-/**
- * Shared context+conversation builder for both streaming and non-streaming endpoints.
- * Returns { context, conversation, conversationHistory } where conversation is a Mongoose
- * doc with the user message already appended (or null for anonymous users).
- */
 const prepareChat = async (user, { message, tripId, conversationId, location }) => {
   const context = {
     user: user ? { id: user._id, name: user.name, email: user.email } : null,
@@ -100,7 +81,6 @@ const prepareChat = async (user, { message, tripId, conversationId, location }) 
 
   if (user) {
     try {
-      // Fetch user trips — include options + itinerary so Vi can reason about specific days.
       const userTrips = await Trip.find({ user_id: user._id })
         .sort({ createdAt: -1 })
         .select('trip_id destination origin dates trip_type guests budget description options selected_option_id status')
@@ -129,7 +109,6 @@ const prepareChat = async (user, { message, tripId, conversationId, location }) 
       console.error('Error fetching trips for chat context:', tripErr);
     }
 
-    // Pull recent activities the assistant hasn't been told about yet.
     try {
       const unfed = await getUnfedActivities(user._id, 30);
       if (unfed.length) {
@@ -140,26 +119,18 @@ const prepareChat = async (user, { message, tripId, conversationId, location }) 
       console.error('Error fetching unfed activities:', actErr);
     }
 
-    // Long-term memory profile + proactive service-suggestion signals.
     try {
       const profile = await getOrCreateProfile(user._id);
       context.memoryProfile = formatMemoryForPrompt(profile);
 
-      // Signal detection needs the FULL recent window (fed + unfed) — using
-      // only unfed activities would make an already-mentioned service look
-      // "never tried" again once its activity row ages into fed status.
       const allRecent = await getRecentActivities(user._id, 60);
       context.serviceSignals = computeServiceSignals(user, context.currentTrip, allRecent)
         .filter(s => !wasUpsellSuggestedRecently(profile, s.service));
 
-      // Optimistic mark: once a signal is handed to the model it's considered
-      // "suggested" for cooldown purposes, whether or not Vi actually used it
-      // in this particular reply — simplest correct anti-nag behavior.
       context.serviceSignals.forEach(s => {
         markUpsellSuggested(user._id, s.service).catch(() => {});
       });
 
-      // Fire-and-forget re-summarization — never blocks the reply.
       needsResummarization(profile)
         .then(should => {
           if (should) {
@@ -200,12 +171,6 @@ const prepareChat = async (user, { message, tripId, conversationId, location }) 
   return { context, conversation, conversationHistory };
 };
 
-// ── Main message handler ───────────────────────────────────────────────────
-
-/**
- * POST /api/chat/message
- * Accepts optional conversationId; creates/continues a Conversation doc if authenticated.
- */
 export const sendMessage = async (req, res) => {
   try {
     const { message, tripId, conversationId, location } = req.body;
@@ -243,7 +208,6 @@ export const sendMessage = async (req, res) => {
       }
     }
 
-    // Mark every activity we just injected so we don't re-feed it next turn.
     if (user && context.unfedActivityIds?.length) {
       markActivitiesAsFed(user._id, context.unfedActivityIds).catch(err =>
         console.error('Failed to mark activities as fed:', err.message)
@@ -274,13 +238,6 @@ export const sendMessage = async (req, res) => {
   }
 };
 
-// ── Streaming message handler ──────────────────────────────────────────────
-
-/**
- * POST /api/chat/message/stream
- * SSE endpoint. Sends `data: {delta}` events for each chunk, then a final
- * `data: {done, type, quickReplies, conversationId}` event.
- */
 export const streamMessage = async (req, res) => {
   const { message, tripId, conversationId, location } = req.body;
   const user = req.user;
@@ -300,16 +257,11 @@ export const streamMessage = async (req, res) => {
     const { context, conversation, conversationHistory } =
       await prepareChat(user, { message, tripId, conversationId, location });
 
-    // Always run the cheap intent-detection pass first — tool-call decisions
-    // aren't meaningfully character-streamable the way plain text is.
     const { toolCall, messages: toolMessages } = await detectFlightToolCall(message, context, conversationHistory);
 
     let responseText, quickReplies, type, results = null, resultsType = null, providerStatus = null;
 
     if (toolCall) {
-      // Flight search triggered — tell the UI, then run the (multi-second,
-      // multi-provider) tool + narration non-streamed, and deliver the whole
-      // reply as one chunk rather than a character-typed stream.
       send({ status: 'searching_flights' });
 
       const budgetKey = user?._id?.toString() || req.ip;
@@ -328,11 +280,9 @@ export const streamMessage = async (req, res) => {
 
       send({ delta: JSON.stringify({ message: responseText, type, quickReplies }) });
     } else {
-      // No tool needed — existing character-streamed path, unchanged.
       const aiStream = await streamViResponse(message, context, conversationHistory);
 
       if (!aiStream) {
-        // No API key — fall back to non-streaming
         const fallback = await generateViResponse(message, context, conversationHistory);
         send({ delta: JSON.stringify({ message: fallback.text, type: fallback.type, quickReplies: fallback.quickReplies }) });
         send({ done: true, type: fallback.type, quickReplies: fallback.quickReplies, conversationId: conversation?.conversation_id || null });
@@ -349,7 +299,7 @@ export const streamMessage = async (req, res) => {
       }
 
       let parsed = {};
-      try { parsed = JSON.parse(fullText); } catch { /* noop */ }
+      try { parsed = JSON.parse(fullText); } catch {}
 
       responseText = parsed.message || parsed.text || fullText;
       quickReplies = Array.isArray(parsed.quickReplies) ? parsed.quickReplies.slice(0, 4) : [];
@@ -389,9 +339,6 @@ export const streamMessage = async (req, res) => {
   res.end();
 };
 
-// ── Conversation CRUD ──────────────────────────────────────────────────────
-
-/** POST /api/chat/conversations */
 export const createConversation = async (req, res) => {
   try {
     const user = req.user;
@@ -417,7 +364,6 @@ export const createConversation = async (req, res) => {
   }
 };
 
-/** GET /api/chat/conversations */
 export const getConversations = async (req, res) => {
   try {
     const user = req.user;
@@ -427,7 +373,7 @@ export const getConversations = async (req, res) => {
       .select('conversation_id title last_message_at messages');
 
     const data = conversations
-      .filter(c => c.messages.length > 0) // hide empty convos
+      .filter(c => c.messages.length > 0)
       .map(c => ({
         conversation_id: c.conversation_id,
         title: c.title,
@@ -443,7 +389,6 @@ export const getConversations = async (req, res) => {
   }
 };
 
-/** GET /api/chat/conversations/:conversationId */
 export const getConversation = async (req, res) => {
   try {
     const user = req.user;
@@ -473,7 +418,6 @@ export const getConversation = async (req, res) => {
   }
 };
 
-/** DELETE /api/chat/conversations/:conversationId */
 export const deleteConversation = async (req, res) => {
   try {
     const user = req.user;
@@ -495,7 +439,6 @@ export const deleteConversation = async (req, res) => {
   }
 };
 
-/** GET /api/chat/history — legacy endpoint */
 export const getChatHistory = async (req, res) => {
   try {
     const user = req.user;
@@ -511,7 +454,6 @@ export const getChatHistory = async (req, res) => {
   }
 };
 
-/** GET /api/chat/status */
 export const getStatus = async (req, res) => {
   try {
     return res.status(200).json({

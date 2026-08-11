@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useDebounce } from '../../hooks/useDebounce';
 import './TripTypeSelector.css';
 
-// Static trip type suggestions (like TripTap's popular types)
 const TRIP_TYPE_SUGGESTIONS = [
   'Family Vacation',
   'Couples Retreat',
@@ -40,7 +39,6 @@ const TRIP_TYPE_SUGGESTIONS = [
 const TripTypeSelector = ({ value = '', onChange, error }) => {
   const [inputValue, setInputValue] = useState(value);
 
-  // Re-sync when the parent updates `value` (e.g. AI/voice parser fills the form).
   useEffect(() => {
     setInputValue(prev => (prev === value ? prev : value));
   }, [value]);
@@ -49,10 +47,8 @@ const TripTypeSelector = ({ value = '', onChange, error }) => {
   const inputRef = useRef(null);
   const suggestionsRef = useRef(null);
 
-  // Debounce input to reduce filtering frequency (200ms like TripTap)
   const debouncedInput = useDebounce(inputValue, 200);
 
-  // Filter suggestions based on input (TripTap uses API, we use static filtering)
   const filteredSuggestions = useMemo(() => {
     if (!debouncedInput || debouncedInput.length < 3) {
       return [];
@@ -64,7 +60,6 @@ const TripTypeSelector = ({ value = '', onChange, error }) => {
     );
   }, [debouncedInput]);
 
-  // Show suggestions when there's input and filtered results
   useEffect(() => {
     if (filteredSuggestions.length > 0 && document.activeElement === inputRef.current) {
       setShowSuggestions(true);
@@ -73,7 +68,6 @@ const TripTypeSelector = ({ value = '', onChange, error }) => {
     }
   }, [filteredSuggestions]);
 
-  // Close suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -144,7 +138,6 @@ const TripTypeSelector = ({ value = '', onChange, error }) => {
   };
 
   const handleBlur = () => {
-    // Delay to allow click on suggestions
     setTimeout(() => {
       setShowSuggestions(false);
       setFocusedIndex(-1);

@@ -145,7 +145,7 @@
   outline-offset: -2px;
 }
 
-/* RTL support */
+
 [dir="rtl"] .language-switcher-button {
   text-align: right;
   padding: 8px 12px 8px 35px;

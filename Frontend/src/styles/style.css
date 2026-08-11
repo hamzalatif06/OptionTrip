@@ -1,15 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&amp;display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&amp;display=swap");
-/*------------------------------------------------------------------
-* Project:        OptionTrip - Travel Tour Booking HTML Templates
-* Author:         bizberg_themes
-* URL:            https://themeforest.net/user/bizberg_themes
-* Created:        06/27/2022
--------------------------------------------------------------------
-*/
-/* ========================================= */
-/*          Default CSS                      */
-/* ========================================= */
+
+
+
+
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&amp;display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&amp;display=swap");
 header,
@@ -183,7 +177,7 @@ img {
   z-index: 1;
 }
 
-/* Increase container max-width by 100px above 1024px */
+
 @media (min-width: 1200px) {
   .container, .container-sm, .container-md, .container-lg, .container-xl {
     max-width: 1240px;
@@ -433,7 +427,7 @@ img {
 }
 
 .pt-3, .py-3 {
-  /* padding-top: 1.5rem !important; */
+  
 }
 
 .pt-4, .py-4 {
@@ -719,7 +713,7 @@ table thead tr th {
 }
 
 .dot-overlay {
-  /* background: #000000 url(/images/dot-overlay.png) repeat; */ /* Fixed: Use inline style in component */
+   
   opacity: 0.6;
 }
 
@@ -749,13 +743,13 @@ table thead tr th {
   }
 }
 .white-overlay {
-  /* background: #fdfdfd; */
+  
   opacity: 0.5;
 }
 
 
 
-/*heading title*/
+
 .section-title, .section-title-w, .section-title-l {
   position: relative;
   z-index: 1;
@@ -867,7 +861,7 @@ iframe {
     margin: 0 4px 4px;
   }
 }
-/*pagination*/
+
 .pagination-main {
   line-height: 0.8;
 }
@@ -935,7 +929,7 @@ iframe {
   opacity: 1;
 }
 
-/*breadcrumb*/
+
 .breadcrumb-main {
   background-repeat: no-repeat;
   background-position: top;
@@ -1035,7 +1029,7 @@ iframe {
     font-size: 40px;
   }
 }
-/*Buttons*/
+
 button {
   border: none;
 }
@@ -1195,7 +1189,7 @@ input#submit:hover {
   width: 400px;
   height: 300px;
   margin: 0 auto;
-  /* background: url(/images/loader.gif); */ /* Fixed: Use inline style in component */
+   
   background-size: cover;
   background-position: center;
   opacity: 1;
@@ -1205,7 +1199,7 @@ input#submit:hover {
   z-index: 9999999999;
 }
 
-/* End Preloader */
+
 #back-to-top {
   position: fixed;
   z-index: 1000;
@@ -1258,9 +1252,9 @@ input#submit:hover {
   margin: 10px 0 0;
 }
 
-/* ========================================= */
-/*          Ribbon CSS        */
-/* ======================================== */
+
+
+
 .ribbon {
   width: 150px;
   height: 150px;
@@ -1314,9 +1308,9 @@ input#submit:hover {
   transform: rotate(-45deg);
 }
 
-/* ========================================= */
-/*          Wickedpicker CSS        */
-/* ======================================== */
+
+
+
 .wickedpicker {
   width: 120px !important;
   height: auto !important;
@@ -1341,9 +1335,9 @@ input#submit:hover {
   color: #909090 !important;
 }
 
-/* ========================================= */
-/*          Accrodion CSS        */
-/* ======================================== */
+
+
+
 .accrodion-grp .accrodion + .accrodion {
   margin-top: 10px;
 }
@@ -1401,9 +1395,9 @@ input#submit:hover {
     font-size: 14px;
   }
 }
-/* ========================================= */
-/*          Custom animation CSS        */
-/* ======================================== */
+
+
+
 @keyframes rotated {
   0% {
     transform: rotate(0);
@@ -1587,7 +1581,7 @@ input#submit:hover {
     transform: rotate(360deg);
   }
 }
-/*--move-forever--*/
+
 @keyframes move-forever {
   0% {
     transform: translate(-90px, 0%);
@@ -1671,7 +1665,7 @@ input#submit:hover {
     transform: scale(1);
   }
 }
-/*Navbar*/
+
 .navbar-default {
   background: #f5f5f5;
 }
@@ -1724,7 +1718,7 @@ header #navbar {
   background: #f33807;
 }
 
-/* Main Menu Dropdown */
+
 .navbar-nav li {
   position: relative;
   text-align: left;
@@ -2081,7 +2075,7 @@ header #navbar {
     padding-top: 0 !important;
   }
 }
-/*Fullpage search*/
+
 #search1 {
   position: fixed;
   top: 0px;
@@ -2291,7 +2285,7 @@ nav.navbar.navbar-default.navbar-sticky-in .logo-black {
   color: #029e9d;
 }
 
-/*Fullpage search*/
+
 .search-wrapper {
   position: relative;
   min-width: 250px;
@@ -2557,9 +2551,9 @@ nav.navbar.navbar-default.navbar-sticky-in .logo-black {
     display: none !important;
   }
 }
-/* ========================================= */
-/*          Banner  CSS        */
-/* ======================================== */
+
+
+
 .banner {
   padding: 0;
   background-size: cover;
@@ -2995,9 +2989,9 @@ nav.navbar.navbar-default.navbar-sticky-in .logo-black {
   left: 0;
 }
 
-/* ========================================= */
-/*          Banner Form  CSS        */
-/* ======================================== */
+
+
+
 .form-main {
   position: relative;
   display: block;
@@ -3201,9 +3195,9 @@ nav.navbar.navbar-default.navbar-sticky-in .logo-black {
     background: #f1f1f1;
   }
 }
-/* ========================================= */
-/*          trending-topic  CSS        */
-/* ======================================== */
+
+
+
 .category-item {
   position: relative;
 }
@@ -3335,9 +3329,9 @@ nav.navbar.navbar-default.navbar-sticky-in .logo-black {
     display: none;
   }
 }
-/* ========================================= */
-/*          Trending  CSS        */
-/* ======================================== */
+
+
+
 .trending {
   background-position: top right;
   background-size: contain;
@@ -3564,7 +3558,7 @@ nav.navbar.navbar-default.navbar-sticky-in .logo-black {
   display: inline;
 }
 .sidebar-sticky .list-sidebar .sidebar-item .map-box {
-  /* background: url(/images/map.jpg); */ /* Fixed: Use inline style in component */
+   
   background-size: cover;
   background-repeat: no-repeat;
 }
@@ -3707,9 +3701,9 @@ nav.navbar.navbar-default.navbar-sticky-in .logo-black {
     display: block !important;
   }
 }
-/* ========================================= */
-/*          featured-video  CSS        */
-/* ======================================== */
+
+
+
 .featured-video, .recent-post {
   background-position: center;
   background-size: cover;
@@ -3769,9 +3763,9 @@ nav.navbar.navbar-default.navbar-sticky-in .logo-black {
     background: #232323;
   }
 }
-/* ========================================= */
-/*          Discount CSS        */
-/* ======================================== */
+
+
+
 .discount-action {
   background-repeat: no-repeat;
   background-size: cover;
@@ -3871,9 +3865,9 @@ ul.social-with-text li a i {
     width: 100%;
   }
 }
-/* ========================================= */
-/*          Call To Action CSS        */
-/* ======================================== */
+
+
+
 .call-to-action, .call-to-action1 {
   background-repeat: no-repeat;
   background-position: top;
@@ -3941,9 +3935,9 @@ ul.social-with-text li a i {
   display: none;
 }
 
-/* ========================================= */
-/*         Counter CSS        */
-/* ======================================== */
+
+
+
 .counter {
   margin-top: -120px;
 }
@@ -4008,9 +4002,9 @@ ul.social-with-text li a i {
     padding: 0 !important;
   }
 }
-/* ========================================= */
-/*          Packages CSS        */
-/* ======================================== */
+
+
+
 .packages .pg-title i.icon {
   border-radius: 50%;
   height: 80px;
@@ -4029,9 +4023,9 @@ ul.social-with-text li a i {
   border-bottom: 1px dashed #f1f1f1;
 }
 
-/* ========================================= */
-/*         Top Restro CSS        */
-/* ======================================== */
+
+
+
 .top-restro .slider-content {
   background: #fff;
   padding: 20px;
@@ -4048,9 +4042,9 @@ ul.social-with-text li a i {
   color: #999;
 }
 
-/* ========================================= */
-/*         Latest Tour CSS        */
-/* ======================================== */
+
+
+
 .latest-tour .tour-item {
   position: relative;
   overflow: hidden;
@@ -4107,9 +4101,9 @@ ul.social-with-text li a i {
   transition: all ease-in-out 0.5s;
 }
 
-/* ========================================= */
-/*         Services CSS        */
-/* ======================================== */
+
+
+
 section.about-detail {
   background-size: contain;
   background-position: right;
@@ -4158,9 +4152,9 @@ section.about-detail .about-detail-content {
     display: none;
   }
 }
-/* ========================================= */
-/*         Quick Services CSS        */
-/* ======================================== */
+
+
+
 .quick-service {
   position: relative;
 }
@@ -4269,9 +4263,9 @@ section.about-detail .about-detail-content {
     width: 280px;
   }
 }
-/* ========================================= */
-/*         About Us CSS        */
-/* ======================================== */
+
+
+
 .about-us {
   background-repeat: no-repeat;
   background-position: bottom left;
@@ -4435,9 +4429,9 @@ section.about-detail .about-detail-content {
     line-height: 2;
   }
 }
-/* ========================================= */
-/*         call-to-action CSS        */
-/* ======================================== */
+
+
+
 .call-to-action {
   background-repeat: no-repeat;
   background-position: top;
@@ -4520,7 +4514,7 @@ section.call-to-action1 .call-main1 .video-button .call-button {
 }
 
 section.call-to-action.maincounter {
-  /* background-image: url(/images/calltoaction3.html); */ /* Commented out - HTML file (404 page) */
+   
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -4599,9 +4593,9 @@ section.call-to-action.maincounter .counter {
     padding: 20px !important;
   }
 }
-/* ========================================= */
-/*         Team CSS        */
-/* ======================================== */
+
+
+
 .our-team {
   background-repeat: no-repeat;
   background-position: center;
@@ -4641,9 +4635,9 @@ section.call-to-action.maincounter .counter {
   transition: all 0.5s;
 }
 
-/* ========================================= */
-/*          Reviews CSS        */
-/* ======================================== */
+
+
+
 .testimonial {
   background-position: center;
   background-repeat: repeat-x;
@@ -4797,7 +4791,7 @@ section.call-to-action.maincounter .counter {
   left: 130px;
   width: 91px;
   height: 40px;
-  /* background-image: url(/images/testi-shape.png); */ /* Fixed: Use inline style in component */
+   
   background-repeat: no-repeat;
   content: "";
 }
@@ -4947,9 +4941,9 @@ section.call-to-action.maincounter .counter {
     display: none;
   }
 }
-/* ========================================= */
-/*          News section CSS        */
-/* ======================================== */
+
+
+
 .news {
   padding-bottom: 6rem;
   z-index: inherit;
@@ -5136,9 +5130,9 @@ section.call-to-action.maincounter .counter {
     padding: 0 !important;
   }
 }
-/* ========================================= */
-/*          Partner CSS        */
-/* ======================================== */
+
+
+
 .partners_inner {
   width: 100%;
   overflow: hidden;
@@ -5188,9 +5182,9 @@ section.call-to-action.maincounter .counter {
     width: 100%;
   }
 }
-/* ========================================= */
-/*          Contact Page CSS        */
-/* ======================================== */
+
+
+
 .contact-main .contact-info .info-item {
   position: relative;
   padding: 20px;
@@ -5248,9 +5242,9 @@ section.call-to-action.maincounter .counter {
   margin-top: -80px;
 }
 
-/* ========================================= */
-/*          Gallery CSS        */
-/* ======================================== */
+
+
+
 .gallery .gallery-item {
   position: relative;
   overflow: hidden;
@@ -5309,9 +5303,9 @@ a.lb-close {
   right: 30px;
 }
 
-/* ========================================= */
-/*          Error Page CSS        */
-/* ======================================== */
+
+
+
 .error {
   background: #fff;
   border-top: 1px solid #f1f1f1;
@@ -5366,7 +5360,7 @@ a.lb-close {
 
 .error.error1:before {
   content: "";
-  /* background: url(/images/trending-bg.html) no-repeat; */ /* Commented out - HTML file (404 page) */
+   
   background-size: cover;
   background-attachment: fixed;
   position: absolute;
@@ -5419,9 +5413,9 @@ a.lb-close {
     margin: 0 0 10px !important;
   }
 }
-/* ========================================= */
-/*          Coming Soon CSS        */
-/* ======================================== */
+
+
+
 section.comingsoon {
   background-size: cover;
   background-position: center;
@@ -5436,7 +5430,7 @@ section.comingsoon::before {
   top: 0;
   bottom: 0;
   width: 100%;
-  /* background: url(/images/bg/bg6.jpg); */ /* Fixed: Use inline style in component */
+   
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -5523,9 +5517,9 @@ section.comingsoon .comingsoon-content .counter-box span {
     margin: 1rem 0 0;
   }
 }
-/* ========================================= */
-/*          Instagram CSS        */
-/* ======================================== */
+
+
+
 .insta-main .insta-inner .follow-button {
   position: absolute;
   left: 50%;
@@ -5559,9 +5553,9 @@ section.comingsoon .comingsoon-content .counter-box span {
     font-size: 13px;
   }
 }
-/* ========================================= */
-/*          Newsletter CSS        */
-/* ======================================== */
+
+
+
 .newsletter {
   background-position: bottom;
   background-repeat: no-repeat;
@@ -5622,9 +5616,9 @@ section.comingsoon .comingsoon-content .counter-box span {
     width: 100%;
   }
 }
-/* ========================================= */
-/*          Footer CSS        */
-/* ======================================== */
+
+
+
 footer {
   width: 100%;
   overflow: hidden;
@@ -5866,7 +5860,7 @@ footer.footermain {
 }
 footer.footermain::before {
   content: "";
-  /* background: #181d20 url(/images/testimonial.png); */ /* Fixed: Use inline style in component */
+   
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -5957,9 +5951,9 @@ footer.footermain .footer-upper {
     margin-bottom: 15px;
   }
 }
-/* ========================================= */
-/*          Listing CSS        */
-/* ======================================== */
+
+
+
 .listing-main.mt-map {
   margin-top: -80px;
   position: relative;
@@ -6297,9 +6291,9 @@ footer.footermain .footer-upper {
     padding-right: 0;
   }
 }
-/* ========================================= */
-/*          Blog CSS        */
-/* ======================================== */
+
+
+
 .swiper-list li {
   display: inline-block;
   margin-bottom: 0;
@@ -7640,7 +7634,7 @@ ul.sidebar-tags li a:hover {
   background-color: #ea580c;
 }
 .offer-banner .bg-map {
-  /* background-image: url("../images/testimonial.png"); */ /* Fixed: Use inline style in component */
+   
   background-size: cover;
   background-position: center;
 }

@@ -1,23 +1,5 @@
-/**
- * Destination Images Utility - Google Places API with Database Caching
- * 
- * STRATEGY: Database-First with Local Fallback
- * 1. Request image from backend /api/flights/place-image
- * 2. Backend checks database cache first (fast, usually hits)
- * 3. If cache hit → return cached Google Places image immediately
- * 4. If cache miss → fetch from Google Places API → store in database → return
- * 5. Local fallback images used only when API/DB unavailable
- * 
- * BENEFITS:
- * ✅ Accurate images for specific places (Google Places)
- * ✅ Reduced API calls (database caching)
- * ✅ Better user experience (consistent images across sessions)
- * ✅ Faster load times (database cache hits)
- * ✅ No Unsplash dependency
- */
-
-const BROWSER_CACHE_PREFIX = 'optiontrip:place-image:'; // Local browser cache
-const BROWSER_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const BROWSER_CACHE_PREFIX = 'optiontrip:place-image:';
+const BROWSER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const LOCAL_FALLBACK_IMAGES = [
@@ -40,9 +22,6 @@ const LOCAL_FALLBACK_IMAGES = [
   '/images/destination/destination17.jpg',
 ];
 
-/**
- * Normalize place name for consistent caching
- */
 const normalizePlaceName = (name) => {
   return String(name || '')
     .trim()
@@ -50,9 +29,6 @@ const normalizePlaceName = (name) => {
     .replace(/\s+/g, ' ');
 };
 
-/**
- * Hash string to get consistent index
- */
 const hashString = (value) => {
   let hash = 0;
   const text = String(value || '');
@@ -63,29 +39,17 @@ const hashString = (value) => {
   return Math.abs(hash);
 };
 
-/**
- * Check if browser cache is available and valid
- */
 const hasWindow = () => typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
 
-/**
- * Get local storage key for place image
- */
 const getBrowserCacheKey = (placeName) => {
   return `${BROWSER_CACHE_PREFIX}${normalizePlaceName(placeName)}`;
 };
 
-/**
- * Check if cached data is still valid
- */
 export const isBrowserCacheValid = (timestamp) => {
   if (!Number.isFinite(Number(timestamp))) return false;
   return Date.now() - Number(timestamp) < BROWSER_CACHE_TTL_MS;
 };
 
-/**
- * Get image from browser's localStorage cache
- */
 export const getBrowserCachedImage = (placeName) => {
   if (!hasWindow()) return null;
 
@@ -95,7 +59,6 @@ export const getBrowserCachedImage = (placeName) => {
 
     const parsed = JSON.parse(raw);
     if (!parsed?.imageUrl || !isBrowserCacheValid(parsed.timestamp)) {
-      // Cache expired, remove it
       window.localStorage.removeItem(getBrowserCacheKey(placeName));
       return null;
     }
@@ -108,9 +71,6 @@ export const getBrowserCachedImage = (placeName) => {
   }
 };
 
-/**
- * Set image in browser's localStorage cache
- */
 export const setBrowserCachedImage = (placeName, data) => {
   if (!hasWindow()) return data;
 
@@ -131,9 +91,6 @@ export const setBrowserCachedImage = (placeName, data) => {
   }
 };
 
-/**
- * Get a deterministic fallback image based on place name
- */
 export const getDestinationFallbackImage = (placeName) => {
   const normalized = normalizePlaceName(placeName);
   const seed = hashString(normalized);
@@ -141,23 +98,6 @@ export const getDestinationFallbackImage = (placeName) => {
   return LOCAL_FALLBACK_IMAGES[index] || '/images/destination/destination1.jpg';
 };
 
-/**
- * Fetch place image with smart caching strategy:
- * 1. Check browser cache first (instant)
- * 2. If miss → call backend API
- * 3. Backend checks database cache (usually hits)
- * 4. If backend cache miss → fetch from Google Places API
- * 5. Cache result and return
- * 
- * RESPONSE:
- * {
- *   imageUrl: "https://...",
- *   source: "cached|google-places|fallback",
- *   cacheStatus: "hit|valid|new|failed|no_photos|error",
- *   placeDetails: { displayName, rating, ... },
- *   cacheInfo: { ... }
- * }
- */
 export const getPlaceImage = async (placeName) => {
   const normalized = normalizePlaceName(placeName);
 
@@ -171,7 +111,6 @@ export const getPlaceImage = async (placeName) => {
   }
 
   try {
-    // STEP 1: Check browser cache
     console.log(`\n🔍 Fetching image for: ${placeName}`);
     const browserCached = getBrowserCachedImage(placeName);
     
@@ -180,7 +119,6 @@ export const getPlaceImage = async (placeName) => {
       return browserCached;
     }
 
-    // STEP 2: Fetch from backend API (which handles database caching + Google Places API)
     console.log(`📡 Calling backend API for: ${placeName}`);
     const response = await fetch(
       `${API_BASE_URL}/api/flights/place-image?placeName=${encodeURIComponent(placeName)}`,
@@ -215,14 +153,12 @@ export const getPlaceImage = async (placeName) => {
 
     const result = data.data || {};
 
-    // STEP 3: Store in browser cache and return
     if (result.imageUrl) {
       console.log(`✅ Got image from: ${result.source} (cache: ${result.cacheStatus})`);
       const cached = setBrowserCachedImage(placeName, result);
       return cached;
     }
 
-    // Fallback if no imageUrl
     const fallbackUrl = getDestinationFallbackImage(placeName);
     return {
       imageUrl: fallbackUrl,
@@ -240,22 +176,11 @@ export const getPlaceImage = async (placeName) => {
   }
 };
 
-/**
- * DEPRECATED: Use getPlaceImage instead (was using Unsplash)
- * Kept for backwards compatibility
- */
 export const getDestinationImage = async (query) => {
   const result = await getPlaceImage(query);
   return result.imageUrl;
 };
 
-/**
- * Batch fetch images for multiple places
- * Optimized with Promise.allSettled
- * 
- * REQUEST: ["Dubai", "Paris", "Tokyo"]
- * RESPONSE: { "Dubai": { imageUrl, ... }, "Paris": { imageUrl, ... }, ... }
- */
 export const getPlaceImagesForMultiplePlaces = async (placeNames) => {
   try {
     if (!Array.isArray(placeNames) || placeNames.length === 0) {
@@ -289,7 +214,6 @@ export const getPlaceImagesForMultiplePlaces = async (placeNames) => {
 
     const imageMap = data.data?.imageMap || {};
     
-    // Cache each result in browser cache
     Object.entries(imageMap).forEach(([placeName, result]) => {
       if (result?.imageUrl) {
         setBrowserCachedImage(placeName, result);
@@ -305,9 +229,6 @@ export const getPlaceImagesForMultiplePlaces = async (placeNames) => {
   }
 };
 
-/**
- * Get cache statistics from backend
- */
 export const getCacheStatsFromBackend = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/flights/cache-stats`);
@@ -320,10 +241,6 @@ export const getCacheStatsFromBackend = async () => {
   }
 };
 
-/**
- * Clear all browser cached place images
- * Use when resetting or upgrading image system
- */
 export const clearBrowserPlaceImageCache = () => {
   if (!hasWindow()) return;
   
@@ -344,14 +261,10 @@ export const clearBrowserPlaceImageCache = () => {
   }
 };
 
-/**
- * DEPRECATED: For backwards compatibility
- */
 export const clearDestinationImageCache = () => {
   clearBrowserPlaceImageCache();
 };
 
-// Legacy exports for backwards compatibility
 export const isCacheValid = isBrowserCacheValid;
 export const getCachedImage = getBrowserCachedImage;
 export const setCachedImage = setBrowserCachedImage;

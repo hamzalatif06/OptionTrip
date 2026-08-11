@@ -4,7 +4,7 @@
   margin: 0 auto;
 }
 
-/* ── Coming Soon ──────────────────────────────────── */
+
 .ht-coming-soon {
   display: flex;
   flex-direction: column;
@@ -32,7 +32,7 @@
   max-width: 340px;
 }
 
-/* ── Search card ──────────────────────────────────────────────────────────── */
+
 .ht-card {
   background: #ffffff;
   border-radius: 16px;
@@ -41,12 +41,12 @@
   border: 1px solid #e8ecef;
 }
 
-/* ── City row ─────────────────────────────────────────────────────────────── */
+
 .ht-city-row {
   margin-bottom: 16px;
 }
 
-/* ── Options row ──────────────────────────────────────────────────────────── */
+
 .ht-options-row {
   display: flex;
   align-items: flex-start;
@@ -54,7 +54,7 @@
   flex-wrap: wrap;
 }
 
-/* ── Generic field ────────────────────────────────────────────────────────── */
+
 .ht-field {
   position: relative;
   border: 1.5px solid #dde1e7;
@@ -126,7 +126,7 @@
   margin-top: 3px;
 }
 
-/* ── Autocomplete ─────────────────────────────────────────────────────────── */
+
 .ht-field--autocomplete {
   overflow: visible;
 }
@@ -205,7 +205,7 @@
   white-space: nowrap;
 }
 
-/* ── Guests dropdown ──────────────────────────────────────────────────────── */
+
 .ht-field--guests {
   position: relative;
 }
@@ -309,7 +309,7 @@
   background: #027b7a;
 }
 
-/* ── Search button ────────────────────────────────────────────────────────── */
+
 .ht-search-row {
   display: flex;
   justify-content: flex-end;
@@ -360,7 +360,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* ── Results ──────────────────────────────────────────────────────────────── */
+
 .ht-results {
   margin-top: 32px;
 }
@@ -382,7 +382,7 @@
   margin: 0;
 }
 
-/* ── Skeleton ─────────────────────────────────────────────────────────────── */
+
 .ht-skeleton {
   display: flex;
   flex-direction: column;
@@ -444,7 +444,7 @@
   50%       { opacity: 0.45; }
 }
 
-/* ── Error ────────────────────────────────────────────────────────────────── */
+
 .ht-error {
   display: flex;
   align-items: flex-start;
@@ -458,7 +458,7 @@
   margin: 20px 0;
 }
 
-/* ── Empty ────────────────────────────────────────────────────────────────── */
+
 .ht-empty {
   text-align: center;
   padding: 60px 20px;
@@ -482,7 +482,7 @@
   line-height: 1.6;
 }
 
-/* ── Affiliate redirect info ──────────────────────────────────────────────── */
+
 .ht-redirect-info {
   margin-top: 12px;
   text-align: right;
@@ -500,7 +500,7 @@
   margin: 0;
 }
 
-/* ── Responsive ───────────────────────────────────────────────────────────── */
+
 @media (max-width: 768px) {
   .ht-root {
     padding: 20px 16px 40px;
@@ -533,7 +533,7 @@
   }
 }
 
-/* ── Pagination ───────────────────────────────────────────────────────────── */
+
 .ht-pagination {
   display: flex;
   align-items: center;
@@ -594,7 +594,7 @@
   user-select: none;
 }
 
-/* ── Select for this trip button ─────────────────────────────────────────────── */
+
 .ht-select-btn {
   display: block;
   width: 100%;

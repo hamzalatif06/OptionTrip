@@ -3,10 +3,6 @@ import { asyncHandler } from '../middleware/security.js';
 import { setCookieOptions } from '../middleware/security.js';
 
 class AuthController {
-  /**
-   * Register new user
-   * POST /api/auth/signup
-   */
   register = asyncHandler(async (req, res) => {
     const { name, email, password, phoneNumber } = req.body;
 
@@ -24,10 +20,6 @@ class AuthController {
     });
   });
 
-  /**
-   * Verify OTP and complete registration
-   * POST /api/auth/verify-otp
-   */
   verifyOtp = asyncHandler(async (req, res) => {
     const { email, otp } = req.body;
 
@@ -37,7 +29,6 @@ class AuthController {
 
     const result = await authService.verifyOtp(email, otp.toString().trim());
 
-    // Set refresh token as HTTP-only cookie
     res.cookie('refreshToken', result.tokens.refreshToken, setCookieOptions());
 
     res.status(201).json({
@@ -50,10 +41,6 @@ class AuthController {
     });
   });
 
-  /**
-   * Resend OTP
-   * POST /api/auth/resend-otp
-   */
   resendOtp = asyncHandler(async (req, res) => {
     const { email } = req.body;
 
@@ -69,16 +56,11 @@ class AuthController {
     });
   });
 
-  /**
-   * Login user
-   * POST /api/auth/login
-   */
   login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
     const result = await authService.login(email, password);
 
-    // Set refresh token as HTTP-only cookie
     res.cookie('refreshToken', result.tokens.refreshToken, setCookieOptions());
 
     res.status(200).json({
@@ -91,10 +73,6 @@ class AuthController {
     });
   });
 
-  /**
-   * Logout user
-   * POST /api/auth/logout
-   */
   logout = asyncHandler(async (req, res) => {
     const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
@@ -102,7 +80,6 @@ class AuthController {
       await authService.logout(req.user._id, refreshToken);
     }
 
-    // Clear refresh token cookie
     res.clearCookie('refreshToken');
 
     res.status(200).json({
@@ -111,14 +88,9 @@ class AuthController {
     });
   });
 
-  /**
-   * Logout from all devices
-   * POST /api/auth/logout-all
-   */
   logoutAll = asyncHandler(async (req, res) => {
     await authService.logoutAll(req.user._id);
 
-    // Clear refresh token cookie
     res.clearCookie('refreshToken');
 
     res.status(200).json({
@@ -127,14 +99,9 @@ class AuthController {
     });
   });
 
-  /**
-   * Refresh access token
-   * POST /api/auth/refresh-token
-   */
   refreshToken = asyncHandler(async (req, res) => {
     const tokens = await authService.refreshToken(req.refreshToken);
 
-    // Set new refresh token as HTTP-only cookie
     res.cookie('refreshToken', tokens.refreshToken, setCookieOptions());
 
     res.status(200).json({
@@ -146,10 +113,6 @@ class AuthController {
     });
   });
 
-  /**
-   * Get current user profile
-   * GET /api/auth/me
-   */
   getMe = asyncHandler(async (req, res) => {
     const user = await authService.getProfile(req.user._id);
 
@@ -159,10 +122,6 @@ class AuthController {
     });
   });
 
-  /**
-   * Update user profile
-   * PUT /api/auth/me
-   */
   updateProfile = asyncHandler(async (req, res) => {
     const user = await authService.updateProfile(req.user._id, req.body);
 
@@ -173,10 +132,6 @@ class AuthController {
     });
   });
 
-  /**
-   * Upload profile image
-   * POST /api/auth/upload-profile-image
-   */
   uploadProfileImage = asyncHandler(async (req, res) => {
     if (!req.file) {
       return res.status(400).json({
@@ -185,11 +140,9 @@ class AuthController {
       });
     }
 
-    // Generate the URL for the uploaded image
     const baseUrl = process.env.API_BASE_URL || 'http://localhost:5000';
     const imageUrl = `${baseUrl}/uploads/profiles/${req.file.filename}`;
 
-    // Update user profile with the new image URL
     const user = await authService.updateProfile(req.user._id, {
       profileImage: imageUrl
     });
@@ -204,10 +157,6 @@ class AuthController {
     });
   });
 
-  /**
-   * Change password
-   * POST /api/auth/change-password
-   */
   changePassword = asyncHandler(async (req, res) => {
     const { currentPassword, newPassword } = req.body;
 
@@ -217,7 +166,6 @@ class AuthController {
       newPassword
     );
 
-    // Clear refresh token cookie (user will need to login again)
     res.clearCookie('refreshToken');
 
     res.status(200).json({
@@ -226,10 +174,6 @@ class AuthController {
     });
   });
 
-  /**
-   * Link social provider to account
-   * POST /api/auth/link-provider
-   */
   linkProvider = asyncHandler(async (req, res) => {
     const { provider, providerId } = req.body;
 
@@ -246,10 +190,6 @@ class AuthController {
     });
   });
 
-  /**
-   * Unlink social provider from account
-   * DELETE /api/auth/unlink-provider/:provider
-   */
   unlinkProvider = asyncHandler(async (req, res) => {
     const { provider } = req.params;
 
@@ -262,16 +202,11 @@ class AuthController {
     });
   });
 
-  /**
-   * Delete user account
-   * DELETE /api/auth/me
-   */
   deleteAccount = asyncHandler(async (req, res) => {
     const { password } = req.body;
 
     await authService.deleteAccount(req.user._id, password);
 
-    // Clear refresh token cookie
     res.clearCookie('refreshToken');
 
     res.status(200).json({
@@ -280,10 +215,6 @@ class AuthController {
     });
   });
 
-  /**
-   * Update travel preferences
-   * PATCH /api/auth/preferences
-   */
   updatePreferences = asyncHandler(async (req, res) => {
     const { travelStyle, preferredActivities, seatClass, hotelStars, dietaryRestrictions, accessibility } = req.body;
     const user = req.user;
@@ -309,17 +240,11 @@ class AuthController {
     });
   });
 
-  /**
-   * OAuth callback handler (universal for all providers)
-   */
   oauthCallback = asyncHandler(async (req, res) => {
-    // User is attached to req by Passport after successful OAuth
     const tokens = await authService.generateTokenPair(req.user);
 
-    // Set refresh token as HTTP-only cookie
     res.cookie('refreshToken', tokens.refreshToken, setCookieOptions());
 
-    // Redirect directly to home page with access token
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     const redirectUrl = `${frontendUrl}/?token=${tokens.accessToken}`;
 

@@ -3,14 +3,9 @@ import TravelpayoutsWidget from './TravelpayoutsWidget';
 import { logActivity } from '../../../services/activityService';
 import './EsimTab.css';
 
-// Travelpayouts Airalo eSIM affiliate widget (tpwdgt content widget).
 const ESIM_WIDGET_SRC =
   'https://tpwdgt.com/content?trs=176202&shmarker=370056&locale=en&powered_by=true&color_button=%23f2685f&color_focused=%23f2685f&secondary=%23FFFFFF&dark=%2311100f&light=%23FFFFFF&special=%23C4C4C4&border_radius=5&plain=false&no_labels=true&promo_id=8588&campaign_id=541';
 
-/**
- * @param {object}  [tripData]        Present when rendered inside the trip itinerary's eSIM tab.
- * @param {string}  [source]          'landing_page' | 'trip_itinerary' — records where the view came from.
- */
 const EsimTab = ({ tripData, source = 'landing_page' }) => {
   useEffect(() => {
     logActivity({
@@ -46,7 +41,7 @@ const EsimTab = ({ tripData, source = 'landing_page' }) => {
         </div>
       </div>
 
-      {/* Travelpayouts eSIM affiliate widget */}
+
       <TravelpayoutsWidget src={ESIM_WIDGET_SRC} />
     </div>
   );

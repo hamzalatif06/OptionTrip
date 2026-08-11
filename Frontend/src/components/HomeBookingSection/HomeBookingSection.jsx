@@ -75,7 +75,6 @@ const HomeBookingSection = () => {
   const navigate = useNavigate();
   const [tab, setTab] = useState('flights');
 
-  /* ── Flights ── */
   const [fFrom,        setFFrom]        = useState('');
   const [fTo,          setFTo]          = useState('');
   const [fDate,        setFDate]        = useState('');
@@ -83,14 +82,12 @@ const HomeBookingSection = () => {
   const [fTripType,    setFTripType]    = useState('one-way');
   const [fPassengers,  setFPassengers]  = useState(1);
 
-  /* ── Hotels ── */
   const [hCity,      setHCity]      = useState('');
   const [hCheckIn,   setHCheckIn]   = useState(TODAY);
   const [hCheckOut,  setHCheckOut]  = useState(TOMORROW);
   const [hGuests,    setHGuests]    = useState(1);
   const [hRooms,     setHRooms]     = useState(1);
 
-  /* ── Cars ── */
   const [cPickup,     setCPickup]     = useState('');
   const [cDropoff,    setCDropoff]    = useState('');
   const [cPickupDate, setCPickupDate] = useState('');
@@ -129,7 +126,7 @@ const HomeBookingSection = () => {
     <section className="hbs">
       <div className="hbs__card">
 
-        {/* ── Tab row ── */}
+
         <div className="hbs__tabs" role="tablist">
           {TABS.map(t => (
             <button
@@ -146,7 +143,7 @@ const HomeBookingSection = () => {
           ))}
         </div>
 
-        {/* ── Flights ── */}
+
         {tab === 'flights' && (
           <form className="hbs__form" onSubmit={handleFlightSearch}>
             <div className="hbs__trip-type">
@@ -220,7 +217,7 @@ const HomeBookingSection = () => {
           </form>
         )}
 
-        {/* ── Hotels ── */}
+
         {tab === 'hotels' && (
           <form className="hbs__form" onSubmit={handleHotelSearch}>
             <div className="hbs__row">
@@ -263,7 +260,7 @@ const HomeBookingSection = () => {
           </form>
         )}
 
-        {/* ── Car Rental ── */}
+
         {tab === 'cars' && (
           <form className="hbs__form" onSubmit={handleCarSearch}>
             <div className="hbs__row">
@@ -306,7 +303,7 @@ const HomeBookingSection = () => {
           </form>
         )}
 
-        {/* ── eSIM ── */}
+
         {tab === 'esim' && (
           <form className="hbs__form" onSubmit={handleEsimGo}>
             <div className="hbs__esim-promo">

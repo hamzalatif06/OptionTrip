@@ -1,11 +1,3 @@
-/**
- * Notification Service
- * Creates, reads, and generates in-app notifications (trip reminders, service
- * upsells, destination inspiration). Every creation goes through an upsert
- * keyed on {user_id, dedupe_key} — this is the entire idempotency guarantee
- * that makes it safe to run the generator sweeps on a repeating schedule.
- */
-
 import mongoose from 'mongoose';
 import OpenAI from 'openai';
 import Notification from '../models/Notification.js';
@@ -14,9 +6,6 @@ import UserMemoryProfile from '../models/UserMemoryProfile.js';
 import { getRecentActivities } from './userActivityService.js';
 import { computeServiceSignals } from './serviceSignalsService.js';
 
-// Trips can belong to "guest" (anonymous checkout) rather than a real User —
-// there's no one to notify in that case, and a non-ObjectId user_id would
-// otherwise throw a Mongoose CastError deep in the loop below.
 const hasNotifiableUser = (userId) => mongoose.Types.ObjectId.isValid(userId);
 
 let openai = null;
@@ -41,16 +30,11 @@ const SERVICE_CTA_LABELS = {
   tours: 'See tours'
 };
 
-// ─── Create / read / update ─────────────────────────────────────────────────
-
-/**
- * Idempotent create: calling this twice with the same {user_id, dedupe_key}
- * is a guaranteed no-op on the second call.
- */
 export const createNotification = async ({
   user_id, type, title, body = '', cta = {}, related = {}, dedupe_key, priority = 'normal'
 }) => {
-  if (!hasNotifiableUser(user_id)) return { created: false }; // e.g. guest-checkout trips have no real user to notify
+  if (!hasNotifiableUser(user_id))
+    return { created: false };
   try {
     const result = await Notification.findOneAndUpdate(
       { user_id, dedupe_key },
@@ -67,7 +51,8 @@ export const createNotification = async ({
     const created = !result.lastErrorObject?.updatedExisting;
     return { created };
   } catch (err) {
-    if (err.code === 11000) return { created: false }; // concurrent sweep beat us to it
+    if (err.code === 11000)
+      return { created: false };
     console.error('createNotification error:', err.message);
     return { created: false, error: err.message };
   }
@@ -108,11 +93,8 @@ export const dismiss = async (userId, id) => {
   return res.modifiedCount || 0;
 };
 
-// ─── Generators (called by the shared scheduler) ────────────────────────────
-
 const TRIP_REMINDER_MILESTONES = [7, 3, 1, 0];
 
-/** Trip-starting-soon / trip-just-ended reminders. */
 export const generateTripReminders = async () => {
   const now = new Date();
   const trips = await Trip.find({ deleted: { $ne: true }, status: { $ne: 'archived' } })
@@ -162,14 +144,12 @@ export const generateTripReminders = async () => {
         }
       }
     } catch (err) {
-      // One bad trip should never take down the reminders for every other user.
       console.error(`generateTripReminders: trip ${trip.trip_id} failed:`, err.message);
     }
   }
   return created;
 };
 
-/** Reuses Phase 1's deterministic service signals across every active/upcoming trip. */
 export const generateServiceUpsellNotifications = async () => {
   const trips = await Trip.find({
     deleted: { $ne: true },
@@ -213,11 +193,6 @@ const getIsoWeekKey = (date = new Date()) => {
   return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
 };
 
-/**
- * v1 scope: no external news API exists in this repo, so this generates a
- * cheap AI seasonal/inspiration note from the user's own memory-profile
- * interests, throttled to ~1/user/week. Real live news needs a future API key.
- */
 export const generateDestinationNewsNotifications = async (limit = 100) => {
   const client = getOpenAIClient();
   if (!client) return 0;

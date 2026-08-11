@@ -1,15 +1,3 @@
-/**
- * Memory Profile Service
- * Maintains each user's UserMemoryProfile — a small, incrementally-updated
- * "what Vi knows about you" record, distinct from the raw UserActivity/Trip
- * history (which is only ever fed in recent-window slices, see chatService.js).
- *
- * The whole point of this service is to keep the cost of "remembering"
- * flat as a user's history grows: summarizeUserForMemory only ever looks at
- * the delta since the last summarization, folding it into the existing
- * summary rather than recomputing from a user's entire lifetime of data.
- */
-
 import OpenAI from 'openai';
 import UserMemoryProfile from '../models/UserMemoryProfile.js';
 import Trip from '../models/Trip.js';
@@ -25,12 +13,10 @@ const getOpenAIClient = () => {
 
 const MODEL = process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini';
 
-// Gate thresholds — tuned to keep re-summarization rare and cheap.
 const RESUMMARIZE_MIN_HOURS = 6;
 const RESUMMARIZE_MIN_NEW_ACTIVITIES = 8;
 const UPSELL_COOLDOWN_DAYS_DEFAULT = 3;
 
-/** Fetch a user's memory profile, creating an empty one on first use. */
 export const getOrCreateProfile = async (userId) => {
   let profile = await UserMemoryProfile.findOne({ user_id: userId });
   if (!profile) {
@@ -39,11 +25,6 @@ export const getOrCreateProfile = async (userId) => {
   return profile;
 };
 
-/**
- * Should we re-summarize this user right now? Cheap, synchronous check —
- * this gate is what keeps the OpenAI summarization call rare instead of
- * running on every chat turn.
- */
 export const needsResummarization = async (profile) => {
   const { lastSummarizedAt } = profile.stats || {};
   if (!lastSummarizedAt) return true;
@@ -95,15 +76,11 @@ Respond ONLY with JSON in this exact shape:
   }
 }`;
 
-/**
- * Fold the delta since the last summarization into the profile. Safe to call
- * concurrently for the same user (last-write-wins on the profile doc);
- * callers should still gate with needsResummarization to avoid waste.
- */
 export const summarizeUserForMemory = async (userId) => {
   const client = getOpenAIClient();
   const profile = await getOrCreateProfile(userId);
-  if (!client) return profile; // no API key configured — leave profile as-is
+  if (!client)
+    return profile;
 
   const recentActivities = await getRecentActivities(userId, 60);
   const cursorDate = profile.stats.lastConversationCursor || new Date(0);
@@ -117,7 +94,7 @@ export const summarizeUserForMemory = async (userId) => {
   const deltaTrips = trips.filter(t => new Date(t.updatedAt) > cursorDate);
 
   if (!deltaActivities.length && !deltaTrips.length && profile.stats.lastSummarizedAt) {
-    return profile; // nothing new to fold in
+    return profile;
   }
 
   try {
@@ -151,7 +128,6 @@ export const summarizeUserForMemory = async (userId) => {
   }
 };
 
-/** Persist a completed summarization result and advance the cursors. */
 export const applyMemoryUpdate = async (userId, { summary, facts, newestActivityId, totalTripsSeen, totalActivitiesSeen }) => {
   const now = new Date();
   return UserMemoryProfile.findOneAndUpdate(
@@ -179,7 +155,6 @@ export const applyMemoryUpdate = async (userId, { summary, facts, newestActivity
   );
 };
 
-/** Record that Vi (or a notification) just nudged the user about a service. */
 export const markUpsellSuggested = async (userId, type) => {
   if (!['esim', 'car', 'hotel', 'tours'].includes(type)) return;
   await UserMemoryProfile.findOneAndUpdate(
@@ -189,7 +164,6 @@ export const markUpsellSuggested = async (userId, type) => {
   );
 };
 
-/** Was this service already suggested within the cooldown window? */
 export const wasUpsellSuggestedRecently = (profile, type, withinDays = UPSELL_COOLDOWN_DAYS_DEFAULT) => {
   const at = profile?.facts?.upsell_suggested_at?.[type];
   if (!at) return false;
@@ -197,7 +171,6 @@ export const wasUpsellSuggestedRecently = (profile, type, withinDays = UPSELL_CO
   return daysSince < withinDays;
 };
 
-/** Render the profile as a compact block for direct system-prompt injection. */
 export const formatMemoryForPrompt = (profile) => {
   if (!profile || (!profile.summary && !profile.facts?.favorite_destinations?.length)) return '';
 
@@ -218,7 +191,6 @@ export const formatMemoryForPrompt = (profile) => {
   return lines.join('\n');
 };
 
-/** Batch sweep for the shared scheduler (Phase 2) — re-summarizes stale profiles. */
 export const sweepStaleProfiles = async (limit = 200) => {
   const candidates = await UserMemoryProfile.find({
     $or: [

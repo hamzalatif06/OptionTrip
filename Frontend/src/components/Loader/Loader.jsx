@@ -2,7 +2,7 @@ import React from 'react';
 import './Loader.css';
 
 const Loader = ({
-  size = 'medium', // 'small', 'medium', 'large', 'fullpage'
+  size = 'medium',
   text = '',
   overlay = false,
   className = ''

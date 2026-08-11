@@ -1,17 +1,7 @@
-/**
- * Travelpayouts / Hotellook Service
- *
- * Handles:
- *  - City autocomplete  (no auth required)
- *  - Hotel price search via Hotellook cache endpoint
- *  - Affiliate booking link builder
- */
-
 import { TP_CONFIG } from '../config/travelpayouts.js';
 
-// ── In-memory cache (30-min TTL) ─────────────────────────────────────────────
-const _cache = new Map(); // key → { data, expiresAt }
-const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+const _cache = new Map();
+const CACHE_TTL = 30 * 60 * 1000;
 
 const cacheGet = (key) => {
   const entry = _cache.get(key);
@@ -21,7 +11,6 @@ const cacheGet = (key) => {
 };
 const cacheSet = (key, data) => _cache.set(key, { data, expiresAt: Date.now() + CACHE_TTL });
 
-// ── Affiliate link builder ────────────────────────────────────────────────────
 const buildAffiliateLink = ({ hotelId, checkIn, checkOut, adults }) => {
   const params = new URLSearchParams({
     hotelId:  String(hotelId),
@@ -34,13 +23,6 @@ const buildAffiliateLink = ({ hotelId, checkIn, checkOut, adults }) => {
   return `${TP_CONFIG.bookBase}/?${params.toString()}`;
 };
 
-// ── City / location autocomplete ─────────────────────────────────────────────
-/**
- * Search cities by free-text term.
- * No API token required — public endpoint.
- * @param {string} term
- * @returns {Promise<Array<{cityCode, name, countryName}>>}
- */
 export const searchHotelLocations = async (term) => {
   if (!term || term.trim().length < 2) return [];
 
@@ -62,7 +44,7 @@ export const searchHotelLocations = async (term) => {
 
     const data = await res.json();
     const locations = (Array.isArray(data) ? data : []).map(item => ({
-      cityCode:    item.code || item.iata || '',      // IATA city code
+      cityCode: item.code || item.iata || '',
       name:        item.name || item.city_name || '',
       countryName: item.country_name || '',
     })).filter(l => l.cityCode);
@@ -74,14 +56,6 @@ export const searchHotelLocations = async (term) => {
   }
 };
 
-// ── Hotel price search ────────────────────────────────────────────────────────
-/**
- * Search hotels by city + dates using Hotellook cached prices.
- * Returns prices cached within the last 48 h by Hotellook.
- *
- * @param {{ cityCode: string, checkIn: string, checkOut: string, adults: number, limit?: number }}
- * @returns {Promise<Array>}  Normalized hotel objects
- */
 export const searchHotels = async ({ cityCode, checkIn, checkOut, adults, limit = 20 }) => {
   const cacheKey = `hotels:${cityCode}:${checkIn}:${checkOut}:${adults}`;
   const cached = cacheGet(cacheKey);
@@ -105,21 +79,19 @@ export const searchHotels = async ({ cityCode, checkIn, checkOut, adults, limit 
   const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
 
   if (!res.ok) {
-    // Hotellook cache endpoint is deprecated — return empty so frontend falls back to Booking.com
     console.log(`ℹ️  Hotellook returned ${res.status} for ${cityCode} — falling back to Booking.com redirect`);
     return [];
   }
 
   const data = await res.json();
 
-  // Hotellook cache.json returns an array of hotel objects
   const hotels = (Array.isArray(data) ? data : []).map(h => {
     const hotelId = h.id || h.hotelId;
     return {
       hotelId:     String(hotelId),
       name:        h.hotelName || h.name || 'Unknown Hotel',
       stars:       Number(h.stars) || 0,
-      rating:      h.guestScore ? (h.guestScore / 10) : null,   // Hotellook 0–100 → 0–10
+      rating: h.guestScore ? (h.guestScore / 10) : null,
       reviewCount: h.guestScoreCount || 0,
       price:       h.priceFrom ? Math.round(h.priceFrom) : null,
       currency:    h.currency || 'USD',
@@ -130,7 +102,7 @@ export const searchHotels = async ({ cityCode, checkIn, checkOut, adults, limit 
         country: h.country || '',
       },
     };
-  }).filter(h => h.price !== null); // only show hotels with known prices
+  }).filter(h => h.price !== null);
 
   console.log(`✅ Hotellook returned ${hotels.length} hotel(s) for ${cityCode}`);
   cacheSet(cacheKey, hotels);

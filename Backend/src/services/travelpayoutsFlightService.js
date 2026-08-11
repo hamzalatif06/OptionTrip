@@ -1,13 +1,8 @@
-/**
- * Travelpayouts Aviasales Flight Service
- * Fetches cached flight prices from the Aviasales API.
- */
-
 import axios from 'axios';
 import { TP_CONFIG } from '../config/travelpayouts.js';
 
-const cache = new Map(); // key → { data, expiresAt }
-const TTL = 15 * 60 * 1000; // 15 minutes
+const cache = new Map();
+const TTL = 15 * 60 * 1000;
 
 function formatDuration(minutes) {
   if (!minutes && minutes !== 0) return null;
@@ -42,18 +37,13 @@ function normalizeResult(item) {
     price:           item.price,
     currency:        'USD',
     bookingUrl:      buildBookingUrl(item.link),
-    // Return leg fields (TP only provides departure time for return)
-    isRoundTrip:         !!item.return_at,
+    isRoundTrip: !!item.return_at,
     returnOrigin:        item.destination || '',
     returnDestination:   item.origin      || '',
     returnDepartureTime: item.return_at   ? String(item.return_at).slice(11, 16) : '',
   };
 }
 
-/**
- * Get popular destinations from one origin via city-directions API.
- * Returns a map: { IATA: { price, airline, transfers } }
- */
 export async function getCityDirections(origin) {
   try {
     const params = new URLSearchParams({
@@ -65,7 +55,6 @@ export async function getCityDirections(origin) {
     if (!res.ok) return {};
     const json = await res.json();
     if (!json.success) return {};
-    // Response shape: { "BKK": { price, number_of_changes, airline, ... }, ... }
     const result = {};
     for (const [dest, info] of Object.entries(json.data || {})) {
       result[dest] = {
@@ -129,11 +118,6 @@ async function fetchTPJson(url, queryObj = {}) {
   }
 }
 
-/**
- * Get cheapest prices from one origin to ALL destinations (Explore Anywhere).
- * Tries city-directions first (popular routes), falls back to cheap prices.
- * Returns a map: { IATA: { price, airline, transfers } }
- */
 export async function getExploreDestinations(origin) {
   const o = String(origin || '').toUpperCase().trim();
   if (!/^[A-Z]{3}$/.test(o) || !TP_CONFIG.token) return {};
@@ -192,7 +176,6 @@ export async function getExploreDestinations(origin) {
     }),
   ]);
 
-  // 1) city-directions
   for (const [dest, info] of Object.entries(cityDirectionsJson?.data || {})) {
     mergeExploreResult(result, dest, {
       price: info.price,
@@ -203,7 +186,6 @@ export async function getExploreDestinations(origin) {
     });
   }
 
-  // 2) cheap prices to any destination
   for (const [dest, months] of Object.entries(cheapJson?.data || {})) {
     const monthEntries = Object.values(months || {}).filter(Boolean);
     if (!monthEntries.length) continue;
@@ -221,7 +203,6 @@ export async function getExploreDestinations(origin) {
     });
   }
 
-  // 3) direct prices
   for (const [dest, data] of Object.entries(directJson?.data || {})) {
     const directEntries = Object.values(data || {}).filter(Boolean);
     if (!directEntries.length) continue;
@@ -239,7 +220,6 @@ export async function getExploreDestinations(origin) {
     });
   }
 
-  // 4) latest prices grouped by directions
   for (const item of (latestJson?.data || [])) {
     mergeExploreResult(result, item.destination, {
       price: item.price ?? item.value,
@@ -250,7 +230,6 @@ export async function getExploreDestinations(origin) {
     });
   }
 
-  // 5) special offers
   for (const item of (specialJson?.data || [])) {
     mergeExploreResult(result, item.destination, {
       price: item.price ?? item.value,
@@ -261,7 +240,6 @@ export async function getExploreDestinations(origin) {
     });
   }
 
-  // 6) search by price range
   for (const item of (rangeJson?.data || [])) {
     mergeExploreResult(result, item.destination, {
       price: item.price ?? item.value,
@@ -275,16 +253,9 @@ export async function getExploreDestinations(origin) {
   return result;
 }
 
-/**
- * Get cheapest cached price for a route/month from Travelpayouts.
- * Instant response — no heavy computation, pure cache lookup.
- *
- * @param {{ origin: string, destination: string, departDate: string }}  departDate = YYYY-MM-DD
- * @returns {Promise<{ price: number, airline: string, departureAt: string, transfers: number } | null>}
- */
 export async function getCheapPrice({ origin, destination, departDate }) {
   try {
-    const month = departDate.substring(0, 7); // YYYY-MM
+    const month = departDate.substring(0, 7);
     const params = new URLSearchParams({
       origin:       origin.toUpperCase(),
       destination:  destination.toUpperCase(),
@@ -300,19 +271,12 @@ export async function getCheapPrice({ origin, destination, departDate }) {
     if (!destData) return null;
     const prices = Object.values(destData);
     if (!prices.length) return null;
-    // Return the cheapest option
     return prices.reduce((best, p) => (!best || p.price < best.price) ? p : best, null);
   } catch {
     return null;
   }
 }
 
-/* ── Internal helpers ───────────────────────────────────────────────────── */
-
-/**
- * Single call to /aviasales/v3/prices_for_dates.
- * Returns normalized array (may be empty).
- */
 async function fetchPricesForDates({ origin, destination, departureAt, returnAt, limit, currency }) {
   try {
     const params = {
@@ -335,13 +299,9 @@ async function fetchPricesForDates({ origin, destination, departureAt, returnAt,
   }
 }
 
-/**
- * Fallback: pull cheapest prices for a route from /v1/prices/cheap
- * and coerce them into the normalizeResult shape.
- */
 async function fetchCheapPricesForRoute({ origin, destination, departureAt }) {
   try {
-    const month = departureAt.substring(0, 7); // YYYY-MM
+    const month = departureAt.substring(0, 7);
     const params = new URLSearchParams({
       origin:      origin.toUpperCase(),
       destination: destination.toUpperCase(),
@@ -376,24 +336,16 @@ async function fetchCheapPricesForRoute({ origin, destination, departureAt }) {
   }
 }
 
-/* ── Public search function ─────────────────────────────────────────────── */
-
-/**
- * Search for flights via Travelpayouts Aviasales API.
- * Multi-strategy with cache: exact date → month → cheap-prices fallback.
- * Empty results are cached for only 2 minutes to allow fresh retries.
- *
- * @param {{ origin, destination, departureAt, returnAt?, limit?, currency? }}
- * @returns {Promise<Array>} normalized flight objects
- */
-export async function searchFlights({
-  origin,
-  destination,
-  departureAt,
-  returnAt = null,
-  limit    = 30,
-  currency = 'usd',
-}) {
+export async function searchFlights(
+  {
+    origin,
+    destination,
+    departureAt,
+    returnAt = null,
+    limit    = 30,
+    currency = 'usd',
+  }
+) {
   const o   = origin.toUpperCase();
   const d   = destination.toUpperCase();
   const key = `${o}-${d}-${departureAt}-${returnAt || 'one'}-${limit}`;
@@ -406,10 +358,8 @@ export async function searchFlights({
 
   console.log(`🔍 Aviasales search: ${o} → ${d} on ${departureAt}`);
 
-  // Strategy 1 — exact date (YYYY-MM-DD)
   let results = await fetchPricesForDates({ origin: o, destination: d, departureAt, returnAt, limit, currency });
 
-  // Strategy 2 — month-level (YYYY-MM); TP cache is denser at this granularity
   if (results.length === 0) {
     const month = departureAt.substring(0, 7);
     if (month !== departureAt) {
@@ -418,13 +368,11 @@ export async function searchFlights({
     }
   }
 
-  // Strategy 3 — cheap-prices endpoint for this route/month
   if (results.length === 0) {
     console.log(`🔄 Falling back to cheap-prices endpoint: ${o} → ${d}`);
     results = await fetchCheapPricesForRoute({ origin: o, destination: d, departureAt });
   }
 
-  // Cache hits for 15 min; empty results for 2 min only (allow fresh retries sooner)
   const ttl = results.length > 0 ? TTL : 2 * 60 * 1000;
   cache.set(key, { data: results, expiresAt: Date.now() + ttl });
 

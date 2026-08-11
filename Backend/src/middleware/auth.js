@@ -1,9 +1,6 @@
 import passport from '../config/passport.js';
 import tokenService from '../services/tokenService.js';
 
-/**
- * Middleware to authenticate JWT token
- */
 export const authenticate = (req, res, next) => {
   passport.authenticate('jwt', { session: false }, (err, user, info) => {
     if (err) {
@@ -17,15 +14,11 @@ export const authenticate = (req, res, next) => {
       });
     }
 
-    // Attach user to request
     req.user = user;
     next();
   })(req, res, next);
 };
 
-/**
- * Middleware to optionally authenticate (doesn't fail if no token)
- */
 export const optionalAuthenticate = (req, res, next) => {
   passport.authenticate('jwt', { session: false }, (err, user) => {
     if (user) {
@@ -35,9 +28,6 @@ export const optionalAuthenticate = (req, res, next) => {
   })(req, res, next);
 };
 
-/**
- * Middleware to extract and validate refresh token from cookies
- */
 export const authenticateRefreshToken = async (req, res, next) => {
   try {
     const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
@@ -49,7 +39,6 @@ export const authenticateRefreshToken = async (req, res, next) => {
       });
     }
 
-    // Verify token
     const decoded = tokenService.verifyRefreshToken(refreshToken);
     req.refreshToken = refreshToken;
     req.userId = decoded.id;
@@ -63,12 +52,8 @@ export const authenticateRefreshToken = async (req, res, next) => {
   }
 };
 
-// Alias for backwards compatibility
 export const validateRefreshToken = authenticateRefreshToken;
 
-/**
- * Middleware to check if user is active
- */
 export const isActive = (req, res, next) => {
   if (!req.user.isActive) {
     return res.status(403).json({
@@ -79,9 +64,6 @@ export const isActive = (req, res, next) => {
   next();
 };
 
-/**
- * Middleware to check if email is verified (optional check)
- */
 export const isEmailVerified = (req, res, next) => {
   if (!req.user.emailVerified) {
     return res.status(403).json({

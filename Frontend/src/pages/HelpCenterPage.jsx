@@ -105,7 +105,7 @@ const HelpCenterPage = () => {
         keywords="help center, support, FAQ, optiontrip help, travel help"
         path="/help-center"
       />
-      {/* Banner */}
+
       <div
         className="banner pt-10 pb-0 overflow-hidden"
         style={{ backgroundImage: `url(/images/bg/bg1.jpg)` }}
@@ -127,7 +127,7 @@ const HelpCenterPage = () => {
         </div>
       </div>
 
-      {/* Quick Contact Cards */}
+
       <section style={{ padding: '60px 0', background: '#fff' }}>
         <div className="container">
           <div className="row g-4">
@@ -177,7 +177,7 @@ const HelpCenterPage = () => {
         </div>
       </section>
 
-      {/* FAQ Section */}
+
       <section style={{ padding: '40px 0 80px', background: '#f8f9fa' }}>
         <div className="container">
           <div className="text-center mb-5">
@@ -187,7 +187,7 @@ const HelpCenterPage = () => {
           </div>
 
           <div className="row g-5">
-            {/* Category Sidebar */}
+
             <div className="col-lg-3">
               <div style={{ position: 'sticky', top: '100px' }}>
                 {faqs.map((cat, i) => (
@@ -219,7 +219,7 @@ const HelpCenterPage = () => {
               </div>
             </div>
 
-            {/* Questions */}
+
             <div className="col-lg-9">
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
                 <div
@@ -287,7 +287,7 @@ const HelpCenterPage = () => {
         </div>
       </section>
 
-      {/* Still Need Help */}
+
       <section
         style={{
           padding: '70px 0',

@@ -1,14 +1,5 @@
 import mongoose from 'mongoose';
 
-/**
- * UserMemoryProfile — one small, incrementally-updated document per user that
- * lets Vi "remember" a user's long-term history without re-reading their full
- * trip/activity history (and re-paying for it in tokens) on every chat turn.
- *
- * Updated by memoryProfileService.summarizeUserForMemory, which folds only the
- * delta since stats.lastActivityCursor/lastConversationCursor into the existing
- * summary — never a full-history recompute.
- */
 const userMemoryProfileSchema = new mongoose.Schema({
   user_id: {
     type: mongoose.Schema.Types.ObjectId,
@@ -33,8 +24,6 @@ const userMemoryProfileSchema = new mongoose.Schema({
     interests:             { type: [String], default: [] },
     dietary:               { type: [String], default: [] },
     notable_quotes:        { type: [String], default: [] },
-    // Chat-side upsell cooldowns, keyed by service — separate from the
-    // notification-center's own dedupe (Notification.dedupe_key).
     upsell_suggested_at: {
       esim:  { type: Date, default: null },
       car:   { type: Date, default: null },

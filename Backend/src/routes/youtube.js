@@ -2,7 +2,6 @@ import express from 'express';
 
 const router = express.Router();
 
-// Simple in-memory cache — 30 minutes
 let cache = { data: null, timestamp: 0 };
 const CACHE_TTL = 30 * 60 * 1000;
 
@@ -26,7 +25,6 @@ router.get('/latest', async (req, res) => {
 
     const xml = await response.text();
 
-    // Extract first video entry fields
     const videoIdMatch = xml.match(/<yt:videoId>([^<]+)<\/yt:videoId>/);
     const titles = xml.match(/<title><!\[CDATA\[([^\]]+)\]\]><\/title>|<title>([^<]+)<\/title>/g);
     const publishedMatch = xml.match(/<published>([^<]+)<\/published>/);
@@ -36,7 +34,6 @@ router.get('/latest', async (req, res) => {
     }
 
     const videoId = videoIdMatch[1];
-    // Index 0 is channel title, index 1 is first video title
     const rawTitle = titles?.[1] || '';
     const title = rawTitle
       .replace(/<title><!\[CDATA\[/, '')

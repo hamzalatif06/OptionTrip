@@ -1,4 +1,4 @@
-/* Activity Card - OptionTrip Theme */
+
 
 .activity-card {
   background: #FFFFFF;
@@ -15,14 +15,14 @@
   border-color: #029e9d55;
 }
 
-/* ========== MAIN CARD CONTENT ========== */
+
 .activity-card__main {
   display: flex;
   position: relative;
   min-height: 252px;
 }
 
-/* ========== IMAGE SECTION ========== */
+
 .activity-card__image-wrapper {
   position: relative;
   flex-shrink: 0;
@@ -42,7 +42,7 @@
   cursor: pointer;
 }
 
-/* ========== CONTENT SECTION ========== */
+
 .activity-card__content {
   flex: 1;
   padding: 20px 24px;
@@ -52,7 +52,7 @@
   min-width: 0;
 }
 
-/* First Row - Activity Type & Time Badge */
+
 .activity-card__header-row {
   display: flex;
   justify-content: space-between;
@@ -113,7 +113,7 @@
   flex-shrink: 0;
 }
 
-/* Title Section */
+
 .activity-card__title-section {
   display: flex;
   flex-direction: column;
@@ -176,7 +176,7 @@
   margin: 0 12px;
 }
 
-/* Description */
+
 .activity-card__description {
   font-size: 13px;
   line-height: 20px;
@@ -188,7 +188,7 @@
   overflow: hidden;
 }
 
-/* Tags */
+
 .activity-card__tags {
   display: flex;
   align-items: center;
@@ -214,7 +214,7 @@
   white-space: nowrap;
 }
 
-/* Location */
+
 .activity-card__location {
   display: flex;
   align-items: center;
@@ -256,7 +256,7 @@
   opacity: 0.8;
 }
 
-/* ========== ACTION BUTTONS (RIGHT SIDE) ========== */
+
 .activity-card__actions {
   display: flex;
   gap: 16px;
@@ -281,7 +281,7 @@
   height: 100%;
 }
 
-/* Book Button (Teal, Primary) */
+
 .activity-card__book-button {
   display: flex;
   align-items: center;
@@ -314,7 +314,7 @@
   background: #0670a8;
 }
 
-/* Secondary Action Buttons */
+
 .activity-card__actions-secondary {
   display: flex;
   flex-direction: column;
@@ -348,7 +348,7 @@
   color: currentColor;
 }
 
-/* Booking Notice */
+
 .activity-card__booking-notice {
   font-size: 13px;
   color: #17233e;
@@ -360,9 +360,9 @@
   margin: 0;
 }
 
-/* ========== RESPONSIVE DESIGN ========== */
 
-/* Tablets */
+
+
 @media (max-width: 1200px) {
   .activity-card__title {
     font-size: 28px;
@@ -439,7 +439,7 @@
   }
 }
 
-/* Mobile */
+
 @media (max-width: 767px) {
   .activity-card__title {
     font-size: 20px;

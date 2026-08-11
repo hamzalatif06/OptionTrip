@@ -1,19 +1,4 @@
-/**
- * Where Can I Go? controller
- *
- * Endpoints
- *   GET  /api/where-can-i-go/passports          — list supported nationalities
- *   GET  /api/where-can-i-go/destinations       — filtered/sorted destination list
- *                                                  ?passport=PAK&hideEmbassy=1&halal=1&sortBy=easy
- *   GET  /api/where-can-i-go/destination/:code  — full detail card for one country
- *   PATCH /api/where-can-i-go/passport          — persist the user's nationality (auth)
- */
-
-import {
-  listPassports,
-  listDestinationsFor,
-  getDestinationDetail
-} from '../services/whereCanIGoService.js';
+import { listPassports, listDestinationsFor, getDestinationDetail } from '../services/whereCanIGoService.js';
 import User from '../models/User.js';
 
 const parseBool = (v) => v === '1' || v === 'true' || v === true;
@@ -81,7 +66,6 @@ export const setPassport = async (req, res) => {
     if (!/^[A-Z]{3}$/.test(code)) {
       return res.status(400).json({ success: false, message: 'nationality must be an ISO-3 country code' });
     }
-    // Ensure the code is one we know about — otherwise reject
     if (!listPassports().some(p => p.code === code)) {
       return res.status(400).json({ success: false, message: 'Unsupported passport code' });
     }

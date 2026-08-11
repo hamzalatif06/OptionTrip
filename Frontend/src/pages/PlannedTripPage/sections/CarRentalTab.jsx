@@ -2,7 +2,6 @@ import React from 'react';
 import TravelpayoutsWidget from './TravelpayoutsWidget';
 import './CarRentalTab.css';
 
-// Travelpayouts Economybookings.com car-rental affiliate widget (tpwdgt content widget).
 const CAR_RENTAL_WIDGET_SRC =
   'https://tpwdgt.com/content?trs=176202&shmarker=370056&locale=en&powered_by=true&border_radius=5&plain=true&show_logo=true&color_background=%23009E9D&color_button=%23FEC704&color_text=%23000000&color_input_text=%23000000&color_button_text=%23ffffff&promo_id=4480&campaign_id=10';
 
@@ -23,7 +22,7 @@ const CarRentalTab = () => (
       </div>
     </div>
 
-    {/* Travelpayouts car-rental affiliate widget */}
+
     <TravelpayoutsWidget src={CAR_RENTAL_WIDGET_SRC} />
   </div>
 );

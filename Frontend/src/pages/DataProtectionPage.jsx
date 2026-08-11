@@ -28,7 +28,7 @@ const DataProtectionPage = () => {
         keywords="data protection, GDPR, data rights, optiontrip"
         path="/data-protection"
       />
-      {/* Banner */}
+
       <div
         className="banner pt-10 pb-0 overflow-hidden"
         style={{ backgroundImage: `url(/images/testimonial.png)` }}
@@ -53,7 +53,7 @@ const DataProtectionPage = () => {
         </div>
       </div>
 
-      {/* Intro */}
+
       <section style={{ padding: '80px 0', background: '#fff' }}>
         <div className="container">
           <div className="row justify-content-center">
@@ -72,7 +72,7 @@ const DataProtectionPage = () => {
                 </p>
               </div>
 
-              {/* Our Commitment */}
+
               <div style={{ marginBottom: '56px' }}>
                 <div className="text-center mb-4">
                   <h4 className="theme mb-2" style={{ color: '#029e9d' }}>Our Principles</h4>
@@ -104,7 +104,7 @@ const DataProtectionPage = () => {
                 </div>
               </div>
 
-              {/* Your Rights */}
+
               <div style={{ marginBottom: '56px' }}>
                 <h3 style={{ color: '#17233e', borderBottom: '2px solid #f0f0f0', paddingBottom: '12px', marginBottom: '28px' }}>
                   Your Data Rights
@@ -146,7 +146,7 @@ const DataProtectionPage = () => {
                 </div>
               </div>
 
-              {/* Legal Bases */}
+
               <div style={{ marginBottom: '56px' }}>
                 <h3 style={{ color: '#17233e', borderBottom: '2px solid #f0f0f0', paddingBottom: '12px', marginBottom: '16px' }}>
                   Legal Bases for Processing
@@ -167,7 +167,7 @@ const DataProtectionPage = () => {
                 ))}
               </div>
 
-              {/* International Transfers */}
+
               <div style={{ marginBottom: '56px' }}>
                 <h3 style={{ color: '#17233e', borderBottom: '2px solid #f0f0f0', paddingBottom: '12px', marginBottom: '16px' }}>
                   International Data Transfers
@@ -177,7 +177,7 @@ const DataProtectionPage = () => {
                 </p>
               </div>
 
-              {/* Exercise Your Rights */}
+
               <div
                 style={{
                   background: 'linear-gradient(135deg, #0A539D, #029e9d)',

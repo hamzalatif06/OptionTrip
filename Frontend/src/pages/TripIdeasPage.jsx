@@ -63,7 +63,7 @@ const TripIdeasPage = () => {
         keywords="trip ideas, travel inspiration, adventure trips, romantic trips, family holidays, foodie travel"
         path="/trip-ideas"
       />
-      {/* Banner */}
+
       <div
         className="banner pt-10 pb-0 overflow-hidden"
         style={{ backgroundImage: `url(/images/bg/bg1.jpg)` }}
@@ -85,7 +85,7 @@ const TripIdeasPage = () => {
         </div>
       </div>
 
-      {/* Filter Tabs */}
+
       <section style={{ padding: '48px 0 0', background: '#fff' }}>
         <div className="container">
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -113,7 +113,7 @@ const TripIdeasPage = () => {
         </div>
       </section>
 
-      {/* Trip Cards by Category */}
+
       {displayed.map((group, gi) => (
         <section key={gi} style={{ padding: '60px 0', background: gi % 2 === 0 ? '#fff' : '#f8f9fa' }}>
           <div className="container">
@@ -201,7 +201,7 @@ const TripIdeasPage = () => {
         </section>
       ))}
 
-      {/* CTA */}
+
       <section
         style={{
           padding: '80px 0',

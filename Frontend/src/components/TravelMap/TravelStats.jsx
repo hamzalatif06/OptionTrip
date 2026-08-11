@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import './TravelStats.css';
 
 const extractCountry = (destinationName = '') => {
-  // "Paris, France" → "France"  |  "Tokyo" → "Tokyo"
   const parts = destinationName.split(',');
   return parts[parts.length - 1].trim();
 };

@@ -1,4 +1,4 @@
-/* Social Button Component Styles - Compact 3-Column Layout */
+
 
 .social-button {
   display: flex;
@@ -42,22 +42,22 @@
   transform: none !important;
 }
 
-/* Google Specific Styles */
+
 .social-button-google:hover:not(:disabled) {
   background-color: #f8f9fa !important;
 }
 
-/* Facebook Specific Styles */
+
 .social-button-facebook:hover:not(:disabled) {
   background-color: #166FE5 !important;
 }
 
-/* Twitter Specific Styles */
+
 .social-button-twitter:hover:not(:disabled) {
   background-color: #f7f9f9 !important;
 }
 
-/* Button Icon */
+
 .social-button-icon {
   display: inline-flex;
   align-items: center;
@@ -72,7 +72,7 @@
   height: 100%;
 }
 
-/* Button Text */
+
 .social-button-text {
   display: inline-block;
   font-weight: 600;
@@ -80,7 +80,7 @@
   line-height: 1.3;
 }
 
-/* Loading Spinner */
+
 .social-button-spinner {
   width: 16px;
   height: 16px;
@@ -96,7 +96,7 @@
   }
 }
 
-/* Responsive Styles */
+
 @media (max-width: 991px) {
   .social-button {
     flex-direction: row;

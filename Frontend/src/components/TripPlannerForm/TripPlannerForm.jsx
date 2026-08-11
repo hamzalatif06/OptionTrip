@@ -23,7 +23,6 @@ const TRIP_TYPE_LABELS = {
   Luxury: 'Luxury',
 };
 
-// ─── Speech Recognition setup (works across browsers + mobile) ───
 const SpeechRecognitionAPI =
   typeof window !== 'undefined'
     ? window.SpeechRecognition || window.webkitSpeechRecognition
@@ -63,17 +62,15 @@ const TripPlannerForm = () => {
     'Almost there — bringing it all together...'
   ];
 
-  // Speech state
   const [isListening, setIsListening]   = useState(false);
-  const [speechInterim, setSpeechInterim] = useState(''); // live interim text
+  const [speechInterim, setSpeechInterim] = useState('');
   const [speechError, setSpeechError]   = useState('');
 
   const debounceTimer   = useRef(null);
   const recognitionRef  = useRef(null);
-  const speechBaseRef   = useRef('');  // description text snapshot when mic starts
-  const speechFinalRef  = useRef('');  // accumulated FINAL transcript for this recognition session
+  const speechBaseRef   = useRef('');
+  const speechFinalRef  = useRef('');
 
-  // ─── Pre-selected destination from session / navigation state ───
   useEffect(() => {
     const stored = sessionStorage.getItem('selectedDestination');
     if (stored) {
@@ -97,14 +94,12 @@ const TripPlannerForm = () => {
     }
   }, [location.state]);
 
-  // ─── Cleanup speech recognition on unmount ───────────────────────
   useEffect(() => {
     return () => {
       recognitionRef.current?.abort();
     };
   }, []);
 
-  // ─── Rotate loading messages while building the trip ──────────────
   useEffect(() => {
     if (!isSubmitting) {
       setLoadingMessageIndex(0);
@@ -116,7 +111,6 @@ const TripPlannerForm = () => {
     return () => clearInterval(interval);
   }, [isSubmitting]);
 
-  // ─── Lock body scroll while the fullpage loader is visible ───────
   useEffect(() => {
     if (!isSubmitting) return;
     const prevOverflow = document.body.style.overflow;
@@ -124,7 +118,6 @@ const TripPlannerForm = () => {
     return () => { document.body.style.overflow = prevOverflow; };
   }, [isSubmitting]);
 
-  // ─── AI auto-fill from parsed data ───────────────────────────────
   const applyParsedData = useCallback((parsed) => {
     setFormData(prev => {
       const next = { ...prev };
@@ -203,7 +196,6 @@ const TripPlannerForm = () => {
     });
   }, []);
 
-  // ─── Debounced AI parse trigger ───────────────────────────────────
   const triggerParse = useCallback((value) => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     if (value.trim().length < 10) { setAiDetected(null); return; }
@@ -220,11 +212,10 @@ const TripPlannerForm = () => {
             (parsed.guests && ((parsed.guests.adults ?? 0) + (parsed.guests.children ?? 0) + (parsed.guests.infants ?? 0)) > 0);
           if (hasAny) { setAiDetected(parsed); applyParsedData(parsed); }
         }
-      } catch { /* silent */ } finally { setIsParsing(false); }
+      } catch {} finally { setIsParsing(false); }
     }, 900);
   }, [applyParsedData]);
 
-  // ─── Textarea change handler ──────────────────────────────────────
   const handleDescriptionChange = (e) => {
     const value = e.target.value;
     setFormData(prev => ({ ...prev, description: value }));
@@ -232,16 +223,6 @@ const TripPlannerForm = () => {
     triggerParse(value);
   };
 
-  // ─── Speech-to-Text ───────────────────────────────────────────────
-  // Strategy:
-  //   • Lock recognition to en-US (most accurate; the LLM parser handles intent).
-  //   • Run continuous + interimResults so users can speak a full multi-clause sentence
-  //     ("plan a trip to paris from london and i am with my girlfriend...") without
-  //     being cut off after the first pause.
-  //   • Always re-build the textarea from base + (full accumulated final) + interim,
-  //     so React state matches what was actually heard.
-  //   • Send the FULL transcript to the parser (not per-segment), debounced so multiple
-  //     finals coalesce into a single backend call. Also force a final parse on stop.
   const SPEECH_LANG = 'en-US';
 
   const parseNowFromSpeech = useCallback((text) => {
@@ -273,24 +254,19 @@ const TripPlannerForm = () => {
     if (!SpeechRecognitionAPI) return;
     setSpeechError('');
 
-    // Abort any existing session cleanly
-    try { recognitionRef.current?.abort(); } catch { /* noop */ }
+    try { recognitionRef.current?.abort(); } catch {}
 
     const recognition = new SpeechRecognitionAPI();
     recognitionRef.current = recognition;
 
     recognition.lang            = SPEECH_LANG;
-    recognition.continuous      = true;   // capture full multi-clause sentences
-    recognition.interimResults  = true;   // live UI feedback
+    recognition.continuous      = true;
+    recognition.interimResults  = true;
     recognition.maxAlternatives = 1;
 
-    // Snapshot the textarea so we append (don't overwrite typed text)
     speechBaseRef.current  = formData.description ? formData.description.trimEnd() + ' ' : '';
     speechFinalRef.current = '';
 
-    // Per-session flag: once recognition has ended, ignore any straggling onresult
-    // events that Chrome may emit with a reset event.results list (which would
-    // otherwise overwrite the accumulated transcript with just the tail fragment).
     let sessionEnded = false;
 
     recognition.onstart = () => {
@@ -305,10 +281,6 @@ const TripPlannerForm = () => {
         return;
       }
 
-      // Only look at results AT OR AFTER event.resultIndex — those are the new ones
-      // this event brings. We accumulate finals into speechFinalRef ourselves rather
-      // than rebuilding from event.results (Chrome occasionally truncates that list
-      // mid-session in continuous mode).
       let newFinal   = '';
       let newInterim = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -334,14 +306,12 @@ const TripPlannerForm = () => {
 
       if (newFinal) {
         if (errors.description) setErrors(prev => ({ ...prev, description: '' }));
-        // Debounced — multiple finals coalesce into a single backend call
         triggerParse(speechBaseRef.current + speechFinalRef.current);
       }
     };
 
     recognition.onerror = (event) => {
       console.warn('[speech] error:', event.error);
-      // no-speech / aborted are noise; everything else is user-facing
       if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
         setSpeechError('Microphone access denied. Please allow microphone permission and try again.');
       } else if (event.error === 'audio-capture') {
@@ -359,8 +329,6 @@ const TripPlannerForm = () => {
       setIsListening(false);
       setSpeechInterim('');
 
-      // Force one final parse on the complete transcript so the user always gets
-      // a parsed result without waiting for the debounce timer.
       if (speechFinalRef.current) {
         parseNowFromSpeech(speechBaseRef.current + speechFinalRef.current);
       }
@@ -375,7 +343,7 @@ const TripPlannerForm = () => {
   };
 
   const stopListening = () => {
-    try { recognitionRef.current?.stop(); } catch { /* noop */ }
+    try { recognitionRef.current?.stop(); } catch {}
     setIsListening(false);
     setSpeechInterim('');
   };
@@ -385,7 +353,6 @@ const TripPlannerForm = () => {
     else startListening();
   };
 
-  // ─── Form handlers ────────────────────────────────────────────────
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -415,7 +382,6 @@ const TripPlannerForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Stop speech if still running
     recognitionRef.current?.stop();
 
     const newErrors = {};
@@ -476,7 +442,7 @@ const TripPlannerForm = () => {
   return (
     <form className="trip-planner-form" onSubmit={handleSubmit}>
 
-      {/* ── Fullpage loader while building the trip ─────────────── */}
+
       {isSubmitting && (
         <Loader
           size="fullpage"
@@ -484,7 +450,7 @@ const TripPlannerForm = () => {
         />
       )}
 
-      {/* ── Smart Description Box ─────────────────────────────── */}
+
       <div className="smart-description-section">
         <label htmlFor="description" className="smart-description-label">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="sparkle-inline">
@@ -516,7 +482,7 @@ const TripPlannerForm = () => {
             className={errors.description ? 'error' : ''}
           />
 
-          {/* AI parsing indicator — bottom-left */}
+
           {isParsing && !isListening && (
             <div className="ai-parsing-indicator">
               <span className="ai-dot-spinner"><span /><span /><span /></span>
@@ -524,7 +490,7 @@ const TripPlannerForm = () => {
             </div>
           )}
 
-          {/* Live listening indicator — bottom-left */}
+
           {isListening && (
             <div className="ai-parsing-indicator">
               <span className="mic-wave-indicator">
@@ -536,7 +502,7 @@ const TripPlannerForm = () => {
             </div>
           )}
 
-          {/* Mic button — bottom-right */}
+
           {micSupported && (
             <button
               type="button"
@@ -546,12 +512,10 @@ const TripPlannerForm = () => {
               aria-label={isListening ? 'Stop recording' : 'Start speech input'}
             >
               {isListening ? (
-                /* Stop icon */
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <rect x="4" y="4" width="16" height="16" rx="2"/>
                 </svg>
               ) : (
-                /* Mic icon */
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
                   <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
@@ -563,7 +527,7 @@ const TripPlannerForm = () => {
           )}
         </div>
 
-        {/* Speech error */}
+
         {speechError && (
           <div className="speech-error">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -573,7 +537,7 @@ const TripPlannerForm = () => {
           </div>
         )}
 
-        {/* Example chips */}
+
         <div className="example-chips">
           {[
             'Warm beach in May',
@@ -596,7 +560,6 @@ const TripPlannerForm = () => {
           ))}
         </div>
 
-
         {errors.description && <span className="error-message">{errors.description}</span>}
       </div>
 
@@ -607,7 +570,7 @@ const TripPlannerForm = () => {
       <p className="form-required-note"><span className="form-required-star">*</span> Required fields</p>
 
       <div className="form-grid">
-        {/* Origin (optional) */}
+
         <div className={`form-field${formData.origin?.text ? ' field-filled' : ''}`}>
           <AutocompleteContextProvider map_id="map">
             <DestinationAutocomplete
@@ -625,7 +588,7 @@ const TripPlannerForm = () => {
           </AutocompleteContextProvider>
         </div>
 
-        {/* Destination */}
+
         <div className={`form-field${formData.destination?.text ? ' field-filled' : ''}`} data-required>
           <AutocompleteContextProvider map_id="map">
             <DestinationAutocomplete
@@ -640,7 +603,7 @@ const TripPlannerForm = () => {
           </AutocompleteContextProvider>
         </div>
 
-        {/* Dates */}
+
         <div className={`form-field${formData.start_date && formData.end_date ? ' field-filled' : ''}`} data-required>
           <DateRangePickerComponent
             selectedDates={[formData.start_date, formData.end_date]}
@@ -649,12 +612,12 @@ const TripPlannerForm = () => {
           />
         </div>
 
-        {/* Trip Type */}
+
         <div className={`form-field${formData.tripType ? ' field-filled' : ''}`}>
           <TripTypeSelector value={formData.tripType} onChange={handleTripTypeChange} error={errors.tripType} />
         </div>
 
-        {/* Guests */}
+
         <div className={`form-field${formData.guests.total > 0 ? ' field-filled' : ''}`}>
           <GuestSelector
             initialGuests={{ adults: formData.guests.adults, children: formData.guests.children, infants: formData.guests.infants }}
@@ -663,7 +626,7 @@ const TripPlannerForm = () => {
           />
         </div>
 
-        {/* Budget */}
+
         <div className={`form-field${formData.budget ? ' field-filled' : ''}`}>
           <label htmlFor="budget">Budget <span style={{ fontWeight: 400, opacity: 0.6, fontSize: '0.85em' }}>(optional)</span></label>
           <div className="select-wrapper">

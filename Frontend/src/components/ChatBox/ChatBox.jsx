@@ -26,11 +26,9 @@ const ChatBox = () => {
     setError('');
 
     try {
-      // Step 1: Parse the natural-language description into structured trip data
       const parseResult = await parseTripDescription(text);
       const parsed = parseResult?.data || parseResult || {};
 
-      // Step 2: Build the trip generation payload, preserving the raw description
       const tripPayload = {
         description: text,
         destination: parsed.destination || { text: '', place_id: '', name: '', geometry: null },
@@ -44,7 +42,6 @@ const ChatBox = () => {
         budget:      parsed.budget      || '',
       };
 
-      // Step 3: Generate trip options
       const response = await generateTripOptions(tripPayload);
 
       if (response.success && response.data?.trip_id) {
@@ -110,7 +107,7 @@ const ChatBox = () => {
 
   return (
     <div className="chatbox-container">
-      {/* Example bubble */}
+
       <div className="chatbox-example-bubble">
         <div className="example-bubble-content">
           <i className="fas fa-lightbulb theme me-2"></i>
@@ -118,7 +115,7 @@ const ChatBox = () => {
         </div>
       </div>
 
-      {/* Chat input */}
+
       <form className="chatbox-form" onSubmit={handleSubmit}>
         <div className="chatbox-input-wrapper">
           <input

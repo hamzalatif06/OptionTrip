@@ -25,7 +25,6 @@ const Login = () => {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -37,14 +36,12 @@ const Login = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    // Email validation
     if (!formData.email) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
-    // Password validation
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
@@ -68,7 +65,6 @@ const Login = () => {
       const result = await login(formData.email, formData.password);
 
       if (result.success) {
-        // Navigate immediately after successful login
         navigate('/', { replace: true });
       } else {
         setErrors({ general: result.error });
@@ -94,30 +90,30 @@ const Login = () => {
     <div className="auth-page">
       <PageMeta title="Sign In" description="Sign in to your OptionTrip account." path="/login" noIndex />
       <div className="auth-container">
-        {/* Left Side - Form */}
+
         <div className="auth-form-section">
           <div className="auth-form-wrapper">
-            {/* Logo */}
+
             <div className="auth-logo">
 
                 <img src="/images/newLogo.png" alt="OptionTrip" />
 
             </div>
 
-            {/* Welcome Text */}
+
             <div className="auth-header">
               <h1 className="auth-title">Welcome back</h1>
               <p className="auth-subtitle">Let's plan your next adventure</p>
             </div>
 
-            {/* General Error Message */}
+
             {errors.general && (
               <div className="auth-error-banner">
                 {errors.general}
               </div>
             )}
 
-            {/* Social Login Buttons */}
+
             <div className="auth-social-buttons">
               <SocialButton
                 provider="google"
@@ -129,14 +125,14 @@ const Login = () => {
               />
             </div>
 
-            {/* Divider */}
+
             <div className="auth-divider">
               <span className="auth-divider-line"></span>
               <span className="auth-divider-text">or continue with email</span>
               <span className="auth-divider-line"></span>
             </div>
 
-            {/* Login Form */}
+
             <form onSubmit={handleSubmit} className="auth-form">
               <Input
                 label="Email Address"
@@ -175,7 +171,7 @@ const Login = () => {
                 }
               />
 
-              {/* Remember Me & Forgot Password */}
+
               <div className="auth-form-options">
                 <label className="auth-checkbox">
                   <input
@@ -190,7 +186,7 @@ const Login = () => {
                 </Link>
               </div>
 
-              {/* Submit Button */}
+
               <Button
                 type="submit"
                 variant="primary"
@@ -202,7 +198,7 @@ const Login = () => {
               </Button>
             </form>
 
-            {/* Sign Up Link */}
+
             <div className="auth-footer">
               <p className="auth-footer-text">
                 Don't have an account?{' '}
@@ -214,7 +210,7 @@ const Login = () => {
           </div>
         </div>
 
-        {/* Right Side - Illustration */}
+
         <div className="auth-illustration-section">
           <div className="auth-illustration-content">
             <div className="auth-illustration-pattern"></div>
@@ -224,17 +220,17 @@ const Login = () => {
             </div>
             <div className="auth-illustration-image">
               <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* World Map Illustration */}
+
                 <circle cx="200" cy="200" r="150" fill="#F30F89" opacity="0.1"/>
                 <circle cx="200" cy="200" r="120" fill="#0A539D" opacity="0.1"/>
 
-                {/* Airplane */}
+
                 <g transform="translate(180, 100)">
                   <path d="M20 30 L40 20 L60 30 L50 40 Z" fill="#F30F89"/>
                   <circle cx="40" cy="30" r="3" fill="#fff"/>
                 </g>
 
-                {/* Location Pins */}
+
                 <g transform="translate(120, 180)">
                   <path d="M10 0 C4.5 0 0 4.5 0 10 C0 15 10 25 10 25 C10 25 20 15 20 10 C20 4.5 15.5 0 10 0 Z" fill="#0A539D"/>
                   <circle cx="10" cy="10" r="4" fill="#fff"/>
@@ -245,7 +241,7 @@ const Login = () => {
                   <circle cx="10" cy="10" r="4" fill="#fff"/>
                 </g>
 
-                {/* Connecting Lines */}
+
                 <path d="M 130 195 Q 180 180 250 235" stroke="#0A539D" strokeWidth="2" strokeDasharray="5,5" opacity="0.3" fill="none"/>
               </svg>
             </div>

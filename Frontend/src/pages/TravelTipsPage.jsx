@@ -161,7 +161,7 @@ const TravelTipsPage = () => {
         keywords="travel tips, packing tips, travel advice, budget travel, safe travel, first international trip"
         path="/travel-tips"
       />
-      {/* Banner */}
+
       <div
         className="banner pt-10 pb-0 overflow-hidden"
         style={{ backgroundImage: `url(/images/bg/bg7.jpg)` }}
@@ -183,7 +183,7 @@ const TravelTipsPage = () => {
         </div>
       </div>
 
-      {/* Quick Stats */}
+
       <section style={{ padding: '50px 0', background: 'linear-gradient(135deg, #0A539D 0%, #029e9d 100%)' }}>
         <div className="container">
           <div className="row g-3 text-center">
@@ -202,11 +202,11 @@ const TravelTipsPage = () => {
         </div>
       </section>
 
-      {/* Tips Content */}
+
       <section style={{ padding: '80px 0', background: '#f8f9fa' }}>
         <div className="container">
           <div className="row g-5">
-            {/* Sidebar Navigation */}
+
             <div className="col-lg-3">
               <div style={{ position: 'sticky', top: '100px' }}>
                 <h5 style={{ color: '#17233e', marginBottom: '20px' }}>Categories</h5>
@@ -239,7 +239,7 @@ const TravelTipsPage = () => {
               </div>
             </div>
 
-            {/* Tips Content */}
+
             <div className="col-lg-9">
               {categories[openCategory] && (
                 <div>
@@ -338,7 +338,7 @@ const TravelTipsPage = () => {
         </div>
       </section>
 
-      {/* VI Tip Block */}
+
       <section style={{ padding: '60px 0', background: '#fff' }}>
         <div className="container">
           <div

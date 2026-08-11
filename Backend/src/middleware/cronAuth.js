@@ -1,12 +1,5 @@
 import crypto from 'crypto';
 
-/**
- * Machine-to-machine guard for the internal cron-sweep endpoint — not a user
- * JWT, just a shared secret compared in constant time. An external scheduler
- * (GitHub Actions cron, a hosted cron service, a platform cron add-on) hits
- * this endpoint since in-process node-cron can't be trusted to survive on an
- * unconfirmed hosting target.
- */
 export const verifyCronSecret = (req, res, next) => {
   const configured = process.env.CRON_SECRET;
   if (!configured) {

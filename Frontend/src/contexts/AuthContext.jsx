@@ -17,7 +17,6 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Initialize auth state on mount
   useEffect(() => {
     initializeAuth();
   }, []);
@@ -31,10 +30,9 @@ export const AuthProvider = ({ children }) => {
         setUser(storedUser);
         setIsAuthenticated(true);
 
-        // Fetch fresh user data with timeout
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+          const timeoutId = setTimeout(() => controller.abort(), 3000);
 
           const freshUser = await Promise.race([
             authService.getProfile(),
@@ -47,12 +45,10 @@ export const AuthProvider = ({ children }) => {
           setUser(freshUser);
         } catch (error) {
           console.warn('Failed to fetch fresh user data:', error.message);
-          // Keep using stored user data - don't block the app
         }
       }
     } catch (error) {
       console.error('Auth initialization error:', error);
-      // Don't call handleLogout here, just clear state
       setUser(null);
       setIsAuthenticated(false);
     } finally {
@@ -63,7 +59,6 @@ export const AuthProvider = ({ children }) => {
   const handleRegister = async (userData) => {
     try {
       const data = await authService.register(userData);
-      // Registration only sends OTP — not logged in yet
       return { success: true, requiresOtp: true, email: data.email };
     } catch (error) {
       showErrorToast(error.message || 'Registration failed. Please try again.');
@@ -144,7 +139,6 @@ export const AuthProvider = ({ children }) => {
   const handleChangePassword = async (currentPassword, newPassword) => {
     try {
       await authService.changePassword(currentPassword, newPassword);
-      // Password changed, user logged out
       setUser(null);
       setIsAuthenticated(false);
       return { success: true, message: 'Password changed successfully. Please login again.' };
@@ -156,7 +150,6 @@ export const AuthProvider = ({ children }) => {
   const handleDeleteAccount = async (password) => {
     try {
       await authService.deleteAccount(password);
-      // Account deleted
       setUser(null);
       setIsAuthenticated(false);
       return { success: true, message: 'Account deleted successfully.' };
@@ -174,7 +167,6 @@ export const AuthProvider = ({ children }) => {
 
     if (result.success) {
       try {
-        // Fetch user profile
         const user = await authService.getProfile();
         setUser(user);
         setIsAuthenticated(true);
@@ -204,52 +196,21 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     loading,
 
-    // Auth methods
     register: handleRegister,
     verifyOtp: handleVerifyOtp,
     resendOtp: handleResendOtp,
     login: handleLogin,
     logout: handleLogout,
 
-    // Profile methods
     updateProfile: handleUpdateProfile,
     uploadProfileImage: handleUploadProfileImage,
     changePassword: handleChangePassword,
     deleteAccount: handleDeleteAccount,
     refreshProfile,
 
-    // OAuth methods
     loginWithOAuth: handleOAuthLogin,
     handleOAuthCallback,
   };
-
-  // Temporarily disabled loading spinner to debug - render immediately
-  // if (loading) {
-  //   return (
-  //     <div style={{
-  //       display: 'flex',
-  //       justifyContent: 'center',
-  //       alignItems: 'center',
-  //       minHeight: '100vh',
-  //       background: '#fff'
-  //     }}>
-  //       <div style={{
-  //         width: '50px',
-  //         height: '50px',
-  //         border: '4px solid #f3f3f3',
-  //         borderTop: '4px solid #667eea',
-  //         borderRadius: '50%',
-  //         animation: 'spin 1s linear infinite'
-  //       }}></div>
-  //       <style>{`
-  //         @keyframes spin {
-  //           0% { transform: rotate(0deg); }
-  //           100% { transform: rotate(360deg); }
-  //         }
-  //       `}</style>
-  //     </div>
-  //   );
-  // }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

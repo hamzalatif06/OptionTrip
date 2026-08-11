@@ -1,9 +1,9 @@
-/* ─── Blog Listing Page ─────────────────────────────────────── */
+
 .blog-listing-section {
   padding: 60px 0 80px;
 }
 
-/* Responsive 3-column grid */
+
 .blog-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -29,7 +29,7 @@
   }
 }
 
-/* Error state */
+
 .blog-error {
   display: flex;
   flex-direction: column;
@@ -62,7 +62,7 @@
   opacity: 0.88;
 }
 
-/* Pagination */
+
 .blog-pagination {
   display: flex;
   align-items: center;

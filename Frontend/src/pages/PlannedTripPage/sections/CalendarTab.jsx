@@ -2,13 +2,6 @@ import React, { useMemo, useState } from 'react';
 import useCurrency from '../../../hooks/useCurrency';
 import './CalendarTab.css';
 
-/**
- * Month-grid calendar for the trip's itinerary. Read-only — for editing
- * activities, that already lives in the "Your Trip" day-by-day tab; this
- * view is about seeing the trip laid out against real calendar dates
- * (which day of the week things fall on, how days cluster in a month).
- */
-
 const CATEGORY_COLORS = {
   sightseeing:   '#2563eb',
   dining:        '#ea580c',
@@ -36,9 +29,6 @@ const MONTH_LABELS = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
-// Parse 'YYYY-MM-DD' (or a full ISO string) into a *local* midnight Date —
-// avoids the off-by-one day shift `new Date(dateString)` causes in
-// negative-UTC-offset timezones, which would misplace cells in the grid.
 const parseLocalDate = (dateStr) => {
   if (!dateStr) return null;
   const [datePart] = String(dateStr).split('T');

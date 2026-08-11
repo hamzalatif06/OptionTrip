@@ -1,6 +1,6 @@
-/* RecentArticles styles imported from main CSS */
 
-/* Skeleton shimmer for article loading state */
+
+
 .ra-skeleton-line {
   background: linear-gradient(90deg, #f0f2f5 25%, #e4e8ec 50%, #f0f2f5 75%);
   background-size: 200% 100%;

@@ -1,10 +1,3 @@
-/**
- * Notification Service (client)
- *
- * Backs the notification bell in the Header. Never throws — callers get
- * null/empty on failure so a flaky request never breaks the UI.
- */
-
 import { getAccessToken } from './authService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -31,7 +24,6 @@ const authedFetch = async (path, options = {}) => {
   }
 };
 
-/** @param {{status?: string, limit?: number}} [opts] */
 export const getNotifications = async (opts = {}) => {
   const params = new URLSearchParams();
   if (opts.status) params.set('status', opts.status);

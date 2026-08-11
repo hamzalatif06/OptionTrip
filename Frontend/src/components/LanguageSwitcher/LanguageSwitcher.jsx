@@ -7,7 +7,6 @@ const LanguageSwitcher = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Language names always in English, regardless of current language
   const languages = [
     { code: 'en', name: 'English' },
     { code: 'ru', name: 'Russian' },
@@ -41,7 +40,6 @@ const LanguageSwitcher = () => {
     setIsOpen(false);
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -58,7 +56,6 @@ const LanguageSwitcher = () => {
     };
   }, [isOpen]);
 
-  // Adjust dropdown position to prevent overflow
   useEffect(() => {
     if (isOpen && dropdownRef.current) {
       const dropdown = dropdownRef.current.querySelector('.language-dropdown-menu');
@@ -68,7 +65,6 @@ const LanguageSwitcher = () => {
         const spaceBelow = viewportHeight - rect.bottom;
         const spaceAbove = rect.top;
 
-        // If dropdown goes below viewport, flip it above
         if (spaceBelow < 100 && spaceAbove > spaceBelow) {
           dropdown.style.top = 'auto';
           dropdown.style.bottom = '100%';

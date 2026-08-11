@@ -3,14 +3,9 @@ import TravelpayoutsWidget from './TravelpayoutsWidget';
 import { logActivity } from '../../../services/activityService';
 import './ToursTab.css';
 
-// Travelpayouts Tours affiliate widget (tpwdgt content widget).
 const TOURS_WIDGET_SRC =
   'https://tpwdgt.com/content?trs=176202&shmarker=370056&locale=en&tours=3&powered_by=true&campaign_id=150&promo_id=4489';
 
-/**
- * @param {object}  [tripData]  Present when rendered inside the trip itinerary's Tours tab.
- * @param {string}  [source]    'landing_page' | 'trip_itinerary' — records where the view came from.
- */
 const ToursTab = ({ tripData, source = 'landing_page' }) => {
   useEffect(() => {
     logActivity({
@@ -45,7 +40,7 @@ const ToursTab = ({ tripData, source = 'landing_page' }) => {
         </div>
       </div>
 
-      {/* Travelpayouts tours affiliate widget */}
+
       <TravelpayoutsWidget src={TOURS_WIDGET_SRC} />
     </div>
   );

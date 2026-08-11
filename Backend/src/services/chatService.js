@@ -1,11 +1,3 @@
-/**
- * Chat Service
- * Powers the Vi AI Travel Assistant.
- *
- * Single response mode: `generateViResponse` returns the full reply + quickReplies
- * + reply type. We use OpenAI JSON mode so the response is structured.
- */
-
 import OpenAI from 'openai';
 import { formatActivitiesForPrompt } from './userActivityService.js';
 import { searchAirports } from './amadeusService.js';
@@ -22,8 +14,6 @@ const getOpenAIClient = () => {
 };
 
 const MODEL = process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini';
-
-// ─── Flight search tool (OpenAI function calling) ──────────────────────────
 
 const FLIGHT_SEARCH_TOOL = {
   type: 'function',
@@ -45,14 +35,6 @@ const FLIGHT_SEARCH_TOOL = {
   }
 };
 
-/**
- * Resolve a city name or IATA code to a real IATA code. Tries, in order:
- * (1) already a 3-letter code, (2) the static major-hub dataset (fast, no
- * network call, ~300 airports), (3) Amadeus's live autocomplete (broader
- * coverage). Step 2 means a live-provider outage/rate-limit on Amadeus alone
- * doesn't take down flight search for any major-city route.
- */
-/** Fallback departure date when the user gave no date hint at all — 2 weeks out, YYYY-MM-DD. */
 const DEFAULT_SEARCH_DATE = () => {
   const d = new Date();
   d.setDate(d.getDate() + 14);
@@ -74,8 +56,6 @@ const resolveIata = async (place) => {
     return null;
   }
 };
-
-// ─── Prompt builders ─────────────────────────────────────────────────────────
 
 const formatItineraryForPrompt = (trip) => {
   if (!trip?.options?.length) return '';
@@ -179,14 +159,12 @@ Respond ONLY with valid JSON, no surrounding prose, in this exact shape:
 }
 - 2-4 quickReplies, each ≤ 28 chars, tailored to the reply and the user's trip phase.`;
 
-  // ─── User context
   if (user) {
     prompt += `\n\n# User\n- Name: ${user.name || 'Guest'}\n- Saved trips: ${allTrips?.length || 0}`;
   } else {
     prompt += `\n\n# User\n- Guest user (not signed in). Be welcoming; suggest signing in to unlock saved-trip features.`;
   }
 
-  // ─── Inferred preferences
   if (preferences) {
     const { destinations, tripTypes, preferredBudget, loveDescriptions } = preferences;
     const bits = [];
@@ -200,7 +178,6 @@ Respond ONLY with valid JSON, no surrounding prose, in this exact shape:
     if (bits.length) prompt += `\n\n# Inferred preferences (from history)\n${bits.join('\n')}`;
   }
 
-  // ─── Current trip
   if (currentTrip) {
     const dest = currentTrip.destination?.name || currentTrip.destination?.text || 'Unknown';
     const origin = currentTrip.origin?.name || currentTrip.origin?.text || null;
@@ -226,7 +203,6 @@ Respond ONLY with valid JSON, no surrounding prose, in this exact shape:
     prompt += `\n\n# Current trip in focus\nNone selected. The user has ${allTrips.length} saved trip(s) — ask which one they want help with, or treat the message as general travel advice.`;
   }
 
-  // ─── Live location (passed from the browser when the user opens the assistant)
   if (currentLocation && (currentLocation.lat || currentLocation.city || currentLocation.label)) {
     const parts = [];
     if (currentLocation.label)        parts.push(currentLocation.label);
@@ -241,7 +217,6 @@ Respond ONLY with valid JSON, no surrounding prose, in this exact shape:
     prompt += `\nUse this to answer "near me" questions, ground walking-time / commute advice, and bias recommendations to their actual surroundings. If their saved trip is somewhere else, gently distinguish "today, where you are" from "for your upcoming trip".`;
   }
 
-  // ─── Recent platform activity (un-fed slice, newest first)
   if (Array.isArray(recentActivities) && recentActivities.length) {
     const formatted = formatActivitiesForPrompt(recentActivities);
     if (formatted) {
@@ -250,13 +225,11 @@ Respond ONLY with valid JSON, no surrounding prose, in this exact shape:
     }
   }
 
-  // ─── Long-term memory (persists across all history, not just this window)
   if (memoryProfile) {
     prompt += `\n\n# Long-term memory (persistent, across all history)\n${memoryProfile}`;
     prompt += `\nTreat this as things you already know about the user — reference it naturally, don't quote it verbatim or announce that you "have a profile" on them.`;
   }
 
-  // ─── Contextual service opportunities (deterministic signals, not guesses)
   if (Array.isArray(serviceSignals) && serviceSignals.length) {
     const lines = serviceSignals.map(s => `- ${s.service} → [${s.url}] — ${s.reason}`);
     prompt += `\n\n# Contextual service opportunities\n${lines.join('\n')}`;
@@ -278,7 +251,6 @@ const buildUserPrompt = (userMessage, context) => {
 const buildMessages = (userMessage, context, conversationHistory) => {
   const messages = [{ role: 'system', content: buildSystemPrompt(context) }];
 
-  // Inject prior turns (exclude the just-pushed user message — we add it last with extra context)
   const history = conversationHistory.slice(0, -1).slice(-20);
   for (const m of history) {
     messages.push({
@@ -291,12 +263,6 @@ const buildMessages = (userMessage, context, conversationHistory) => {
   return messages;
 };
 
-// ─── Streaming response generator ──────────────────────────────────────────
-
-/**
- * Returns an OpenAI async iterable stream. Each chunk has `.choices[0].delta.content`.
- * Returns null if no API key is configured.
- */
 export const streamViResponse = async (userMessage, context = {}, conversationHistory = []) => {
   const client = getOpenAIClient();
   if (!client) return null;
@@ -310,8 +276,6 @@ export const streamViResponse = async (userMessage, context = {}, conversationHi
     stream: true
   });
 };
-
-// ─── Main response generator ────────────────────────────────────────────────
 
 export const generateViResponse = async (userMessage, context = {}, conversationHistory = []) => {
   try {
@@ -348,21 +312,6 @@ export const generateViResponse = async (userMessage, context = {}, conversation
   }
 };
 
-// ─── Tool-calling (flight search) ──────────────────────────────────────────
-//
-// Two-pass flow: pass 1 (cheap, non-streamed, `tools` + `tool_choice:'auto'`)
-// decides whether the user's message warrants a real flight search. Pass 2
-// (only run if a tool call was made) narrates the results back in the same
-// JSON schema every other reply uses. The model's pass-2 output is never
-// trusted to carry the actual result numbers — `results`/`resultsType` are
-// attached in code from the deterministic aggregator output, so there's no
-// risk of the model paraphrasing/rounding real prices.
-
-/**
- * Pass 1 only: decide whether this turn needs the flight-search tool.
- * Always non-streamed — tool-call decisions aren't meaningfully streamable.
- * @returns {Promise<{toolCall: object|null, messages: array|null}>}
- */
 export const detectFlightToolCall = async (userMessage, context = {}, conversationHistory = []) => {
   const client = getOpenAIClient();
   if (!client) return { toolCall: null, messages: null };
@@ -386,15 +335,6 @@ export const detectFlightToolCall = async (userMessage, context = {}, conversati
   }
 };
 
-/**
- * Execute a detected flight tool call (IATA resolution + aggregator) and
- * generate the final narrated reply (pass 2). Always non-streamed.
- * @param {object}  toolCall            From detectFlightToolCall
- * @param {array}   messages            The pass-1 message array (system+history+user), reused as the pass-2 base
- * @param {object}  context
- * @param {object}  [options]
- * @param {boolean} [options.canUseFlightTool=true]  Rate-limit gate — set false to skip execution and let the model explain the limit
- */
 export const resolveFlightToolCall = async (toolCall, messages, context = {}, options = {}) => {
   const { canUseFlightTool = true } = options;
 
@@ -494,10 +434,6 @@ export const resolveFlightToolCall = async (toolCall, messages, context = {}, op
   }
 };
 
-/**
- * Full non-streaming tool-aware flow: detect intent, then either the
- * existing single-pass reply (no tool needed) or the tool execution + pass 2.
- */
 export const generateViResponseWithTools = async (userMessage, context = {}, conversationHistory = [], options = {}) => {
   const { toolCall, messages } = await detectFlightToolCall(userMessage, context, conversationHistory);
 
@@ -508,8 +444,6 @@ export const generateViResponseWithTools = async (userMessage, context = {}, con
 
   return resolveFlightToolCall(toolCall, messages, context, options);
 };
-
-// ─── Fallback (offline / no API key) ─────────────────────────────────────────
 
 const generateFallbackResponse = (userMessage, context) => {
   const lower = (userMessage || '').toLowerCase();
@@ -608,7 +542,6 @@ const getContextualQuickReplies = (context) => {
   const serviceReply = topSignal && SERVICE_QUICK_REPLY_LABELS[topSignal.service];
   if (!serviceReply) return base;
 
-  // Swap in the service suggestion in place of the last generic reply, capped at 4.
   return [...base.slice(0, 3), serviceReply];
 };
 

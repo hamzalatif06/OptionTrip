@@ -51,7 +51,6 @@ const Header = () => {
   const langRef      = useRef(null);
   const langBtnRef   = useRef(null);
 
-  // ── Location ─────────────────────────────────────────────────────
   useEffect(() => {
     const fetchLocation = async () => {
       const cachedLocation = localStorage.getItem('userLocation');
@@ -98,7 +97,6 @@ const Header = () => {
     fetchLocation();
   }, [t, i18n.language]);
 
-  // ── Close lang dropdown on outside click ─────────────────────────
   useEffect(() => {
     const handler = (e) => {
       const clickedBtn = langBtnRef.current?.contains(e.target);
@@ -109,7 +107,6 @@ const Header = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, [isLangOpen]);
 
-  // ── Auth dropdown helpers ─────────────────────────────────────────
   const toggleMenu          = () => setIsMenuOpen((v) => !v);
   const toggleAuthDropdown  = () => setIsAuthDropdownOpen((v) => !v);
   const openAuthDropdown    = () => { clearTimeout(closeTimeout.current); setIsAuthDropdownOpen(true); };
@@ -124,7 +121,6 @@ const Header = () => {
 
   const isActive = (path) => location.pathname === path ? 'active' : '';
 
-  // ── Language change ───────────────────────────────────────────────
   const handleLangChange = (code) => {
     i18n.changeLanguage(code);
     setIsLangOpen(false);
@@ -140,7 +136,6 @@ const Header = () => {
 
   const currentLang = LANGUAGES.find((l) => l.code === (i18n.language?.split('-')[0] || 'en')) || LANGUAGES[0];
 
-  // ── Date ─────────────────────────────────────────────────────────
   const formatDate = () => {
     const date = new Date();
     try {
@@ -152,11 +147,11 @@ const Header = () => {
 
   return (
     <header className="main_header_area">
-      {/* ── Top bar ──────────────────────────────────────────────── */}
+
       <div className="header-content py-1 bg-theme">
         <div className="container d-flex align-items-center justify-content-between">
 
-          {/* Left: date + location */}
+
           <div className="links">
             <ul>
               <li>
@@ -175,7 +170,7 @@ const Header = () => {
             </ul>
           </div>
 
-          {/* Right: social icons + language switcher */}
+
           <div className="header-right d-flex align-items-center gap-2">
             <ul className="header-social-list">
               <li>
@@ -195,13 +190,13 @@ const Header = () => {
               </li>
             </ul>
 
-            {/* Notifications */}
+
             <NotificationBell />
 
-            {/* Theme Switcher */}
+
             <ThemeSwitcher />
 
-            {/* Language Switcher */}
+
             <div className="header-lang">
               <button ref={langBtnRef} className="header-lang__toggle" onClick={openLangDropdown} aria-label="Change language">
                 <i className="fa fa-globe"></i>
@@ -234,7 +229,7 @@ const Header = () => {
         </div>
       </div>
 
-      {/* ── Main nav ─────────────────────────────────────────────── */}
+
       <div className="header_menu" id="header_menu">
         <nav className="navbar navbar-default">
           <div className="container">
@@ -340,7 +335,7 @@ const Header = () => {
                 <Link to="/contact" className="nir-btn white">{t('common.contact')}</Link>
               </div>
 
-              {/* Hamburger */}
+
               <button className={`hamburger ${isMenuOpen ? 'hamburger--open' : ''}`} onClick={toggleMenu} aria-label="Toggle menu">
                 <span></span><span></span><span></span>
               </button>
@@ -349,10 +344,10 @@ const Header = () => {
         </nav>
       </div>
 
-      {/* Overlay */}
+
       {isMenuOpen && <div className="mobile-overlay" onClick={toggleMenu}></div>}
 
-      {/* ── Side Drawer ──────────────────────────────────────────── */}
+
       <div className={`mobile-drawer ${isMenuOpen ? 'mobile-drawer--open' : ''}`}>
         <div className="mobile-drawer__header">
           <Link to="/" onClick={toggleMenu}>
@@ -382,7 +377,7 @@ const Header = () => {
           </ul>
         </nav>
 
-        {/* Language picker in drawer */}
+
         <div className="mobile-drawer__lang">
           <p className="mobile-drawer__lang-label"><i className="fa fa-globe"></i> Language</p>
           <div className="mobile-drawer__lang-grid">

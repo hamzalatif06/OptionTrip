@@ -1,14 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './PassengerSelector.css';
 
-/**
- * Props:
- *  passengers   Array of { key, label, subtitle, value, min?, max? }
- *  onChange     (key, value) => void — called on every +/- click
- *  onApply      () => void — called when Apply is clicked
- *  label        string | (passengers) => string  — trigger button text
- *  note         optional info paragraph shown inside the popup
- */
 const PassengerSelector = ({ passengers = [], onChange, onApply, label, note }) => {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
@@ -30,7 +22,7 @@ const PassengerSelector = ({ passengers = [], onChange, onApply, label, note }) 
   return (
     <div className="ps-wrap" ref={wrapRef}>
 
-      {/* Trigger */}
+
       <button
         type="button"
         className={`ps-trigger${open ? ' ps-trigger--open' : ''}`}
@@ -47,11 +39,11 @@ const PassengerSelector = ({ passengers = [], onChange, onApply, label, note }) 
         </svg>
       </button>
 
-      {/* Popup */}
+
       {open && (
         <div className="ps-popup">
 
-          {/* Rows */}
+
           {passengers.map(p => {
             const min = p.min ?? 0;
             const max = p.max ?? 9;
@@ -80,10 +72,10 @@ const PassengerSelector = ({ passengers = [], onChange, onApply, label, note }) 
             );
           })}
 
-          {/* Note */}
+
           {note && <p className="ps-note">{note}</p>}
 
-          {/* Apply */}
+
           <button type="button" className="ps-apply-btn" onClick={handleApply}>
             Apply
           </button>

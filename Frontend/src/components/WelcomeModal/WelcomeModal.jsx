@@ -96,14 +96,14 @@ const WelcomeModal = () => {
     <div className={`wm-overlay${closing ? ' wm-overlay--out' : ''}`} onClick={e => { if (e.target === e.currentTarget) dismiss(); }}>
       <div className={`wm${closing ? ' wm--out' : ''}`} role="dialog" aria-modal="true" aria-label="Welcome to OptionTrip">
 
-        {/* Close */}
+
         <button className="wm__close" onClick={dismiss} aria-label="Close">
           <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
             <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
           </svg>
         </button>
 
-        {/* Hero band */}
+
         <div className="wm__hero">
           <div className="wm__hero-glow" aria-hidden="true" />
           <div className="wm__hero-badge">✨ All-in-one travel platform</div>
@@ -116,7 +116,7 @@ const WelcomeModal = () => {
           </p>
         </div>
 
-        {/* Feature cards */}
+
         <div className="wm__grid">
           {FEATURES.map(f => (
             <button
@@ -139,7 +139,7 @@ const WelcomeModal = () => {
           ))}
         </div>
 
-        {/* Footer */}
+
         <div className="wm__footer">
           <button className="wm__skip" onClick={dismiss}>
             Maybe later

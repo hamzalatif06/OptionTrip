@@ -84,19 +84,16 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
   const { isAuthenticated } = useAuth();
   const { formatPrice } = useCurrency();
 
-  // Sync local state with prop data
   React.useEffect(() => {
     if (propDaysData && propDaysData.length > 0) {
       setLocalDaysData(propDaysData);
     }
   }, [propDaysData]);
 
-  // Use local state for days data (allows modifications like removing activities)
   const daysData = useMemo(() => {
     return localDaysData.length > 0 ? localDaysData : (propDaysData || []);
   }, [localDaysData, propDaysData]);
 
-  // Tab configuration (from TripTap's TabsWrapper_V2 pattern)
   const tabs = useMemo(() => [
     {
       id: 'tab1',
@@ -148,16 +145,13 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
     },
   ], []);
 
-  // Day tabs configuration - only show loaded days + one loading tab if generating
   const dayTabs = useMemo(() => {
-    // Create tabs for loaded days only
     const loadedTabs = daysData.map((day, index) => ({
       value: day.day_number || index + 1,
       label: `Day ${day.day_number || index + 1}`,
       isLoading: false,
     }));
 
-    // If still generating, add one "loading" tab for the next day being generated
     if (isGenerating && totalDays) {
       const nextDayNumber = daysData.length + 1;
       if (nextDayNumber <= totalDays) {
@@ -172,13 +166,11 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
     return loadedTabs;
   }, [daysData, isGenerating, totalDays]);
 
-  // Get current day's data
   const currentDayData = useMemo(() => {
     if (!daysData || daysData.length === 0) return null;
     return daysData[activeDayTab - 1];
   }, [daysData, activeDayTab]);
 
-  // Format date helper
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -190,7 +182,6 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
     });
   };
 
-  // Handle save trip
   const handleSaveTrip = async () => {
     if (!isAuthenticated) {
       setShowAuthModal(true);
@@ -210,12 +201,10 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
     }
   };
 
-  // Handle successful auth - save trip after login/signup
   const handleAuthSuccess = () => {
     handleSaveTrip();
   };
 
-  // Handle remove activity
   const handleRemoveActivity = (activityToRemove) => {
     const confirmed = window.confirm(
       `Are you sure you want to remove "${activityToRemove.title || activityToRemove.name || 'this activity'}" from your itinerary?`
@@ -223,19 +212,15 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
 
     if (!confirmed) return;
 
-    // Update local days data by removing the activity from the current day
     setLocalDaysData(prevDays => {
       return prevDays.map(day => {
         if (day.day_number === activeDayTab) {
-          // Filter out the activity to remove
           const updatedActivities = day.activities.filter(activity => {
-            // Match by title/name or unique identifier
             const activityId = activity.place_id || activity.title || activity.name;
             const removeId = activityToRemove.place_id || activityToRemove.title || activityToRemove.name;
             return activityId !== removeId;
           });
 
-          // Recalculate total cost
           const newTotalCost = updatedActivities.reduce((sum, act) => {
             const cost = typeof act.cost === 'number' ? act.cost : (parseInt(act.cost) || 0);
             return sum + cost;
@@ -252,7 +237,6 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
     });
   };
 
-  // Handle open Google directions
   const handleOpenGoogleDirections = (activity) => {
     const destination = activity.address || activity.location?.name || activity.title;
     if (destination) {
@@ -261,42 +245,33 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
     }
   };
 
-  // Handle activity book - open location in Google Maps
   const handleActivityBook = (activity) => {
-    // Build a search query combining place name with location context
     const placeName = activity.place_name || activity.title || activity.name || '';
     const address = activity.address || '';
     const destinationName = tripData?.destination?.name || '';
     const destinationCountry = tripData?.destination?.country || '';
 
-    // Combine place name with destination for accurate search
     let searchQuery = placeName;
 
     if (address) {
-      // If we have an address, use place name + address
       searchQuery = `${placeName}, ${address}`;
     } else if (destinationName) {
-      // Otherwise use place name + destination city/country
       searchQuery = `${placeName}, ${destinationName}`;
       if (destinationCountry && !destinationName.includes(destinationCountry)) {
         searchQuery += `, ${destinationCountry}`;
       }
     }
 
-    // If we have a Google place_id, use it for the most accurate result
     if (activity.place_id) {
       const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(searchQuery)}&query_place_id=${activity.place_id}`;
       window.open(url, '_blank');
     } else {
-      // Fall back to search query
       const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(searchQuery)}`;
       window.open(url, '_blank');
     }
   };
 
-  // Render itinerary tab content (from TripTap's ItineraryDays pattern)
   const renderItineraryTab = () => {
-    // Show generating message if no days loaded yet
     if (!daysData || daysData.length === 0) {
       if (isGenerating) {
         return <ItinerarySkeletonSection />;
@@ -313,7 +288,7 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
 
     return (
       <div className="activities-section__itinerary">
-        {/* Sticky Day Navigation (from TripTap's TogglerTabsWrapper_V2) */}
+
         <div className="activities-section__day-tabs-wrapper">
           <div className="activities-section__day-tabs">
             {dayTabs.map((dayTab) => (
@@ -331,10 +306,10 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
           </div>
         </div>
 
-        {/* Day Content (from TripTap's ItineraryDays structure) */}
+
         {currentDayData && (
           <div className="activities-section__day-content">
-            {/* Day Header */}
+
             <div className="activities-section__day-header">
               <div className="activities-section__day-header-top">
                 <h3 className="activities-section__day-title">
@@ -353,7 +328,7 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
               )}
             </div>
 
-            {/* Activities List */}
+
             <div className="activities-section__activities">
               {currentDayData.activities && currentDayData.activities.length > 0 ? (
                 currentDayData.activities.map((activity, index) => (
@@ -385,7 +360,7 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
               )}
             </div>
 
-            {/* Day Footer */}
+
             <div className="activities-section__day-footer">
               <div className="activities-section__day-footer-content">
                 <span className="activities-section__day-footer-label">
@@ -405,7 +380,7 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
   return (
     <section className="activities-section">
       <div className="activities-section__container">
-        {/* Main Tabs (from TripTap's TabsWrapper_V2) */}
+
         <div className="activities-section__tabs-wrapper">
           <div className="activities-section__tabs">
             {tabs.map((tab) => {
@@ -426,7 +401,7 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
           </div>
         </div>
 
-        {/* Tab Panels (from TripTap's FormTabPanel_V2) */}
+
         <div className="activities-section__tab-content">
           {activeTab === 0 && renderItineraryTab()}
           {activeTab === 1 && <HotelTab  tripData={tripData} onHotelSelected={onHotelSelected} />}
@@ -442,7 +417,7 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
           {activeTab === 7 && <ToursTab tripData={tripData} source="trip_itinerary" />}
         </div>
 
-        {/* Trip Actions Footer (from TripTap's TravelTicketWidget pattern) */}
+
         <div className="activities-section__actions">
           <div className="activities-section__actions-content">
             <div className="activities-section__actions-text">
@@ -470,16 +445,8 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
                   '💾 Save Trip'
                 )}
               </button>
-              {/* TODO: Implement share functionality
-              <button className="activities-section__action-btn secondary">
-                📤 Share Trip
-              </button>
-              */}
-              {/* TODO: Implement edit functionality
-              <button className="activities-section__action-btn secondary">
-                ✏️ Edit Trip
-              </button>
-              */}
+
+
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-/* ── Section wrapper ──────────────────────────────────────────────────────── */
+
 .wcu-section {
   padding: 80px 0 88px;
   background-color: #fff;
@@ -8,13 +8,13 @@
   overflow: hidden;
 }
 
-/* ensure content sits above the white-overlay */
+
 .wcu-section > .container {
   position: relative;
   z-index: 1;
 }
 
-/* ── Section header ───────────────────────────────────────────────────────── */
+
 .wcu-header {
   text-align: center;
   max-width: 620px;
@@ -52,7 +52,7 @@
   margin: 0;
 }
 
-/* ── Feature grid ─────────────────────────────────────────────────────────── */
+
 .wcu-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -60,7 +60,7 @@
   position: relative;
 }
 
-/* ── Feature card ─────────────────────────────────────────────────────────── */
+
 .wcu-card {
   background: #fff;
   border: 1.5px solid #e8ecef;
@@ -80,7 +80,7 @@
   border-color: var(--primary, #029e9d);
 }
 
-/* Coloured bottom bar that peeks in on hover */
+
 .wcu-card__bar {
   position: absolute;
   bottom: 0;
@@ -94,7 +94,7 @@
 }
 .wcu-card:hover .wcu-card__bar { transform: scaleX(1); }
 
-/* Icon wrapper */
+
 .wcu-card__icon-wrap {
   width: 56px;
   height: 56px;
@@ -114,7 +114,7 @@
   transform: scale(1.06);
 }
 
-/* Label */
+
 .wcu-card__label {
   font-size: 10px;
   font-weight: 700;
@@ -123,7 +123,7 @@
   color: var(--primary, #029e9d);
 }
 
-/* Title */
+
 .wcu-card__title {
   font-size: 17px;
   font-weight: 800;
@@ -132,7 +132,7 @@
   line-height: 1.3;
 }
 
-/* Description */
+
 .wcu-card__desc {
   font-size: 14px;
   color: #64748b;
@@ -141,7 +141,7 @@
   flex: 1;
 }
 
-/* ── CTA strip ────────────────────────────────────────────────────────────── */
+
 .wcu-cta {
   margin-top: 52px;
   background: var(--primary-gradient, linear-gradient(135deg, #012f3e 0%, #014d5c 50%, #029e9d 100%));
@@ -156,7 +156,7 @@
   overflow: hidden;
 }
 
-/* subtle radial glow */
+
 .wcu-cta::after {
   content: '';
   position: absolute;
@@ -203,7 +203,7 @@
   color: var(--primary, #029e9d);
 }
 
-/* ── Responsive ───────────────────────────────────────────────────────────── */
+
 @media (max-width: 1024px) {
   .wcu-grid { grid-template-columns: repeat(2, 1fr); }
 }
@@ -217,7 +217,7 @@
   .wcu-cta__btn { width: 100%; justify-content: center; }
 }
 
-/* ── Dark mode ────────────────────────────────────────────────────────────── */
+
 [data-theme="dark"] .wcu-section { background: var(--bg-page, #0f172a); }
 [data-theme="dark"] .wcu-section::before { opacity: 0.1; }
 [data-theme="dark"] .wcu-card {

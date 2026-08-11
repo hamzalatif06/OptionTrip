@@ -98,7 +98,7 @@ const PopularRoutesPage = () => {
         keywords="popular routes, travel routes, city to city, road trips, multi-city travel"
         path="/popular-routes"
       />
-      {/* Banner */}
+
       <div
         className="banner pt-10 pb-0 overflow-hidden"
         style={{ backgroundImage: `url(/images/bg/bg6.jpg)` }}
@@ -120,7 +120,7 @@ const PopularRoutesPage = () => {
         </div>
       </div>
 
-      {/* Filter */}
+
       <section style={{ padding: '48px 0 0', background: '#fff' }}>
         <div className="container">
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -148,7 +148,7 @@ const PopularRoutesPage = () => {
         </div>
       </section>
 
-      {/* Routes */}
+
       <section style={{ padding: '48px 0 80px', background: '#fff' }}>
         <div className="container">
           <div className="row g-4">
@@ -263,7 +263,7 @@ const PopularRoutesPage = () => {
         </div>
       </section>
 
-      {/* CTA */}
+
       <section
         style={{
           padding: '80px 0',

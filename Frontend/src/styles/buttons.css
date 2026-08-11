@@ -1,9 +1,6 @@
-/* ──────────────────────────────────────────────────────
-   Shared button styles — same hover effect as header
-   Contact Us (.nir-btn): yellow fill slides in + lift
-   ────────────────────────────────────────────────────── */
 
-/* Primary gradient button */
+
+
 .btn-main {
   position: relative;
   z-index: 1;
@@ -39,7 +36,7 @@
   text-decoration: none !important;
 }
 
-/* White button (for use on dark/gradient backgrounds) */
+
 .btn-white {
   position: relative;
   z-index: 1;
@@ -75,7 +72,7 @@
   text-decoration: none !important;
 }
 
-/* Outline button (transparent bg, teal border) */
+
 .btn-outline {
   position: relative;
   z-index: 1;
@@ -112,7 +109,7 @@
   text-decoration: none !important;
 }
 
-/* Small variant — combine with any of the above */
+
 .btn-sm-page {
   padding: 9px 20px !important;
   font-size: 14px !important;

@@ -1,10 +1,10 @@
-/* ── Explore Anywhere section ───────────────────────────────────────────────── */
+
 .explore-section {
   padding: 48px 0 72px;
   background: #f8fafc;
 }
 
-/* ── Header ─────────────────────────────────────────────────────────────────── */
+
 .explore-header {
   display: flex;
   align-items: center;
@@ -76,14 +76,14 @@
   50%       { opacity: 0.6; }
 }
 
-/* ── Destination grid ───────────────────────────────────────────────────────── */
+
 .explore-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 16px;
 }
 
-/* ── Destination card ───────────────────────────────────────────────────────── */
+
 .explore-card {
   position: relative;
   border: none;
@@ -107,7 +107,7 @@
   transform: scale(1.08);
 }
 
-/* ── Card image ─────────────────────────────────────────────────────────────── */
+
 .explore-card__img-wrap {
   position: absolute;
   inset: 0;
@@ -126,7 +126,7 @@
   opacity: 1;
 }
 
-/* Shimmer skeleton shown while the image is loading */
+
 .explore-card__img-skeleton {
   position: absolute;
   inset: 0;
@@ -156,7 +156,7 @@
   );
 }
 
-/* ── Wishlist heart ─────────────────────────────────────────────────────────── */
+
 .explore-card__heart {
   position: absolute;
   top: 10px;
@@ -187,7 +187,7 @@
   background: rgba(220, 38, 38, 0.9);
 }
 
-/* ── IATA badge ─────────────────────────────────────────────────────────────── */
+
 .explore-card__iata {
   position: absolute;
   top: 12px;
@@ -204,7 +204,7 @@
   border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
-/* ── Card bottom info ───────────────────────────────────────────────────────── */
+
 .explore-card__info {
   position: absolute;
   bottom: 0;
@@ -271,7 +271,7 @@
   width: fit-content;
 }
 
-/* ── Responsive ─────────────────────────────────────────────────────────────── */
+
 @media (max-width: 1200px) {
   .explore-grid {
     grid-template-columns: repeat(4, 1fr);
@@ -304,7 +304,7 @@
   }
 }
 
-/* ── AI Destination Search ───────────────────────────────────────────────────── */
+
 .explore-ai-search {
   display: flex;
   gap: 10px;

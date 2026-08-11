@@ -96,53 +96,53 @@ const WhyChooseUs = ({ ctaOnly = false }) => {
   );
 
   return (
-  <section className="wcu-section" style={{ backgroundImage: 'url(/images/shape4.png)', backgroundPosition: 'center' }}>
-    <div className="container">
+    <section className="wcu-section" style={{ backgroundImage: 'url(/images/shape4.png)', backgroundPosition: 'center' }}>
+      <div className="container">
 
-      {/* Header */}
-      <div className="wcu-header">
-        <span className="wcu-eyebrow">Why OptionTrip</span>
-        <h2 className="wcu-title">
-          The Smarter Way <span className="theme">to Travel</span>
-        </h2>
-        <p className="wcu-sub">
-          We combine artificial intelligence with real travel expertise to give you
-          a planning experience that's faster, smarter, and more personal.
-        </p>
-      </div>
 
-      {/* Feature grid */}
-      <div className="wcu-grid">
-        {features.map((f, i) => (
-          <div className="wcu-card" key={i}>
-            <div className="wcu-card__icon-wrap" style={{ '--card-accent': f.accent }}>
-              {f.icon}
-            </div>
-            <span className="wcu-card__label">{f.label}</span>
-            <h3 className="wcu-card__title">{f.title}</h3>
-            <p className="wcu-card__desc">{f.desc}</p>
-            <div className="wcu-card__bar" style={{ background: f.accent }} />
-          </div>
-        ))}
-      </div>
-
-      {/* Bottom CTA strip */}
-      <div className="wcu-cta">
-        <div className="wcu-cta__text">
-          <strong>Ready to plan your next adventure?</strong>
-          <span>Join thousands of travellers who trust OptionTrip.</span>
+        <div className="wcu-header">
+          <span className="wcu-eyebrow">Why OptionTrip</span>
+          <h2 className="wcu-title">
+            The Smarter Way <span className="theme">to Travel</span>
+          </h2>
+          <p className="wcu-sub">
+            We combine artificial intelligence with real travel expertise to give you
+            a planning experience that's faster, smarter, and more personal.
+          </p>
         </div>
-        <a href="/plan-my-day" className="wcu-cta__btn">
-          Start Planning Free
-          <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
-            <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </a>
-      </div>
 
-    </div>
-    <div className="white-overlay"></div>
-  </section>
+
+        <div className="wcu-grid">
+          {features.map((f, i) => (
+            <div className="wcu-card" key={i}>
+              <div className="wcu-card__icon-wrap" style={{ '--card-accent': f.accent }}>
+                {f.icon}
+              </div>
+              <span className="wcu-card__label">{f.label}</span>
+              <h3 className="wcu-card__title">{f.title}</h3>
+              <p className="wcu-card__desc">{f.desc}</p>
+              <div className="wcu-card__bar" style={{ background: f.accent }} />
+            </div>
+          ))}
+        </div>
+
+
+        <div className="wcu-cta">
+          <div className="wcu-cta__text">
+            <strong>Ready to plan your next adventure?</strong>
+            <span>Join thousands of travellers who trust OptionTrip.</span>
+          </div>
+          <a href="/plan-my-day" className="wcu-cta__btn">
+            Start Planning Free
+            <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
+              <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </a>
+        </div>
+
+      </div>
+      <div className="white-overlay"></div>
+    </section>
   );
 };
 

@@ -1,4 +1,4 @@
-/* Trip Summary Card - OptionTrip Theme - Modern Design */
+
 
 .trip-summary-card {
   background: #FFFFFF;
@@ -16,7 +16,7 @@
   box-shadow: 0 12px 32px rgba(2, 158, 157, 0.1);
 }
 
-/* Header Section */
+
 .trip-summary-card__header {
   margin-bottom: 24px;
   padding-bottom: 20px;
@@ -40,7 +40,7 @@
   letter-spacing: 0.5px;
 }
 
-/* Destination Section */
+
 .trip-summary-card__destination {
   display: flex;
   align-items: center;
@@ -92,7 +92,7 @@
   font-weight: 500;
 }
 
-/* Section */
+
 .trip-summary-card__section {
   margin-bottom: 24px;
 }
@@ -106,7 +106,7 @@
   margin: 0 0 16px 0;
 }
 
-/* Details Grid */
+
 .trip-summary-card__details-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -142,7 +142,7 @@
   font-weight: 700;
 }
 
-/* Highlights List */
+
 .trip-summary-card__highlights-list {
   display: flex;
   flex-direction: column;
@@ -192,7 +192,7 @@
   font-weight: 700;
 }
 
-/* Cost Summary */
+
 .trip-summary-card__cost-summary {
   padding: 24px;
   background: linear-gradient(to bottom, #f9f9f9 0%, #ffffff 100%);
@@ -240,7 +240,7 @@
   letter-spacing: -0.5px;
 }
 
-/* Action Buttons */
+
 .trip-summary-card__action {
   display: flex;
   gap: 12px;
@@ -298,7 +298,7 @@
   box-shadow: none;
 }
 
-/* Empty State */
+
 .trip-summary-card__empty {
   text-align: center;
   padding: 60px 24px;
@@ -323,7 +323,7 @@
   margin: 0 auto;
 }
 
-/* Responsive Design */
+
 @media (max-width: 991px) {
   .trip-summary-card {
     position: static;

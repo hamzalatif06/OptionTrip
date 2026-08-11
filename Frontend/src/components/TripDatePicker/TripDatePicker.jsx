@@ -13,8 +13,6 @@ import { fetchMonthlyPrices } from '../../services/flightService';
 import useCurrency from '../../hooks/useCurrency';
 import './TripDatePicker.css';
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
-
 const toDate = (str) => (str ? new Date(str + 'T00:00:00') : null);
 const toStr  = (d)   => (d   ? format(d, 'yyyy-MM-dd')    : '');
 const todayD = ()    => { const d = new Date(); d.setHours(0,0,0,0); return d; };
@@ -32,16 +30,13 @@ const buildMonths = (count = 12) => {
 };
 const MONTHS = buildMonths(12);
 
-// ── Price Calendar ────────────────────────────────────────────────────────────
-
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 const PriceCalendar = ({ month, prices, loading, minDate, mode, onSelect, onBack, formatPrice }) => {
   const [displayMonth, setDisplayMonth] = useState(month);
-  const [phase,        setPhase]        = useState(0);   // 0=pick start, 1=pick end
+  const [phase,        setPhase]        = useState(0);
   const [rangeStart,   setRangeStart]   = useState(null);
 
-  // Price colour bands
   const priceVals = Object.values(prices).filter(Boolean);
   const minPrice  = priceVals.length ? Math.min(...priceVals) : 0;
   const maxPrice  = priceVals.length ? Math.max(...priceVals) : 0;
@@ -53,9 +48,8 @@ const PriceCalendar = ({ month, prices, loading, minDate, mode, onSelect, onBack
     return 'pc-day--pricey';
   };
 
-  // Build grid: pad with empty cells so week starts on Monday
   const firstOfMonth = startOfMonth(displayMonth);
-  const startDow     = (getDay(firstOfMonth) + 6) % 7; // 0=Mon
+  const startDow     = (getDay(firstOfMonth) + 6) % 7;
   const daysInMonth  = getDaysInMonth(displayMonth);
   const cells        = [
     ...Array(startDow).fill(null),
@@ -73,7 +67,6 @@ const PriceCalendar = ({ month, prices, loading, minDate, mode, onSelect, onBack
       onSelect(day, day);
       return;
     }
-    // range: two clicks
     if (phase === 0 || rangeStart === null) {
       setRangeStart(day);
       setPhase(1);
@@ -91,7 +84,7 @@ const PriceCalendar = ({ month, prices, loading, minDate, mode, onSelect, onBack
 
   return (
     <div className="pc-wrap">
-      {/* Header */}
+
       <div className="pc-header">
         <button className="pc-nav-btn" type="button" onClick={onBack}>← Months</button>
         <div className="pc-nav-month">
@@ -108,7 +101,7 @@ const PriceCalendar = ({ month, prices, loading, minDate, mode, onSelect, onBack
         )}
       </div>
 
-      {/* Loading skeleton */}
+
       {loading ? (
         <div className="pc-loading">
           <div className="pc-loading__spinner" />
@@ -116,12 +109,12 @@ const PriceCalendar = ({ month, prices, loading, minDate, mode, onSelect, onBack
         </div>
       ) : (
         <>
-          {/* Weekday headers */}
+
           <div className="pc-weekdays">
             {WEEKDAYS.map(d => <div key={d} className="pc-weekday">{d}</div>)}
           </div>
 
-          {/* Day grid */}
+
           <div className="pc-grid">
             {cells.map((day, i) => {
               if (!day) return <div key={i} className="pc-day pc-day--empty" />;
@@ -156,8 +149,6 @@ const PriceCalendar = ({ month, prices, loading, minDate, mode, onSelect, onBack
   );
 };
 
-// ── Month Grid ────────────────────────────────────────────────────────────────
-
 const MonthGrid = ({ mode, onMonthClick }) => {
   const [flexStart, setFlexStart] = useState(null);
 
@@ -166,7 +157,6 @@ const MonthGrid = ({ mode, onMonthClick }) => {
       onMonthClick(month);
       return;
     }
-    // For range, always trigger calendar view on first click
     if (!flexStart) {
       setFlexStart(month);
       onMonthClick(month);
@@ -202,8 +192,6 @@ const MonthGrid = ({ mode, onMonthClick }) => {
   );
 };
 
-// ── Main Component ────────────────────────────────────────────────────────────
-
 const TripDatePicker = ({
   mode             = 'range',
   startDate,
@@ -216,8 +204,8 @@ const TripDatePicker = ({
   endPlaceholder   = 'Select date',
   startError,
   endError,
-  origin,       // optional — 3-letter IATA, enables price fetching in flexible mode
-  destination,  // optional — 3-letter IATA
+  origin,
+  destination,
 }) => {
   const minD = minDate instanceof Date
     ? minDate
@@ -232,9 +220,9 @@ const TripDatePicker = ({
   const { formatPrice } = useCurrency();
 
   const [open,          setOpen]          = useState(false);
-  const [dateMode,      setDateMode]      = useState('specific'); // 'specific'|'flexible'
+  const [dateMode,      setDateMode]      = useState('specific');
   const [range,         setRange]         = useState(buildRange);
-  const [flexView,      setFlexView]      = useState('months');   // 'months'|'calendar'
+  const [flexView,      setFlexView]      = useState('months');
   const [flexMonth,     setFlexMonth]     = useState(null);
   const [monthPrices,   setMonthPrices]   = useState({});
   const [pricesLoading, setPricesLoading] = useState(false);
@@ -246,8 +234,6 @@ const TripDatePicker = ({
   useEffect(() => { setRange(buildRange()); }, [startDate, endDate]);
 
   useEffect(() => {
-    // The popup is portalled to <body>, so it's no longer a DOM descendant of
-    // wrapRef — check both refs, or every portal click would look "outside".
     const h = (e) => {
       if (wrapRef.current?.contains(e.target)) return;
       if (popupRef.current?.contains(e.target)) return;
@@ -257,16 +243,6 @@ const TripDatePicker = ({
     return () => document.removeEventListener('mousedown', h);
   }, []);
 
-  // The popup is `position: fixed` (see the CSS comment), which anchors it to
-  // the viewport, not the page — it doesn't move when the page scrolls, so
-  // it visibly drifts away from its trigger. Close it on scroll instead of
-  // tracking position live, same behavior most date pickers use.
-  //
-  // Arm the listener a beat after opening, not immediately: clicking the
-  // trigger can itself cause the browser to auto-scroll it into view (if it
-  // wasn't fully visible), which fires a scroll event as a *side effect of
-  // opening* — listening from frame one would close the popup before anyone
-  // ever sees it.
   useEffect(() => {
     if (!open) return;
     const closeOnScroll = () => setOpen(false);
@@ -284,7 +260,6 @@ const TripDatePicker = ({
     setOpen(false);
   };
 
-  // Specific-dates handlers
   const handleRangeChange = (item) => {
     const sel = item.selection;
     setRange([sel]);
@@ -298,7 +273,6 @@ const TripDatePicker = ({
     apply(d, d);
   };
 
-  // Flexible-dates: month card clicked → load price calendar
   const handleMonthClick = async (month) => {
     setFlexMonth(month);
     setFlexView('calendar');
@@ -341,7 +315,7 @@ const TripDatePicker = ({
   return (
     <div className="tdp-wrap" ref={wrapRef}>
 
-      {/* ── Trigger fields ── */}
+
       <div className="tdp-trigger" ref={triggerRef}>
         <div
           className={`tdp-field${open ? ' tdp-field--active' : ''}${startError ? ' tdp-field--error' : ''}`}
@@ -383,11 +357,11 @@ const TripDatePicker = ({
         )}
       </div>
 
-      {/* ── Popup (portalled to <body> so it escapes any ancestor stacking context) ── */}
+
       {open && createPortal(
         <div className="tdp-popup" ref={popupRef} style={{ top: popupPos.top, left: popupPos.left }}>
 
-          {/* Tabs */}
+
           <div className="tdp-tabs">
             <button type="button"
               className={`tdp-tab${dateMode === 'specific' ? ' tdp-tab--active' : ''}`}
@@ -401,7 +375,7 @@ const TripDatePicker = ({
             </button>
           </div>
 
-          {/* ── Specific dates ── */}
+
           {dateMode === 'specific' && (
             <>
               {mode === 'range' ? (
@@ -445,7 +419,7 @@ const TripDatePicker = ({
             </>
           )}
 
-          {/* ── Flexible dates ── */}
+
           {dateMode === 'flexible' && (
             <>
               {flexView === 'months' ? (

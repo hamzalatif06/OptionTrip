@@ -1,11 +1,4 @@
-/**
- * Translation proxy controller
- * Uses Google Translate unofficial API (client=gtx) — no API key required.
- * Server-side in-memory cache avoids duplicate calls.
- * Graceful fallback: always returns original text on error.
- */
-
-const cache = new Map(); // `${source}:${target}:${text}` → translatedText
+const cache = new Map();
 
 const callGoogle = async (text, source, target) => {
   const cacheKey = `${source}:${target}:${text}`;
@@ -22,7 +15,6 @@ const callGoogle = async (text, source, target) => {
   }
 
   const data = await response.json();
-  // Response: [[[translated_chunk, original_chunk], ...], ...]
   const translated = (data[0] || []).map(item => item[0] || '').join('').trim() || text;
   cache.set(cacheKey, translated);
   return translated;
@@ -35,7 +27,6 @@ export const translateText = async (req, res) => {
     return res.status(400).json({ error: 'q and target are required' });
   }
 
-  // Same language — return as-is
   if (source === target) {
     return res.json(Array.isArray(q)
       ? { translatedTexts: q }

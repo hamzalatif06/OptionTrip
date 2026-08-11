@@ -16,8 +16,6 @@ import './ViAssistant.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
 const formatRelativeTime = (dateString) => {
   if (!dateString) return '';
   const diff = Date.now() - new Date(dateString).getTime();
@@ -34,18 +32,13 @@ const formatRelativeTime = (dateString) => {
 const escapeHtml = (s) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-/**
- * Lightweight markdown renderer — supports headings, bold, italic, inline code,
- * links, bullet/numbered lists, and paragraphs. Intentionally minimal: we
- * sanitize input by escaping HTML first, then apply inline replacements.
- */
 const renderMarkdown = (raw) => {
   if (!raw) return '';
   const text = escapeHtml(raw);
 
   const lines = text.split('\n');
   const out = [];
-  let inList = null; // 'ul' | 'ol' | null
+  let inList = null;
 
   const closeList = () => {
     if (inList) { out.push(`</${inList}>`); inList = null; }
@@ -53,48 +46,40 @@ const renderMarkdown = (raw) => {
 
   const inline = (s) =>
     s
-      // Inline code: `code`
       .replace(/`([^`]+)`/g, '<code>$1</code>')
-      // Bold: **text**
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-      // Italic: *text* (avoid matching ** by negative lookahead handled above)
-      .replace(/(?:^|\s)\*([^*\s][^*]*?)\*(?=\s|$|[.,!?;:])/g, (m, p1) => m.replace(`*${p1}*`, `<em>${p1}</em>`))
-      // Links: [label](url)
+      .replace(
+      /(?:^|\s)\*([^*\s][^*]*?)\*(?=\s|$|[.,!?;:])/g,
+      (m, p1) => m.replace(`*${p1}*`, `<em>${p1}</em>`)
+    )
       .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) =>
-        `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`
-      )
-      // Some model replies omit the space around emphasis markers (more common
-      // in Cyrillic-script languages) — reinsert it so words don't run together.
+        `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`)
       .replace(/([\p{L}\p{N}])(<(?:strong|em|code|a)(?=[>\s]))/gu, '$1 $2')
       .replace(/(<\/(?:strong|em|code|a)>)([\p{L}\p{N}])/gu, '$1 $2');
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
-    // Heading
     const h = line.match(/^(#{1,3})\s+(.+)$/);
     if (h) {
       closeList();
-      const level = h[1].length + 2; // H3+
+      const level = h[1].length + 2;
       out.push(`<h${level}>${inline(h[2])}</h${level}>`);
       continue;
     }
 
-    // Bullet list
     if (/^\s*[-*•]\s+/.test(line)) {
       if (inList !== 'ul') { closeList(); out.push('<ul>'); inList = 'ul'; }
       out.push(`<li>${inline(line.replace(/^\s*[-*•]\s+/, ''))}</li>`);
       continue;
     }
 
-    // Numbered list
     if (/^\s*\d+\.\s+/.test(line)) {
       if (inList !== 'ol') { closeList(); out.push('<ol>'); inList = 'ol'; }
       out.push(`<li>${inline(line.replace(/^\s*\d+\.\s+/, ''))}</li>`);
       continue;
     }
 
-    // Blank line — paragraph break
     if (!line.trim()) {
       closeList();
       out.push('');
@@ -108,9 +93,6 @@ const renderMarkdown = (raw) => {
   return out.join('\n');
 };
 
-// ─── Streaming JSON string parser ────────────────────────────────────────────
-// Reads characters from a partial JSON string value, unescaping sequences,
-// stopping at the first unescaped closing quote.
 const extractJsonStringValue = (s) => {
   let result = '';
   let i = 0;
@@ -133,8 +115,6 @@ const extractJsonStringValue = (s) => {
   }
   return result;
 };
-
-// ─── Suggested prompt starters (richer empty state) ─────────────────────────
 
 const PROMPT_STARTERS = {
   before: [
@@ -174,48 +154,40 @@ const PROMPT_STARTERS = {
   ]
 };
 
-// ─── Component ──────────────────────────────────────────────────────────────
-
 const ViAssistant = () => {
   useTranslation();
   const { isAuthenticated, user } = useAuth();
 
-  // Chat state
   const [isOpen, setIsOpen]               = useState(false);
   const [isFullscreen, setIsFullscreen]   = useState(false);
   const [messages, setMessages]           = useState([]);
   const [inputMessage, setInputMessage]   = useState('');
-  const [isTyping, setIsTyping]           = useState(false); // "thinking" dots phase
-  const [isStreaming, setIsStreaming]     = useState(false); // text is streaming in
-  const [searchStatus, setSearchStatus]   = useState(null);  // e.g. "Searching flights across 4 sources…" while a tool call runs
+  const [isTyping, setIsTyping]           = useState(false);
+  const [isStreaming, setIsStreaming]     = useState(false);
+  const [searchStatus, setSearchStatus]   = useState(null);
   const [showDisclaimer, setShowDisclaimer] = useState(true);
 
-  // Trip context
   const [userTrips, setUserTrips]         = useState([]);
   const [currentTrip, setCurrentTrip]     = useState(null);
   const [tripPhase, setTripPhase]         = useState('before');
   const [showTripPicker, setShowTripPicker] = useState(false);
 
-  // Conversation persistence
   const [activeConversationId, setActiveConversationId] = useState(null);
   const [conversations, setConversations]               = useState([]);
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen]               = useState(false);
 
-  // Personalization — activity summary + live location for "smart" greeting
   const [activitySummary, setActivitySummary] = useState(null);
   const [liveLocation, setLiveLocation]       = useState(null);
 
-  // Voice state
   const [isRecording, setIsRecording]       = useState(false);
   const [isSpeaking, setIsSpeaking]         = useState(false);
   const [isVoiceMode, setIsVoiceMode]       = useState(false);
   const [voiceStatus, setVoiceStatus]       = useState('');
   const [playingMsgId, setPlayingMsgId]     = useState(null);
   const [speechError, setSpeechError]       = useState('');
-  const [silenceCountdown, setSilenceCountdown] = useState(null); // 3→2→1→submit
+  const [silenceCountdown, setSilenceCountdown] = useState(null);
 
-  // Refs
   const messagesEndRef    = useRef(null);
   const messagesListRef   = useRef(null);
   const inputRef          = useRef(null);
@@ -227,18 +199,9 @@ const ViAssistant = () => {
   const tripPickerRef     = useRef(null);
   const shouldAutoScrollRef = useRef(true);
   const lastUserMessageRef  = useRef('');
-  const audioCtxRef       = useRef(null);  // AudioContext for silence detection
-  const animFrameRef      = useRef(null);  // rAF id for silence loop
+  const audioCtxRef       = useRef(null);
+  const animFrameRef      = useRef(null);
 
-  // ── Personalization fetch (activity summary + live location) ───────────
-
-  /**
-   * On open, in parallel fetch:
-   *   1. The user's activity summary so the welcome line can mention their
-   *      recent destinations / interests.
-   *   2. A cached location (instant) plus a fresh GPS fix (a few seconds) so
-   *      the assistant can be "near-me" aware from the very first message.
-   */
   useEffect(() => {
     if (!isOpen) return;
 
@@ -249,16 +212,14 @@ const ViAssistant = () => {
       logActivity({ type: 'chat', action: 'opened', title: 'Opened Vi assistant' });
     }
 
-    // 1) Instant: read whatever PlanMyDay has cached this session.
     try {
       const cached = readCachedLocation();
       const cachedLoc = cached?.location || null;
       if (cachedLoc && (cachedLoc.city || (typeof cachedLoc.lat === 'number'))) {
         setLiveLocation(cachedLoc);
       }
-    } catch { /* noop */ }
+    } catch {}
 
-    // 2) Fresh: try to upgrade with a real GPS fix. Best-effort, never blocks.
     let cancelled = false;
     (async () => {
       try {
@@ -276,13 +237,11 @@ const ViAssistant = () => {
           label:        geo?.label        || null
         };
         if (next.city || next.label) setLiveLocation(next);
-      } catch { /* permission denied / timeout — fine */ }
+      } catch {}
     })();
 
     return () => { cancelled = true; };
   }, [isOpen, isAuthenticated]);
-
-  // ── Trips ──────────────────────────────────────────────────────────────
 
   useEffect(() => { if (isAuthenticated && isOpen) loadUserTrips(); }, [isAuthenticated, isOpen]);
 
@@ -312,7 +271,6 @@ const ViAssistant = () => {
     }
   };
 
-  // Close trip picker on outside click
   useEffect(() => {
     if (!showTripPicker) return;
     const handler = (e) => {
@@ -323,8 +281,6 @@ const ViAssistant = () => {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [showTripPicker]);
-
-  // ── Conversations ──────────────────────────────────────────────────────
 
   const loadConversations = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -410,8 +366,6 @@ const ViAssistant = () => {
     }
   };
 
-  // ── Welcome message ────────────────────────────────────────────────────
-
   const makeWelcomeMessage = () => {
     let text = '';
 
@@ -423,7 +377,6 @@ const ViAssistant = () => {
     const firstName = user.name?.split(' ')[0] || 'there';
     text = `Hi ${firstName}! 👋 I'm **Vi**, your Travel Partner. `;
 
-    // 1) Location-aware opening line — only when we actually have a place
     const placeLabel = liveLocation?.neighborhood
       || liveLocation?.city
       || liveLocation?.label
@@ -432,7 +385,6 @@ const ViAssistant = () => {
       text += `I can see you're in **${placeLabel}** right now${liveLocation?.country ? `, ${liveLocation.country}` : ''} — happy to help with anything nearby. `;
     }
 
-    // 2) Trip-anchored line (existing behaviour)
     if (currentTrip) {
       const dest = currentTrip.destination?.name || 'your destination';
       if (tripPhase === 'before') text += `\n\nI also see your upcoming trip to **${dest}** — I can help you prep, build a packing list, line up must-do experiences, or refine your itinerary day-by-day.`;
@@ -440,7 +392,6 @@ const ViAssistant = () => {
       else text += `\n\nHow was **${dest}**? I can help you plan what's next, or capture memories from your trip.`;
     }
 
-    // 3) Activity-aware nudge — uses what we know about them so it feels smart.
     const recentDest = activitySummary?.recentDestination;
     const interests  = activitySummary?.interests || [];
     if (!currentTrip && recentDest) {
@@ -454,19 +405,16 @@ const ViAssistant = () => {
     return { id: 'welcome', text, sender: 'bot', timestamp: new Date(), type: 'welcome', isWelcome: true };
   };
 
-  // Refresh the welcome bubble when personalization data arrives after open.
   useEffect(() => {
     if (!isOpen) return;
     setMessages(prev => {
       if (!prev.length) return prev;
-      // Only swap the bubble if the current view is the welcome screen.
-      if (prev.length === 1 && prev[0].isWelcome) return [makeWelcomeMessage()];
+      if (prev.length === 1 && prev[0].isWelcome)
+        return [makeWelcomeMessage()];
       return prev;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liveLocation, activitySummary, currentTrip, tripPhase]);
-
-  // ── Auto-scroll (only if user is near bottom) ──────────────────────────
 
   const handleMessagesScroll = () => {
     const el = messagesListRef.current;
@@ -481,8 +429,6 @@ const ViAssistant = () => {
     }
   }, [messages, isTyping]);
 
-  // ── Send / cancel ──────────────────────────────────────────────────────
-
   const cancelRequest = () => {
     if (requestAbortRef.current) {
       requestAbortRef.current.abort();
@@ -492,12 +438,6 @@ const ViAssistant = () => {
     setIsStreaming(false);
   };
 
-  /**
-   * Send a message to Vi via the streaming SSE endpoint.
-   * Shows typing dots while the model "thinks", then streams visible text
-   * character-by-character into a bot bubble. AbortController allows the
-   * "Stop" button to cancel mid-stream.
-   */
   const dispatchMessage = async (userText) => {
     cancelRequest();
     lastUserMessageRef.current = userText;
@@ -522,7 +462,7 @@ const ViAssistant = () => {
 
     const streamMsgId = `b-${Date.now()}`;
     let rawBuffer  = '';
-    let msgStart   = -1; // position in rawBuffer after the opening " of "message" value
+    let msgStart   = -1;
     let streamText = '';
 
     try {
@@ -561,16 +501,11 @@ const ViAssistant = () => {
           try { event = JSON.parse(payload); } catch { continue; }
 
           if (event.status === 'searching_flights') {
-            // Tool call detected server-side — a multi-second, multi-provider
-            // search is running. Keep the typing indicator up but swap its
-            // label; the actual reply arrives as one complete delta below,
-            // not character-by-character (see backend streamMessage).
             setSearchStatus('Searching flights across sources…');
             continue;
           }
 
           if (event.done) {
-            // Stream closed — finalize the message bubble
             setMessages(prev => prev.map(m =>
               m.id === streamMsgId
                 ? {
@@ -607,12 +542,10 @@ const ViAssistant = () => {
             rawBuffer += event.delta;
             setSearchStatus(null);
 
-            // Locate start of the "message" JSON value on first delta that contains it
             if (msgStart === -1) {
               const match = rawBuffer.match(/"message"\s*:\s*"/);
               if (match) {
                 msgStart = match.index + match[0].length;
-                // Switch from typing dots to live streaming bubble
                 setIsTyping(false);
                 setIsStreaming(true);
                 setMessages(prev => {
@@ -672,7 +605,6 @@ const ViAssistant = () => {
 
   const handleRegenerate = () => {
     if (!lastUserMessageRef.current) return;
-    // Remove the last bot message
     setMessages(prev => {
       const lastBotIdx = [...prev].reverse().findIndex(m => m.sender === 'bot' && !m.isWelcome);
       if (lastBotIdx === -1) return prev;
@@ -682,8 +614,6 @@ const ViAssistant = () => {
     dispatchMessage(lastUserMessageRef.current);
   };
 
-  // ── Voice: TTS ─────────────────────────────────────────────────────────
-
   const stopAudio = () => {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     setIsSpeaking(false); setPlayingMsgId(null);
@@ -692,7 +622,6 @@ const ViAssistant = () => {
   const speakText = async (text, msgId = null) => {
     stopAudio();
     if (!text) return;
-    // Strip markdown formatting before sending to TTS for cleaner speech
     const cleanText = text
       .replace(/\*\*([^*]+)\*\*/g, '$1')
       .replace(/`([^`]+)`/g, '$1')
@@ -733,17 +662,12 @@ const ViAssistant = () => {
     }
   };
 
-  // ── Voice: STT ─────────────────────────────────────────────────────────
-
   const stopSilenceDetection = () => {
     if (animFrameRef.current) { cancelAnimationFrame(animFrameRef.current); animFrameRef.current = null; }
     if (audioCtxRef.current) { audioCtxRef.current.close().catch(() => {}); audioCtxRef.current = null; }
     setSilenceCountdown(null);
   };
 
-  // Analyse microphone volume on every animation frame.
-  // Auto-stops recording 3 s after the user first goes silent (hasSpoken guard
-  // prevents firing immediately if mic opens before the user starts talking).
   const startSilenceDetection = (stream) => {
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -756,12 +680,12 @@ const ViAssistant = () => {
       audioCtxRef.current = ctx;
 
       const data = new Uint8Array(analyser.frequencyBinCount);
-      const THRESHOLD = 12;    // avg byte value below this = silence (0-255)
-      const DELAY_MS  = 3000;  // 3 s of silence → auto-submit
+      const THRESHOLD = 12;
+      const DELAY_MS  = 3000;
       let hasSpoken    = false;
       let silenceStart = null;
 
-      let lastCountdown = null; // track prev value to avoid redundant setState
+      let lastCountdown = null;
       const tick = () => {
         if (!audioCtxRef.current) return;
         analyser.getByteFrequencyData(data);
@@ -780,7 +704,7 @@ const ViAssistant = () => {
           if (elapsed >= DELAY_MS) {
             stopSilenceDetection();
             stopRecording();
-            return; // exit loop
+            return;
           }
         }
         animFrameRef.current = requestAnimationFrame(tick);
@@ -814,8 +738,8 @@ const ViAssistant = () => {
       };
       recorder.start();
       setIsRecording(true);
-      startSilenceDetection(stream); // auto-submit after 3 s of silence
-      stopTimeoutRef.current = setTimeout(() => stopRecording(), 30000); // hard cap
+      startSilenceDetection(stream);
+      stopTimeoutRef.current = setTimeout(() => stopRecording(), 30000);
     } catch (err) {
       console.error('Mic error:', err);
       setSpeechError(err.name === 'NotAllowedError' ? 'Microphone access denied.' : 'Could not access microphone.');
@@ -853,8 +777,6 @@ const ViAssistant = () => {
     }
   };
 
-  // ── Voice mode ─────────────────────────────────────────────────────────
-
   const toggleVoiceMode = () => {
     if (isVoiceMode) {
       stopRecording(); stopAudio();
@@ -865,7 +787,6 @@ const ViAssistant = () => {
     }
   };
 
-  // Cleanup on close
   useEffect(() => {
     if (!isOpen) {
       stopSilenceDetection(); stopRecording(); stopAudio(); cancelRequest();
@@ -877,8 +798,6 @@ const ViAssistant = () => {
     stopSilenceDetection(); stopRecording(); stopAudio(); cancelRequest();
     clearTimeout(stopTimeoutRef.current);
   }, []);
-
-  // ── Misc ───────────────────────────────────────────────────────────────
 
   const handleQuickReply = (reply) => {
     if (isTyping) return;
@@ -918,12 +837,9 @@ const ViAssistant = () => {
     cancelRequest();
     setCurrentTrip(trip);
     setShowTripPicker(false);
-    // Force a fresh welcome bubble when context changes mid-session
     setMessages([makeWelcomeMessage()]);
     setActiveConversationId(null);
   };
-
-  // ── Derived ────────────────────────────────────────────────────────────
 
   const starterKey = !isAuthenticated ? 'guest' : (currentTrip ? tripPhase : 'planning');
   const starters = PROMPT_STARTERS[starterKey] || PROMPT_STARTERS.planning;
@@ -947,11 +863,9 @@ const ViAssistant = () => {
     isFullscreen  ? 'vi-window--fullscreen'   : '',
   ].filter(Boolean).join(' ');
 
-  // ── Render ─────────────────────────────────────────────────────────────
-
   return (
     <>
-      {/* Floating Chat Button */}
+
       <div className={`vi-button ${isOpen ? 'active' : ''}`} onClick={toggleChat} title="Chat with Vi">
         {!isOpen ? (
           <>
@@ -966,11 +880,11 @@ const ViAssistant = () => {
         )}
       </div>
 
-      {/* Chat Window */}
+
       {isOpen && (
         <div className={windowClass}>
 
-          {/* ── Sidebar ────────────────────────────────────────────── */}
+
           {isSidebarOpen && (
             <div className="vi-sidebar">
               <div className="vi-sidebar__header">
@@ -1014,10 +928,10 @@ const ViAssistant = () => {
             </div>
           )}
 
-          {/* ── Main Chat Area ─────────────────────────────────────── */}
+
           <div className="vi-chat-main">
 
-            {/* Header */}
+
             <div className="vi-header">
               <div className="vi-header-content">
                 {isAuthenticated && (
@@ -1074,7 +988,7 @@ const ViAssistant = () => {
               </div>
             </div>
 
-            {/* Trip context bar — clickable trip switcher */}
+
             {isAuthenticated && (currentTrip || userTrips.length > 0) && (
               <div className="vi-trip-bar" ref={tripPickerRef}>
                 <button
@@ -1124,7 +1038,7 @@ const ViAssistant = () => {
               </div>
             )}
 
-            {/* Voice mode banner */}
+
             {isVoiceMode && (
               <div className="vi-voice-banner">
                 <div className="vi-voice-banner__content">
@@ -1144,7 +1058,7 @@ const ViAssistant = () => {
               </div>
             )}
 
-            {/* Disclaimer */}
+
             {showDisclaimer && (
               <div className="vi-disclaimer">
                 <div className="disclaimer-content">
@@ -1157,7 +1071,7 @@ const ViAssistant = () => {
               </div>
             )}
 
-            {/* Messages */}
+
             <div className="vi-messages" ref={messagesListRef} onScroll={handleMessagesScroll}>
               {messages.map((message) => {
                 const isLastBot = message.id === lastBotMessageId;
@@ -1179,7 +1093,7 @@ const ViAssistant = () => {
                         : <p className="vi-user-text">{message.text}</p>
                       }
 
-                      {/* Inline flight results (deterministic, attached server-side — see chatController.js) */}
+
                       {message.resultsType === 'flights' && message.results?.length > 0 && (
                         <ChatFlightResults
                           results={message.results}
@@ -1188,7 +1102,7 @@ const ViAssistant = () => {
                         />
                       )}
 
-                      {/* Quick replies */}
+
                       {message.quickReplies && (
                         <div className="quick-replies">
                           {message.quickReplies.map((reply, idx) => (
@@ -1204,7 +1118,7 @@ const ViAssistant = () => {
                         </div>
                       )}
 
-                      {/* Bot message actions */}
+
                       {message.sender === 'bot' && !message.isWelcome && !message.isStreaming && message.text && (
                         <div className="vi-msg-actions">
                           <button
@@ -1244,7 +1158,7 @@ const ViAssistant = () => {
                 );
               })}
 
-              {/* Prompt starters (only when chat is empty / welcome) */}
+
               {showStarters && (
                 <div className="vi-starters">
                   <div className="vi-starters__title">Try asking Vi:</div>
@@ -1277,7 +1191,7 @@ const ViAssistant = () => {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
+
             <div className="vi-input-container">
               {(speechError || voiceStatus) && (
                 <p className={`vi-speech-error${voiceStatus && !speechError ? ' vi-speech-status' : ''}`}>
@@ -1286,7 +1200,7 @@ const ViAssistant = () => {
                 </p>
               )}
 
-              {/* Stop generation button (replaces send while thinking or streaming) */}
+
               {(isTyping || isStreaming) && (
                 <button type="button" className="vi-stop-gen" onClick={cancelRequest}>
                   <i className="fas fa-stop"></i> Stop generating
@@ -1310,7 +1224,6 @@ const ViAssistant = () => {
                   value={inputMessage}
                   onChange={(e) => {
                     setInputMessage(e.target.value);
-                    // Auto-grow
                     e.target.style.height = 'auto';
                     e.target.style.height = Math.min(e.target.scrollHeight, 140) + 'px';
                   }}

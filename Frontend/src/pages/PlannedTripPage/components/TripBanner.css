@@ -1,7 +1,7 @@
-/* TripBanner Styles - Matching TripTap Image */
-/* Full-width background with overlay text */
 
-/* Save Trip button */
+
+
+
 .trip-banner__save-btn {
   display: inline-flex;
   align-items: center;
@@ -34,10 +34,10 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  background-color: #122D46; /* Fallback color if image doesn't load */
+  background-color: #122D46; 
   min-height: 400px;
   padding: 80px 20px 140px 20px;
-  margin-bottom: -80px; /* Overlap with cards */
+  margin-bottom: -80px; 
   border-radius: 0 0 24px 24px;
   position: relative;
   overflow: hidden;
@@ -55,7 +55,7 @@
   z-index: 2;
 }
 
-/* Title */
+
 .trip-banner__title {
   font-size: 48px;
   font-weight: 700;
@@ -65,7 +65,7 @@
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Description */
+
 .trip-banner__description {
   font-size: 18px;
   line-height: 1.6;
@@ -75,7 +75,7 @@
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Metadata Chips (from TripTap's ChipTabGroup) */
+
 .trip-banner__chips {
   display: flex;
   flex-wrap: wrap;
@@ -119,7 +119,7 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* Loading State (from TripTap's Skeleton pattern) */
+
 .trip-banner__skeleton {
   display: flex;
   flex-direction: column;
@@ -172,7 +172,7 @@
   }
 }
 
-/* Error State */
+
 .trip-banner--error {
   background: linear-gradient(135deg, #FFE5E5 0%, #FFF0F0 100%);
 }
@@ -185,7 +185,7 @@
   color: #8B1E3F;
 }
 
-/* Responsive Design */
+
 @media (max-width: 991px) {
   .trip-banner {
     padding: 60px 16px 120px 16px;

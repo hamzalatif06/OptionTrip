@@ -1,7 +1,3 @@
-/**
- * Notification Routes
- */
-
 import express from 'express';
 import {
   listNotifications,

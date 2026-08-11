@@ -1,12 +1,12 @@
-/* PlannedTripPage Styles - Using OptionTrip Theme */
-/* Adapted from TripTap structure, styled with OptionTrip colors */
+
+
 
 .planned-trip-page {
   min-height: 100vh;
   background: #F8F9FA;
 }
 
-/* Header Styles */
+
 .planned-trip-header {
   background: #FFFFFF;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -69,7 +69,7 @@
   width: 100%;
 }
 
-/* Responsive Header */
+
 @media (max-width: 767px) {
   .planned-trip-header__container {
     padding: 12px 16px;
@@ -88,7 +88,7 @@
   }
 }
 
-/* Loading State */
+
 .planned-trip-page__loading {
   display: flex;
   flex-direction: column;
@@ -119,7 +119,7 @@
   font-weight: 600;
 }
 
-/* Error State */
+
 .planned-trip-page__error {
   display: flex;
   flex-direction: column;
@@ -180,7 +180,7 @@
   color: #FFFFFF;
 }
 
-/* Empty State */
+
 .planned-trip-page__empty {
   display: flex;
   flex-direction: column;
@@ -210,7 +210,7 @@
   margin: 0 0 32px 0;
 }
 
-/* Progressive Loading Progress Bar */
+
 .planned-trip-page__progress-container {
   max-width: 1400px;
   margin: 0 auto;
@@ -247,14 +247,14 @@
   margin: 0;
 }
 
-/* Skeleton Container */
+
 .planned-trip-page__skeletons {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 20px 40px;
 }
 
-/* Responsive Design */
+
 @media (max-width: 767px) {
   .planned-trip-page__error-title,
   .planned-trip-page__empty-title {
@@ -272,7 +272,7 @@
   }
 }
 
-/* ── Share Bar ───────────────────────────────────────────────────────────────── */
+
 .planned-trip-share-bar {
   position: fixed;
   top: 72px;
@@ -301,7 +301,7 @@
 }
 .planned-trip-share-bar__copy:hover { background: #025f5e; }
 
-/* ── Trip Summary Sticky Bar ─────────────────────────────────────────────────── */
+
 .planned-trip-summary-bar {
   position: fixed;
   bottom: 0;

@@ -11,7 +11,7 @@ import './Signup.css';
 const Signup = () => {
   const navigate = useNavigate();
   const { register, verifyOtp, resendOtp, loginWithOAuth } = useAuth();
-  const [step, setStep] = useState('form'); // 'form' | 'otp'
+  const [step, setStep] = useState('form');
   const [pendingEmail, setPendingEmail] = useState('');
   const [otpValue, setOtpValue] = useState('');
   const [otpLoading, setOtpLoading] = useState(false);
@@ -34,7 +34,6 @@ const Signup = () => {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -46,21 +45,18 @@ const Signup = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    // Full Name validation
     if (!formData.fullName.trim()) {
       newErrors.fullName = 'Full name is required';
     } else if (formData.fullName.trim().length < 2) {
       newErrors.fullName = 'Full name must be at least 2 characters';
     }
 
-    // Email validation
     if (!formData.email) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
-    // Password validation
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
@@ -69,19 +65,16 @@ const Signup = () => {
       newErrors.password = 'Password must contain uppercase, lowercase, and number';
     }
 
-    // Confirm Password validation
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password';
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
-    // Phone validation (optional)
     if (formData.phone && !/^\+?[\d\s-()]+$/.test(formData.phone)) {
       newErrors.phone = 'Please enter a valid phone number';
     }
 
-    // Terms acceptance
     if (!acceptTerms) {
       newErrors.terms = 'You must accept the terms and privacy policy';
     }
@@ -237,7 +230,7 @@ const Signup = () => {
             </div>
           </div>
 
-          {/* Right Side - Illustration (reused) */}
+
           <div className="auth-illustration-section">
             <div className="auth-illustration-content">
               <div className="auth-illustration-pattern"></div>
@@ -256,30 +249,30 @@ const Signup = () => {
     <div className="auth-page">
       <PageMeta title="Create Account" description="Join OptionTrip — plan smarter trips with Travel Partner Vi." path="/signup" noIndex />
       <div className="auth-container signup-container">
-        {/* Left Side - Form */}
+
         <div className="auth-form-section">
           <div className="auth-form-wrapper">
-            {/* Logo */}
+
             <div className="auth-logo">
 
                 <img src="/images/newLogo.png" alt="OptionTrip" />
 
             </div>
 
-            {/* Welcome Text */}
+
             <div className="auth-header">
               <h1 className="auth-title">Start your journey</h1>
               <p className="auth-subtitle">Create an account and discover amazing destinations</p>
             </div>
 
-            {/* General Error Message */}
+
             {errors.general && (
               <div className="auth-error-banner">
                 {errors.general}
               </div>
             )}
 
-            {/* Social Signup Buttons */}
+
             <div className="auth-social-buttons">
               <SocialButton
                 provider="google"
@@ -291,14 +284,14 @@ const Signup = () => {
               />
             </div>
 
-            {/* Divider */}
+
             <div className="auth-divider">
               <span className="auth-divider-line"></span>
               <span className="auth-divider-text">or continue with email</span>
               <span className="auth-divider-line"></span>
             </div>
 
-            {/* Signup Form */}
+
             <form onSubmit={handleSubmit} className="auth-form">
               <Input
                 label="Full Name"
@@ -392,7 +385,7 @@ const Signup = () => {
                 />
               </div>
 
-              {/* Terms Checkbox */}
+
               <div className="auth-terms-wrapper">
                 <label className="auth-checkbox auth-terms-checkbox">
                   <input
@@ -415,7 +408,7 @@ const Signup = () => {
                 {errors.terms && <span className="auth-input-error">{errors.terms}</span>}
               </div>
 
-              {/* Submit Button */}
+
               <Button
                 type="submit"
                 variant="primary"
@@ -427,7 +420,7 @@ const Signup = () => {
               </Button>
             </form>
 
-            {/* Login Link */}
+
             <div className="auth-footer">
               <p className="auth-footer-text">
                 Already have an account?{' '}
@@ -439,7 +432,7 @@ const Signup = () => {
           </div>
         </div>
 
-        {/* Right Side - Illustration */}
+
         <div className="auth-illustration-section">
           <div className="auth-illustration-content">
             <div className="auth-illustration-pattern"></div>
@@ -449,12 +442,12 @@ const Signup = () => {
             </div>
             <div className="auth-illustration-image">
               <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Globe Illustration */}
+
                 <circle cx="200" cy="200" r="140" fill="#F30F89" opacity="0.15"/>
                 <circle cx="200" cy="200" r="110" fill="#0A539D" opacity="0.15"/>
                 <circle cx="200" cy="200" r="80" fill="#F30F89" opacity="0.15"/>
 
-                {/* Travel Icons */}
+
                 <g transform="translate(150, 120)">
                   <circle cx="0" cy="0" r="25" fill="#F30F89"/>
                   <path d="M -8 -5 L 8 -5 L 8 5 L -8 5 Z" fill="#fff"/>
@@ -473,7 +466,7 @@ const Signup = () => {
                   <path d="M -8 -2 L 8 -2" stroke="#F30F89" strokeWidth="1"/>
                 </g>
 
-                {/* Compass */}
+
                 <g transform="translate(230, 240)">
                   <circle cx="0" cy="0" r="28" stroke="#0A539D" strokeWidth="2" fill="none"/>
                   <path d="M 0 -20 L 8 0 L 0 20 L -8 0 Z" fill="#F30F89"/>

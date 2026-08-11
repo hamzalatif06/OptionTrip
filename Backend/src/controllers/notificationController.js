@@ -1,15 +1,4 @@
-/**
- * Notification Controller
- * In-app notification center: list, unread count, mark read/dismissed.
- */
-
-import {
-  getNotifications,
-  getUnreadCount,
-  markRead,
-  markAllRead,
-  dismiss
-} from '../services/notificationService.js';
+import { getNotifications, getUnreadCount, markRead, markAllRead, dismiss } from '../services/notificationService.js';
 
 export const listNotifications = async (req, res) => {
   try {

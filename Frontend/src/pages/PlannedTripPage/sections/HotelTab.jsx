@@ -106,7 +106,6 @@ const HotelTab = ({ tripData, onHotelSelected }) => {
   const token  = getAccessToken();
   const [selectedHotelKey, setSelectedHotelKey] = useState(null);
 
-  // Destination autocomplete
   const [cityQuery,    setCityQuery]    = useState(tripData?.destination?.name || '');
   const [destId,       setDestId]       = useState('');
   const [searchType,   setSearchType]   = useState('CITY');
@@ -133,7 +132,6 @@ const HotelTab = ({ tripData, onHotelSelected }) => {
 
   const today = new Date().toISOString().split('T')[0];
 
-  // Auto-search destination on mount if tripData has a destination
   useEffect(() => {
     const destName = tripData?.destination?.name;
     if (!destName || destId) return;
@@ -146,7 +144,6 @@ const HotelTab = ({ tripData, onHotelSelected }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tripData?.destination?.name]);
 
-  // Fetch suggestions on debounced query
   useEffect(() => {
     if (!debouncedQuery || debouncedQuery.length < 2) {
       setSuggestions([]); setShowDropdown(false); return;
@@ -159,7 +156,6 @@ const HotelTab = ({ tripData, onHotelSelected }) => {
     });
   }, [debouncedQuery]);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e) => { if (cityRef.current && !cityRef.current.contains(e.target)) setShowDropdown(false); };
     document.addEventListener('mousedown', handler);
@@ -222,7 +218,7 @@ const HotelTab = ({ tripData, onHotelSelected }) => {
     <div className="ht-root">
       <form className="ht-card" onSubmit={handleSearch}>
 
-        {/* Destination autocomplete */}
+
         <div className="ht-city-row">
           <div
             ref={cityRef}
@@ -272,7 +268,7 @@ const HotelTab = ({ tripData, onHotelSelected }) => {
           </div>
         </div>
 
-        {/* Dates + Guests */}
+
         <div className="ht-options-row">
           <div className={`ht-field${errors.checkIn ? ' ht-field--error' : ''}`}>
             <label className="ht-field__label">Check-in</label>
@@ -336,7 +332,7 @@ const HotelTab = ({ tripData, onHotelSelected }) => {
           </div>
         </div>
 
-        {/* Search button */}
+
         <div className="ht-search-row">
           <button type="submit" className="ht-search-btn" disabled={isLoading}>
             {isLoading ? (
@@ -360,10 +356,10 @@ const HotelTab = ({ tripData, onHotelSelected }) => {
         </div>
       </form>
 
-      {/* Skeletons */}
+
       {isLoading && <HotelSkeleton />}
 
-      {/* Results */}
+
       {searched && !isLoading && (
         <div className="ht-results">
           {searchError ? (

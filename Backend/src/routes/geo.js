@@ -2,7 +2,6 @@ import express from 'express';
 
 const router = express.Router();
 
-// Proxy for ipapi.co — avoids browser CORS restrictions
 router.get('/ip', async (req, res) => {
   try {
     const clientIp =
@@ -10,7 +9,6 @@ router.get('/ip', async (req, res) => {
       req.socket.remoteAddress ||
       '';
 
-    // In development the client IP is often ::1 (localhost); let ipapi auto-detect
     const url = clientIp && clientIp !== '::1' && clientIp !== '127.0.0.1'
       ? `https://ipapi.co/${clientIp}/json/`
       : 'https://ipapi.co/json/';

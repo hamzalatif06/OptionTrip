@@ -4,7 +4,6 @@ import BlogCard from '../components/BlogCard/BlogCard';
 import PageMeta from '../hooks/usePageMeta';
 import './Blog.css';
 
-// ─── Skeleton placeholder while loading ──────────────────────────
 const BlogCardSkeleton = () => (
   <div className="blog-card blog-card--skeleton">
     <div className="blog-card__image-wrap" style={{ aspectRatio: '16/10', background: '#f0f2f5' }} />
@@ -56,7 +55,7 @@ const Blog = () => {
   return (
     <>
       <PageMeta title="Travel Blog" description="Explore travel guides, destination tips, and insider advice from the OptionTrip team." path="/blog" />
-      {/* Hero Banner */}
+
       <div
         className="banner pt-10 pb-0 overflow-hidden"
         style={{ backgroundImage: 'url(/images/testimonial.png)' }}
@@ -76,11 +75,11 @@ const Blog = () => {
         </div>
       </div>
 
-      {/* Blog Grid */}
+
       <section className="blog-listing-section">
         <div className="container">
 
-          {/* Error */}
+
           {error && (
             <div className="blog-error">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#F30F89" strokeWidth="1.5">
@@ -95,7 +94,7 @@ const Blog = () => {
             </div>
           )}
 
-          {/* Grid */}
+
           {!error && (
             <div className="blog-grid">
               {loading
@@ -108,7 +107,7 @@ const Blog = () => {
             </div>
           )}
 
-          {/* Pagination */}
+
           {!loading && !error && totalPages > 1 && (
             <div className="blog-pagination">
               <button

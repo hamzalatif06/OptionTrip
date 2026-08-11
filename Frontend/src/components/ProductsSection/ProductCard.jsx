@@ -2,10 +2,8 @@ import React from 'react';
 import './ProductsSection.css';
 
 const ProductCard = ({ product }) => {
-  // Amazon affiliate tag (like TripTap)
   const AFFILIATE_TAG = 'optiontrip-20';
 
-  // Decode HTML entities (from TripTap)
   const decodeHtmlEntities = (str) => {
     if (!str) return '';
     const textarea = document.createElement('textarea');
@@ -13,7 +11,6 @@ const ProductCard = ({ product }) => {
     return textarea.value;
   };
 
-  // Add affiliate tag to Amazon URLs (from TripTap)
   const addAmazonAffiliateTag = (url) => {
     if (!url) return '#';
     try {
@@ -30,7 +27,6 @@ const ProductCard = ({ product }) => {
 
   const details = product?.details || {};
 
-  // Extract data from API structure
   const title = decodeHtmlEntities(details.product_title || product.title || 'Product');
   const price = details.product_price || `$${product.price?.toFixed(2)}` || '$0.00';
   const originalPrice = details.product_original_price;
@@ -76,7 +72,7 @@ const ProductCard = ({ product }) => {
           />
         </a>
 
-        {/* Badges */}
+
         <div className="product-badges">
           {badge && (
             <span className="product-badge">{badge}</span>
@@ -90,14 +86,14 @@ const ProductCard = ({ product }) => {
       </div>
 
       <div className="product-content">
-        {/* Title */}
+
         <h5 className="product-title">
           <a href={productUrl} target="_blank" rel="noopener noreferrer">
             {title}
           </a>
         </h5>
 
-        {/* Rating */}
+
         {rating > 0 && (
           <div className="product-rating">
             {renderStars(rating)}
@@ -108,14 +104,14 @@ const ProductCard = ({ product }) => {
           </div>
         )}
 
-        {/* Sales Volume */}
+
         {salesVolume && (
           <div className="sales-volume">
             <i className="fa fa-shopping-cart"></i> {salesVolume}
           </div>
         )}
 
-        {/* Price */}
+
         <div className="product-price">
           <span className="current-price">{price}</span>
           {originalPrice && (
@@ -123,14 +119,14 @@ const ProductCard = ({ product }) => {
           )}
         </div>
 
-        {/* Delivery Info */}
+
         {delivery && (
           <div className="delivery-info">
             <i className="fa fa-truck"></i> {delivery}
           </div>
         )}
 
-        {/* Shop Now Button */}
+
         <a
           href={productUrl}
           className="shop-now-btn"

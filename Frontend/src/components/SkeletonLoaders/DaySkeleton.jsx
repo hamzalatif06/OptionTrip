@@ -1,10 +1,6 @@
 import React from 'react';
 import './DaySkeleton.css';
 
-/**
- * DaySkeleton - Skeleton loader for a single day's itinerary
- * Shows animated placeholder while the actual day content is loading
- */
 const DaySkeleton = ({ dayNumber }) => {
   return (
     <div className="day-skeleton">
@@ -19,9 +15,9 @@ const DaySkeleton = ({ dayNumber }) => {
         <div className="day-skeleton__title skeleton-shimmer"></div>
         <div className="day-skeleton__date skeleton-shimmer"></div>
       </div>
-      
+
       <div className="day-skeleton__activities">
-        {/* Generate 3 skeleton activity cards */}
+
         {[1, 2, 3].map((activityNum) => (
           <div key={activityNum} className="day-skeleton__activity">
             <div className="day-skeleton__activity-time skeleton-shimmer"></div>
@@ -40,7 +36,7 @@ const DaySkeleton = ({ dayNumber }) => {
           </div>
         ))}
       </div>
-      
+
       <div className="day-skeleton__footer">
         <div className="day-skeleton__total-cost skeleton-shimmer"></div>
       </div>
@@ -48,24 +44,19 @@ const DaySkeleton = ({ dayNumber }) => {
   );
 };
 
-/**
- * ItinerarySkeleton - Multiple day skeletons for full itinerary loading
- */
 export const ItinerarySkeleton = ({ totalDays = 3, loadedDays = [] }) => {
   return (
     <div className="itinerary-skeleton">
       {Array.from({ length: totalDays }, (_, i) => i + 1).map((dayNum) => {
         const isLoaded = loadedDays.includes(dayNum);
-        if (isLoaded) return null; // Don't show skeleton for loaded days
+        if (isLoaded)
+          return null;
         return <DaySkeleton key={dayNum} dayNumber={dayNum} />;
       })}
     </div>
   );
 };
 
-/**
- * ActivitySkeleton - Single activity skeleton for inline loading
- */
 export const ActivitySkeleton = () => {
   return (
     <div className="activity-skeleton">

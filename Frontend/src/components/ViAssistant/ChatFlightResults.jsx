@@ -12,12 +12,6 @@ const SOURCE_LABELS = {
 
 const STOP_LABEL = (stops) => (stops === 0 ? 'Nonstop' : `${stops} stop${stops > 1 ? 's' : ''}`);
 
-/**
- * Compact inline flight result cards for Vi's chat bubble. Deliberately NOT
- * a reuse of the four page-level FlightCard* variants (built for ≥360-400px
- * grid columns and visually inconsistent with each other) — this is one
- * small, unified row design sized for the ~300-375px chat bubble width.
- */
 const ChatFlightResults = ({ results, providerStatus, destination }) => {
   if (!results?.length) return null;
 

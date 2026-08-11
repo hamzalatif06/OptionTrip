@@ -5,7 +5,6 @@ import './RecentArticles.css';
 
 const FALLBACK_IMAGE = '/images/trending/trending10.jpg';
 
-// Minimal shimmer skeleton matching the existing card layout
 const ArticleSkeleton = () => (
   <div className="col-lg-4 col-md-6">
     <div className="trend-item box-shadow bg-white mb-4 rounded overflow-hidden">
@@ -25,7 +24,7 @@ const ArticleSkeleton = () => (
   </div>
 );
 
-const REFRESH_INTERVAL = 5 * 60 * 1000; // re-fetch every 5 minutes
+const REFRESH_INTERVAL = 5 * 60 * 1000;
 
 const RecentArticles = () => {
   const [posts, setPosts] = useState([]);
@@ -35,18 +34,15 @@ const RecentArticles = () => {
     if (!isBackground) setLoading(true);
     fetchPosts(3)
       .then((res) => { setPosts(res.data || []); })
-      .catch(() => { /* silent — homepage should never break */ })
+      .catch(() => {})
       .finally(() => { setLoading(false); });
   };
 
   useEffect(() => {
-    // Initial fetch
     loadPosts(false);
 
-    // Poll every 5 minutes silently (no skeleton flash)
     const interval = setInterval(() => loadPosts(true), REFRESH_INTERVAL);
 
-    // Refresh when user returns to this tab
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') loadPosts(true);
     };
@@ -122,7 +118,7 @@ const RecentArticles = () => {
           </div>
         </div>
 
-        {/* View More */}
+
         {!loading && posts.length > 0 && (
           <div className="text-center mt-4">
             <Link to="/blog" className="nir-btn">View All Posts</Link>

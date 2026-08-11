@@ -1,4 +1,4 @@
-/* Auth Input Component Styles */
+
 
 .auth-input-wrapper {
   width: 100%;
@@ -113,7 +113,7 @@
   font-family: var(--font-primary);
 }
 
-/* Responsive Styles */
+
 @media (max-width: 767px) {
   .auth-input {
     padding: 12px 14px;

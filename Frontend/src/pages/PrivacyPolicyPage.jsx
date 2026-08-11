@@ -132,7 +132,7 @@ const PrivacyPolicyPage = () => {
         keywords="privacy policy, data protection, GDPR, optiontrip privacy"
         path="/privacy-policy"
       />
-      {/* Banner */}
+
       <div
         className="banner pt-10 pb-0 overflow-hidden"
         style={{ backgroundImage: `url(/images/testimonial.png)` }}
@@ -157,12 +157,12 @@ const PrivacyPolicyPage = () => {
         </div>
       </div>
 
-      {/* Content */}
+
       <section style={{ padding: '80px 0', background: '#fff' }}>
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-lg-9">
-              {/* Intro */}
+
               <div
                 style={{
                   background: 'linear-gradient(135deg, rgba(10,83,157,0.05), rgba(2,158,157,0.08))',
@@ -177,7 +177,7 @@ const PrivacyPolicyPage = () => {
                 </p>
               </div>
 
-              {/* Sections */}
+
               {sections.map((section, i) => (
                 <div key={i} style={{ marginBottom: '40px' }}>
                   <h3

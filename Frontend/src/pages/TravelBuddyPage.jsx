@@ -27,7 +27,7 @@ const TravelBuddyPage = () => {
         keywords="AI travel assistant, travel buddy, AI concierge, Vi, personalized travel, AI trip planner"
         path="/travel-buddy"
       />
-      {/* Banner */}
+
       <div className="banner pt-10 pb-0 overflow-hidden" style={{ backgroundImage: `url(/images/bg/bg2.jpg)` }}>
         <div className="container">
           <div className="banner-in">
@@ -45,7 +45,7 @@ const TravelBuddyPage = () => {
         </div>
       </div>
 
-      {/* Intro */}
+
       <section style={{ padding: '80px 0', background: '#fff' }}>
         <div className="container">
           <div className="row align-items-center g-5">
@@ -66,7 +66,7 @@ const TravelBuddyPage = () => {
         </div>
       </section>
 
-      {/* Features */}
+
       <section style={{ padding: '80px 0', background: '#f8f9fa' }}>
         <div className="container">
           <div className="text-center mb-5">
@@ -90,7 +90,7 @@ const TravelBuddyPage = () => {
         </div>
       </section>
 
-      {/* Steps */}
+
       <section style={{ padding: '80px 0', background: '#fff' }}>
         <div className="container">
           <div className="text-center mb-5">
@@ -111,7 +111,7 @@ const TravelBuddyPage = () => {
         </div>
       </section>
 
-      {/* CTA */}
+
       <section style={{ padding: '80px 0', background: 'linear-gradient(135deg, #0A539D 0%, #029e9d 100%)', textAlign: 'center' }}>
         <div className="container">
           <h2 style={{ color: '#fff', marginBottom: '16px' }}>Ready to Travel Smarter?</h2>

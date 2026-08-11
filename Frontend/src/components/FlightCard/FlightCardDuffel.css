@@ -1,8 +1,6 @@
-/* ═══════════════════════════════════════════════════════
-   FlightCardDuffel — Premium redesign
-   ═══════════════════════════════════════════════════════ */
 
-/* ── Shared stop badges ── */
+
+
 .fc-badge {
   display: inline-block;
   font-size: 11px;
@@ -14,7 +12,7 @@
 .fc-badge--direct { color: #15803d; background: #dcfce7; }
 .fc-badge--stops  { color: #b45309; background: #fef9c3; }
 
-/* ── Card shell ── */
+
 .fcdf {
   background: #ffffff;
   border-radius: 16px;
@@ -31,13 +29,13 @@
   border-color: #6366f1;
 }
 
-/* ── Top row: legs + price panel ── */
+
 .fcdf__top {
   display: flex;
   align-items: stretch;
 }
 
-/* ── Legs section ── */
+
 .fcdf__legs {
   flex: 1;
   min-width: 0;
@@ -47,7 +45,7 @@
   justify-content: center;
 }
 
-/* ── Heart icon — top-right corner of price panel ── */
+
 .fcdf__wishlist {
   position: absolute;
   top: 10px;
@@ -63,7 +61,7 @@
 }
 .fcdf__wishlist:hover { color: #ef4444; }
 
-/* ── Single leg row ── */
+
 .fcdf__leg {
   display: flex;
   align-items: center;
@@ -74,7 +72,7 @@
   border-top: 1px solid #f1f5f9;
 }
 
-/* ── Logo ── */
+
 .fcdf__logo-wrap {
   width: 46px;
   flex-shrink: 0;
@@ -105,7 +103,7 @@
   justify-content: center;
 }
 
-/* ── Airline label ── */
+
 .fcdf__airline-label {
   display: flex;
   flex-direction: column;
@@ -131,7 +129,7 @@
   letter-spacing: 0.02em;
 }
 
-/* ── Route (time → path → time) ── */
+
 .fcdf__leg-route {
   display: flex;
   align-items: center;
@@ -178,7 +176,7 @@
   max-width: 90px;
 }
 
-/* ── Middle path ── */
+
 .fcdf__route-mid {
   display: flex;
   flex-direction: column;
@@ -212,7 +210,7 @@
   margin-left: 2px;
 }
 
-/* ── Price panel ── */
+
 .fcdf__price-panel {
   width: 200px;
   flex-shrink: 0;
@@ -227,7 +225,7 @@
   gap: 0;
 }
 
-/* ── Inline price row: "from  $99  / person" ── */
+
 .fcdf__price-row {
   display: flex;
   align-items: baseline;
@@ -256,7 +254,7 @@
   font-weight: 500;
 }
 
-/* ── Changeable / Refundable pills ── */
+
 .fcdf__conditions {
   display: flex;
   flex-wrap: wrap;
@@ -274,7 +272,7 @@
 .fcdf-cond--yes { color: #15803d; background: #dcfce7; }
 .fcdf-cond--no  { color: #b91c1c; background: #fee2e2; }
 
-/* ── Buttons ── */
+
 .fcdf__select-btn {
   display: flex;
   align-items: center;
@@ -319,7 +317,7 @@
 }
 .fcdf__details-btn:hover { color: #4f46e5; }
 
-/* ── Expanded details ── */
+
 .fcdf__details {
   padding: 14px 20px 18px;
   border-top: 1px solid #ede9fe;
@@ -349,7 +347,7 @@
   border-color: #99f6e4;
 }
 
-/* Icon wrapper — inherits color so SVG strokes follow */
+
 .fcdf__chip-icon {
   display: flex;
   align-items: center;
@@ -359,7 +357,7 @@
 }
 .fcdf__chip--hl .fcdf__chip-icon { color: #029e9d; }
 
-/* Condition pill icon */
+
 .fcdf-cond__icon {
   display: inline-flex;
   align-items: center;
@@ -418,7 +416,7 @@
   margin-top: 2px;
 }
 
-/* ── Responsive ── */
+
 @media (max-width: 860px) {
   .fcdf__airline-label { display: none; }
   .fcdf__leg { padding: 12px 16px; }

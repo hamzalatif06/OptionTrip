@@ -3,14 +3,6 @@ import { getSmartHeroImage, extractDestinations } from '../services/blogImageSer
 
 const router = express.Router();
 
-/**
- * POST /api/blog/hero-image
- * Body: { title: string, content: string, postId: number }
- * Response: { imageUrl: string|null, source: string, searchUsed: string|null }
- *
- * Uses AI to extract the best travel image search term from article content,
- * then searches Unsplash. Falls back gracefully to null (frontend handles it).
- */
 router.post('/hero-image', async (req, res) => {
   try {
     const { title = '', content = '', postId = 0 } = req.body;
@@ -22,11 +14,6 @@ router.post('/hero-image', async (req, res) => {
   }
 });
 
-/**
- * POST /api/blog/extract-destinations
- * Body: { title: string, content: string }
- * Response: { destinations: string[], countries: string[] }
- */
 router.post('/extract-destinations', async (req, res) => {
   try {
     const { title = '', content = '' } = req.body;

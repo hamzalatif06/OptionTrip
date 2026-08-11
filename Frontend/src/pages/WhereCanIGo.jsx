@@ -12,8 +12,6 @@ import {
 } from '../services/whereCanIGoService';
 import './WhereCanIGo.css';
 
-// ─── Small presentational bits ──────────────────────────────────────────────
-
 const ENTRY_BADGES = {
   visa_free:       { label: 'Visa-free',      icon: 'fa-check-circle', tone: 'wcig-badge--good' },
   visa_on_arrival: { label: 'Visa on arrival', icon: 'fa-plane-arrival', tone: 'wcig-badge--ok'   },
@@ -66,8 +64,6 @@ const formatVerified = (iso) => {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
-// ─── Passport picker (inline card) ──────────────────────────────────────────
-
 const PassportPicker = ({ passports, onPick, current }) => {
   const [q, setQ] = useState('');
   const filtered = useMemo(() => {
@@ -117,8 +113,6 @@ const PassportPicker = ({ passports, onPick, current }) => {
   );
 };
 
-// ─── Destination card ───────────────────────────────────────────────────────
-
 const DestinationCard = ({ dest, onOpen }) => (
   <button type="button" className="wcig-card" onClick={() => onOpen(dest)}>
     <div className="wcig-card__hero">
@@ -160,8 +154,6 @@ const DestinationCard = ({ dest, onOpen }) => (
     </div>
   </button>
 );
-
-// ─── Detail modal ───────────────────────────────────────────────────────────
 
 const DetailModal = ({ detail, onClose }) => {
   useEffect(() => {
@@ -285,8 +277,6 @@ const DetailModal = ({ detail, onClose }) => {
   );
 };
 
-// ─── Main page ──────────────────────────────────────────────────────────────
-
 const WhereCanIGo = () => {
   const { user, isAuthenticated } = useAuth();
 
@@ -296,21 +286,17 @@ const WhereCanIGo = () => {
   const [loading,      setLoading]      = useState(false);
   const [error,        setError]        = useState(null);
 
-  // Filter/sort state
   const [hideEmbassy, setHideEmbassy] = useState(false);
   const [comfort,     setComfort]     = useState({
     halal: false, prayer: false, conservative: false, women_solo: false
   });
   const [sortBy, setSortBy] = useState('easy');
 
-  // Passport picker visibility (also shown implicitly when nationality is null)
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  // Detail modal
   const [detail,      setDetail]      = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
-  // ── Bootstrap ────────────────────────────────────────────────────────────
   useEffect(() => {
     fetchPassports().then(setPassports).catch(err => {
       console.error(err);
@@ -318,14 +304,12 @@ const WhereCanIGo = () => {
     });
   }, []);
 
-  // Prefer profile nationality over local storage — but fall back to local for guests
   useEffect(() => {
     const fromProfile = user?.nationality;
     const fromLocal   = readLocalNationality();
     setNationality(fromProfile || fromLocal || null);
   }, [user?.nationality]);
 
-  // ── Fetch destinations whenever nationality/filters/sort change ──────────
   const loadDestinations = useCallback(async () => {
     if (!nationality) { setDestinations([]); return; }
     setLoading(true);
@@ -343,7 +327,6 @@ const WhereCanIGo = () => {
 
   useEffect(() => { loadDestinations(); }, [loadDestinations]);
 
-  // ── Picker + open detail ─────────────────────────────────────────────────
   const handlePickNationality = async (code) => {
     setNationality(code);
     writeLocalNationality(code);
@@ -361,7 +344,7 @@ const WhereCanIGo = () => {
 
   const handleOpenDetail = async (dest) => {
     setDetailLoading(true);
-    setDetail({ __loading: true }); // placeholder so modal opens instantly
+    setDetail({ __loading: true });
     try {
       const full = await fetchDestinationDetail(nationality, dest.code);
       setDetail(full);
@@ -379,7 +362,6 @@ const WhereCanIGo = () => {
     }
   };
 
-  // ── Derived ──────────────────────────────────────────────────────────────
   const currentPassport = passports.find(p => p.code === nationality) || null;
   const showingPicker   = !nationality || pickerOpen;
 
@@ -399,7 +381,6 @@ const WhereCanIGo = () => {
     return acc;
   }, null);
 
-  // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="wcig-page">
       <PageMeta
@@ -418,7 +399,7 @@ const WhereCanIGo = () => {
           offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
         }}
       />
-      {/* Hero band */}
+
       <section className="wcig-hero">
         <div className="container">
           <div className="wcig-hero__badge">🌍 Discovery</div>
@@ -438,7 +419,7 @@ const WhereCanIGo = () => {
           />
         ) : (
           <>
-            {/* Passport summary + controls */}
+
             <div className="wcig-toolbar">
               <div className="wcig-passport-chip">
                 <span className="wcig-passport-chip__flag">{currentPassport?.flag || '🛂'}</span>
@@ -481,7 +462,7 @@ const WhereCanIGo = () => {
               </div>
             </div>
 
-            {/* Comfort filters — front & center */}
+
             <div className="wcig-comfort-filters">
               <div className="wcig-comfort-filters__label">
                 <i className="fas fa-heart" /> Comfort filters
@@ -507,7 +488,7 @@ const WhereCanIGo = () => {
               </div>
             </div>
 
-            {/* Freshness banner */}
+
             {oldestVerified && (
               <div className="wcig-freshness">
                 <i className="fas fa-clock-rotate-left" />
@@ -515,7 +496,7 @@ const WhereCanIGo = () => {
               </div>
             )}
 
-            {/* Results */}
+
             {loading ? (
               <div className="wcig-loader">
                 <div className="wcig-loader__spinner" />
@@ -549,7 +530,7 @@ const WhereCanIGo = () => {
         )}
       </div>
 
-      {/* Detail modal */}
+
       {detail && !detail.__loading && (
         <DetailModal detail={detail} onClose={() => setDetail(null)} />
       )}

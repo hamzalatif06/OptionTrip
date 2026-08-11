@@ -6,7 +6,6 @@ import './FlightSearchForm.css';
 
 const today = new Date().toISOString().split('T')[0];
 
-/* ── Debounce hook ─────────────────────────────────────────────── */
 function useDebounce(value, delay) {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
@@ -16,7 +15,6 @@ function useDebounce(value, delay) {
   return debounced;
 }
 
-/* ── Airport autocomplete input ────────────────────────────────── */
 const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect, error, onExploreAnywhere }) => {
   const [query,       setQuery]       = useState(value || '');
   const [suggestions, setSuggestions] = useState([]);
@@ -26,13 +24,11 @@ const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect,
   const wrapRef   = useRef(null);
   const debounced = useDebounce(query, 300);
 
-  // Sync when parent resets (e.g. swap)
   useEffect(() => {
     setQuery(value || '');
     setSelected(!!iataCode);
   }, [value, iataCode]);
 
-  // Fetch suggestions
   useEffect(() => {
     if (selected || debounced.length < 2) { setSuggestions([]); if (!onExploreAnywhere) setOpen(false); return; }
     setLoading(true);
@@ -43,7 +39,6 @@ const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect,
     });
   }, [debounced, selected]); // eslint-disable-line
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e) => { if (!wrapRef.current?.contains(e.target)) setOpen(false); };
     document.addEventListener('mousedown', handler);
@@ -64,7 +59,6 @@ const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect,
     setSelected(true);
     setOpen(false);
     setSuggestions([]);
-    // Pass extra country metadata as third arg so FlightSearchForm can forward it
     onSelect(airport.iataCode, display, airport.isCountry ? {
       isCountry:       true,
       countryCode:     airport.iataCode,
@@ -128,7 +122,7 @@ const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect,
       {showDropdown && (
         <ul className="fsf-ac-dropdown">
 
-          {/* ── Explore Anywhere option ── */}
+
           {onExploreAnywhere && (
             <li className="fsf-ac-item fsf-ac-item--explore" onMouseDown={(e) => { e.preventDefault(); setOpen(false); onExploreAnywhere?.(); }}>
               <div className="fsf-ac-item__left">
@@ -145,7 +139,7 @@ const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect,
             </li>
           )}
 
-          {/* ── Airport / country suggestions ── */}
+
           {suggestions.map(airport => (
             <li
               key={airport.iataCode + (airport.isCountry ? '-country' : '')}
@@ -154,7 +148,6 @@ const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect,
             >
               <div className="fsf-ac-item__left">
                 {airport.isCountry ? (
-                  /* Globe icon for whole-country entries */
                   <svg viewBox="0 0 24 24" fill="none" width="15" height="15">
                     <circle cx="12" cy="12" r="10" stroke="#029e9d" strokeWidth="2"/>
                     <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" stroke="#029e9d" strokeWidth="2"/>
@@ -189,7 +182,6 @@ const AirportInput = ({ label, placeholder, value, iataCode, onChange, onSelect,
   );
 };
 
-/* ── Main form ─────────────────────────────────────────────────── */
 const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, originError, onOriginErrorClear, onExploreAnywhere }) => {
   const [tripType,          setTripType]          = useState('one-way');
   const [originCode,        setOriginCode]        = useState('');
@@ -207,7 +199,6 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
   const [includeNearby,     setIncludeNearby]     = useState(false);
   const [includeHotels,     setIncludeHotels]     = useState(false);
 
-  // Sync origin when Explore auto-detects user location
   useEffect(() => {
     if (prefillOrigin?.code && prefillOrigin?.display) {
       setOriginCode(prefillOrigin.code);
@@ -217,7 +208,6 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
     }
   }, [prefillOrigin]); // eslint-disable-line
 
-  // Sync destination when an Explore card is clicked
   useEffect(() => {
     if (prefillDest?.code && prefillDest?.display) {
       setDestCode(prefillDest.code);
@@ -283,7 +273,7 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
       <div className="container">
         <div className="flight-search-card">
 
-          {/* Trip type toggle */}
+
           <div className="trip-type-toggle">
             {['one-way', 'round-trip'].map(type => (
               <button
@@ -300,7 +290,7 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
           <form onSubmit={handleSubmit}>
             <div className="fsf-row">
 
-              {/* From */}
+
               <div className="fsf-col fsf-col--airport">
                 <AirportInput
                   label="From"
@@ -323,7 +313,7 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
                 />
               </div>
 
-              {/* Swap button */}
+
               <div className="fsf-swap-col">
                 <button type="button" className="fsf-swap-btn" onClick={handleSwap} title="Swap airports">
                   <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
@@ -332,7 +322,7 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
                 </button>
               </div>
 
-              {/* To */}
+
               <div className="fsf-col fsf-col--airport">
                 <AirportInput
                   label="To"
@@ -351,7 +341,7 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
                 />
               </div>
 
-              {/* Date picker */}
+
               <div className={`fsf-col ${tripType === 'round-trip' ? 'fsf-col--datepicker-range' : 'fsf-col--datepicker'}`}>
                 <TripDatePicker
                   mode={tripType === 'round-trip' ? 'range' : 'single'}
@@ -375,7 +365,7 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
                 />
               </div>
 
-              {/* Passengers */}
+
               <div className="fsf-col fsf-col--pax">
                 <PassengerSelector
                   passengers={[
@@ -393,7 +383,7 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
                 />
               </div>
 
-              {/* Search */}
+
               <div className="fsf-col fsf-col--btn">
                 <button type="submit" className="fsf-search-btn" disabled={isLoading}>
                   {isLoading
@@ -404,7 +394,7 @@ const FlightSearchForm = ({ onSearch, isLoading, prefillDest, prefillOrigin, ori
 
             </div>
 
-            {/* Nearby airports + hotel toggles */}
+
             <div className="fsf-options-row">
               <label className="fsf-nearby-label">
                 <input type="checkbox" className="fsf-nearby-checkbox"

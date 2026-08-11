@@ -11,9 +11,6 @@ const wpApi = axios.create({
   timeout: 10000,
 });
 
-/**
- * Fetch a paginated list of posts.
- */
 export const fetchPosts = (perPage = 6, page = 1) =>
   wpApi.get('/posts', {
     params: {
@@ -25,9 +22,6 @@ export const fetchPosts = (perPage = 6, page = 1) =>
     },
   });
 
-/**
- * Fetch a single post by its slug.
- */
 export const fetchPostBySlug = (slug) =>
   wpApi.get('/posts', {
     params: {
@@ -37,9 +31,6 @@ export const fetchPostBySlug = (slug) =>
     },
   });
 
-/**
- * Fetch the previous (older) post relative to an ISO date.
- */
 export const fetchPrevPost = (isoDate) =>
   wpApi.get('/posts', {
     params: {
@@ -51,9 +42,6 @@ export const fetchPrevPost = (isoDate) =>
     },
   });
 
-/**
- * Fetch the next (newer) post relative to an ISO date.
- */
 export const fetchNextPost = (isoDate) =>
   wpApi.get('/posts', {
     params: {
@@ -65,9 +53,6 @@ export const fetchNextPost = (isoDate) =>
     },
   });
 
-/**
- * Fetch approved comments for a post.
- */
 export const fetchComments = (postId) =>
   wpApi.get('/comments', {
     params: {
@@ -78,9 +63,6 @@ export const fetchComments = (postId) =>
     },
   });
 
-/**
- * Submit a new comment on a post.
- */
 export const submitComment = (postId, { name, email, content }) =>
   wpApi.post('/comments', {
     post: postId,
@@ -89,9 +71,6 @@ export const submitComment = (postId, { name, email, content }) =>
     content,
   });
 
-/**
- * Extract the featured image URL from an embedded post object.
- */
 export const getFeaturedImage = (post, size = 'medium_large') => {
   try {
     const media = post?._embedded?.['wp:featuredmedia']?.[0];
@@ -111,11 +90,6 @@ export const getFeaturedImage = (post, size = 'medium_large') => {
   }
 };
 
-/**
- * Calls the backend to get a smart hero image for a post when WordPress has
- * no featured image. Uses AI to pick the best Unsplash search term from the
- * article content. Returns the image URL or null.
- */
 export const fetchSmartHeroImage = async (post) => {
   try {
     const title = (post?.title?.rendered || '').replace(/<[^>]+>/g, '');
@@ -136,11 +110,6 @@ export const fetchSmartHeroImage = async (post) => {
   }
 };
 
-/**
- * Generate an AI fallback image URL via Pollinations.ai when no WP featured
- * image exists. Uses the post ID as a seed so the same post always gets the
- * same image.
- */
 export const getAIFallbackImage = (title = 'travel', seed = 1) => {
   const prompt = encodeURIComponent(
     `beautiful travel photography ${title} stunning landscape destination cinematic`
@@ -148,9 +117,6 @@ export const getAIFallbackImage = (title = 'travel', seed = 1) => {
   return `https://image.pollinations.ai/prompt/${prompt}?width=1200&height=630&nologo=true&seed=${seed}`;
 };
 
-/**
- * Format a WP date string to a readable format.
- */
 export const formatDate = (dateStr) => {
   if (!dateStr) return '';
   return new Date(dateStr).toLocaleDateString('en-US', {
@@ -160,9 +126,6 @@ export const formatDate = (dateStr) => {
   });
 };
 
-/**
- * Strip HTML tags and return plain text.
- */
 export const stripHtml = (html = '', maxLength = 160) => {
   const text = html.replace(/<[^>]+>/g, '').replace(/&[a-z]+;/gi, ' ').trim();
   return text.length > maxLength ? `${text.slice(0, maxLength)}…` : text;

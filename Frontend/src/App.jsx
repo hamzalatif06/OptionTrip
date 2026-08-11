@@ -4,7 +4,7 @@ import { trackPageView } from './services/analyticsService';
 import { AuthProvider } from './contexts/AuthContext';
 import { LocaleProvider } from './contexts/LocaleContext';
 import { ToastContainer } from 'react-toastify';
-import './i18n'; // Initialize i18n
+import './i18n';
 import './App.css';
 import 'react-toastify/dist/ReactToastify.css';
 import './styles/toast-custom.css';
@@ -57,7 +57,6 @@ function ScrollToTop() {
 
 function App() {
   useEffect(() => {
-    // Hide preloader after page load
     const preloader = document.getElementById('preloader');
     const status = document.getElementById('status');
 
@@ -71,83 +70,83 @@ function App() {
 
   return (
     <LocaleProvider>
-    <AuthProvider>
-      <Router>
-        <ScrollToTop />
-        <AutoTranslate />
-        <div className="App">
-          <ToastContainer
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="light"
-          />
-          <Routes>
-            {/* Auth Routes - Without Layout */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/auth/callback" element={<OAuthCallback />} />
+      <AuthProvider>
+        <Router>
+          <ScrollToTop />
+          <AutoTranslate />
+          <div className="App">
+            <ToastContainer
+              position="top-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="light"
+            />
+            <Routes>
 
-            {/* Trip Routes - Without Layout */}
-            <Route path="/trips/:tripId" element={<TripIterationsPage />} />
-            <Route path="/planned-trip/:tripId" element={<PlannedTripPage />} />
-            <Route path="/shared/:shareToken" element={<SharedTripPage />} />
-            <Route path="/my-trips" element={<MyTripsPage />} />
-            <Route path="/admin" element={<AdminPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/auth/callback" element={<OAuthCallback />} />
 
-            {/* Main Routes - With Layout */}
-            <Route path="*" element={
-              <Layout>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/tours" element={<Tours />} />
-                  <Route path="/destinations" element={<Destinations />} />
-                  <Route path="/blog" element={<Blog />} />
-                  <Route path="/blog/:slug" element={<BlogDetail />} />
-                  <Route path="/contact" element={<Contact />} />
 
-                  {/* Company */}
-                  <Route path="/travel-buddy" element={<TravelBuddyPage />} />
-                  <Route path="/how-it-works" element={<HowItWorksPage />} />
+              <Route path="/trips/:tripId" element={<TripIterationsPage />} />
+              <Route path="/planned-trip/:tripId" element={<PlannedTripPage />} />
+              <Route path="/shared/:shareToken" element={<SharedTripPage />} />
+              <Route path="/my-trips" element={<MyTripsPage />} />
+              <Route path="/admin" element={<AdminPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
 
-                  {/* Travel */}
-                  <Route path="/trip-ideas" element={<TripIdeasPage />} />
-                  <Route path="/travel-map" element={<TravelMapPage />} />
-                  <Route path="/popular-routes" element={<PopularRoutesPage />} />
-                  <Route path="/travel-tips" element={<TravelTipsPage />} />
 
-                  {/* Legal */}
-                  <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-                  <Route path="/terms" element={<TermsOfServicePage />} />
-                  <Route path="/cookie-policy" element={<CookiePolicyPage />} />
-                  <Route path="/data-protection" element={<DataProtectionPage />} />
+              <Route path="*" element={
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/tours" element={<Tours />} />
+                    <Route path="/destinations" element={<Destinations />} />
+                    <Route path="/blog" element={<Blog />} />
+                    <Route path="/blog/:slug" element={<BlogDetail />} />
+                    <Route path="/contact" element={<Contact />} />
 
-                  {/* Bookings */}
-                  <Route path="/flights/explore" element={<ExploreAnywhereDetailPage />} />
-                  <Route path="/flights" element={<FlightSearch />} />
-                  <Route path="/hotels"  element={<HotelSearch />} />
-                  <Route path="/car-rental" element={<CarRentalSearch />} />
-                  <Route path="/esim" element={<EsimSearch />} />
-                  <Route path="/plan-my-day" element={<PlanMyDay />} />
-                  <Route path="/where-can-i-go" element={<WhereCanIGo />} />
 
-                  {/* Support */}
-                  <Route path="/help-center" element={<HelpCenterPage />} />
-                </Routes>
-              </Layout>
-            } />
-          </Routes>
-        </div>
-      </Router>
-    </AuthProvider>
+                    <Route path="/travel-buddy" element={<TravelBuddyPage />} />
+                    <Route path="/how-it-works" element={<HowItWorksPage />} />
+
+
+                    <Route path="/trip-ideas" element={<TripIdeasPage />} />
+                    <Route path="/travel-map" element={<TravelMapPage />} />
+                    <Route path="/popular-routes" element={<PopularRoutesPage />} />
+                    <Route path="/travel-tips" element={<TravelTipsPage />} />
+
+
+                    <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                    <Route path="/terms" element={<TermsOfServicePage />} />
+                    <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+                    <Route path="/data-protection" element={<DataProtectionPage />} />
+
+
+                    <Route path="/flights/explore" element={<ExploreAnywhereDetailPage />} />
+                    <Route path="/flights" element={<FlightSearch />} />
+                    <Route path="/hotels"  element={<HotelSearch />} />
+                    <Route path="/car-rental" element={<CarRentalSearch />} />
+                    <Route path="/esim" element={<EsimSearch />} />
+                    <Route path="/plan-my-day" element={<PlanMyDay />} />
+                    <Route path="/where-can-i-go" element={<WhereCanIGo />} />
+
+
+                    <Route path="/help-center" element={<HelpCenterPage />} />
+                  </Routes>
+                </Layout>
+              } />
+            </Routes>
+          </div>
+        </Router>
+      </AuthProvider>
     </LocaleProvider>
   );
 }

@@ -2,7 +2,6 @@ import User from '../models/User.js';
 import Trip from '../models/Trip.js';
 import UserActivity from '../models/UserActivity.js';
 
-/** GET /api/admin/stats */
 export const getStats = async (req, res) => {
   try {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -37,7 +36,6 @@ export const getStats = async (req, res) => {
   }
 };
 
-/** GET /api/admin/users?page=1&search= */
 export const getUsers = async (req, res) => {
   try {
     const page   = Math.max(1, parseInt(req.query.page) || 1);
@@ -57,7 +55,6 @@ export const getUsers = async (req, res) => {
       User.countDocuments(filter)
     ]);
 
-    // Attach trip counts
     const userIds = users.map(u => u._id);
     const tripCounts = await Trip.aggregate([
       { $match: { user_id: { $in: userIds.map(id => String(id)) }, deleted: { $ne: true } } },
@@ -82,7 +79,6 @@ export const getUsers = async (req, res) => {
   }
 };
 
-/** GET /api/admin/activity?type=&page=1 */
 export const getActivity = async (req, res) => {
   try {
     const page  = Math.max(1, parseInt(req.query.page) || 1);
@@ -104,7 +100,6 @@ export const getActivity = async (req, res) => {
   }
 };
 
-/** DELETE /api/admin/users/:id — deactivate (soft) */
 export const deactivateUser = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(

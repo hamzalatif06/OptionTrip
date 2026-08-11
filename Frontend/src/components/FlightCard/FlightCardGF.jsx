@@ -4,7 +4,6 @@ import { trackBookingClick } from '../../services/analyticsService';
 import { logActivity } from '../../services/activityService';
 import './FlightCardGF.css';
 
-/* ── SVG icon set ── */
 const Ic = {
   airplane: <svg viewBox="0 0 24 24" fill="none" width="15" height="15"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   seat:     <svg viewBox="0 0 24 24" fill="none" width="15" height="15"><path d="M5 4v9M19 4v9M5 13h14a2 2 0 010 4H5a2 2 0 010-4zM10 21h4M12 17v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
@@ -17,7 +16,6 @@ const Ic = {
   leaf:     <svg viewBox="0 0 24 24" fill="none" width="15" height="15"><path d="M17 8C8 10 5.9 16.17 3.82 19.27M2 2s0 14 10 14c0 0 3-10 12-14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
 };
 
-/* ── Helpers ── */
 const StopBadge = ({ stops }) =>
   stops === 0
     ? <span className="fc-badge fc-badge--direct">Direct</span>
@@ -30,7 +28,6 @@ const AirlineLogo = ({ src, name }) => {
   return <div className="fcgf__logo-fallback">{(name || '?').slice(0, 2).toUpperCase()}</div>;
 };
 
-/* ── Single flight leg row ── */
 const Leg = ({ logo, airline, time1, iata1, city1, duration, stops, time2, iata2, city2, flightNum }) => (
   <div className="fcgf__leg">
     <div className="fcgf__logo-wrap">
@@ -67,7 +64,6 @@ const Leg = ({ logo, airline, time1, iata1, city1, duration, stops, time2, iata2
   </div>
 );
 
-/* ── InfoChip for expanded ── */
 const InfoChip = ({ icon, label, value, highlight }) => (
   <div className={`fcgf__chip${highlight ? ' fcgf__chip--hl' : ''}`}>
     <div className="fcgf__chip-icon">{icon}</div>
@@ -78,7 +74,6 @@ const InfoChip = ({ icon, label, value, highlight }) => (
   </div>
 );
 
-/* ── Main card ── */
 const FlightCardGF = ({ flight }) => {
   const [expanded, setExpanded] = useState(false);
   const { formatPrice } = useCurrency();
@@ -100,7 +95,7 @@ const FlightCardGF = ({ flight }) => {
     <div className="fcgf">
       <div className="fcgf__top">
 
-        {/* ── Legs ── */}
+
         <div className="fcgf__legs">
           <Leg
             logo={airlineLogo} airline={airline} flightNum={flightNumber}
@@ -118,7 +113,7 @@ const FlightCardGF = ({ flight }) => {
           )}
         </div>
 
-        {/* ── Price panel ── */}
+
         <div className="fcgf__price-panel">
           <button className="fcgf__wishlist" aria-label="Save">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -147,7 +142,7 @@ const FlightCardGF = ({ flight }) => {
         </div>
       </div>
 
-      {/* ── Expanded details ── */}
+
       {expanded && (
         <div className="fcgf__details">
           <div className="fcgf__chips">

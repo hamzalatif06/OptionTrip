@@ -1,10 +1,3 @@
-/**
- * Marker divIcon factories for Leaflet.
- *
- * These render the same HTML markup the old react-map-gl markers produced,
- * so the existing `TripMarker.css` styles (`tm-marker`, `tm-marker__dot`, etc.)
- * keep working with zero changes.
- */
 import './TripMarker.css';
 
 const CATEGORY_COLORS = {
@@ -30,11 +23,6 @@ const buildSvg = (category, size) => {
   return `<svg viewBox="0 0 24 24" width="${size}" height="${size}">${path}</svg>`;
 };
 
-/**
- * Destination marker — used for trip destinations and the "main" pin in
- * TripMapTab. Reuses the existing `tm-marker--dest` CSS so the pulsing ring
- * and label keep their visual styling.
- */
 export const buildDestinationIcon = (L, { name, color, isSelected = false } = {}) => {
   const c = color || CATEGORY_COLORS.destination;
   const safeName = String(name || '').replace(/[<>&"]/g, ch => ({
@@ -52,14 +40,10 @@ export const buildDestinationIcon = (L, { name, color, isSelected = false } = {}
     html,
     className: 'tm-marker-wrap',
     iconSize:  [120, 56],
-    iconAnchor: [60, 56]   // bottom of the pin
+    iconAnchor: [60, 56]
   });
 };
 
-/**
- * Activity marker — small category-coloured dot used everywhere we plot an
- * activity / point-of-interest.
- */
 export const buildActivityIcon = (L, { category = 'activity', title } = {}) => {
   const cat   = (category || 'activity').toLowerCase();
   const color = CATEGORY_COLORS[cat] || CATEGORY_COLORS.activity;

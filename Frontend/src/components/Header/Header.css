@@ -1,10 +1,10 @@
-/* ─── Navbar height ─────────────────────────────────────────────── */
+
 .navbar-flex {
   padding-top: 10px !important;
   padding-bottom: 10px !important;
 }
 
-/* ─── Top bar right section ────────────────────────────────────── */
+
 .header-right {
   display: flex;
   align-items: center;
@@ -35,7 +35,7 @@
   opacity: 1;
 }
 
-/* ─── Header Language Switcher ──────────────────────────────────── */
+
 .header-lang {
   position: relative;
 }
@@ -78,7 +78,7 @@
   transform: rotate(180deg);
 }
 
-/* ─── Bookings nav dropdown ─────────────────────────────────────── */
+
 .nav-bookings {
   position: relative;
 }
@@ -151,7 +151,7 @@
   color: #029e9d;
 }
 
-/* ─── ─────────────────────────────────────────────────────────── */
+
 
 .header-lang__dropdown {
   position: fixed;
@@ -178,7 +178,7 @@
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
-  /* color: #122D46; */
+  
   text-align: left;
   transition: background 0.15s;
 }
@@ -205,7 +205,7 @@
   white-space: nowrap;
 }
 
-/* ─── Mobile drawer language grid ───────────────────────────────── */
+
 .mobile-drawer__lang {
   padding: 14px 20px;
   border-top: 1px solid #F0F2F4;
@@ -261,7 +261,7 @@
   color: #0A539D;
 }
 
-/* Header Auth Dropdown Styles */
+
 
 .register-login {
   display: flex;
@@ -269,12 +269,12 @@
   gap: 1rem;
 }
 
-/* Auth Dropdown Wrapper */
+
 .auth-dropdown-wrapper {
   position: relative;
 }
 
-/* Profile Icon */
+
 .profile-icon {
   width: 32px;
   height: 32px;
@@ -299,14 +299,14 @@
   color: white;
 }
 
-/* Auth Dropdown Toggle Button */
+
 .auth-dropdown-toggle {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   font-size: 15px;
   font-weight: 600;
-  /* color: #122D46; */
+  
   background: transparent;
   border: none;
   cursor: pointer;
@@ -335,7 +335,7 @@
   transform: rotate(180deg);
 }
 
-/* Auth Dropdown Menu */
+
 .auth-dropdown-menu {
   position: absolute;
   top: calc(100% + 4px);
@@ -349,7 +349,7 @@
   animation: dropdownFadeIn 0.2s ease;
 }
 
-/* Add padding area to prevent dropdown from closing when moving cursor */
+
 .auth-dropdown-menu::before {
   content: '';
   position: absolute;
@@ -372,7 +372,7 @@
   }
 }
 
-/* Auth Dropdown Items */
+
 .auth-dropdown-item {
   display: flex;
   align-items: center;
@@ -404,7 +404,7 @@
   justify-content: center;
 }
 
-/* Logout Button Specific Styling */
+
 .auth-dropdown-item.logout-item {
   color: #dc3545;
 }
@@ -414,14 +414,14 @@
   color: #c82333;
 }
 
-/* Dropdown Divider */
+
 .dropdown-divider {
   height: 1px;
   background-color: #F0F2F4;
   margin: 8px 0;
 }
 
-/* If icons don't exist, use fallback styling */
+
 .auth-dropdown-item i.icon-login::before {
   content: "→";
   font-style: normal;
@@ -443,7 +443,7 @@
   font-style: normal;
 }
 
-/* Contact Button Styling */
+
 .register-login .nir-btn {
   padding: 8px 20px;
   font-size: 15px;
@@ -457,7 +457,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Mobile responsive */
+
 @media (max-width: 991px) {
   .register-login {
     gap: 0.75rem;
@@ -536,14 +536,14 @@
   }
 }
 
-/* Active state for dropdown items */
+
 .auth-dropdown-item.active {
   background-color: rgba(10, 83, 157, 0.1);
   color: #0A539D;
   font-weight: 600;
 }
 
-/* Focus styles for accessibility */
+
 .auth-dropdown-toggle:focus {
   outline: 2px solid #0A539D;
   outline-offset: 2px;
@@ -554,7 +554,7 @@
   outline: none;
 }
 
-/* ─── Hamburger Button ─────────────────────────────────────────── */
+
 .hamburger {
   display: none;
   flex-direction: column;
@@ -578,7 +578,7 @@
   transform-origin: center;
 }
 
-/* Animate to X when open */
+
 .hamburger--open span:nth-child(1) {
   transform: translateY(8.75px) rotate(45deg);
 }
@@ -606,7 +606,7 @@
   }
 }
 
-/* ─── Overlay ──────────────────────────────────────────────────── */
+
 .mobile-overlay {
   position: fixed;
   inset: 0;
@@ -625,7 +625,7 @@
   }
 }
 
-/* ─── Side Drawer ──────────────────────────────────────────────── */
+
 .mobile-drawer {
   position: fixed;
   top: 0;
@@ -646,7 +646,7 @@
   transform: translateX(0);
 }
 
-/* Drawer Header */
+
 .mobile-drawer__header {
   display: flex;
   align-items: center;
@@ -675,7 +675,7 @@
   background: #F0F2F4;
 }
 
-/* Drawer Nav */
+
 .mobile-drawer__nav {
   flex: 1;
   padding: 12px 0;
@@ -705,7 +705,7 @@
   border-left-color: #0A539D;
 }
 
-/* Drawer Auth */
+
 .mobile-drawer__auth {
   padding: 16px 20px;
   border-top: 1px solid #F0F2F4;
@@ -770,7 +770,7 @@
   color: #c82333 !important;
 }
 
-/* Drawer Social */
+
 .mobile-drawer__social {
   display: flex;
   gap: 16px;
@@ -788,8 +788,8 @@
   color: #0A539D;
 }
 
-/* ─── Location Display Styles ──────────────────────────────────── */
-/* Location Display Styles */
+
+
 .location-display {
   display: inline-flex;
   align-items: center;

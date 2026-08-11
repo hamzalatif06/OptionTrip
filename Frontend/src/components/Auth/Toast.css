@@ -1,4 +1,4 @@
-/* Toast Notification Styles */
+
 
 .toast {
   display: flex;
@@ -59,7 +59,7 @@
   color: #122D46;
 }
 
-/* Toast Types */
+
 .toast-success {
   border-left-color: #029e9d;
 }
@@ -92,7 +92,7 @@
   color: #029e9d;
 }
 
-/* Toast Container (for positioning multiple toasts) */
+
 .toast-container {
   position: fixed;
   top: 20px;
@@ -108,7 +108,7 @@
   pointer-events: all;
 }
 
-/* Responsive Styles */
+
 @media (max-width: 767px) {
   .toast {
     min-width: 280px;

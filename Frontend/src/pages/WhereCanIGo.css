@@ -1,6 +1,4 @@
-/* ============================================================================
-   Where Can I Go? — page styles
-   ============================================================================ */
+
 
 .wcig-page {
   min-height: calc(100vh - 70px);
@@ -12,7 +10,7 @@
   color: #e2e8f0;
 }
 
-/* ── Hero ────────────────────────────────────────────────────────────────── */
+
 .wcig-hero {
   background:
     radial-gradient(1200px 400px at 100% -30%, rgba(2,158,157,0.18), transparent 60%),
@@ -54,14 +52,14 @@
   .wcig-hero__sub { font-size: 15px; }
 }
 
-/* ── Body ────────────────────────────────────────────────────────────────── */
+
 .wcig-body {
   margin-top: -22px;
   position: relative;
   z-index: 2;
 }
 
-/* ── Passport picker ─────────────────────────────────────────────────────── */
+
 .wcig-picker {
   background: #fff;
   border-radius: 20px;
@@ -136,7 +134,7 @@
 .wcig-picker__empty { padding: 30px; text-align: center; color: #94a3b8; font-size: 14px; grid-column: 1 / -1; }
 .wcig-picker__note { text-align: center; font-size: 12px; color: #94a3b8; margin: 18px 0 0; }
 
-/* ── Toolbar ─────────────────────────────────────────────────────────────── */
+
 .wcig-toolbar {
   display: flex;
   gap: 16px;
@@ -190,7 +188,7 @@
 
 .wcig-toolbar__actions { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
 
-/* iOS-style toggle */
+
 .wcig-toggle {
   display: flex;
   align-items: center;
@@ -242,7 +240,7 @@
 [data-theme="dark"] .wcig-sort select { background: #0f172a; border-color: #334155; color: #f1f5f9; }
 .wcig-sort select:focus { border-color: #029e9d; }
 
-/* ── Comfort filters ─────────────────────────────────────────────────────── */
+
 .wcig-comfort-filters {
   background: #fff;
   padding: 14px 18px;
@@ -314,7 +312,7 @@
 }
 .wcig-filter-clear:hover { background: #fecaca; }
 
-/* ── Freshness banner ────────────────────────────────────────────────────── */
+
 .wcig-freshness {
   background: rgba(2,158,157,0.08);
   border-left: 3px solid #029e9d;
@@ -329,7 +327,7 @@
 }
 [data-theme="dark"] .wcig-freshness { background: rgba(94,234,212,0.08); color: #5eead4; border-color: #5eead4; }
 
-/* ── Results summary ─────────────────────────────────────────────────────── */
+
 .wcig-results-summary {
   font-size: 14px;
   color: #64748b;
@@ -339,7 +337,7 @@
 .wcig-results-summary strong { color: #0f172a; font-weight: 800; }
 [data-theme="dark"] .wcig-results-summary strong { color: #f8fafc; }
 
-/* ── Card grid ───────────────────────────────────────────────────────────── */
+
 .wcig-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -386,7 +384,7 @@
   background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.35) 100%);
   pointer-events: none;
 }
-/* Score badge + verify flag sit above the overlay */
+
 .wcig-card__hero .wcig-score,
 .wcig-card__hero .wcig-card__flag { z-index: 3; }
 
@@ -451,7 +449,7 @@
 [data-theme="dark"] .wcig-card__foot { border-top-color: #334155; }
 .wcig-card__cta { color: #029e9d; font-weight: 700; display: flex; align-items: center; gap: 4px; font-size: 12px; }
 
-/* ── Entry badge ─────────────────────────────────────────────────────────── */
+
 .wcig-badge {
   display: inline-flex;
   align-items: center;
@@ -468,7 +466,7 @@
 .wcig-badge--info  { background: #fef9c3; color: #a16207; border-color: #fde047; }
 .wcig-badge--hard  { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
 
-/* ── Easy-to-Go score badge ──────────────────────────────────────────────── */
+
 .wcig-score {
   position: absolute;
   top: 12px;
@@ -492,7 +490,7 @@
 .wcig-score__slash { font-size: 12px; color: #94a3b8; }
 .wcig-score__den { font-size: 11px; color: #64748b; font-weight: 700; }
 
-/* ── Comfort icons row ──────────────────────────────────────────────────── */
+
 .wcig-comfort-row { display: flex; gap: 6px; }
 .wcig-comfort-chip {
   width: 28px;
@@ -510,7 +508,7 @@
 [data-theme="dark"] .wcig-comfort-chip { background: #334155; color: #64748b; }
 [data-theme="dark"] .wcig-comfort-chip--on { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; }
 
-/* ── Loader / empty / error ──────────────────────────────────────────────── */
+
 .wcig-loader {
   padding: 60px 30px;
   text-align: center;
@@ -570,7 +568,7 @@
 [data-theme="dark"] .wcig-btn--secondary { background: #334155; color: #cbd5e1; }
 [data-theme="dark"] .wcig-btn--secondary:hover { background: #475569; }
 
-/* ── Detail modal ────────────────────────────────────────────────────────── */
+
 .wcig-modal {
   position: fixed;
   inset: 0;
@@ -676,7 +674,7 @@
 .wcig-modal__pitch { font-size: 15px; color: #475569; line-height: 1.55; margin: 0 0 18px; }
 [data-theme="dark"] .wcig-modal__pitch { color: #cbd5e1; }
 
-/* Verify alert */
+
 .wcig-alert {
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
   border-radius: 12px;
@@ -694,7 +692,7 @@
 .wcig-alert strong { display: block; margin-bottom: 2px; }
 [data-theme="dark"] .wcig-alert { background: rgba(245,158,11,0.15); color: #fbbf24; }
 
-/* Stat grid */
+
 .wcig-modal__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -727,7 +725,7 @@
 }
 [data-theme="dark"] .wcig-modal__stat-value { color: #f1f5f9; }
 
-/* Section */
+
 .wcig-modal__section { margin-bottom: 22px; }
 .wcig-modal__section h4 {
   font-size: 13px;
@@ -752,7 +750,7 @@
 .wcig-muted { color: #94a3b8; font-style: italic; }
 @media (max-width: 500px) { .wcig-doc-list { grid-template-columns: 1fr; } }
 
-/* Comfort detail */
+
 .wcig-modal__comfort { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
 .wcig-comfort-item {
   display: flex;

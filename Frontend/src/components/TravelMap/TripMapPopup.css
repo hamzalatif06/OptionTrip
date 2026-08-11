@@ -1,4 +1,4 @@
-/* ── Screen-anchored overlay ─────────────────────────────────────────────── */
+
 .tmp-overlay {
   position: absolute;
   z-index: 600;
@@ -26,7 +26,7 @@
   to   { opacity: 1; transform: translate(-50%, calc(-100% - 18px)); }
 }
 
-/* ── Popup card ── */
+
 .tmp-card {
   background: #fff;
   border-radius: 16px;
@@ -38,7 +38,7 @@
 
 [data-theme="dark"] .tmp-card { background: #1e293b; }
 
-/* Header */
+
 .tmp-header {
   display: flex;
   align-items: flex-start;
@@ -74,7 +74,7 @@
 .tmp-close:hover { background: #e2e8f0; color: #1e293b; }
 [data-theme="dark"] .tmp-close { background: #293548; color: #94a3b8; }
 
-/* Badge */
+
 .tmp-badge {
   display: inline-block;
   font-size: 10px;
@@ -84,7 +84,7 @@
   text-transform: capitalize;
 }
 
-/* Dates */
+
 .tmp-dates {
   display: flex;
   align-items: center;
@@ -103,7 +103,7 @@
   color: #475569;
 }
 
-/* Meta */
+
 .tmp-meta {
   display: flex;
   align-items: center;
@@ -115,7 +115,7 @@
 [data-theme="dark"] .tmp-meta { color: #94a3b8; }
 .tmp-budget { font-weight: 600; color: #029e9d; }
 
-/* Description */
+
 .tmp-desc {
   font-size: 12px;
   color: #64748b;
@@ -124,7 +124,7 @@
 }
 [data-theme="dark"] .tmp-desc { color: #94a3b8; }
 
-/* Actions */
+
 .tmp-actions {
   display: flex;
   gap: 8px;

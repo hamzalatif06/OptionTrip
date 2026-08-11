@@ -46,7 +46,7 @@
   border-color: #028a89;
 }
 
-/* Product Card Styles */
+
 .product-card {
   background: #fff;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -128,7 +128,7 @@
   border-radius: 4px;
 }
 
-/* Skeleton Loading */
+
 .product-card-skeleton {
   background: #fff;
   border-radius: 8px;
@@ -170,7 +170,7 @@
   }
 }
 
-/* New Amazon Product Card Styles */
+
 .product-card {
   background: #fff;
   border-radius: 16px;
@@ -365,7 +365,7 @@
   color: #fff;
 }
 
-/* Responsive */
+
 @media (max-width: 768px) {
   .tab-btn {
     padding: 8px 16px;

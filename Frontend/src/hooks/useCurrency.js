@@ -1,10 +1,5 @@
 import { useLocale } from '../contexts/LocaleContext';
 
-/**
- * Approximate exchange rates relative to USD.
- * These are static estimates — good enough for trip cost display
- * since backend prices are already estimates.
- */
 export const RATES_FROM_USD = {
   USD: 1,       EUR: 0.92,    GBP: 0.79,    JPY: 149,     CNY: 7.24,
   AUD: 1.53,    CAD: 1.36,    CHF: 0.89,    INR: 83.2,    RUB: 91,
@@ -18,18 +13,11 @@ export const RATES_FROM_USD = {
   ARS: 820,     CLP: 895,
 };
 
-/**
- * Convert a USD amount to the target currency.
- */
 export const convertFromUSD = (usdAmount, currencyCode) => {
   const rate = RATES_FROM_USD[currencyCode] ?? 1;
   return Math.round(usdAmount * rate);
 };
 
-/**
- * useCurrency hook — returns a formatPrice(usdAmount) function
- * that converts and formats amounts in the user's selected currency.
- */
 const useCurrency = () => {
   const { currency } = useLocale();
 
@@ -52,17 +40,13 @@ const useCurrency = () => {
     }
   };
 
-  /**
-   * Format a price that is in a specific source currency (e.g. EUR from Hotelbeds, USD from GF).
-   * Converts source → USD → user currency.
-   */
   const formatPriceFromCurrency = (amount, fromCurrency = 'USD') => {
     if (amount === null || amount === undefined) return null;
     const num = typeof amount === 'string' ? parseFloat(amount.replace(/[^0-9.]/g, '')) : amount;
     if (isNaN(num) || num === 0) return formatPrice(0);
     const fromRate = RATES_FROM_USD[fromCurrency] ?? 1;
-    const usdAmount = num / fromRate; // convert source → USD
-    return formatPrice(usdAmount);    // then USD → user currency
+    const usdAmount = num / fromRate;
+    return formatPrice(usdAmount);
   };
 
   return { formatPrice, formatPriceFromCurrency, currency };

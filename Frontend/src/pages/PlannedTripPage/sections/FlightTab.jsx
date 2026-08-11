@@ -10,7 +10,6 @@ import FlightCardDuffel from '../../../components/FlightCard/FlightCardDuffel';
 import FlightFilters, { DEFAULT_FILTERS, applyFilters } from '../../../components/FlightFilters/FlightFilters';
 import './FlightTab.css';
 
-/* ── Flight selection helpers ───────────────────────────────────────────────── */
 const buildFlightPayload = (flight, provider) => {
   if (provider === 'amadeus') {
     const outbound = flight.itineraries?.[0];
@@ -79,10 +78,8 @@ function useDebounce(value, delay) {
   return debounced;
 }
 
-/* ── Pagination ─────────────────────────────────────────────────────────────── */
 const Pagination = ({ page, total, onChange }) => {
   const pages = Array.from({ length: total }, (_, i) => i + 1);
-  // Show max 7 page numbers, with ellipsis
   const getVisible = () => {
     if (total <= 7) return pages;
     if (page <= 4) return [...pages.slice(0, 5), '…', total];
@@ -106,7 +103,6 @@ const Pagination = ({ page, total, onChange }) => {
   );
 };
 
-/* ── Airport autocomplete field ─────────────────────────────────────────────── */
 const AirportField = ({ label, value, onSelect, error, placeholder }) => {
   const [query,       setQuery]       = useState(value?.name || '');
   const [suggestions, setSuggestions] = useState([]);
@@ -168,23 +164,19 @@ const AirportField = ({ label, value, onSelect, error, placeholder }) => {
   );
 };
 
-/* ── Pick the best airport from a search result list ───────────────────────── */
 const pickBestAirport = (locs, searchTerm) => {
   if (!locs?.length) return null;
   const term = searchTerm.toLowerCase().split(',')[0].trim();
 
-  // Exact city name match (e.g. searching "Dubai" finds cityName "Dubai")
   const exact = locs.find(l => l.cityName?.toLowerCase() === term);
   if (exact) return exact;
 
-  // City name starts with the search term
   const starts = locs.find(l =>
     l.cityName?.toLowerCase().startsWith(term) ||
     l.name?.toLowerCase().startsWith(term)
   );
   if (starts) return starts;
 
-  // City name contains the search term
   const contains = locs.find(l =>
     l.cityName?.toLowerCase().includes(term) ||
     l.name?.toLowerCase().includes(term)
@@ -194,7 +186,6 @@ const pickBestAirport = (locs, searchTerm) => {
   return locs[0];
 };
 
-/* ── Geolocation fallback ───────────────────────────────────────────────────── */
 const getCityFromGeolocation = () => new Promise((resolve) => {
   if (!navigator.geolocation) { resolve(''); return; }
   navigator.geolocation.getCurrentPosition(
@@ -211,7 +202,6 @@ const getCityFromGeolocation = () => new Promise((resolve) => {
   );
 });
 
-/* ── Main component ─────────────────────────────────────────────────────────── */
 const FlightTab = ({ tripData, onFlightSelected }) => {
   const defaultDeparture = tripData?.dates?.start_date || '';
   const defaultReturn    = tripData?.dates?.end_date   || '';
@@ -240,37 +230,33 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
   const [showPassengers, setShowPassengers] = useState(false);
   const [errors,       setErrors]       = useState({});
   const [isLoading,    setIsLoading]    = useState(false);
-  // Manual search source: 'duffel' | 'gf' | 'tp' | 'amadeus' | null
   const [source,        setSource]       = useState(null);
-  const [duffelFlights, setDuffelFlights]= useState([]);   // Duffel
-  const [topFlights,    setTopFlights]   = useState([]);   // GF top
-  const [otherFlights,  setOtherFlights] = useState([]);   // GF other
-  const [tpFlights,     setTpFlights]    = useState([]);   // TP
-  const [amadFlights,   setAmadFlights]  = useState([]);   // Amadeus
-  const [flights,      setFlights]      = useState([]);   // auto-fetch (GF combined)
+  const [duffelFlights, setDuffelFlights]= useState([]);
+  const [topFlights,    setTopFlights]   = useState([]);
+  const [otherFlights,  setOtherFlights] = useState([]);
+  const [tpFlights,     setTpFlights]    = useState([]);
+  const [amadFlights,   setAmadFlights]  = useState([]);
+  const [flights,      setFlights]      = useState([]);
   const [searchError,  setSearchError]  = useState(null);
   const [searched,     setSearched]     = useState(false);
   const [filters,      setFilters]      = useState(DEFAULT_FILTERS);
 
-  // Auto-fetch state
   const [autoFetching,      setAutoFetching]      = useState(false);
   const [autoFlights,       setAutoFlights]       = useState([]);
   const [autoDuffelFlights, setAutoDuffelFlights] = useState([]);
-  const [autoSource,        setAutoSource]        = useState(null); // 'duffel' | 'gf'
+  const [autoSource,        setAutoSource]        = useState(null);
   const [autoError,         setAutoError]         = useState(null);
-  const [cheapPrice,        setCheapPrice]        = useState(null); // { price, airline, transfers }
+  const [cheapPrice,        setCheapPrice]        = useState(null);
   const [autoOrigin,        setAutoOrigin]        = useState(null);
   const [autoDest,          setAutoDest]          = useState(null);
   const autoFetched = useRef(false);
 
-  // Pagination
   const PAGE_SIZE = 8;
   const [autoPage,    setAutoPage]    = useState(1);
   const [manualPage,  setManualPage]  = useState(1);
 
   const today = new Date().toISOString().split('T')[0];
 
-  // ── Auto-fetch on mount ──────────────────────────────────────────────────────
   useEffect(() => {
     if (autoFetched.current) return;
     const destName = tripData?.destination?.name;
@@ -284,23 +270,19 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
     setAutoFetching(true);
     setAutoError(null);
     try {
-      // 1. Priority: tripData.origin (user explicitly provided flying from)
       let cityName = (tripData?.origin?.name || '').split(',')[0].trim();
 
-      // 2. Fallback: localStorage userLocation (set by Header.jsx geolocation)
       if (!cityName) {
         const userLocationStr = localStorage.getItem('userLocation') || '';
         cityName = userLocationStr.split(',')[0].trim();
       }
 
-      // 3. Fallback: browser geolocation API
       if (!cityName) {
         cityName = await getCityFromGeolocation();
       }
 
       if (!cityName) { setAutoError('Enable location access to see suggested flights.'); return; }
 
-      // 2. Resolve both IATA codes — use city-only (strip country) for best match
       const destCity = destName.split(',')[0].trim();
       const [originLocs, destLocs] = await Promise.all([
         searchAirports(cityName),
@@ -317,7 +299,6 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
       const dCode    = dBest.iataCode;
       const dDisplay = `${dBest.cityName || dBest.name} (${dCode})`;
 
-      // 3. Pre-fill form fields
       const oObj = { code: oCode, name: oDisplay };
       const dObj = { code: dCode, name: dDisplay };
       setAutoOrigin(oObj);
@@ -330,12 +311,10 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
       setForm(p => ({ ...p, departureDate, returnDate: returnDate || '' }));
       if (returnDate) setTripType('round-trip');
 
-      // 4. Fetch TP cheap price (instant) in parallel while we try Duffel
       getCheapPrice({ origin: oCode, destination: dCode, departDate: departureDate })
         .then(v => { if (v) setCheapPrice(v); })
         .catch(() => {});
 
-      // 5. Stage 0 — try Duffel for real-time fares
       let usedDuffel = false;
       try {
         const duffelResult = await searchFlightsDuffel({
@@ -351,9 +330,8 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
           setAutoPage(1);
           usedDuffel = true;
         }
-      } catch { /* fall through to GF */ }
+      } catch {}
 
-      // 6. Stage 1 — fall back to Google Flights
       if (!usedDuffel) {
         try {
           const gfResult = await searchFlightsGoogle({
@@ -374,7 +352,6 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
     }
   };
 
-  // ── Manual search ────────────────────────────────────────────────────────────
   const buildAviasalesUrl = () => {
     if (!origin?.code || !dest?.code || !form.departureDate) return 'https://aviasales.tpm.lv/6oZw8XRa';
     const [, depM, depD] = form.departureDate.split('-');
@@ -425,7 +402,6 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
     try {
       const returnDate = tripType === 'round-trip' ? form.returnDate || null : null;
 
-      /* ── Stage 0: Duffel ──────────────────────────────────── */
       let duffelResult = null;
       try {
         duffelResult = await searchFlightsDuffel({
@@ -435,7 +411,7 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
           returnDate,
           adults:          form.adults,
         });
-      } catch { /* fall through */ }
+      } catch {}
 
       if (duffelResult?.flights?.length > 0) {
         setSource('duffel');
@@ -445,7 +421,6 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
         return;
       }
 
-      /* ── Stage 1: Google Flights ──────────────────────────── */
       let gfResult = null;
       try {
         gfResult = await searchFlightsGoogle({
@@ -455,7 +430,7 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
           returnDate,
           adults:          form.adults,
         });
-      } catch { /* fall through */ }
+      } catch {}
 
       const gfCount = (gfResult?.topFlights?.length || 0) + (gfResult?.otherFlights?.length || 0);
 
@@ -468,7 +443,6 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
         return;
       }
 
-      /* ── Stage 2: Travelpayouts ───────────────────────────── */
       let tpResult = null;
       try {
         tpResult = await searchFlightsTP({
@@ -478,7 +452,7 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
           returnAt:    returnDate,
           limit:       30,
         });
-      } catch { /* fall through */ }
+      } catch {}
 
       if (tpResult?.flights?.length > 0) {
         setSource('tp');
@@ -488,7 +462,6 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
         return;
       }
 
-      /* ── Stage 3: Amadeus ─────────────────────────────────── */
       let amadResult = null;
       try {
         amadResult = await searchFlightsAmadeus({
@@ -498,7 +471,7 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
           returnDate,
           adults:          form.adults,
         });
-      } catch { /* fall through */ }
+      } catch {}
 
       if (amadResult?.flights?.length > 0) {
         setSource('amadeus');
@@ -508,7 +481,6 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
         return;
       }
 
-      /* ── All empty — show whatever GF returned ────────────── */
       setSource('gf');
       setTopFlights(gfResult?.topFlights || []);
       setOtherFlights(gfResult?.otherFlights || []);
@@ -528,7 +500,7 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
   return (
     <div className="ft-root">
 
-      {/* ── Discounted Flights (auto-fetched) ────────────────────────────────── */}
+
       <div className="ft-suggested">
         <div className="ft-disc-header">
           <div className="ft-disc-header__left">
@@ -613,7 +585,7 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
         )}
       </div>
 
-      {/* ── Manual search form ───────────────────────────────────────────────── */}
+
       <div className="ft-manual-section">
         <h4 className="ft-manual-title">Search Different Dates or Routes</h4>
 
@@ -715,7 +687,7 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
         </form>
       </div>
 
-      {/* Manual search loading */}
+
       {isLoading && (
         <div>
           {[1, 2, 3].map(i => (
@@ -731,7 +703,7 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
         </div>
       )}
 
-      {/* Manual search results */}
+
       {searched && !isLoading && (
         <div className="ft-results">
           {searchError ? (
@@ -765,7 +737,6 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
               </div>
             );
 
-            // Duffel, GF, TP share compatible field names — Amadeus uses a different schema
             const filterable = source !== 'amadeus';
             const filtered   = filterable ? applyFilters(allRaw, filters) : allRaw;
             const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -797,7 +768,7 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
 
                   <div className="ft-results-col">
 
-                    {/* ── Duffel ── */}
+
                     {source === 'duffel' && (() => {
                       const filtDuffel = applyFilters(duffelFlights, filters);
                       const pSlice     = filtDuffel.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
@@ -826,7 +797,7 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
                       );
                     })()}
 
-                    {/* ── Google Flights ── */}
+
                     {source === 'gf' && (() => {
                       const filtTop   = applyFilters(topFlights,  filters);
                       const filtOther = applyFilters(otherFlights, filters);
@@ -883,7 +854,7 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
                       );
                     })()}
 
-                    {/* ── Travelpayouts ── */}
+
                     {source === 'tp' && (() => {
                       const filtTP = applyFilters(tpFlights, filters);
                       const pSlice = filtTP.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
@@ -912,7 +883,7 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
                       );
                     })()}
 
-                    {/* ── Amadeus ── */}
+
                     {source === 'amadeus' && (() => {
                       const pSlice = amadFlights.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
                       return (
@@ -951,7 +922,6 @@ const FlightTab = ({ tripData, onFlightSelected }) => {
   );
 };
 
-// Helper: YYYY-MM-DD for N days from today
 function getFutureDate(days) {
   const d = new Date();
   d.setDate(d.getDate() + days);

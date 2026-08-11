@@ -1,4 +1,4 @@
-/* ─── Featured Blog Section ─────────────────────────────────── */
+
 .fbs-section {
   padding: 60px 0 70px;
   background-repeat: no-repeat;
@@ -6,7 +6,7 @@
   background-position: center;
 }
 
-/* ─── Main grid: hero (left) + side grid (right) ─────────────── */
+
 .fbs-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -20,7 +20,7 @@
   }
 }
 
-/* ─── Hero card ──────────────────────────────────────────────── */
+
 .fbs-hero {
   position: relative;
   border-radius: 20px;
@@ -96,13 +96,13 @@
   letter-spacing: 0.04em;
 }
 
-/* ─── Skeleton state for hero ─────────────────────────────────── */
+
 .fbs-hero--skeleton {
   background: #f0f2f5;
   min-height: 400px;
 }
 
-/* ─── Side 2×2 grid ──────────────────────────────────────────── */
+
 .fbs-side-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -115,7 +115,7 @@
   }
 }
 
-/* ─── Side card ──────────────────────────────────────────────── */
+
 .fbs-side-card {
   background: #fff;
   border-radius: 14px;
@@ -190,12 +190,12 @@
   padding-top: 4px;
 }
 
-/* Skeleton side card */
+
 .fbs-side-card--skeleton {
   pointer-events: none;
 }
 
-/* ─── Badge ──────────────────────────────────────────────────── */
+
 .fbs-badge {
   display: inline-block;
   background: linear-gradient(135deg, #0A539D, #F30F89);
@@ -214,7 +214,7 @@
   padding: 2px 8px;
 }
 
-/* ─── Skeleton shimmer ───────────────────────────────────────── */
+
 .fbs-skeleton-block,
 .fbs-skeleton-img,
 .fbs-skeleton-line {
@@ -240,7 +240,7 @@
   100% { background-position: -200% 0; }
 }
 
-/* ─── Responsive ─────────────────────────────────────────────── */
+
 @media (max-width: 767px) {
   .fbs-section {
     padding: 40px 0 50px;

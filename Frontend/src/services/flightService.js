@@ -1,11 +1,6 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 import { getDestinationImage as getCachedDestinationImage } from '../utils/destinationImages';
 
-/**
- * Search airports/cities using Travelpayouts places2 API (free, no auth).
- * @param {string} keyword
- * @returns {Promise<Array<{iataCode, name, cityName, countryName}>>}
- */
 export const searchAirports = async (keyword) => {
   if (!keyword || keyword.trim().length < 2) return [];
   try {
@@ -20,19 +15,6 @@ export const searchAirports = async (keyword) => {
   }
 };
 
-/**
- * Search for flights via the OptionTrip backend → Amadeus API.
- *
- * @param {object} params
- * @param {string} params.originCode
- * @param {string} params.destinationCode
- * @param {string} params.departureDate   YYYY-MM-DD
- * @param {string} [params.returnDate]    YYYY-MM-DD
- * @param {number} params.adults
- * @param {number} [params.children]
- * @param {string} [params.currencyCode]
- * @returns {Promise<{ flights: Array, searchParams: object }>}
- */
 export const searchFlights = async ({
   originCode,
   destinationCode,
@@ -59,23 +41,15 @@ export const searchFlights = async ({
   const data = await res.json();
 
   if (!data.success) {
-    // Surface validation errors as a readable string
     if (data.errors?.length) {
       throw new Error(data.errors.join('. '));
     }
     throw new Error(data.message || 'Flight search failed');
   }
 
-  return data.data; // { flights, count, searchParams }
+  return data.data;
 };
 
-/**
- * Search real-time flights via Google Flights (RapidAPI).
- * Book Now links redirect to Aviasales affiliate (marker 370056).
- *
- * @param {{ originCode, destinationCode, departureDate, returnDate?, adults, travelClass? }}
- * @returns {Promise<{ flights: Array, count: number }>}
- */
 export const searchFlightsGoogle = async ({
   originCode,
   destinationCode,
@@ -100,17 +74,9 @@ export const searchFlightsGoogle = async ({
   const data = await res.json();
 
   if (!data.success) throw new Error(data.message || 'Flight search failed');
-  return data.data; // { topFlights, otherFlights, flights, count, nearbyMeta? }
+  return data.data;
 };
 
-/**
- * Fetch nearby airports for a given IATA code.
- */
-/**
- * Fetch cheapest cached prices per date for a full month.
- * @param {{ origin, destination, month }} month = "YYYY-MM"
- * @returns {Promise<{ [date: string]: number }>}  e.g. { "2026-05-01": 16012, ... }
- */
 export const fetchMonthlyPrices = async ({ origin, destination, month }) => {
   try {
     const params = new URLSearchParams({ origin, destination, month });
@@ -129,11 +95,6 @@ export const fetchNearbyAirports = async ({ iata, radius = 250, limit = 3 }) => 
   } catch { return []; }
 };
 
-/**
- * Explore Anywhere — cheapest fares from one origin to all destinations.
- * @param {string} origin  IATA code
- * @returns {Promise<Object>}  { IATA: { price, airline, transfers } }
- */
 export const exploreDestinations = async (origin) => {
   try {
     const res  = await fetch(`${API_URL}/api/flights/explore?origin=${encodeURIComponent(origin)}`);
@@ -144,11 +105,6 @@ export const exploreDestinations = async (origin) => {
   }
 };
 
-/**
- * Fetch an accurate destination image from the browser cache / Unsplash Source URL helper.
- * @param {string} query
- * @returns {Promise<{ imageUrl: string, source: string, credit?: object } | null>}
- */
 export const getDestinationImage = async (query) => {
   if (!query || query.trim().length < 2) return null;
   return {
@@ -157,12 +113,6 @@ export const getDestinationImage = async (query) => {
   };
 };
 
-/**
- * Search for flights via Travelpayouts Aviasales API.
- *
- * @param {{ origin: string, destination: string, departureAt: string, returnAt?: string, limit?: number }}
- * @returns {Promise<{ flights: Array, count: number }>}
- */
 export const getCheapPrice = async ({ origin, destination, departDate }) => {
   try {
     const params = new URLSearchParams({ origin, destination, departDate });
@@ -172,12 +122,6 @@ export const getCheapPrice = async ({ origin, destination, departDate }) => {
   } catch { return null; }
 };
 
-/**
- * Search real-time flights via Duffel API (Stage 0 — highest priority).
- *
- * @param {{ originCode, destinationCode, departureDate, returnDate?, adults, travelClass? }}
- * @returns {Promise<{ flights: Array, count: number }>}
- */
 export const searchFlightsDuffel = async ({
   originCode,
   destinationCode,
@@ -202,7 +146,7 @@ export const searchFlightsDuffel = async ({
   const data = await res.json();
 
   if (!data.success) throw new Error(data.message || 'Duffel flight search failed');
-  return data.data; // { flights, count, nearbyMeta? }
+  return data.data;
 };
 
 export const searchFlightsTP = async ({ origin, destination, departureAt, returnAt, limit }) => {
@@ -217,5 +161,5 @@ export const searchFlightsTP = async ({ origin, destination, departureAt, return
     throw new Error(data.message || 'Flight search failed');
   }
 
-  return data.data; // { flights, count }
+  return data.data;
 };

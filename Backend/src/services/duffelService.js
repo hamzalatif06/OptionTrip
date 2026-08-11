@@ -1,16 +1,7 @@
-/**
- * Duffel Flights Service
- * Real-time flight search via Duffel API (https://duffel.com)
- * Normalises offers to a shape compatible with FlightCardDuffel.
- */
-
 const DUFFEL_API_KEY = process.env.DUFFEL_API_KEY || '';
 const DUFFEL_BASE    = 'https://api.duffel.com';
 const TP_MARKER      = process.env.TRAVELPAYOUTS_MARKER || '370056';
 
-/* ── Helpers ─────────────────────────────────────────────────────────────── */
-
-/** "PT2H30M" → "2h 30m" */
 const parseDuration = (iso) => {
   if (!iso) return '';
   const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
@@ -23,7 +14,6 @@ const parseDuration = (iso) => {
   return iso;
 };
 
-/** "PT2H30M" → 150 (minutes) */
 const parseDurationMinutes = (iso) => {
   if (!iso) return null;
   const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
@@ -31,7 +21,6 @@ const parseDurationMinutes = (iso) => {
   return parseInt(m[1] || '0', 10) * 60 + parseInt(m[2] || '0', 10);
 };
 
-/** "2026-04-15T08:30:00" → "08:30" */
 const extractTime = (iso) => {
   if (!iso) return '';
   const t = String(iso).split('T')[1];
@@ -39,33 +28,26 @@ const extractTime = (iso) => {
 };
 
 const buildBookingUrl = ({ origin, destination, departureDate, returnDate, adults }) => {
-  // Aviasales format: {FROM}{DDMM}{TO}[{DDMM_RETURN}]{pax}
   const fmt = (d) => { const [, mm, dd] = d.split('-'); return `${dd}${mm}`; };
   const pax = String(Math.max(1, adults));
   const returnPart = returnDate ? fmt(returnDate) : '';
   return `https://www.aviasales.com/search/${origin}${fmt(departureDate)}${destination}${returnPart}${pax}?marker=${TP_MARKER}`;
 };
 
-/* ── Normaliser ──────────────────────────────────────────────────────────── */
-
 const normalise = (offer, { origin, destination, departureDate, returnDate, adults }) => {
-  // For one-way use slice[0]; round-trip would have slice[0]=outbound, slice[1]=return
   const slice    = offer.slices?.[0] || {};
   const segs     = slice.segments  || [];
   const first    = segs[0]         || {};
   const last     = segs[segs.length - 1] || first;
 
-  // Unique operating carriers
   const airlines = [
     ...new Set(
       segs.map(s => s.marketing_carrier?.name || offer.owner?.name).filter(Boolean)
     ),
   ];
 
-  // Cabin class from first passenger of first segment
   const cabinClass = first.passengers?.[0]?.cabin_class_marketing_name || '';
 
-  // Baggage from first passenger of first segment
   const baggages  = first.passengers?.[0]?.baggages || [];
   const carryOn   = baggages
     .filter(b => b.type === 'carry_on')
@@ -74,17 +56,14 @@ const normalise = (offer, { origin, destination, departureDate, returnDate, adul
     .filter(b => b.type === 'checked')
     .reduce((sum, b) => sum + (b.quantity || 0), 0);
 
-  // Price per person (Duffel total_amount = total for all passengers)
   const total = parseFloat(offer.total_amount || '0');
   const price = adults > 0 ? Math.round(total / adults) : Math.round(total);
 
-  // Stops along layover airports (outbound)
   const layovers = segs.slice(0, -1).map((seg) => ({
     id:   seg.destination?.iata_code || '',
     name: seg.destination?.name     || '',
   }));
 
-  // ── Return leg (slice[1]) ─────────────────────────────────────────────────
   const returnSlice = offer.slices?.[1] || null;
   const rSegs       = returnSlice?.segments || [];
   const rFirst      = rSegs[0] || {};
@@ -122,8 +101,7 @@ const normalise = (offer, { origin, destination, departureDate, returnDate, adul
     bags:              { carry_on: carryOn, checked },
     bookingUrl:        buildBookingUrl({ origin, destination, departureDate, returnDate, adults }),
     source:            'duffel',
-    // Return leg fields
-    isRoundTrip:           !!returnSlice,
+    isRoundTrip: !!returnSlice,
     returnOrigin:          rFirst.origin?.iata_code          || '',
     returnDestination:     rLast.destination?.iata_code      || '',
     returnDepartureTime:   extractTime(rFirst.departing_at)  || '',
@@ -138,14 +116,6 @@ const normalise = (offer, { origin, destination, departureDate, returnDate, adul
   };
 };
 
-/* ── Public search function ───────────────────────────────────────────────── */
-
-/**
- * Search real-time flights via Duffel API.
- *
- * @param {{ origin, destination, departureDate, returnDate?, adults, travelClass? }}
- * @returns {Promise<Array>} normalised flight objects sorted by price
- */
 export const searchFlightsDuffel = async ({
   origin,
   destination,

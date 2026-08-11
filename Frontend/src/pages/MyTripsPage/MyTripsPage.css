@@ -1,10 +1,10 @@
-/* ── Root ── */
+
 .mtp {
   min-height: 100vh;
   background: #f1f5f9;
 }
 
-/* ── Header ── */
+
 .mtp__header {
   background: #fff;
   border-bottom: 1px solid #e2e8f0;
@@ -62,7 +62,7 @@
   color: #fff;
 }
 
-/* ── Hero / Stats ── */
+
 .mtp__hero {
   background: linear-gradient(135deg, #012f3e 0%, #014d5c 50%, #029e9d 100%);
   padding: 36px 0;
@@ -119,7 +119,7 @@
   margin: 0;
 }
 
-/* Stats */
+
 .mtp__stats {
   display: flex;
   align-items: center;
@@ -162,7 +162,7 @@
   white-space: nowrap;
 }
 
-/* ── Tabs ── */
+
 .mtp__tabs-wrap {
   background: #fff;
   border-bottom: 1px solid #e2e8f0;
@@ -207,7 +207,7 @@
   font-size: 16px;
 }
 
-/* ── Content ── */
+
 .mtp__content {
   padding: 32px 0 60px;
 }
@@ -218,7 +218,7 @@
   padding: 0 24px;
 }
 
-/* Error bar */
+
 .mtp__error {
   display: flex;
   align-items: center;
@@ -241,7 +241,7 @@
   cursor: pointer;
 }
 
-/* ── Trip Grid ── */
+
 .mtp__grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -251,7 +251,7 @@
 @media (max-width: 1024px) { .mtp__grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 640px)  { .mtp__grid { grid-template-columns: 1fr; } }
 
-/* Trip Card */
+
 .mtp__card {
   background: #fff;
   border-radius: 20px;
@@ -376,7 +376,7 @@
   color: #1e293b;
 }
 
-/* ── Empty state ── */
+
 .mtp__empty {
   display: flex;
   flex-direction: column;
@@ -427,7 +427,7 @@
   color: #fff;
 }
 
-/* ── Map section ── */
+
 .mtp__map-section {
   display: flex;
   flex-direction: column;
@@ -444,7 +444,7 @@
   border: 1px solid #e2e8f0;
 }
 
-/* ── Responsive ── */
+
 @media (max-width: 768px) {
   .mtp__hero-inner {
     flex-direction: column;
@@ -460,7 +460,7 @@
   .mtp__tab { padding: 12px 14px; font-size: 13px; }
 }
 
-/* ── Dark mode ── */
+
 [data-theme="dark"] .mtp { background: #0f172a; }
 [data-theme="dark"] .mtp__header { background: #1e293b; border-color: #334155; }
 [data-theme="dark"] .mtp__nav-link { color: #94a3b8; }
@@ -472,7 +472,7 @@
 [data-theme="dark"] .mtp__card-btn.secondary { background: #334155; color: #cbd5e1; }
 [data-theme="dark"] .mtp__map-hint { background: #1e293b; border-color: #334155; color: #94a3b8; }
 
-/* ── Kebab Menu ──────────────────────────────────────────────────────────────── */
+
 .mtp__card-menu {
   position: absolute;
   top: 10px;
@@ -520,7 +520,7 @@
 .mtp__card-menu-delete { color: #dc2626 !important; }
 .mtp__card-menu-delete:hover { background: #fef2f2 !important; }
 
-/* ── Inline rename ───────────────────────────────────────────────────────────── */
+
 .mtp__card-rename {
   display: flex;
   align-items: center;
@@ -548,7 +548,7 @@
 .mtp__card-rename-save:hover:not(:disabled) { background: #2563eb; }
 .mtp__card-rename-cancel { background: #e2e8f0; color: #475569; }
 
-/* ── Delete modal ────────────────────────────────────────────────────────────── */
+
 .mtp__modal-overlay {
   position: fixed;
   inset: 0;
@@ -576,11 +576,11 @@
 .mtp__modal-btn--delete { background: #dc2626; color: #fff; }
 .mtp__modal-btn--delete:hover:not(:disabled) { background: #b91c1c; }
 
-/* ── Better empty state ──────────────────────────────────────────────────────── */
+
 .mtp__empty-title { font-size: 20px; font-weight: 700; margin: 16px 0 8px; color: #1e293b; }
 .mtp__empty-text  { font-size: 14px; color: #64748b; margin: 0 0 20px; max-width: 280px; text-align: center; }
 
-/* ── Dark mode overrides ─────────────────────────────────────────────────────── */
+
 @media (prefers-color-scheme: dark) {
   .mtp__card-menu-dropdown { background: #1e293b; border: 1px solid #334155; }
   .mtp__card-menu-dropdown button { color: #cbd5e1; }
@@ -602,7 +602,7 @@
 [data-theme="dark"] .mtp__card-rename-input { background: #334155; color: #f8fafc; border-color: #3b82f6; }
 [data-theme="dark"] .mtp__empty-title { color: #f8fafc; }
 
-/* ── Wishlist ────────────────────────────────────────────────────────────────── */
+
 .mtp__wishlist { padding: 4px 0; }
 .mtp__card--wishlist {}
 .mtp__wishlist-remove {

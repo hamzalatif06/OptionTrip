@@ -11,7 +11,7 @@
   }
 }
 
-/* ── Grid panel ───────────────────────────────────────────────────────────── */
+
 .cal-grid-panel {
   border-radius: 16px;
   border: 1px solid #e8ecef;
@@ -168,7 +168,7 @@
   border-radius: 50%;
 }
 
-/* ── Agenda panel ─────────────────────────────────────────────────────────── */
+
 .cal-agenda {
   border-radius: 16px;
   border: 1px solid #e8ecef;
@@ -292,7 +292,7 @@
   font-size: 13px;
 }
 
-/* ── Empty state (no itinerary yet) ──────────────────────────────────────── */
+
 .cal-empty {
   text-align: center;
   padding: 60px 20px;

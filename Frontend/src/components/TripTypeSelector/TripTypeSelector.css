@@ -35,7 +35,7 @@
   border-color: #F30F89;
 }
 
-/* Suggestions Dropdown */
+
 .trip-type-suggestions {
   position: absolute;
   top: calc(100% + 8px);
@@ -53,7 +53,7 @@
   padding: 0;
 }
 
-/* Suggestion Items */
+
 .trip-type-suggestion-item {
   padding: 12px 20px;
   font-size: 15px;
@@ -74,7 +74,7 @@
   color: #fff;
 }
 
-/* First and last item rounded corners */
+
 .trip-type-suggestion-item:first-child:hover,
 .trip-type-suggestion-item:first-child.focused {
   border-top-left-radius: 16px;
@@ -87,7 +87,7 @@
   border-bottom-right-radius: 16px;
 }
 
-/* Scrollbar styling */
+
 .trip-type-suggestions::-webkit-scrollbar {
   width: 8px;
 }
@@ -106,7 +106,7 @@
   background: #9FAAB6;
 }
 
-/* Responsive */
+
 @media (max-width: 767px) {
   .trip-type-suggestions {
     max-height: 200px;

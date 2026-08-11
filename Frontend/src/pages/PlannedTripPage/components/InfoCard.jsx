@@ -1,25 +1,3 @@
-/**
- * InfoCard Component
- *
- * Adapted from TripTap's HeroInfoCard
- * Displays information in a card format with optional popover
- *
- * Structure:
- * - Header (icon + title + subtitle)
- * - Content (info table or custom children)
- * - Optional popover for expanded content
- *
- * Props:
- * - title: Card title
- * - subTitle: Optional subtitle
- * - icon: Icon element or emoji
- * - data: Array of {label, value} objects
- * - children: Custom content (overrides data)
- * - isLoading: Show loading skeleton
- * - hasPopover: Enable click-to-expand popover
- * - maxVisibleEntries: Number of entries before "see more"
- */
-
 import React, { useState } from 'react';
 import './InfoCard.css';
 
@@ -38,7 +16,6 @@ const InfoCard = ({
 }) => {
   const [showPopover, setShowPopover] = useState(false);
 
-  // Determine if we should show "see more" indicator
   const hasMoreData = data && data.length > maxVisibleEntries;
   const visibleData = hasMoreData ? data.slice(0, maxVisibleEntries) : data;
 
@@ -52,7 +29,6 @@ const InfoCard = ({
     setShowPopover(false);
   };
 
-  // Loading state (from TripTap's Skeleton pattern)
   if (isLoading) {
     return (
       <div
@@ -76,7 +52,7 @@ const InfoCard = ({
         style={{ minWidth, maxWidth, height }}
         onClick={handleCardClick}
       >
-        {/* Header (from TripTap's HeroInfoCardHeader) */}
+
         <div className="info-card__header">
           {icon && (
             <span className="info-card__icon">
@@ -89,13 +65,11 @@ const InfoCard = ({
           </div>
         </div>
 
-        {/* Content */}
+
         <div className="info-card__content">
           {children ? (
-            // Custom content
             children
           ) : (
-            // Info table (from TripTap's AppInfoTable pattern)
             <div className="info-card__table">
               {visibleData.map((item, index) => (
                 <div key={index} className="info-card__row">
@@ -113,7 +87,7 @@ const InfoCard = ({
         </div>
       </div>
 
-      {/* Popover (from TripTap's HeroInfoCardPopup) */}
+
       {showPopover && (
         <div className="info-card-popover" onClick={handleClosePopover}>
           <div

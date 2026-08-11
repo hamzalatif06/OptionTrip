@@ -135,17 +135,14 @@ const TopDestinations = () => {
     : destinations.filter(d => d.category === activeFilter);
 
   const handleDestinationClick = (destination) => {
-    // Store selected destination in sessionStorage for the trip planner
     sessionStorage.setItem('selectedDestination', JSON.stringify({
       text: `${destination.city}, ${destination.country}`,
       name: destination.city,
       country: destination.country
     }));
 
-    // Navigate to home page
     navigate('/', { state: { scrollToPlanner: true, destination: destination } });
 
-    // Scroll to trip planner section after navigation
     setTimeout(() => {
       const plannerSection = document.querySelector('.book-form');
       if (plannerSection) {
@@ -154,7 +151,6 @@ const TopDestinations = () => {
     }, 100);
   };
 
-  // Get featured (first) destination and grid destinations
   const featuredDestination = filteredDestinations[0];
   const gridDestinations = filteredDestinations.slice(1, 5);
 
@@ -171,7 +167,7 @@ const TopDestinations = () => {
           </p>
         </div>
 
-        {/* Filter Tabs */}
+
         <div className="destination-filters">
           {filters.map(filter => (
             <button
@@ -184,9 +180,9 @@ const TopDestinations = () => {
           ))}
         </div>
 
-        {/* Destinations Grid */}
+
         <div className="destinations-grid">
-          {/* Featured Large Card */}
+
           {featuredDestination && (
             <div
               className="destination-card featured"
@@ -226,7 +222,7 @@ const TopDestinations = () => {
             </div>
           )}
 
-          {/* Grid Cards */}
+
           <div className="grid-cards">
             {gridDestinations.map((destination) => (
               <div
@@ -263,7 +259,7 @@ const TopDestinations = () => {
           </div>
         </div>
 
-        {/* View All Link */}
+
         <div className="view-all-wrapper">
           <Link to="/destinations" className="view-all-btn">
             <span>View All Destinations</span>

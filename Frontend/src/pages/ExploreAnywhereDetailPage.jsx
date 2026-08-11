@@ -15,7 +15,6 @@ import './ExploreAnywhereDetailPage.css';
 const INITIAL_VISIBLE_CARDS = 12;
 const LOAD_MORE_STEP = 12;
 
-// Destination tags based on what they're famous for
 const DESTINATION_TAGS = {
   dubai: 'luxury',
   bangkok: 'food',
@@ -101,10 +100,9 @@ const ExploreAnywhereDetailPage = () => {
   const [tickets, setTickets] = useState([]);
   const [imageMap, setImageMap] = useState({});
   const [imageFetchKey, setImageFetchKey] = useState(0);
-  const [tripType, setTripType] = useState('one-way'); // 'one-way' or 'round-trip'
+  const [tripType, setTripType] = useState('one-way');
   const [modalReturnDate, setModalReturnDate] = useState('');
 
-  // Reviews
   const [reviews, setReviews] = useState([]);
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
@@ -164,8 +162,6 @@ const ExploreAnywhereDetailPage = () => {
     [allDestinations, visibleCards]
   );
 
-  // Reset per-session tracking refs on mount so images are re-fetched into React state,
-  // but do NOT clear localStorage — that 24-hour browser cache avoids unnecessary backend calls
   useEffect(() => {
     imageRequestIdsRef.current.clear();
     lookedUpIatasRef.current.clear();
@@ -174,17 +170,11 @@ const ExploreAnywhereDetailPage = () => {
   }, []);
 
   useEffect(() => {
-    // Only fetch images for destinations that have their names fully resolved
     const pending = visibleDestinations.filter((destination) => {
       const hasResolvedName = destination.isNameResolved;
       const cityLabel = String(destination.city || '').trim();
       const countryLabel = String(destination.country || '').trim();
       
-      // Only fetch if:
-      // 1. Name is resolved (not just the IATA code)
-      // 2. Has both city and country
-      // 3. Image not already loaded
-      // 4. Not already requesting
       return hasResolvedName && 
              cityLabel && 
              countryLabel && 
@@ -198,7 +188,6 @@ const ExploreAnywhereDetailPage = () => {
     pending.forEach((destination) => imageRequestIdsRef.current.add(destination.iata));
 
     (async () => {
-      // One batch request for all pending destinations instead of N individual calls
       const queries = pending.map((d) => `${d.city}, ${d.country}`);
       console.log(`📷 Batch fetching ${queries.length} destination images`);
 
@@ -225,7 +214,7 @@ const ExploreAnywhereDetailPage = () => {
     return () => {
       mounted = false;
     };
-  }, [visibleDestinations, imageFetchKey]); // intentionally exclude imageMap — it's read via imageRequestIdsRef guard, not as a reactive dep
+  }, [visibleDestinations, imageFetchKey]);
 
   useEffect(() => {
     if (!origin) return undefined;
@@ -338,7 +327,7 @@ const ExploreAnywhereDetailPage = () => {
         setReviews(res.data.reviews || []);
         setReviewsAvgRating(res.data.avgRating || 0);
       }
-    } catch { /* noop */ } finally { setIsLoadingReviews(false); }
+    } catch {} finally { setIsLoadingReviews(false); }
   };
 
   const handleSubmitReview = async () => {
@@ -369,7 +358,7 @@ const ExploreAnywhereDetailPage = () => {
       const token = getAccessToken();
       await deleteReview(reviewId, token);
       setReviews(prev => prev.filter(r => r._id !== reviewId));
-    } catch { /* noop */ }
+    } catch {}
   };
 
   const handleCardClick = async (destination) => {
@@ -377,7 +366,7 @@ const ExploreAnywhereDetailPage = () => {
 
     setSelectedDestination(destination);
     setIsModalOpen(true);
-    setTripType('one-way'); // Default to one-way
+    setTripType('one-way');
     setModalReturnDate('');
     setIsLoadingTickets(true);
     setTicketError('');
@@ -390,7 +379,7 @@ const ExploreAnywhereDetailPage = () => {
         originCode: origin,
         destinationCode: destination.iata,
         departureDate,
-        returnDate: null, // Default to one-way
+        returnDate: null,
         adults,
       });
 
@@ -425,13 +414,12 @@ const ExploreAnywhereDetailPage = () => {
   const handleTripTypeChange = async (newTripType) => {
     setTripType(newTripType);
 
-    // If switching to round-trip but no return date yet, just wait for user to select date
     if (newTripType === 'round-trip' && !modalReturnDate) {
       return;
     }
 
-    // Fetch tickets with the new trip type
-    if (!selectedDestination) return;
+    if (!selectedDestination)
+      return;
 
     setIsLoadingTickets(true);
     setTicketError('');
@@ -464,7 +452,6 @@ const ExploreAnywhereDetailPage = () => {
   const handleReturnDateChange = async (date) => {
     setModalReturnDate(date);
 
-    // Only fetch if round-trip is selected and date is provided
     if (tripType === 'round-trip' && date && selectedDestination) {
       setIsLoadingTickets(true);
       setTicketError('');
@@ -741,7 +728,7 @@ const ExploreAnywhereDetailPage = () => {
               </div>
             )}
 
-            {/* ── Reviews Section ─────────────────────────────────────── */}
+
             <div className="explore-reviews">
               <div className="explore-reviews__header">
                 <h4 className="explore-reviews__title">

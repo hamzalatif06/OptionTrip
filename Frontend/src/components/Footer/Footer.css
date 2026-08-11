@@ -1,8 +1,6 @@
-/* ═══════════════════════════════════════════════════════════
-   FOOTER — Option Trip
-   ═══════════════════════════════════════════════════════════ */
 
-/* ── Email subscription strip ───────────────────────────── */
+
+
 .footer-subscribe-strip {
   background: linear-gradient(135deg, #0A539D 0%, #029e9d 100%);
   padding: 48px 0;
@@ -96,14 +94,14 @@
   margin: 0;
 }
 
-/* ── Main footer body ────────────────────────────────────── */
+
 .footer-main {
   background-color: #0f1e32;
   background-blend-mode: overlay;
   padding-top: 60px;
 }
 
-/* ── Five-column grid ────────────────────────────────────── */
+
 .footer-columns {
   padding-bottom: 48px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -115,7 +113,7 @@
   gap: 40px;
 }
 
-/* ── Individual column ───────────────────────────────────── */
+
 .footer-col-title {
   color: #fff;
   font-size: 15px;
@@ -145,7 +143,7 @@
   color: #029e9d;
 }
 
-/* ── About column ────────────────────────────────────────── */
+
 .footer-logo {
   height: 36px;
   width: auto;
@@ -193,7 +191,7 @@
   color: #029e9d;
 }
 
-/* ── Trust block ─────────────────────────────────────────── */
+
 .footer-trust-block {
   border-top: 1px solid rgba(255,255,255,0.08);
   padding-top: 18px;
@@ -232,7 +230,7 @@
   color: rgba(255,255,255,0.7);
 }
 
-/* ── Locale bar ──────────────────────────────────────────── */
+
 .footer-locale-section {
   padding: 20px 0;
   border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -251,7 +249,7 @@
   max-width: 220px;
 }
 
-/* ── Bottom bar ──────────────────────────────────────────── */
+
 .footer-bottom {
   padding: 20px 0;
 }
@@ -285,7 +283,7 @@
   color: #029e9d;
 }
 
-/* ── Responsive ──────────────────────────────────────────── */
+
 @media (max-width: 1199px) {
   .footer-columns-grid {
     grid-template-columns: 1.5fr 1fr 1fr 1fr;

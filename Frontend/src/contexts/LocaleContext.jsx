@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-// ── Data ──────────────────────────────────────────────────────────────────────
-
 export const CURRENCIES = [
   { code: 'USD', symbol: '$',   name: 'US Dollar' },
   { code: 'EUR', symbol: '€',   name: 'Euro' },
@@ -112,7 +110,6 @@ export const COUNTRIES = [
   { code: 'IE', name: 'Ireland',          flag: '🇮🇪', currency: 'EUR' },
 ];
 
-// Timezone prefix → country code (covers common ambiguous cases)
 const TIMEZONE_COUNTRY = {
   'America/New_York': 'US', 'America/Chicago': 'US', 'America/Denver': 'US',
   'America/Los_Angeles': 'US', 'America/Phoenix': 'US', 'America/Anchorage': 'US',
@@ -140,19 +137,10 @@ const TIMEZONE_COUNTRY = {
   'Africa/Johannesburg': 'ZA', 'Africa/Lagos': 'NG', 'Africa/Nairobi': 'KE',
 };
 
-// ── Auto-detection ────────────────────────────────────────────────────────────
-
-/**
- * Detect country code from the browser timezone.
- * Timezone is location-based and is always preferred over navigator.language
- * which reflects the browser UI language setting, not the user's location
- * (e.g. a Pakistani user with en-GB browser language should still get PKR).
- */
 const detectFromTimezone = () => {
   try {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (TIMEZONE_COUNTRY[tz]) return TIMEZONE_COUNTRY[tz];
-    // Broad prefix fallback (e.g. Asia/Unknown → IN)
     const prefix = tz.split('/')[0];
     const prefixMap = { Europe: 'DE', America: 'US', Asia: 'IN', Africa: 'ZA', Pacific: 'AU', Australia: 'AU' };
     return prefixMap[prefix] || null;
@@ -161,7 +149,6 @@ const detectFromTimezone = () => {
   }
 };
 
-/** Last-resort: try navigator.language region tag (least reliable for currency). */
 const detectFromLanguage = () => {
   const locale = navigator.language || '';
   if (locale.includes('-')) {
@@ -174,7 +161,8 @@ const detectFromLanguage = () => {
 const applyCountryCode = (code, setCountryState, setCurrencyState, overrideExisting = false) => {
   const savedCountry   = localStorage.getItem('optiontrip_country');
   const savedCurrency  = localStorage.getItem('optiontrip_currency');
-  if (!overrideExisting && (savedCountry || savedCurrency)) return; // respect saved preference
+  if (!overrideExisting && (savedCountry || savedCurrency))
+    return;
 
   const country  = COUNTRIES.find(c => c.code === code);
   if (!country) return;
@@ -182,8 +170,6 @@ const applyCountryCode = (code, setCountryState, setCurrencyState, overrideExist
   setCountryState(country);
   setCurrencyState(currency);
 };
-
-// ── Context ───────────────────────────────────────────────────────────────────
 
 const LocaleContext = createContext(null);
 
@@ -195,9 +181,6 @@ export const LocaleProvider = ({ children }) => {
     const savedCountryCode  = localStorage.getItem('optiontrip_country');
     const savedCurrencyCode = localStorage.getItem('optiontrip_currency');
 
-    // ── Step 1: Use saved user preference ONLY if explicitly set by the user ──
-    // The 'optiontrip_manual' flag is written only when the user picks via CurrencySwitcher.
-    // This prevents stale auto-detected values (e.g. wrong GBP) from persisting.
     const isManual = localStorage.getItem('optiontrip_manual') === '1';
     if (isManual && (savedCountryCode || savedCurrencyCode)) {
       const savedCountry  = COUNTRIES.find(c => c.code === savedCountryCode) || COUNTRIES[0];
@@ -207,7 +190,6 @@ export const LocaleProvider = ({ children }) => {
       return;
     }
 
-    // ── Step 2: Timezone detection (location-based, most accurate sync method)
     const tzCode = detectFromTimezone();
     if (tzCode) {
       const country  = COUNTRIES.find(c => c.code === tzCode) || COUNTRIES[0];
@@ -215,7 +197,6 @@ export const LocaleProvider = ({ children }) => {
       setCountryState(country);
       setCurrencyState(currency);
     } else {
-      // Fallback to browser language (least reliable)
       const langCode = detectFromLanguage() || 'US';
       const country  = COUNTRIES.find(c => c.code === langCode) || COUNTRIES[0];
       const currency = CURRENCIES.find(c => c.code === country.currency) || CURRENCIES[0];
@@ -223,8 +204,6 @@ export const LocaleProvider = ({ children }) => {
       setCurrencyState(currency);
     }
 
-    // ── Step 3: IP geolocation (async, most accurate — refines after render) ─
-    // Proxied through backend to avoid browser CORS restrictions on ipapi.co
     const GEO_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api/geo/ip';
     fetch(GEO_URL)
       .then(r => r.json())
@@ -234,19 +213,18 @@ export const LocaleProvider = ({ children }) => {
         const ipCountry  = COUNTRIES.find(c => c.code === ipCode);
         if (!ipCountry) return;
         const ipCurrency = CURRENCIES.find(c => c.code === ipCountry.currency) || CURRENCIES[0];
-        // Only update if the user hasn't changed anything manually yet
         if (!localStorage.getItem('optiontrip_country')) {
           setCountryState(ipCountry);
           setCurrencyState(ipCurrency);
         }
       })
-      .catch(() => {}); // fail silently — timezone fallback already applied
+      .catch(() => {});
   }, []);
 
   const setCountry = (countryObj, updateCurrency = true) => {
     setCountryState(countryObj);
     localStorage.setItem('optiontrip_country', countryObj.code);
-    localStorage.setItem('optiontrip_manual', '1'); // user explicitly chose
+    localStorage.setItem('optiontrip_manual', '1');
     if (updateCurrency) {
       const matchedCurrency = CURRENCIES.find(c => c.code === countryObj.currency);
       if (matchedCurrency) {
@@ -259,10 +237,11 @@ export const LocaleProvider = ({ children }) => {
   const setCurrency = (currencyObj) => {
     setCurrencyState(currencyObj);
     localStorage.setItem('optiontrip_currency', currencyObj.code);
-    localStorage.setItem('optiontrip_manual', '1'); // user explicitly chose
+    localStorage.setItem('optiontrip_manual', '1');
   };
 
-  if (!country || !currency) return null; // wait for detection
+  if (!country || !currency)
+    return null;
 
   return (
     <LocaleContext.Provider value={{ country, currency, setCountry, setCurrency, COUNTRIES, CURRENCIES }}>

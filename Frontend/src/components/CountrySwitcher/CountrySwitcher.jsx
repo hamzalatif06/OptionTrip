@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocale } from '../../contexts/LocaleContext';
-import '../CurrencySwitcher/CurrencySwitcher.css'; // shared styles
+import '../CurrencySwitcher/CurrencySwitcher.css';
 
 const CountrySwitcher = () => {
   const { country, setCountry, COUNTRIES } = useLocale();

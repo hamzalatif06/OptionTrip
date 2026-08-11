@@ -4,27 +4,6 @@ const SITE_NAME     = 'OptionTrip';
 const DEFAULT_IMAGE = '/images/travel.png';
 const SITE_URL      = import.meta.env.VITE_SITE_URL || 'https://www.optiontrip.com';
 
-/**
- * Drop-in <head> meta component for every page.
- *
- * Props:
- *   title       — page-specific title (site name is appended automatically)
- *   description — page-specific description
- *   keywords    — comma-separated keyword string (optional)
- *   image       — absolute or relative image URL (falls back to /images/travel.png)
- *   path        — canonical path (defaults to window.location.pathname)
- *   noIndex     — set true on auth/user/dynamic pages that shouldn't appear in Google
- *   jsonLd      — extra JSON-LD object (or array) for schema.org structured data
- *   ogType      — Open Graph type: 'website' | 'article' | 'product' (default 'website')
- *
- * Usage:
- *   <PageMeta
- *     title="Where Can I Go?"
- *     description="Tell us your passport, we show you where you can travel."
- *     keywords="visa requirements, passport, travel discovery, visa free"
- *     path="/where-can-i-go"
- *   />
- */
 const PageMeta = ({
   title,
   description,
@@ -52,13 +31,13 @@ const PageMeta = ({
       {keywords && <meta name="keywords" content={keywords} />}
       <link rel="canonical" href={canonical} />
 
-      {/* Robots — noIndex for auth/session pages so they don't leak into search */}
+
       {noIndex
         ? <meta name="robots" content="noindex, nofollow, noarchive" />
         : <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
       }
 
-      {/* Open Graph */}
+
       <meta property="og:title"       content={fullTitle} />
       <meta property="og:description" content={metaDesc} />
       <meta property="og:image"       content={metaImage} />
@@ -67,19 +46,19 @@ const PageMeta = ({
       <meta property="og:type"        content={ogType} />
       <meta property="og:site_name"   content={SITE_NAME} />
 
-      {/* Twitter */}
+
       <meta name="twitter:card"        content="summary_large_image" />
       <meta name="twitter:title"       content={fullTitle} />
       <meta name="twitter:description" content={metaDesc} />
       <meta name="twitter:image"       content={metaImage} />
       <meta name="twitter:image:alt"   content={title || SITE_NAME} />
 
-      {/* No per-language alternates: language switching is client-side only, so "?lang=xx" isn't a real distinct URL. */}
+
       {!noIndex && (
         <link rel="alternate" hrefLang="x-default" href={canonical} />
       )}
 
-      {/* Extra JSON-LD structured data (breadcrumbs, articles, product, etc.) */}
+
       {jsonLdArr.map((schema, i) => (
         <script key={i} type="application/ld+json">
           {JSON.stringify(schema)}

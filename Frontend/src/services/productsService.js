@@ -1,14 +1,5 @@
-/**
- * Products API Service
- * Handles fetching products data from the API
- */
-
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
-/**
- * Fetch homepage products
- * @returns {Promise} Products data organized by region and category
- */
 export const fetchHomepageProducts = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/products/homepage`, {
@@ -24,13 +15,10 @@ export const fetchHomepageProducts = async () => {
 
     const data = await response.json();
     
-    // Transform the data to match the expected format
-    // If API already returns in correct format, return as is
     if (data.data) {
       return data;
     }
 
-    // Otherwise transform it
     const regions = Object.keys(data || {});
     return {
       data: data,
@@ -46,10 +34,6 @@ export const fetchHomepageProducts = async () => {
   }
 };
 
-/**
- * Get mock products data for development/fallback
- * @returns {Object} Mock products data
- */
 export const getMockProductsData = () => {
   return {
     data: {

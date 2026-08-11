@@ -1,34 +1,9 @@
-/**
- * HeroSection - Trip Header with Metadata Cards
- *
- * Structure EXACTLY from TripTap's HeroSection.jsx
- * Component hierarchy matches TripTap 1:1
- *
- * TripTap Structure:
- * HeroSection
- *   ├── SearchResultsBanner → TripBanner (trip title, description, metadata)
- *   └── CardsHoverCarousel → InfoCardsCarousel
- *       └── HeroInfoCard[] → InfoCard[] (weather, language, airport, etc.)
- *
- * OptionTrip Implementation:
- * HeroSection
- *   ├── TripBanner (trip summary with chips)
- *   └── InfoCardsCarousel
- *       └── InfoCard[] (destination, dates, guests, budget, preferences)
- *
- * Key Differences from TripTap:
- * - InfoCard data tailored to trip planning (vs location data)
- * - OptionTrip color palette applied
- * - No Redux dependencies (props-based)
- */
-
 import React, { useMemo } from 'react';
 import TripBanner from '../components/TripBanner';
 import InfoCardsCarousel from '../components/InfoCardsCarousel';
 import InfoCard from '../components/InfoCard';
 import './HeroSection.css';
 
-// Material-UI Icons (matching TripTap icon system)
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import PeopleIcon from '@mui/icons-material/People';
@@ -48,7 +23,6 @@ const HeroSection = ({
   isSaved = false,
   isSaving = false,
 }) => {
-  // Format date helper (similar to TripTap's date helpers)
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -59,16 +33,12 @@ const HeroSection = ({
     });
   };
 
-  // Extract month from dates (from TripTap's selectedMonth pattern)
   const selectedMonth = useMemo(() => {
     if (!dates?.month_year) return null;
     const month = dates.month_year.split(' ')[0];
     return month || null;
   }, [dates?.month_year]);
 
-  // Info cards data (adapted from TripTap's HeroInfoCard usage)
-  // TripTap has: Weather, Customs Language, Airport Info, Language Spoken, Top Locations
-  // OptionTrip has: Destination, Dates, Guests, Budget, Preferences
   const infoCardsData = useMemo(() => [
     {
       id: 'destination',
@@ -137,7 +107,7 @@ const HeroSection = ({
   return (
     <section className="hero-section">
       <div className="hero-section__container">
-        {/* TripTap: SearchResultsBanner */}
+
         <TripBanner
           isLoading={isLoading}
           isSuccess={isSuccess}
@@ -155,7 +125,7 @@ const HeroSection = ({
           isSaving={isSaving}
         />
 
-        {/* TripTap: CardsHoverCarousel with HeroInfoCard[] */}
+
         <InfoCardsCarousel>
           {infoCardsData.map((cardData) => (
             <InfoCard

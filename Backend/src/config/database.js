@@ -1,18 +1,11 @@
 import mongoose from 'mongoose';
 
-/**
- * Database connection configuration and utilities
- */
 class Database {
   constructor() {
     this.isConnected = false;
   }
 
-  /**
-   * Connect to MongoDB database
-   */
   async connect() {
-    // Avoid multiple connections
     if (this.isConnected) {
       console.log('📦 Using existing database connection');
       return;
@@ -20,22 +13,17 @@ class Database {
 
     try {
       const options = {
-        // Use new URL parser
         useNewUrlParser: true,
         useUnifiedTopology: true,
 
-        // Connection pool settings
         maxPoolSize: 10,
         minPoolSize: 5,
 
-        // Timeout settings
         serverSelectionTimeoutMS: 5000,
         socketTimeoutMS: 45000,
 
-        // Automatic index creation
         autoIndex: process.env.NODE_ENV !== 'production',
 
-        // Retry settings
         retryWrites: true,
         w: 'majority'
       };
@@ -49,43 +37,34 @@ class Database {
       console.log(`🔗 Host: ${conn.connection.host}`);
       console.log(`⚡ Port: ${conn.connection.port}`);
 
-      // Handle connection events
       this.setupEventHandlers();
 
     } catch (error) {
       console.error('❌ MongoDB Connection Error:', error.message);
       console.error('💡 Check your MONGODB_URI in .env file');
 
-      // Exit process with failure
       process.exit(1);
     }
   }
 
-  /**
-   * Setup database event handlers
-   */
   setupEventHandlers() {
     const db = mongoose.connection;
 
-    // Connection error after initial connection
     db.on('error', (error) => {
       console.error('❌ MongoDB Connection Error:', error.message);
       this.isConnected = false;
     });
 
-    // Disconnected event
     db.on('disconnected', () => {
       console.warn('⚠️  MongoDB Disconnected');
       this.isConnected = false;
     });
 
-    // Reconnected event
     db.on('reconnected', () => {
       console.log('✅ MongoDB Reconnected');
       this.isConnected = true;
     });
 
-    // Process termination - close connection gracefully
     process.on('SIGINT', async () => {
       await this.disconnect();
       process.exit(0);
@@ -96,13 +75,9 @@ class Database {
       process.exit(0);
     });
 
-    // MongoDB driver 4.0+ deprecations
     mongoose.set('strictQuery', false);
   }
 
-  /**
-   * Disconnect from MongoDB
-   */
   async disconnect() {
     if (!this.isConnected) {
       return;
@@ -117,9 +92,6 @@ class Database {
     }
   }
 
-  /**
-   * Get connection status
-   */
   getStatus() {
     const states = {
       0: 'disconnected',
@@ -136,9 +108,6 @@ class Database {
     };
   }
 
-  /**
-   * Drop database (use with caution - only for testing)
-   */
   async dropDatabase() {
     if (process.env.NODE_ENV === 'production') {
       throw new Error('Cannot drop database in production!');
@@ -153,9 +122,6 @@ class Database {
     }
   }
 
-  /**
-   * Clear all collections (use with caution - only for testing)
-   */
   async clearCollections() {
     if (process.env.NODE_ENV === 'production') {
       throw new Error('Cannot clear collections in production!');
@@ -177,6 +143,5 @@ class Database {
   }
 }
 
-// Export singleton instance
 const database = new Database();
 export default database;

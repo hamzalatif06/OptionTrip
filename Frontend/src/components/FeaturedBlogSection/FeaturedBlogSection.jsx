@@ -6,7 +6,6 @@ import './FeaturedBlogSection.css';
 const FALLBACK = '/images/trending/trending10.jpg';
 const REFRESH_INTERVAL = 5 * 60 * 1000;
 
-// ─── Skeletons ────────────────────────────────────────────────────
 const HeroSkeleton = () => (
   <div className="fbs-hero fbs-hero--skeleton">
     <div className="fbs-skeleton-block" style={{ height: '100%', minHeight: 360 }} />
@@ -63,7 +62,7 @@ const FeaturedBlogSection = () => {
       style={{ backgroundImage: 'url(/images/shape2.png)' }}
     >
       <div className="container">
-        {/* Header */}
+
         <div className="section-title mb-5 w-75 mx-auto text-center">
           <h4 className="mb-1 theme1">Fresh from the Blog</h4>
           <h2 className="mb-1">
@@ -72,9 +71,9 @@ const FeaturedBlogSection = () => {
           <p>Handpicked articles, guides, and inspiration for your next adventure.</p>
         </div>
 
-        {/* Grid */}
+
         <div className="fbs-grid">
-          {/* Hero — left */}
+
           {loading ? (
             <HeroSkeleton />
           ) : hero ? (
@@ -98,7 +97,7 @@ const FeaturedBlogSection = () => {
             </Link>
           ) : null}
 
-          {/* Side cards — right column */}
+
           <div className="fbs-side-grid">
             {loading
               ? [0, 1, 2, 3].map((i) => <SideCardSkeleton key={i} />)
@@ -135,7 +134,7 @@ const FeaturedBlogSection = () => {
           </div>
         </div>
 
-        {/* CTA */}
+
         <div className="text-center mt-5">
           <Link to="/blog" className="nir-btn">View All Articles</Link>
         </div>

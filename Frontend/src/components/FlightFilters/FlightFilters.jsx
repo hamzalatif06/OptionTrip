@@ -17,14 +17,8 @@ const DEP_TIME_SLOTS = [
   { id: 'night',     label: 'Night',     sub: '0 – 6',   hourMin: 0,  hourMax: 6  },
 ];
 
-/**
- * Pure filter function — works for both TP and GF flight shapes.
- * TP: { stops, price, airline, departureAt (ISO), durationMinutes }
- * GF: { stops, price, airline, departureTime (HH:MM), durationMinutes }
- */
 export function applyFilters(flights, filters) {
   return flights.filter(f => {
-    // Stops
     if (filters.stops !== 'all') {
       const s = Number(f.stops ?? 0);
       if (filters.stops === '0'  && s !== 0)  return false;
@@ -32,20 +26,16 @@ export function applyFilters(flights, filters) {
       if (filters.stops === '2+' && s < 2)    return false;
     }
 
-    // Price
     const price = f.price ?? 0;
     if (filters.priceMin > 0       && price < filters.priceMin)    return false;
     if (filters.priceMax < Infinity && price > filters.priceMax)    return false;
 
-    // Airlines
     if (filters.airlines.length > 0) {
-      const airlineStr = (f.airline || '').split('|')[0].trim(); // GF may pipe-join
+      const airlineStr = (f.airline || '').split('|')[0].trim();
       if (!filters.airlines.includes(airlineStr)) return false;
     }
 
-    // Departure time
     if (filters.depTimes.length > 0) {
-      // TP: departureAt = ISO string; GF: departureTime = "HH:MM"
       let hour = null;
       if (f.departureAt) {
         hour = new Date(f.departureAt).getHours();
@@ -63,7 +53,6 @@ export function applyFilters(flights, filters) {
       }
     }
 
-    // Max duration
     if (filters.maxDuration !== null && f.durationMinutes != null) {
       if (f.durationMinutes > filters.maxDuration) return false;
     }
@@ -72,10 +61,8 @@ export function applyFilters(flights, filters) {
   });
 }
 
-/* ─────────────────────────────────────────────────────────────────────────── */
-
 const FlightFilters = ({ flights, filters, onChange }) => {
-  const [open, setOpen] = useState(false); // mobile toggle
+  const [open, setOpen] = useState(false);
 
   const stats = useMemo(() => {
     if (!flights.length) return { minPrice: 0, maxPrice: 1000, airlines: [], maxDur: null };
@@ -129,7 +116,7 @@ const FlightFilters = ({ flights, filters, onChange }) => {
 
   return (
     <aside className="flf-aside">
-      {/* Mobile toggle */}
+
       <button className="flf-mobile-toggle" onClick={() => setOpen(v => !v)}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
           <path d="M3 6h18M6 12h12M9 18h6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
@@ -142,7 +129,7 @@ const FlightFilters = ({ flights, filters, onChange }) => {
       </button>
 
       <div className={`flf-panel${open ? ' flf-panel--open' : ''}`}>
-        {/* Header */}
+
         <div className="flf-header">
           <span className="flf-header__title">Filters</span>
           {activeCount > 0 && (
@@ -150,7 +137,7 @@ const FlightFilters = ({ flights, filters, onChange }) => {
           )}
         </div>
 
-        {/* ── Stops ── */}
+
         <div className="flf-section">
           <div className="flf-section__label">Stops</div>
           <div className="flf-stops">
@@ -171,7 +158,7 @@ const FlightFilters = ({ flights, filters, onChange }) => {
           </div>
         </div>
 
-        {/* ── Price range ── */}
+
         <div className="flf-section">
           <div className="flf-section__label">Price (USD)</div>
           <div className="flf-price-row">
@@ -202,7 +189,7 @@ const FlightFilters = ({ flights, filters, onChange }) => {
           </div>
         </div>
 
-        {/* ── Airlines ── */}
+
         {stats.airlines.length > 0 && (
           <div className="flf-section">
             <div className="flf-section__label">Airlines</div>
@@ -222,7 +209,7 @@ const FlightFilters = ({ flights, filters, onChange }) => {
           </div>
         )}
 
-        {/* ── Departure time ── */}
+
         <div className="flf-section">
           <div className="flf-section__label">Departure time</div>
           <div className="flf-time-grid">
@@ -239,7 +226,7 @@ const FlightFilters = ({ flights, filters, onChange }) => {
           </div>
         </div>
 
-        {/* ── Max duration ── */}
+
         {stats.maxDur && (
           <div className="flf-section">
             <div className="flf-section__label">

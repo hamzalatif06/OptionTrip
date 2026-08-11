@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
   },
   passwordHash: {
     type: String,
-    select: false // Don't include password in queries by default
+    select: false
   },
   phoneNumber: {
     type: String,
@@ -29,7 +29,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null
   },
-  // ISO-3 nationality code (e.g. 'PAK') — powers the "Where Can I Go?" feature.
   nationality: {
     type: String,
     default: null,
@@ -40,12 +39,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  // Multi-provider support
   authProviders: [{
     type: String,
     enum: ['local', 'google', 'facebook', 'twitter']
   }],
-  // Provider-specific IDs
   googleId: {
     type: String,
     sparse: true,
@@ -61,22 +58,19 @@ const userSchema = new mongoose.Schema({
     sparse: true,
     unique: true
   },
-  // Refresh token for JWT rotation
   refreshTokens: [{
     token: String,
     createdAt: {
       type: Date,
       default: Date.now,
-      expires: '30d' // Auto-delete after 30 days
+      expires: '30d'
     }
   }],
-  // Admin role
   role: {
     type: String,
     enum: ['user', 'admin'],
     default: 'user'
   },
-  // Travel preferences
   preferences: {
     travelStyle: { type: String, enum: ['budget', 'moderate', 'luxury', 'premium'], default: null },
     preferredActivities: { type: [String], default: [] },
@@ -85,7 +79,6 @@ const userSchema = new mongoose.Schema({
     dietaryRestrictions: { type: [String], default: [] },
     accessibility: { type: [String], default: [] }
   },
-  // Account status
   isActive: {
     type: Boolean,
     default: true
@@ -95,10 +88,9 @@ const userSchema = new mongoose.Schema({
     default: Date.now
   }
 }, {
-  timestamps: true, // Adds createdAt and updatedAt
+  timestamps: true,
   toJSON: {
     transform: function(doc, ret) {
-      // Remove sensitive fields when converting to JSON
       delete ret.passwordHash;
       delete ret.refreshTokens;
       delete ret.__v;
@@ -107,15 +99,12 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-// Index for faster queries
 userSchema.index({ email: 1 });
 userSchema.index({ googleId: 1 });
 userSchema.index({ facebookId: 1 });
 userSchema.index({ twitterId: 1 });
 
-// Pre-save middleware to hash password
 userSchema.pre('save', async function() {
-  // Only hash password if it's modified or new
   if (!this.isModified('passwordHash')) {
     return;
   }
@@ -128,7 +117,6 @@ userSchema.pre('save', async function() {
   }
 });
 
-// Method to compare password
 userSchema.methods.comparePassword = async function(candidatePassword) {
   if (!this.passwordHash) {
     return false;
@@ -136,19 +124,16 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.passwordHash);
 };
 
-// Method to add auth provider
 userSchema.methods.addAuthProvider = function(provider) {
   if (!this.authProviders.includes(provider)) {
     this.authProviders.push(provider);
   }
 };
 
-// Method to check if provider is linked
 userSchema.methods.hasProvider = function(provider) {
   return this.authProviders.includes(provider);
 };
 
-// Static method to find user by any provider
 userSchema.statics.findByProvider = async function(provider, providerId) {
   const query = {};
 
@@ -169,27 +154,21 @@ userSchema.statics.findByProvider = async function(provider, providerId) {
   return await this.findOne(query);
 };
 
-// Helper to extract profile image from OAuth profile
 const extractProfileImage = (profile) => {
-  // Try different locations where providers store the photo
   if (profile.photos && profile.photos.length > 0) {
     return profile.photos[0].value;
   }
-  // Google stores high-res image in _json.picture
   if (profile._json && profile._json.picture) {
     return profile._json.picture;
   }
-  // Some providers use profile.picture directly
   if (profile.picture) {
     return profile.picture;
   }
   return null;
 };
 
-// Static method to find or create user from OAuth profile
 userSchema.statics.findOrCreateFromOAuth = async function(provider, profile) {
   try {
-    // Extract email from profile (provider-specific)
     let email = null;
     if (profile.emails && profile.emails.length > 0) {
       email = profile.emails[0].value;
@@ -197,18 +176,14 @@ userSchema.statics.findOrCreateFromOAuth = async function(provider, profile) {
       email = profile.email;
     }
 
-    // Extract profile image
     const profileImage = extractProfileImage(profile);
 
-    // Try to find user by provider ID first
     let user = await this.findByProvider(provider, profile.id);
 
     if (user) {
-      // Update last login and profile image from OAuth provider
       user.lastLogin = new Date();
       user.addAuthProvider(provider);
 
-      // Always update profile image from OAuth if available and user doesn't have a custom uploaded one
       if (profileImage && (!user.profileImage || user.profileImage.includes('googleusercontent') || user.profileImage.includes('facebook') || user.profileImage.includes('twimg'))) {
         user.profileImage = profileImage;
       }
@@ -217,21 +192,17 @@ userSchema.statics.findOrCreateFromOAuth = async function(provider, profile) {
       return user;
     }
 
-    // If no user found by provider ID, try by email
     if (email) {
       user = await this.findOne({ email });
 
       if (user) {
-        // Link this provider to existing account
         user[`${provider}Id`] = profile.id;
         user.addAuthProvider(provider);
 
-        // Update profile image if not set or is from OAuth provider
         if (profileImage && (!user.profileImage || user.profileImage.includes('googleusercontent') || user.profileImage.includes('facebook') || user.profileImage.includes('twimg'))) {
           user.profileImage = profileImage;
         }
 
-        // Verify email if provider confirms it
         if (profile.email_verified || profile.verified || profile._json?.email_verified) {
           user.emailVerified = true;
         }
@@ -242,7 +213,6 @@ userSchema.statics.findOrCreateFromOAuth = async function(provider, profile) {
       }
     }
 
-    // Create new user
     const newUser = new this({
       name: profile.displayName || profile.username || 'User',
       email: email || `${provider}_${profile.id}@placeholder.com`,

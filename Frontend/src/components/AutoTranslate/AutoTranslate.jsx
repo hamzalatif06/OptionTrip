@@ -1,39 +1,20 @@
-/**
- * AutoTranslate — full-page translation like Google Translate
- *
- * Translates:
- *   • All visible text nodes (paragraphs, headings, buttons, labels…)
- *   • placeholder, title, and aria-label attributes on form elements
- *
- * Two-phase approach:
- *   Phase 1 (sync):  Apply all localStorage-cached translations instantly
- *   Phase 2 (async): Fetch uncached strings from Google Translate API
- *
- * MutationObserver + follow-up timers catch async-rendered sections.
- */
-
 import { useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { translateBatch, getCached } from '../../services/translateService';
 
 const CHUNK_SIZE = 40;
 
-// Tags whose inner text content should never be translated
 const SKIP_TAGS = new Set([
   'SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'INPUT',
   'SELECT', 'CODE', 'PRE', 'SVG', 'MATH',
 ]);
 
-// CSS class substrings that mark "do not translate" containers
 const SKIP_CLASS_HINTS = [
   'notranslate', 'language-switcher', 'currency-switcher',
   'country-switcher', 'header-lang',
 ];
 
-// Attributes to translate on form elements
 const TRANSLATABLE_ATTRS = ['placeholder', 'title', 'aria-label'];
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
 
 const shouldSkipNode = (node) => {
   let el = node.parentElement;
@@ -66,7 +47,6 @@ const collectTextNodes = (root) => {
   return nodes;
 };
 
-/** Collect all elements that have at least one translatable attribute */
 const collectAttrElements = (root) => {
   const results = [];
   const all = root.querySelectorAll(
@@ -83,7 +63,6 @@ const collectAttrElements = (root) => {
   return results;
 };
 
-// Debounce with guaranteed maxWait — fires even during rapid continuous mutations
 const makeDebounced = (fn, delay, maxWait) => {
   let timer = null;
   let firstAt = null;
@@ -99,25 +78,21 @@ const makeDebounced = (fn, delay, maxWait) => {
   };
 };
 
-// ── Component ──────────────────────────────────────────────────────────────────
-
 const AutoTranslate = () => {
   const { i18n } = useTranslation();
 
-  const nodeOriginals  = useRef(new WeakMap()); // text node → original string
-  const attrOriginals  = useRef(new WeakMap()); // element   → { attr: original }
-  const localCache     = useRef(new Map());     // `${lang}:${text}` → translated
+  const nodeOriginals  = useRef(new WeakMap());
+  const attrOriginals  = useRef(new WeakMap());
+  const localCache     = useRef(new Map());
   const versionRef     = useRef(0);
   const observerRef    = useRef(null);
   const followUpTimers = useRef([]);
   const currentLangRef = useRef('en');
   const debouncedFnRef = useRef(null);
 
-  // ── Phase 1: apply cached translations instantly (no await) ───────────────
   const applyCached = useCallback((lang, nodes, attrEls) => {
     if (lang === 'en') return;
 
-    // Text nodes
     nodes.forEach(node => {
       const orig = nodeOriginals.current.get(node);
       if (!orig) return;
@@ -129,7 +104,6 @@ const AutoTranslate = () => {
       }
     });
 
-    // Attributes
     attrEls.forEach(({ el, attrMap }) => {
       const origMap = attrOriginals.current.get(el) || {};
       Object.keys(attrMap).forEach(attr => {
@@ -144,7 +118,6 @@ const AutoTranslate = () => {
     });
   }, []);
 
-  // ── Full translation pass ──────────────────────────────────────────────────
   const translateDOM = useCallback(async (lang) => {
     const myVersion = ++versionRef.current;
 
@@ -152,7 +125,6 @@ const AutoTranslate = () => {
       const nodes   = collectTextNodes(document.body);
       const attrEls = collectAttrElements(document.body);
 
-      // ── Restore English ──────────────────────────────────────────────────
       if (lang === 'en') {
         nodes.forEach(node => {
           const orig = nodeOriginals.current.get(node);
@@ -168,7 +140,6 @@ const AutoTranslate = () => {
         return;
       }
 
-      // ── Store originals (English) on first encounter ─────────────────────
       nodes.forEach(node => {
         if (!nodeOriginals.current.has(node)) {
           nodeOriginals.current.set(node, node.textContent);
@@ -176,7 +147,6 @@ const AutoTranslate = () => {
       });
       attrEls.forEach(({ el, attrMap }) => {
         if (!attrOriginals.current.has(el)) {
-          // Store the current attribute values as originals
           const origMap = {};
           Object.keys(attrMap).forEach(attr => {
             origMap[attr] = el.getAttribute(attr);
@@ -185,11 +155,9 @@ const AutoTranslate = () => {
         }
       });
 
-      // ── Phase 1: apply cache instantly ──────────────────────────────────
       applyCached(lang, nodes, attrEls);
       if (versionRef.current !== myVersion) return;
 
-      // ── Phase 2: collect uncached strings ───────────────────────────────
       const seen     = new Set();
       const uncached = [];
 
@@ -207,7 +175,6 @@ const AutoTranslate = () => {
         Object.values(origMap).forEach(maybeAdd);
       });
 
-      // ── Fetch from Google Translate in chunks ────────────────────────────
       for (let i = 0; i < uncached.length; i += CHUNK_SIZE) {
         if (versionRef.current !== myVersion) return;
         const chunk   = uncached.slice(i, i + CHUNK_SIZE);
@@ -220,8 +187,6 @@ const AutoTranslate = () => {
 
       if (versionRef.current !== myVersion) return;
 
-      // ── Apply all translations ───────────────────────────────────────────
-      // Re-collect to catch nodes that appeared during the await
       const freshNodes   = collectTextNodes(document.body);
       const freshAttrEls = collectAttrElements(document.body);
 
@@ -253,7 +218,6 @@ const AutoTranslate = () => {
     }
   }, [applyCached]);
 
-  // ── MutationObserver ────────────────────────────────────────────────────────
   const startObserver = useCallback(() => {
     if (observerRef.current) return;
 
@@ -287,7 +251,6 @@ const AutoTranslate = () => {
     followUpTimers.current = [];
   }, []);
 
-  // ── Language change handler ─────────────────────────────────────────────────
   useEffect(() => {
     const handleLanguageChange = async (lng) => {
       const lang = (lng || 'en').split('-')[0];
@@ -299,7 +262,6 @@ const AutoTranslate = () => {
       await translateDOM(lang);
       if (lang === 'en') return;
 
-      // Follow-up passes catch async-rendered sections
       [1000, 3000].forEach(delay => {
         const t = setTimeout(() => translateDOM(lang), delay);
         followUpTimers.current.push(t);

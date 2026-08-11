@@ -23,25 +23,21 @@ const ProfilePage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  // Profile form state
   const [profileForm, setProfileForm] = useState({
     name: '',
     email: '',
     phoneNumber: '',
   });
 
-  // Password form state
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
 
-  // Delete account state
   const [deletePassword, setDeletePassword] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Travel preferences state
   const [prefForm, setPrefForm] = useState({
     travelStyle: '',
     preferredActivities: [],
@@ -52,7 +48,6 @@ const ProfilePage = () => {
   });
   const [isSavingPrefs, setIsSavingPrefs] = useState(false);
 
-  // Initialize form with user data
   useEffect(() => {
     if (user) {
       setProfileForm({
@@ -73,7 +68,6 @@ const ProfilePage = () => {
     }
   }, [user]);
 
-  // Redirect if not authenticated
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       navigate('/login');
@@ -211,14 +205,12 @@ const ProfilePage = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       toast.error('Please select a valid image file (JPEG, PNG, GIF, or WebP)');
       return;
     }
 
-    // Validate file size (max 5MB)
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       toast.error('Image size must be less than 5MB');
@@ -239,7 +231,6 @@ const ProfilePage = () => {
       toast.error('Failed to upload image');
     } finally {
       setIsUploadingImage(false);
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -276,7 +267,7 @@ const ProfilePage = () => {
     <div className="profile-page">
       <PageMeta title="Your Profile" description="Manage your OptionTrip profile." path="/profile" noIndex />
       <div className="profile-container">
-        {/* Sidebar */}
+
         <aside className="profile-sidebar">
           <div className="profile-avatar-section">
             <div className="profile-avatar-wrapper" onClick={handleImageClick}>
@@ -355,9 +346,9 @@ const ProfilePage = () => {
           </div>
         </aside>
 
-        {/* Main Content */}
+
         <main className="profile-content">
-          {/* Profile Tab */}
+
           {activeTab === 'profile' && (
             <div className="profile-section">
               <div className="profile-section-header">
@@ -455,7 +446,7 @@ const ProfilePage = () => {
             </div>
           )}
 
-          {/* Security Tab */}
+
           {activeTab === 'security' && (
             <div className="profile-section">
               <div className="profile-section-header">
@@ -516,7 +507,7 @@ const ProfilePage = () => {
                 </div>
               </form>
 
-              {/* Danger Zone */}
+
               <div className="profile-danger-zone">
                 <div className="profile-section-header">
                   <div>
@@ -566,7 +557,7 @@ const ProfilePage = () => {
             </div>
           )}
 
-          {/* Connected Accounts Tab */}
+
           {activeTab === 'connected' && (
             <div className="profile-section">
               <div className="profile-section-header">
@@ -577,7 +568,7 @@ const ProfilePage = () => {
               </div>
 
               <div className="profile-connected-list">
-                {/* Google */}
+
                 <div className={`profile-connected-item ${user.providers?.google ? 'connected' : ''}`}>
                   <div className="profile-connected-icon google">
                     <i className="fab fa-google"></i>
@@ -591,7 +582,7 @@ const ProfilePage = () => {
                   </button>
                 </div>
 
-                {/* Facebook */}
+
                 <div className={`profile-connected-item ${user.providers?.facebook ? 'connected' : ''}`}>
                   <div className="profile-connected-icon facebook">
                     <i className="fab fa-facebook-f"></i>
@@ -605,7 +596,7 @@ const ProfilePage = () => {
                   </button>
                 </div>
 
-                {/* Twitter */}
+
                 <div className={`profile-connected-item ${user.providers?.twitter ? 'connected' : ''}`}>
                   <div className="profile-connected-icon twitter">
                     <i className="fab fa-twitter"></i>
@@ -621,7 +612,7 @@ const ProfilePage = () => {
               </div>
             </div>
           )}
-          {/* Travel Preferences Tab */}
+
           {activeTab === 'preferences' && (
             <div className="profile-section">
               <div className="profile-section-header">
@@ -632,7 +623,7 @@ const ProfilePage = () => {
               </div>
 
               <form className="pref-form" onSubmit={handleSavePreferences}>
-                {/* Travel Style */}
+
                 <div className="pref-group">
                   <label className="pref-label">Travel style</label>
                   <div className="pref-chips">
@@ -649,7 +640,7 @@ const ProfilePage = () => {
                   </div>
                 </div>
 
-                {/* Activities */}
+
                 <div className="pref-group">
                   <label className="pref-label">Favourite activities</label>
                   <div className="pref-chips">
@@ -666,7 +657,7 @@ const ProfilePage = () => {
                   </div>
                 </div>
 
-                {/* Seat Class + Hotel Stars */}
+
                 <div className="pref-row">
                   <div className="pref-group">
                     <label className="pref-label">Preferred seat class</label>
@@ -698,7 +689,7 @@ const ProfilePage = () => {
                   </div>
                 </div>
 
-                {/* Dietary Restrictions */}
+
                 <div className="pref-group">
                   <label className="pref-label">Dietary restrictions</label>
                   <div className="pref-chips">
@@ -715,7 +706,7 @@ const ProfilePage = () => {
                   </div>
                 </div>
 
-                {/* Accessibility */}
+
                 <div className="pref-group">
                   <label className="pref-label">Accessibility needs</label>
                   <div className="pref-chips">
@@ -741,7 +732,7 @@ const ProfilePage = () => {
         </main>
       </div>
 
-      {/* Back to Home */}
+
       <button className="profile-back-btn" onClick={() => navigate('/')}>
         <i className="fas fa-arrow-left"></i>
         Back to Home

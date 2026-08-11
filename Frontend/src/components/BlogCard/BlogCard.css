@@ -1,4 +1,4 @@
-/* ─── Blog Card ───────────────────────────────────────────────── */
+
 .blog-card {
   background: #fff;
   border-radius: 16px;
@@ -15,7 +15,7 @@
   box-shadow: 0 8px 32px rgba(18, 45, 70, 0.14);
 }
 
-/* Image */
+
 .blog-card__image-wrap {
   position: relative;
   overflow: hidden;
@@ -35,7 +35,7 @@
   transform: scale(1.05);
 }
 
-/* Category badge */
+
 .blog-card__category {
   position: absolute;
   top: 14px;
@@ -51,7 +51,7 @@
   pointer-events: none;
 }
 
-/* Body */
+
 .blog-card__body {
   padding: 22px 24px 24px;
   display: flex;
@@ -60,7 +60,7 @@
   gap: 10px;
 }
 
-/* Date */
+
 .blog-card__date {
   display: flex;
   align-items: center;
@@ -73,7 +73,7 @@
   letter-spacing: 0.05em;
 }
 
-/* Title */
+
 .blog-card__title {
   font-size: 17px;
   font-weight: 700;
@@ -96,7 +96,7 @@
   color: #0A539D;
 }
 
-/* Excerpt */
+
 .blog-card__excerpt {
   font-size: 14px;
   color: #596C7E;
@@ -109,7 +109,7 @@
   overflow: hidden;
 }
 
-/* Read More */
+
 .blog-card__read-more {
   display: inline-flex;
   align-items: center;
@@ -128,7 +128,7 @@
   gap: 10px;
 }
 
-/* ─── Skeleton Loader ─────────────────────────────────────────── */
+
 .blog-card--skeleton .blog-card__image-wrap {
   background: #f0f2f5;
 }

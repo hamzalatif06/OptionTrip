@@ -9,12 +9,6 @@ const createTransporter = () =>
     },
   });
 
-/**
- * Send OTP verification email
- * @param {string} email - Recipient email
- * @param {string} name  - Recipient name
- * @param {string} otp   - 6-digit OTP code
- */
 export const sendOtpEmail = async (email, name, otp) => {
   const transporter = createTransporter();
 

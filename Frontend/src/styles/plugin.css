@@ -1,38 +1,7 @@
 
-/*------------------------------------------------------------------
-* Project:        OptionTrip - Travel Tour Booking HTML Templates
-* Author:         bizberg_themes
-* URL:            https://themeforest.net/user/bizberg_themes
-* Created:        06/27/2022
--------------------------------------------------------------------
 
- TABLE OF CONTENT
-  
-  1. Swiper
-  3. Animate
-  4. Slick
-  5. Pretty Checkbox
-  6. Range SLider
-  7. ColorSwitcher
-  8. Nice Select
-  9. Light Box
-  10. Modal Video
-  11. Image Grid
-  12. Date Picker
 
-*/
 
-/**
- * Swiper 5.2.1
- * Most modern mobile touch slider and framework with hardware accelerated transitions
- * http://swiperjs.com
- *
- * Copyright 2014-2019 Vladimir Kharlampidi
- *
- * Released under the MIT License
- *
- * Released on: November 16, 2019
- */
 
 @font-face {
     font-family: swiper-icons;
@@ -3318,9 +3287,9 @@ button.swiper-pagination-bullet {
     -webkit-animation-name: slideOutUp;
     animation-name: slideOutUp
 }
-/* Slider */
 
-/* Slider */
+
+
 .slick-slider
 {
     position: relative;
@@ -3440,10 +3409,10 @@ button.swiper-pagination-bullet {
     display: none;
 }
 
-/* Slider */
 
 
-/* Arrows */
+
+
 
 .slick-prev, .slick-next {
     font-size: 0;
@@ -3535,7 +3504,7 @@ button.swiper-pagination-bullet {
 @media(max-width: 991px) {}
 @media(max-width:767px) {}
 @media(max-width:639px) {}
-/* Dots */
+
 
 .slick-slider {
     margin: 0
@@ -3674,15 +3643,13 @@ button.swiper-pagination-bullet {
     display: block;
     width: 100%;
 }
-/* Slick Override */
+
 
 .slick-slide .image {
     padding: 0;
 }
 
-/*
-Slicknav - a Mobile Menu
-*/
+
 
 .slicknav_menu {
     display: none;
@@ -3752,20 +3719,17 @@ Slicknav - a Mobile Menu
 .slicknav_menu:after {
     clear: both
 }
-/* IE6/7 support */
+
 
 .slicknav_menu {
     *zoom: 1
 }
-/* 
-User Default Style
-Change the following styles to modify the appearance of the menu.
-*/
+
 
 .slicknav_menu {
     font-size: 16px;
 }
-/* Button */
+
 
 .slicknav_btn {
     margin: 0;
@@ -3781,7 +3745,7 @@ Change the following styles to modify the appearance of the menu.
     -o-transition: all 0.3s ease-in-out 0s;
     transition: all 0.3s ease-in-out 0s;
 }
-/* background color for responsive button */
+
 
 .slicknav_btn.slicknav_open:before {
     font-family: 'simple-line-icons';
@@ -3803,14 +3767,14 @@ Change the following styles to modify the appearance of the menu.
     line-height: 22px;
 }
 .slicknav_btn:focus {}
-/* Button Text */
+
 
 .slicknav_menu .slicknav_menutxt {
     color: #DFF2F2;
     font-weight: 400;
     font-size: 14px;
 }
-/* Button Lines */
+
 
 .slicknav_menu .slicknav_icon-bar {
     background-color: #f5f5f5
@@ -3857,7 +3821,7 @@ Change the following styles to modify the appearance of the menu.
 .bootstrap-select .dropdown-menu li {
     margin: 0;
 }
-/*.dropdown-menu>li:first-child>a{padding-top: 5px;}*/
+
 
 .dropdown-menu>li:last-child>a {
     border: none;
@@ -3952,7 +3916,7 @@ Change the following styles to modify the appearance of the menu.
     text-align: center;
     border-left: 1px solid rgba(255, 255, 255, 0.05);
 }
-/* plus-minus or arrow sign */
+
 
 .slicknav_nav .slicknav_arrow:hover {
     background: rgba(255, 255, 255, 0.05);
@@ -3989,16 +3953,7 @@ Change the following styles to modify the appearance of the menu.
     }
 }
 
-/**
- * pretty-checkbox.css
- *
- * A pure CSS library to beautify checkbox and radio buttons
- *
- * Source: https://github.com/lokesh-coder/pretty-checkbox
- * Demo: https://lokesh-coder.github.io/pretty-checkbox
- *
- * Copyright (c) 2017 Lokesh rajendran
- */
+
 
 .pretty * {
     box-sizing: border-box;
@@ -4735,7 +4690,7 @@ Change the following styles to modify the appearance of the menu.
 }
 
 
-/*Range slider*/
+
 
 
 .range-slider .ui-slider {
@@ -4824,7 +4779,7 @@ Change the following styles to modify the appearance of the menu.
     margin-top: 15px;
 }
 
-/*ColorSwitcher*/
+
 
 .ColorSwitcher, .ColorSwitcher * {
     box-sizing: border-box;
@@ -4907,7 +4862,7 @@ Change the following styles to modify the appearance of the menu.
     }
 }
 
-/*Nice Select*/
+
 
 .nice-select {
     -webkit-tap-highlight-color: transparent;
@@ -5070,7 +5025,7 @@ Change the following styles to modify the appearance of the menu.
     display: block;
 }
 
-/*Light Box*/
+
 
 .lightboxOverlay {
     position: absolute;
@@ -5098,7 +5053,7 @@ Change the following styles to modify the appearance of the menu.
     max-width: inherit;
     max-height: none;
     border-radius: 3px;
-    /* Image border */
+    
     border: 4px solid white;
 }
 .lightbox a img {
@@ -5111,8 +5066,7 @@ Change the following styles to modify the appearance of the menu.
     height: 250px;
     margin: 0 auto;
     border-radius: 4px;
-    /* Background color behind image.
-     This is visible during transitions. */
+    
     background-color: white;
 }
 .lb-outerContainer:after {
@@ -5134,7 +5088,7 @@ Change the following styles to modify the appearance of the menu.
     width: 32px;
     height: 32px;
     margin: 0 auto;
-    /* background: url(/images/loading.gif) no-repeat; */ /* Commented out - image path issue */
+     
 }
 .lb-nav {
     position: absolute;
@@ -5160,7 +5114,7 @@ Change the following styles to modify the appearance of the menu.
     width: 34%;
     left: 0;
     float: left;
-    /* background: url(/images/prev.png) left 48% no-repeat; */ /* Commented out - image path issue */
+     
     filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0);
     opacity: 0;
     -webkit-transition: opacity 0.6s;
@@ -5176,7 +5130,7 @@ Change the following styles to modify the appearance of the menu.
     width: 64%;
     right: 0;
     float: right;
-    /* background: url(/images/next.png) right 48% no-repeat; */ /* Commented out - image path issue */
+     
     filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0);
     opacity: 0;
     -webkit-transition: opacity 0.6s;
@@ -5232,7 +5186,7 @@ Change the following styles to modify the appearance of the menu.
     float: right;
     width: 30px;
     height: 30px;
-    /* background: url(/images/close.png) top right no-repeat; */ /* Commented out - image path issue */
+     
     text-align: right;
     outline: none;
     filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=70);
@@ -5249,7 +5203,7 @@ Change the following styles to modify the appearance of the menu.
 }
 
 
-/*Modal Video*/
+
 
 @keyframes modal-video {
     from {
@@ -5370,9 +5324,9 @@ Change the following styles to modify the appearance of the menu.
 .wickedpicker{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;box-shadow:0 0 0 1px rgba(14,41,57,.12),0 2px 5px rgba(14,41,57,.44),inset 0 -1px 2px rgba(14,41,57,.15);background:#fefefe;margin:0 auto;border-radius:.1px;width:270px;height:130px;font-size:14px;display:none}.wickedpicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}.wickedpicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}.wickedpicker__close:before{content:'\00d7'}.wickedpicker__controls{padding:10px 0;line-height:normal;margin:0}.wickedpicker__controls__control,.wickedpicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}.wickedpicker__controls__control-down,.wickedpicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}.wickedpicker__controls__control-up:before{content:'\e800'}.wickedpicker__controls__control-down:after{content:'\e801'}.wickedpicker__controls__control--separator{width:5px}.text-center,.wickedpicker__controls,.wickedpicker__controls__control,.wickedpicker__controls__control--separator,.wickedpicker__controls__control-down,.wickedpicker__controls__control-up,.wickedpicker__title{text-align:center}.hover-state{color:#3498db}@font-face{font-family:fontello;src:url(../fonts/fontelloba04.html?52602240);src:url(../fonts/fontelloba04.html?52602240#iefix) format("embedded-opentype"),url(../fonts/fontelloba04-2.html?52602240) format("woff"),url(../fonts/fontelloba04-3.html?52602240) format("truetype"),url(../fonts/fontelloba04-4.html?52602240#fontello) format("svg");font-weight:400;font-style:normal}.fontello-after:after,.fontello:before,.wickedpicker__controls__control-down:after,.wickedpicker__controls__control-up:before{font-family:fontello;font-style:normal;font-weight:400;speak:none;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.clearable-picker{position:relative;display:inline-block}.clearable-picker>.hasWickedpicker{padding-right:1em}.clearable-picker>.hasWickedpicker::-ms-clear{display:none}.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}
 
 
-/***************************************************************************/
-/* IMAGE GRID */
-/***************************************************************************/
+
+
+
 
 .imgs-grid {
     max-width:1000px;
@@ -5518,7 +5472,7 @@ Change the following styles to modify the appearance of the menu.
     top: 10px;
     width: 35px;
     height: 35px;
-    /* background-image: url(/images/close.png); */ /* Commented out - image path issue */
+     
     background-repeat: no-repeat;
     background-position: -100px;
 }
@@ -5564,13 +5518,13 @@ Change the following styles to modify the appearance of the menu.
 .imgs-grid-modal .modal-inner .modal-control .arrow.left {
     background-position: 2px center;
     background-repeat: no-repeat;
-    /* background-image: url(/images/prev.png); */ /* Commented out - image path issue */
+     
 }
 
 .imgs-grid-modal .modal-inner .modal-control .arrow.right {
     background-position: 2px center;
     background-repeat: no-repeat;
-    /* background-image: url(/images/next.png); */ /* Commented out - image path issue */
+     
 }
 
 .imgs-grid-modal .modal-inner .modal-image {
@@ -5736,7 +5690,7 @@ Change the following styles to modify the appearance of the menu.
   background-color: #111433;
   color: #ffffff;
   visibility: hidden;
-  /* Force Hardware Acceleration */
+  
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   -webkit-transform: translateZ(0);
@@ -5754,7 +5708,7 @@ Change the following styles to modify the appearance of the menu.
   transition: transform 0.5s 0s, visibility 0s 0.5s;
 }
 .cd-dropdown h2 {
-  /* dropdown title - mobile version only */
+  
   position: relative;
   z-index: 1;
   color: #585a70;
@@ -5762,21 +5716,21 @@ Change the following styles to modify the appearance of the menu.
   border-bottom: 1px solid #242643;
 }
 .cd-dropdown .cd-close {
-  /* 'X' close icon - mobile version only */
+  
   position: absolute;
   z-index: 1;
   right: 0;
   top: 0;
   height: 50px;
   width: 50px;
-  /* image replacement */
+  
   overflow: hidden;
   text-indent: 100%;
   white-space: nowrap;
   color: transparent;
 }
 .cd-dropdown .cd-close::after, .cd-dropdown .cd-close::before {
-  /* this is the 'X' icon */
+  
   content: '';
   position: absolute;
   left: 50%;
@@ -5826,7 +5780,7 @@ Change the following styles to modify the appearance of the menu.
   .cd-dropdown {
     position: absolute;
     top: calc(100% - 2px);
-    /* reset style*/
+    
     height: auto;
     width: auto;
     -webkit-transform: translateX(0);
@@ -5848,12 +5802,12 @@ Change the following styles to modify the appearance of the menu.
     transition: opacity 0.3s 0s, visibility 0s 0.3s, transform 0.3s 0s;
   }
   .open-to-left .cd-dropdown {
-    /* use the .open-to-left class if you want to open the dropdown on the left */
+    
     right: 0;
     left: auto;
   }
   .cd-dropdown h2, .cd-dropdown .cd-close {
-    /* on desktop - hide title and 'X' */
+    
     display: none;
   }
   .cd-dropdown.dropdown-is-active {
@@ -5885,7 +5839,7 @@ Change the following styles to modify the appearance of the menu.
 .cd-dropdown-content a, .cd-dropdown-content ul a {
   display: block;
   color: #ffffff;
-  /* truncate text with ellipsis if too long */
+  
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -5907,7 +5861,7 @@ Change the following styles to modify the appearance of the menu.
   border-top-width: 0;
 }
 .cd-dropdown-content a, .cd-dropdown-content .cd-search, .cd-dropdown-content .cd-divider, .cd-dropdown-content ul a, .cd-dropdown-content ul .cd-search, .cd-dropdown-content ul .cd-divider {
-  /* Force Hardware Acceleration */
+  
   -webkit-transform: translateZ(0);
   -moz-transform: translateZ(0);
   -ms-transform: translateZ(0);
@@ -5920,7 +5874,7 @@ Change the following styles to modify the appearance of the menu.
   transition: opacity 0.3s, transform 0.3s;
 }
 .cd-dropdown-content.is-hidden, .cd-dropdown-content ul.is-hidden {
-  /* push the secondary dropdown items to the right */
+  
   -webkit-transform: translateX(100%);
   -moz-transform: translateX(100%);
   -ms-transform: translateX(100%);
@@ -5928,11 +5882,11 @@ Change the following styles to modify the appearance of the menu.
   transform: translateX(100%);
 }
 .cd-dropdown-content.is-hidden > li > a, .cd-dropdown-content.is-hidden > li > .cd-search, .cd-dropdown-content.is-hidden > .cd-divider, .cd-dropdown-content.move-out > li > a, .cd-dropdown-content.move-out > li > .cd-search, .cd-dropdown-content.move-out > .cd-divider, .cd-dropdown-content ul.is-hidden > li > a, .cd-dropdown-content ul.is-hidden > li > .cd-search, .cd-dropdown-content ul.is-hidden > .cd-divider, .cd-dropdown-content ul.move-out > li > a, .cd-dropdown-content ul.move-out > li > .cd-search, .cd-dropdown-content ul.move-out > .cd-divider {
-  /* lower down the dropdown items opacity - when secondary dropdown slides in or for dropdown items hidden on the right */
+  
   opacity: 0;
 }
 .cd-dropdown-content.move-out > li > a, .cd-dropdown-content.move-out > li > .cd-search, .cd-dropdown-content.move-out > .cd-divider, .cd-dropdown-content ul.move-out > li > a, .cd-dropdown-content ul.move-out > li > .cd-search, .cd-dropdown-content ul.move-out > .cd-divider {
-  /* push the dropdown items to the left when secondary dropdown slides in */
+  
   -webkit-transform: translateX(-100%);
   -moz-transform: translateX(-100%);
   -ms-transform: translateX(-100%);
@@ -5977,22 +5931,22 @@ Change the following styles to modify the appearance of the menu.
     border-top-width: 1px;
   }
   .cd-dropdown-content.is-hidden > li > a, .cd-dropdown-content.is-hidden > li > .cd-search, .cd-dropdown-content.is-hidden > .cd-divider, .cd-dropdown-content.move-out > li > a, .cd-dropdown-content.move-out > li > .cd-search, .cd-dropdown-content.move-out > .cd-divider, .cd-dropdown-content ul.is-hidden > li > a, .cd-dropdown-content ul.is-hidden > li > .cd-search, .cd-dropdown-content ul.is-hidden > .cd-divider, .cd-dropdown-content ul.move-out > li > a, .cd-dropdown-content ul.move-out > li > .cd-search, .cd-dropdown-content ul.move-out > .cd-divider {
-    /* reset mobile style */
+    
     opacity: 1;
   }
 }
 
 .cd-dropdown-content .see-all a {
-  /* different style for the See all links */
+  
   color: #e29f12;
 }
 .cd-dropdown-content .cd-dropdown-gallery .cd-dropdown-item, .cd-dropdown-content .cd-dropdown-icons .cd-dropdown-item {
-  /* items with picture (or icon) and title */
+  
   height: 80px;
   line-height: 80px;
 }
 .cd-dropdown-content .cd-dropdown-gallery .cd-dropdown-item h3, .cd-dropdown-content .cd-dropdown-icons .cd-dropdown-item h3 {
-  /* truncate text with ellipsis if too long */
+  
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -6016,11 +5970,11 @@ Change the following styles to modify the appearance of the menu.
 .cd-dropdown-content .cd-dropdown-icons .cd-dropdown-item p {
   color: #111433;
   font-size: 1.3rem;
-  /* hide description on small devices */
+  
   display: none;
 }
 .cd-dropdown-content .cd-dropdown-icons .cd-dropdown-item::before {
-  /* item icon */
+  
   content: '';
   display: block;
   position: absolute;
@@ -6033,49 +5987,12 @@ Change the following styles to modify the appearance of the menu.
   background-position: center center;
   background-size: 40px 40px;
 }
-/* Commented out - These HTML files are 404 error pages, not actual icon files */
-/* The original SVG files were not downloaded by HTTrack */
-/*
-.cd-dropdown-content .cd-dropdown-icons .cd-dropdown-item.item-1::before {
-  background-image: url("../img/nucleo-icon-1.html");
-}
-.cd-dropdown-content .cd-dropdown-icons .cd-dropdown-item.item-2::before {
-  background-image: url("../img/nucleo-icon-2.html");
-}
-.cd-dropdown-content .cd-dropdown-icons .cd-dropdown-item.item-3::before {
-  background-image: url("../img/nucleo-icon-3.html");
-}
-.cd-dropdown-content .cd-dropdown-icons .cd-dropdown-item.item-4::before {
-  background-image: url("../img/nucleo-icon-4.html");
-}
-.cd-dropdown-content .cd-dropdown-icons .cd-dropdown-item.item-5::before {
-  background-image: url("../img/nucleo-icon-5.html");
-}
-.cd-dropdown-content .cd-dropdown-icons .cd-dropdown-item.item-6::before {
-  background-image: url("../img/nucleo-icon-6.html");
-}
-.cd-dropdown-content .cd-dropdown-icons .cd-dropdown-item.item-7::before {
-  background-image: url("../img/nucleo-icon-7.html");
-}
-.cd-dropdown-content .cd-dropdown-icons .cd-dropdown-item.item-8::before {
-  background-image: url("../img/nucleo-icon-8.html");
-}
-.cd-dropdown-content .cd-dropdown-icons .cd-dropdown-item.item-9::before {
-  background-image: url("../img/nucleo-icon-9.html");
-}
-.cd-dropdown-content .cd-dropdown-icons .cd-dropdown-item.item-10::before {
-  background-image: url("../img/nucleo-icon-10.html");
-}
-.cd-dropdown-content .cd-dropdown-icons .cd-dropdown-item.item-11::before {
-  background-image: url("../img/nucleo-icon-11.html");
-}
-.cd-dropdown-content .cd-dropdown-icons .cd-dropdown-item.item-12::before {
-  background-image: url("../img/nucleo-icon-12.html");
-}
-*/
+
+
+
 @media only screen and (min-width: 1024px) {
   .cd-dropdown-content {
-    /* reset mobile style */
+    
     position: static;
     height: auto;
     width: 277px;
@@ -6089,7 +6006,7 @@ Change the following styles to modify the appearance of the menu.
     box-shadow: inset 2px 0 0 #e29f12;
   }
   .cd-dropdown-content.move-out > li > a, .cd-dropdown-content.move-out > li > .cd-search, .cd-dropdown-content.move-out > .cd-divider {
-    /* reset mobile style */
+    
     -webkit-transform: translateX(0);
     -moz-transform: translateX(0);
     -ms-transform: translateX(0);
@@ -6108,12 +6025,12 @@ Change the following styles to modify the appearance of the menu.
     background-color: #ffffff;
   }
   .open-to-left .cd-dropdown-content .cd-secondary-dropdown, .open-to-left .cd-dropdown-content .cd-dropdown-gallery, .open-to-left .cd-dropdown-content .cd-dropdown-icons {
-    /* use the .open-to-left class if you want to open the dropdown on the left */
+    
     left: auto;
     right: 100%;
   }
   .cd-dropdown-content .cd-secondary-dropdown.is-hidden, .cd-dropdown-content .cd-dropdown-gallery.is-hidden, .cd-dropdown-content .cd-dropdown-icons.is-hidden {
-    /* reset mobile style */
+    
     -webkit-transform: translateX(0);
     -moz-transform: translateX(0);
     -ms-transform: translateX(0);
@@ -6121,13 +6038,13 @@ Change the following styles to modify the appearance of the menu.
     transform: translateX(0);
   }
   .cd-dropdown-content .cd-secondary-dropdown.fade-in, .cd-dropdown-content .cd-dropdown-gallery.fade-in, .cd-dropdown-content .cd-dropdown-icons.fade-in {
-    /* animate secondary dropdown items when hovering over of of the .cd-dropdown-content list items */
+    
     -webkit-animation: cd-fade-in 0.2s;
     -moz-animation: cd-fade-in 0.2s;
     animation: cd-fade-in 0.2s;
   }
   .cd-dropdown-content .cd-secondary-dropdown.fade-out, .cd-dropdown-content .cd-dropdown-gallery.fade-out, .cd-dropdown-content .cd-dropdown-icons.fade-out {
-    /* animate secondary dropdown items when hovering over of of the .cd-dropdown-content list items */
+    
     -webkit-animation: cd-fade-out 0.2s;
     -moz-animation: cd-fade-out 0.2s;
     animation: cd-fade-out 0.2s;
@@ -6178,11 +6095,11 @@ Change the following styles to modify the appearance of the menu.
     border-bottom: 1px solid #f1f1f1;
   }
   .cd-dropdown-content .cd-secondary-dropdown > li > a::after, .cd-dropdown-content .cd-secondary-dropdown > li > a::before {
-    /* hide the arrow */
+    
     display: none;
   }
   .cd-dropdown-content .cd-secondary-dropdown.move-out > li > a {
-    /* reset mobile style */
+    
     -webkit-transform: translateX(0);
     -moz-transform: translateX(0);
     -ms-transform: translateX(0);
@@ -6198,7 +6115,7 @@ Change the following styles to modify the appearance of the menu.
     height: auto;
   }
   .cd-dropdown-content .cd-secondary-dropdown > li > ul {
-    /* reset mobile style */
+    
     -webkit-transform: translate(0);
     -moz-transform: translate(0);
     -ms-transform: translate(0);
@@ -6226,7 +6143,7 @@ Change the following styles to modify the appearance of the menu.
   .cd-dropdown-content .cd-secondary-dropdown ul > li {
     width: 100%;
     border-bottom: 1px dashed #f1f1f1;
-    /*padding: 8px 10px 8px 20px;*/
+    
     line-height:inherit;
     }
     .cd-dropdown-content .cd-secondary-dropdown ul > li:last-child{border:none;}
@@ -6304,15 +6221,15 @@ Change the following styles to modify the appearance of the menu.
     margin-left: 0;
   }
   .cd-dropdown-content > .has-children > ul.is-active {
-    /* when hover over .cd-dropdown-content items - show subnavigation */
+    
     visibility: visible;
   }
   .cd-dropdown-content > .has-children > .cd-secondary-dropdown.is-active > li > ul {
-    /* if .cd-secondary-dropdown is visible - show also subnavigation */
+    
     visibility: visible;
   }
   .cd-dropdown-content > .has-children > a.is-active{
-    /* hover effect for .cd-dropdown-content items with subnavigation */
+    
     box-shadow: inset 2px 0 0 #e29f12;
     color: #e29f12;
   }
@@ -6449,7 +6366,7 @@ Change the following styles to modify the appearance of the menu.
   position: relative;
 }
 .has-children > a::before, .has-children > a::after, .go-back a::before, .go-back a::after {
-  /* arrow icon in CSS - for element with nested unordered lists */
+  
   content: '';
   position: absolute;
   top: 50%;
@@ -6482,7 +6399,7 @@ Change the following styles to modify the appearance of the menu.
 }
 
 .has-children > a::before, .has-children > a::after {
-  /* arrow goes on the right side - children navigation */
+  
   right: 20px;
   -webkit-transform-origin: 9px 50%;
   -moz-transform-origin: 9px 50%;
@@ -6510,7 +6427,7 @@ Change the following styles to modify the appearance of the menu.
   padding-left: 40px;
 }
 .cd-dropdown-content .go-back a::before, .cd-dropdown-content .go-back a::after {
-  /* arrow goes on the left side - go back button */
+  
   left: 20px;
   -webkit-transform-origin: 1px 50%;
   -moz-transform-origin: 1px 50%;

@@ -21,19 +21,15 @@ const DestinationAutocomplete = ({
   const [isLoading, setIsLoading] = useState(false);
   const debouncedInput = useDebounce(inputValue, 200);
 
-  // True when value was set programmatically (AI/nav) without a resolved place_id
   const autoSelectRef = React.useRef(false);
-  // Prevents dropdown from reopening after a selection triggers a new inputValue update
   const justSelectedRef = React.useRef(false);
 
-  // Sync input value when external value changes (e.g., from TopDestinations or AI parse)
   useEffect(() => {
     if (value?.text && value.text !== inputValue) {
       setInputValue(value.text);
     }
   }, [value?.text]);
 
-  // Mark that we need auto-selection whenever text is set but place_id is not yet resolved
   useEffect(() => {
     autoSelectRef.current = !!(value?.text && !value?.place_id);
   }, [value?.text, value?.place_id]);
@@ -45,10 +41,8 @@ const DestinationAutocomplete = ({
     resetPredictionResults
   } = useAutocompleteContext();
 
-  // Fetch predictions when debounced input changes
   useEffect(() => {
     if (debouncedInput.length >= 3) {
-      // Skip re-fetching if the input change was caused by a selection, not user typing
       if (justSelectedRef.current) {
         justSelectedRef.current = false;
         return;
@@ -63,12 +57,10 @@ const DestinationAutocomplete = ({
     }
   }, [debouncedInput]);
 
-  // Update loading state when results arrive; auto-select top match for AI-filled values
   useEffect(() => {
     if (predictionResults.length > 0) {
       setIsLoading(false);
       if (autoSelectRef.current) {
-        // AI or navigation set text without a place_id — silently pick the best match
         autoSelectRef.current = false;
         setShowDropdown(false);
         handleSelect(predictionResults[0]);
@@ -79,7 +71,7 @@ const DestinationAutocomplete = ({
   }, [predictionResults, debouncedInput]);
 
   const handleSelect = (prediction) => {
-    justSelectedRef.current = true; // suppress dropdown reopen caused by inputValue update
+    justSelectedRef.current = true;
     handleSuggestionClick(
       prediction.place_id,
       (placeDetails) => {
@@ -100,7 +92,6 @@ const DestinationAutocomplete = ({
     const newValue = e.target.value;
     setInputValue(newValue);
 
-    // If user clears the input, clear the selected place data
     if (!newValue) {
       onChange({
         text: '',
@@ -139,13 +130,13 @@ const DestinationAutocomplete = ({
           placeholder={placeholder}
         />
 
-        {/* Loading spinner */}
+
         {isLoading && debouncedInput.length >= 3 && (
           <div className="autocomplete-spinner"></div>
         )}
       </div>
 
-      {/* Popular destination chips */}
+
       {showChips && !inputValue && chips.length > 0 && (
         <div className="example-chips" style={{ marginTop: '8px' }}>
           {chips.map((dest) => (
@@ -164,7 +155,7 @@ const DestinationAutocomplete = ({
         </div>
       )}
 
-      {/* Dropdown suggestions */}
+
       {showDropdown && !isLoading && (
         <>
           {predictionResults.length > 0 ? (

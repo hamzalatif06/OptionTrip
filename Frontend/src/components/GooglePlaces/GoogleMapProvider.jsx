@@ -12,7 +12,7 @@ const GoogleMapProvider = ({ children }) => {
       onLoad={() => console.log('Google Maps API loaded successfully')}
       onError={(error) => console.error('Google Maps API error:', error)}
     >
-      {/* Hidden map required for PlacesService */}
+
       <div style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden' }}>
         <Map
           id="map"

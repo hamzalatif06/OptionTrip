@@ -1,4 +1,4 @@
-/* Trip Iterations Carousel - OptionTrip Theme - Modern Design */
+
 
 .trip-iterations-carousel {
   position: relative;
@@ -204,7 +204,7 @@
   max-width: 400px;
 }
 
-/* Responsive Design */
+
 @media (max-width: 991px) {
   .trip-iterations-carousel {
     padding: 32px 0;
@@ -308,7 +308,7 @@
   }
 }
 
-/* Support for single column on small screens */
+
 @media (max-width: 480px) {
   .trip-iterations-carousel__slide {
     max-width: calc(100vw - 48px);

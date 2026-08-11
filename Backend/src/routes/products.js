@@ -1,8 +1,6 @@
 import express from 'express';
 const router = express.Router();
 
-// Mock Amazon products data with Unsplash placeholder images
-// Note: Replace with real Amazon Product API when integrating
 const mockProducts = {
   tabs: [
     { value: 'all', label: 'All', is_loading: false },
@@ -204,10 +202,8 @@ const mockProducts = {
   }
 };
 
-// GET /api/products/homepage - Get homepage Amazon products
 router.get('/homepage', (req, res) => {
   try {
-    // Return the mock products data
     res.json(mockProducts);
   } catch (error) {
     console.error('Error fetching products:', error);

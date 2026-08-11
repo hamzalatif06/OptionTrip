@@ -15,15 +15,8 @@ import {
 
 import './TripMapTab.css';
 
-/**
- * Trip detail map — shows the trip's destination plus every itinerary activity
- * with sequential dashed route lines connecting them. Backed entirely by
- * Leaflet (loaded via CDN), no API key required.
- */
-
 const MAP_STYLES = TILE_STYLE_ORDER.map(id => TILE_PROVIDERS[id]).filter(Boolean);
 
-/* ── Style thumbnail SVG (matches the old preview look) ────────────────────── */
 const StylePreview = ({ preview }) => {
   if (preview.type === 'satellite') {
     return (
@@ -75,7 +68,6 @@ const TripMapTab = ({ tripData, daysData }) => {
     .filter(a => a.location?.coordinates?.lat && a.location?.coordinates?.lng)
     .slice(0, 40);
 
-  // ── Initialise the map once ──────────────────────────────────────────────
   useEffect(() => {
     let disposed = false;
 
@@ -96,7 +88,6 @@ const TripMapTab = ({ tripData, daysData }) => {
       L.control.zoom({ position: 'topright' }).addTo(map);
       L.control.scale({ position: 'bottomright', metric: true, imperial: false }).addTo(map);
 
-      // Custom fullscreen button (Leaflet has no built-in)
       const Fullscreen = L.Control.extend({
         options: { position: 'topright' },
         onAdd: () => {
@@ -130,26 +121,23 @@ const TripMapTab = ({ tripData, daysData }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Tile style switch ────────────────────────────────────────────────────
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !window.L || !mapReady) return;
     applyTileStyle(window.L, map, activeStyleId);
   }, [activeStyleId, mapReady]);
 
-  // ── Plot destination + activity markers + route polyline ─────────────────
   useEffect(() => {
     const map = mapRef.current;
     const L   = window.L;
     if (!map || !L || !mapReady) return;
 
-    // Clear everything we manage
-    if (destMarkerRef.current)        { map.removeLayer(destMarkerRef.current); destMarkerRef.current = null; }
+    if (destMarkerRef.current)
+      { map.removeLayer(destMarkerRef.current); destMarkerRef.current = null; }
     if (routeLineRef.current)         { map.removeLayer(routeLineRef.current);  routeLineRef.current = null; }
     activityMarkersRef.current.forEach(m => map.removeLayer(m));
     activityMarkersRef.current = [];
 
-    // Destination pin
     if (hasCoords) {
       const marker = L.marker([lat, lng], {
         icon: buildDestinationIcon(L, { name: destName, isSelected: true, color: '#029e9d' }),
@@ -187,7 +175,6 @@ const TripMapTab = ({ tripData, daysData }) => {
       popupRef.current = popup;
     }
 
-    // Activity pins
     activities.forEach(act => {
       const lt = act.location.coordinates.lat;
       const ln = act.location.coordinates.lng;
@@ -199,7 +186,6 @@ const TripMapTab = ({ tripData, daysData }) => {
       activityMarkersRef.current.push(marker);
     });
 
-    // Route line between activities (in itinerary order)
     if (activities.length >= 2) {
       const latLngs = buildRouteLatLngs(
         activities.map(a => ({ lat: a.location.coordinates.lat, lng: a.location.coordinates.lng }))
@@ -213,7 +199,6 @@ const TripMapTab = ({ tripData, daysData }) => {
       }).addTo(map);
     }
 
-    // Fit bounds to show everything
     const allPoints = [
       ...(hasCoords ? [{ lat, lng }] : []),
       ...activities.map(a => ({
@@ -234,7 +219,7 @@ const TripMapTab = ({ tripData, daysData }) => {
 
   return (
     <div className="tmt-root">
-      {/* Style picker bar */}
+
       <div className="tmt-style-bar">
         {MAP_STYLES.map(style => (
           <button
@@ -251,11 +236,11 @@ const TripMapTab = ({ tripData, daysData }) => {
         ))}
       </div>
 
-      {/* Map */}
+
       <div className="tmt-wrap">
         <div ref={containerRef} className="tmt-leaflet" />
 
-        {/* Legend */}
+
         <div className="tmt-legend">
           <div className="tmt-legend__item">
             <span className="tmt-legend__dot" style={{ background: '#029e9d' }} />

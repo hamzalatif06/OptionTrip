@@ -1,11 +1,3 @@
-/**
- * Validation Middleware
- * Validates incoming requests for trip generation
- */
-
-/**
- * Validate trip generation request
- */
 export const validateTripGeneration = (req, res, next) => {
   const {
     destination,
@@ -20,7 +12,6 @@ export const validateTripGeneration = (req, res, next) => {
 
   const errors = [];
 
-  // Destination validation
   if (!destination || typeof destination !== 'object') {
     errors.push('destination is required and must be an object');
   } else {
@@ -32,7 +23,6 @@ export const validateTripGeneration = (req, res, next) => {
     }
   }
 
-  // Dates validation
   if (!start_date) {
     errors.push('start_date is required');
   } else if (!isValidDate(start_date)) {
@@ -45,19 +35,16 @@ export const validateTripGeneration = (req, res, next) => {
     errors.push('end_date must be a valid date in YYYY-MM-DD format');
   }
 
-  // Duration validation
   if (!duration_days || typeof duration_days !== 'number') {
     errors.push('duration_days is required and must be a number');
   } else if (duration_days < 2 || duration_days > 10) {
     errors.push('duration_days must be between 2 and 10 days');
   }
 
-  // Guests validation (optional — only validate max if provided)
   if (guests && typeof guests === 'object' && typeof guests.total === 'number' && guests.total > 10) {
     errors.push('guests.total must be 10 or fewer');
   }
 
-  // If there are validation errors, return 400
   if (errors.length > 0) {
     return res.status(400).json({
       success: false,
@@ -66,13 +53,9 @@ export const validateTripGeneration = (req, res, next) => {
     });
   }
 
-  // All validation passed
   next();
 };
 
-/**
- * Validate trip ID parameter
- */
 export const validateTripId = (req, res, next) => {
   const { tripId } = req.params;
 
@@ -86,9 +69,6 @@ export const validateTripId = (req, res, next) => {
   next();
 };
 
-/**
- * Validate option selection request
- */
 export const validateOptionSelection = (req, res, next) => {
   const { option_id } = req.body;
 
@@ -102,29 +82,20 @@ export const validateOptionSelection = (req, res, next) => {
   next();
 };
 
-/**
- * Helper function to validate date format
- */
 const isValidDate = (dateString) => {
-  // Check format YYYY-MM-DD
   const regex = /^\d{4}-\d{2}-\d{2}$/;
   if (!regex.test(dateString)) {
     return false;
   }
 
-  // Check if it's a valid date
   const date = new Date(dateString);
   return date instanceof Date && !isNaN(date);
 };
 
-/**
- * Validate flight search request
- */
 export const validateFlightSearch = (req, res, next) => {
   const { originCode, destinationCode, departureDate, returnDate, adults } = req.body;
   const errors = [];
 
-  // IATA airport code: 2–3 uppercase letters (e.g. JFK, LHR, DXB)
   const iataRegex = /^[A-Za-z]{2,3}$/;
 
   if (!originCode || !iataRegex.test(originCode)) {
@@ -177,10 +148,6 @@ export const validateFlightSearch = (req, res, next) => {
   next();
 };
 
-/**
- * Validate hotel search request (query params)
- * GET /api/hotels/search?cityCode=PAR&checkIn=...&checkOut=...&adults=2
- */
 export const validateHotelSearch = (req, res, next) => {
   const { cityCode, checkIn, checkOut, adults } = req.query;
   const errors = [];
@@ -224,10 +191,6 @@ export const validateHotelSearch = (req, res, next) => {
   next();
 };
 
-/**
- * Validate Travelpayouts flight search (GET query params)
- * GET /api/flights/tp-search?origin=LHR&destination=DXB&departureAt=2026-04-01
- */
 export const validateTPFlightSearch = (req, res, next) => {
   const { origin, destination, departureAt } = req.query;
   const errors = [];

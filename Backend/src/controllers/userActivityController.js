@@ -1,23 +1,7 @@
-/**
- * User Activity Controller
- *
- * Two endpoints:
- *   POST /api/activity/log     — record a user action (auth optional; silently
- *                                drops anonymous activity)
- *   GET  /api/activity/context — lightweight summary the ViAssistant uses to
- *                                personalize its opening bubble (auth required)
- */
-
-import {
-  logActivity,
-  getRecentActivities,
-  getUnfedActivities,
-  summarizeActivities
-} from '../services/userActivityService.js';
+import { logActivity, getRecentActivities, getUnfedActivities, summarizeActivities } from '../services/userActivityService.js';
 
 export const logActivityHandler = async (req, res) => {
   try {
-    // Guests are valid users of the site — we just don't persist their activity.
     if (!req.user?._id) {
       return res.status(200).json({ success: true, skipped: true, reason: 'anonymous' });
     }

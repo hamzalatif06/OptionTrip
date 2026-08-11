@@ -20,7 +20,6 @@ import ViAssistant from '../../components/ViAssistant/ViAssistant';
 import Loader from '../../components/Loader/Loader';
 import './MyTripsPage.css';
 
-// ── Destination → Unsplash image ──────────────────────────────────────────────
 const DEST_IMAGES = {
   Paris: 'photo-1502602898657-3e91760cbb34',
   London: 'photo-1513635269975-59663e0ac1ad',
@@ -56,7 +55,6 @@ const fmtDate = (d) =>
 
 const BUDGET_LABELS = { budget: 'Budget', moderate: 'Moderate', luxury: 'Luxury', premium: 'Premium' };
 
-// ── Single trip card with kebab menu ──────────────────────────────────────────
 const TripCard = ({ trip, onDelete, onRename }) => {
   const dest          = trip.customTitle || trip.destination?.name || 'Unknown Destination';
   const [menuOpen,    setMenuOpen]    = useState(false);
@@ -65,7 +63,6 @@ const TripCard = ({ trip, onDelete, onRename }) => {
   const [savingRename, setSavingRename] = useState(false);
   const menuRef = useRef(null);
 
-  // Close menu on outside click
   useEffect(() => {
     if (!menuOpen) return;
     const handler = (e) => { if (!menuRef.current?.contains(e.target)) setMenuOpen(false); };
@@ -92,7 +89,7 @@ const TripCard = ({ trip, onDelete, onRename }) => {
         {trip.status === 'booked_externally' && <span className="mtp__card-status-badge mtp__card-status-badge--pending">Booking in progress</span>}
         {trip.status === 'confirmed' && <span className="mtp__card-status-badge mtp__card-status-badge--confirmed">✓ Booked</span>}
 
-        {/* Kebab menu */}
+
         <div className="mtp__card-menu" ref={menuRef}>
           <button className="mtp__card-menu-btn" onClick={() => setMenuOpen(v => !v)} aria-label="Trip options">
             <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
@@ -172,7 +169,6 @@ const TripCard = ({ trip, onDelete, onRename }) => {
   );
 };
 
-// ── Delete confirmation modal ──────────────────────────────────────────────────
 const DeleteModal = ({ tripName, onConfirm, onCancel, deleting }) => (
   <div className="mtp__modal-overlay" onClick={onCancel}>
     <div className="mtp__modal" onClick={e => e.stopPropagation()}>
@@ -188,7 +184,6 @@ const DeleteModal = ({ tripName, onConfirm, onCancel, deleting }) => (
   </div>
 );
 
-// ── My Trips tab: cards grid ───────────────────────────────────────────────────
 const MyTripsGrid = ({ trips, onDelete, onRename }) => {
   if (trips.length === 0) {
     return (
@@ -217,7 +212,6 @@ const MyTripsGrid = ({ trips, onDelete, onRename }) => {
   );
 };
 
-// ── Page ───────────────────────────────────────────────────────────────────────
 const MyTripsPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, loading: authLoading } = useAuth();
@@ -230,18 +224,15 @@ const MyTripsPage = () => {
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState(null);
 
-  // Delete modal state
-  const [deleteTarget, setDeleteTarget] = useState(null); // { tripId, tripName }
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting]         = useState(false);
 
-  // Auth guard
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       navigate('/login', { state: { from: '/my-trips' } });
     }
   }, [authLoading, isAuthenticated, navigate]);
 
-  // Load all data
   useEffect(() => {
     if (!isAuthenticated) return;
     (async () => {
@@ -262,8 +253,6 @@ const MyTripsPage = () => {
           : [];
         setTrips(savedTrips);
 
-        // Prefer map-data (includes activity coordinates as fallback);
-        // if it fails or returns nothing, use the regular trips list
         if (mapRes.status === 'fulfilled' && mapRes.value?.success && (mapRes.value.trips || []).length > 0) {
           setMapTrips(mapRes.value.trips);
         } else {
@@ -283,7 +272,6 @@ const MyTripsPage = () => {
     })();
   }, [isAuthenticated]);
 
-  // Visited location handlers
   const handleAddVisited = async (data) => {
     try {
       const token = getAccessToken();
@@ -306,7 +294,6 @@ const MyTripsPage = () => {
     }
   };
 
-  // Delete trip
   const handleDeleteRequest = (tripId, tripName) => setDeleteTarget({ tripId, tripName });
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
@@ -324,7 +311,6 @@ const MyTripsPage = () => {
     }
   };
 
-  // Rename trip
   const handleRenameTrip = async (tripId, customTitle) => {
     try {
       const token = getAccessToken();
@@ -333,11 +319,10 @@ const MyTripsPage = () => {
       toast.success('Trip renamed.');
     } catch {
       toast.error('Failed to rename trip. Please try again.');
-      throw new Error('rename_failed'); // re-throw so TripCard keeps rename mode open
+      throw new Error('rename_failed');
     }
   };
 
-  // Remove wishlist item
   const handleRemoveWishlist = async (id) => {
     try {
       await removeFromWishlist(id);
@@ -348,7 +333,6 @@ const MyTripsPage = () => {
     }
   };
 
-  // Dashboard stats
   const stats = useMemo(() => ({
     trips:       trips.length,
     destinations: new Set(trips.map((t) => t.destination?.name).filter(Boolean)).size,
@@ -370,7 +354,7 @@ const MyTripsPage = () => {
   return (
     <div className="mtp">
       <PageMeta title="My Trips" description="View and manage all your planned trips, travel map, and visited destinations." path="/my-trips" noIndex />
-      {/* ── Header ── */}
+
       <header className="mtp__header">
         <div className="mtp__header-inner">
           <Link to="/" className="mtp__logo">
@@ -389,7 +373,7 @@ const MyTripsPage = () => {
         </div>
       </header>
 
-      {/* ── Hero / Stats ── */}
+
       <section className="mtp__hero">
         <div className="mtp__hero-inner">
           <div className="mtp__hero-left">
@@ -428,7 +412,7 @@ const MyTripsPage = () => {
         </div>
       </section>
 
-      {/* ── Tab Nav ── */}
+
       <div className="mtp__tabs-wrap">
         <div className="mtp__tabs-inner">
           <nav className="mtp__tabs">
@@ -446,7 +430,7 @@ const MyTripsPage = () => {
         </div>
       </div>
 
-      {/* ── Tab Content ── */}
+
       <main className="mtp__content">
         <div className="mtp__content-inner">
           {error && (

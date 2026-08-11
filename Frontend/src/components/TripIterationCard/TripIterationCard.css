@@ -1,4 +1,4 @@
-/* Trip Iteration Card - OptionTrip Theme - Modern Design */
+
 
 .trip-iteration-card {
   background: #FFFFFF;
@@ -27,7 +27,7 @@
   transform: translateY(-4px);
 }
 
-/* Image Section */
+
 .trip-iteration-card__image-section {
   width: 100%;
   height: 220px;
@@ -73,7 +73,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Header Section */
+
 .trip-iteration-card__header {
   display: flex;
   align-items: center;
@@ -156,7 +156,7 @@
   color: #FFFFFF;
 }
 
-/* Features Section */
+
 .trip-iteration-card__features {
   padding: 24px 20px;
   background: #FFFFFF;
@@ -196,7 +196,7 @@
   margin: 0;
 }
 
-/* Footer Section */
+
 .trip-iteration-card__footer {
   padding: 20px;
   background: linear-gradient(to bottom, #f9f9f9 0%, #ffffff 100%);
@@ -233,7 +233,7 @@
   margin-top: 4px;
 }
 
-/* Selection Badge Overlay */
+
 .trip-iteration-card.selected::before {
   content: '✓ Selected';
   position: absolute;
@@ -250,7 +250,7 @@
   letter-spacing: 0.5px;
 }
 
-/* Responsive Design */
+
 @media (max-width: 991px) {
   .trip-iteration-card {
     min-height: 540px;

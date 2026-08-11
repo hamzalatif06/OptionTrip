@@ -7,7 +7,7 @@
   box-shadow: 0 4px 24px rgba(0,0,0,0.07);
 }
 
-/* ── Sidebar ── */
+
 .tmt__sidebar {
   width: 260px;
   flex-shrink: 0;
@@ -111,7 +111,7 @@
   font-style: italic;
 }
 
-/* ── Map ── */
+
 .tmt__map {
   flex: 1;
   min-width: 0;

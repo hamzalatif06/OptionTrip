@@ -3,7 +3,7 @@
   background: #F8F9FA;
 }
 
-/* Header Styles */
+
 .trip-iterations-header {
   background: #FFFFFF;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -66,7 +66,7 @@
   width: 100%;
 }
 
-/* Auth Section */
+
 .trip-iterations-header__auth {
   position: relative;
 }
@@ -105,7 +105,7 @@
   transform: rotate(180deg);
 }
 
-/* Auth Dropdown Menu */
+
 .trip-iterations-header__dropdown {
   position: absolute;
   top: calc(100% + 4px);
@@ -140,7 +140,7 @@
   }
 }
 
-/* Dropdown Items */
+
 .trip-iterations-header__dropdown-item {
   display: flex;
   align-items: center;
@@ -172,7 +172,7 @@
   justify-content: center;
 }
 
-/* Logout Button Styling */
+
 .trip-iterations-header__dropdown-item--logout {
   color: #dc3545;
 }
@@ -182,14 +182,14 @@
   color: #c82333;
 }
 
-/* Dropdown Divider */
+
 .trip-iterations-header__dropdown-divider {
   height: 1px;
   background-color: #f0f2f4;
   margin: 8px 0;
 }
 
-/* Icon fallbacks */
+
 .trip-iterations-header__dropdown-item i.icon-login::before {
   content: "→";
   font-style: normal;
@@ -211,7 +211,7 @@
   font-style: normal;
 }
 
-/* Responsive Header */
+
 @media (max-width: 767px) {
   .trip-iterations-header__container {
     padding: 12px 16px;
@@ -413,7 +413,7 @@
   margin: 40px 0;
 }
 
-/* Progressive Loading Progress Bar */
+
 .trip-iterations-page__progress {
   background: linear-gradient(135deg, #EAF4FF 0%, #FFEEF7 100%);
   border-radius: 16px;
@@ -445,14 +445,14 @@
   margin: 0;
 }
 
-/* Progressive Itinerary Container */
+
 .trip-iterations-page__progressive-itinerary {
   display: flex;
   flex-direction: column;
   gap: 0;
 }
 
-/* Generating indicator (old style - keeping for backward compat) */
+
 .trip-iterations-page__generating {
   display: flex;
   flex-direction: column;
@@ -479,7 +479,7 @@
   color: #596C7E;
 }
 
-/* Responsive Design */
+
 @media (max-width: 1200px) {
   .trip-iterations-page__content {
     grid-template-columns: 1fr 350px;

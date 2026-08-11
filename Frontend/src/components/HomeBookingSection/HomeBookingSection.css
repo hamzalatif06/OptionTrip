@@ -1,4 +1,4 @@
-/* ── Wrapper ── */
+
 .hbs {
   position: relative;
   z-index: 5;
@@ -6,7 +6,7 @@
   margin-top: 8px;
 }
 
-/* ── Card ── */
+
 .hbs__card {
   max-width: 1120px;
   margin: 0 auto;
@@ -18,7 +18,7 @@
   border: 1px solid var(--border, #e2e8f0);
 }
 
-/* ── Tab strip ── */
+
 .hbs__tabs {
   display: flex;
   gap: 0;
@@ -62,12 +62,12 @@
   flex-shrink: 0;
 }
 
-/* ── Form area ── */
+
 .hbs__form {
   padding: 20px 24px 24px;
 }
 
-/* ── One-way / Round-trip pills ── */
+
 .hbs__trip-type {
   display: flex;
   gap: 8px;
@@ -98,7 +98,7 @@
   color: var(--primary, #029e9d);
 }
 
-/* ── Row: fields + search btn ── */
+
 .hbs__row {
   display: flex;
   align-items: flex-end;
@@ -106,7 +106,7 @@
   flex-wrap: wrap;
 }
 
-/* ── Individual field ── */
+
 .hbs__field {
   display: flex;
   flex-direction: column;
@@ -155,7 +155,7 @@
   color: var(--text-faint, #94a3b8);
 }
 
-/* ── Swap button ── */
+
 .hbs__swap {
   display: flex;
   align-items: center;
@@ -178,7 +178,7 @@
   border-color: var(--primary, #029e9d);
 }
 
-/* ── Stepper ── */
+
 .hbs-stepper {
   display: flex;
   align-items: center;
@@ -220,7 +220,7 @@
   color: var(--text-base, #0f172a);
 }
 
-/* ── Search button ── */
+
 .hbs__search-btn {
   display: flex;
   align-items: center;
@@ -250,7 +250,7 @@
   transform: scale(0.97);
 }
 
-/* ── eSIM promo panel ── */
+
 .hbs__esim-promo {
   display: flex;
   align-items: center;
@@ -267,7 +267,7 @@
   line-height: 1.5;
 }
 
-/* ── Responsive ── */
+
 @media (max-width: 768px) {
   .hbs {
     margin-top: 4px;

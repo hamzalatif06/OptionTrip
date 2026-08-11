@@ -1,31 +1,11 @@
-/**
- * Visa + comfort dataset — the core dependency of the "Where Can I Go?" feature.
- *
- * Structure:
- *   PASSPORTS        — supported traveler nationalities (with centroid coords)
- *   DESTINATIONS     — country profiles with centroid + comfort + hero image
- *   PASSPORT_ALIAS   — inherit rules from a similar-mobility passport when a
- *                      specific rule isn't listed (keeps the table compact)
- *   VISA_RULES       — passport → destination → { entry, processing_days, docs,
- *                      stay, changed_recently, last_verified }
- *
- * IMPORTANT: visa policies change frequently. This dataset must be maintained
- * against a trusted source (IATA Timatic, IVisa, embassy websites). Every rule
- * carries `last_verified` so the UI can surface freshness — treat any rule
- * older than ~180 days as stale.
- *
- * If a (passport, destination) pair isn't listed, the service:
- *   1. tries the passport's alias in PASSPORT_ALIAS
- *   2. otherwise falls back to a conservative `embassy_visa` default.
- *
- * Transit times are computed on the fly from centroid coordinates
- * (see whereCanIGoService.computeTransit).
- */
-
-// ─── Supported passports (~62) ───────────────────────────────────────────────
 export const PASSPORTS = [
-  // South & Central Asia
-  { code: 'PAK', name: 'Pakistan',            flag: '🇵🇰', lat: 30.4,  lng: 69.3 },
+  {
+    code: 'PAK',
+    name: 'Pakistan',
+    flag: '🇵🇰',
+    lat: 30.4,
+    lng: 69.3
+  },
   { code: 'IND', name: 'India',               flag: '🇮🇳', lat: 20.6,  lng: 78.9 },
   { code: 'BGD', name: 'Bangladesh',          flag: '🇧🇩', lat: 23.7,  lng: 90.4 },
   { code: 'LKA', name: 'Sri Lanka',           flag: '🇱🇰', lat:  7.9,  lng: 80.8 },
@@ -34,8 +14,13 @@ export const PASSPORTS = [
   { code: 'KAZ', name: 'Kazakhstan',          flag: '🇰🇿', lat: 48.0,  lng: 66.9 },
   { code: 'UZB', name: 'Uzbekistan',          flag: '🇺🇿', lat: 41.4,  lng: 64.6 },
 
-  // East & Southeast Asia
-  { code: 'CHN', name: 'China',               flag: '🇨🇳', lat: 35.9,  lng: 104.2 },
+  {
+    code: 'CHN',
+    name: 'China',
+    flag: '🇨🇳',
+    lat: 35.9,
+    lng: 104.2
+  },
   { code: 'JPN', name: 'Japan',               flag: '🇯🇵', lat: 36.2,  lng: 138.3 },
   { code: 'KOR', name: 'South Korea',         flag: '🇰🇷', lat: 35.9,  lng: 127.8 },
   { code: 'SGP', name: 'Singapore',           flag: '🇸🇬', lat:  1.35, lng: 103.8 },
@@ -45,8 +30,13 @@ export const PASSPORTS = [
   { code: 'VNM', name: 'Vietnam',             flag: '🇻🇳', lat: 14.1,  lng: 108.3 },
   { code: 'PHL', name: 'Philippines',         flag: '🇵🇭', lat: 12.9,  lng: 121.8 },
 
-  // Middle East
-  { code: 'TUR', name: 'Türkiye',             flag: '🇹🇷', lat: 38.9,  lng: 35.2 },
+  {
+    code: 'TUR',
+    name: 'Türkiye',
+    flag: '🇹🇷',
+    lat: 38.9,
+    lng: 35.2
+  },
   { code: 'UAE', name: 'United Arab Emirates', flag: '🇦🇪', lat: 23.4, lng: 53.8 },
   { code: 'SAU', name: 'Saudi Arabia',        flag: '🇸🇦', lat: 23.9,  lng: 45.1 },
   { code: 'QAT', name: 'Qatar',               flag: '🇶🇦', lat: 25.4,  lng: 51.2 },
@@ -62,8 +52,13 @@ export const PASSPORTS = [
   { code: 'GEO', name: 'Georgia',             flag: '🇬🇪', lat: 42.3,  lng: 43.4 },
   { code: 'ARM', name: 'Armenia',             flag: '🇦🇲', lat: 40.1,  lng: 45.0 },
 
-  // Africa
-  { code: 'EGY', name: 'Egypt',               flag: '🇪🇬', lat: 26.8,  lng: 30.8 },
+  {
+    code: 'EGY',
+    name: 'Egypt',
+    flag: '🇪🇬',
+    lat: 26.8,
+    lng: 30.8
+  },
   { code: 'MAR', name: 'Morocco',             flag: '🇲🇦', lat: 31.8,  lng: -7.1 },
   { code: 'DZA', name: 'Algeria',             flag: '🇩🇿', lat: 28.0,  lng:  1.7 },
   { code: 'TUN', name: 'Tunisia',             flag: '🇹🇳', lat: 33.9,  lng:  9.5 },
@@ -72,8 +67,13 @@ export const PASSPORTS = [
   { code: 'ZAF', name: 'South Africa',        flag: '🇿🇦', lat: -30.6, lng: 22.9 },
   { code: 'ETH', name: 'Ethiopia',            flag: '🇪🇹', lat:  9.1,  lng: 40.5 },
 
-  // Europe
-  { code: 'GBR', name: 'United Kingdom',      flag: '🇬🇧', lat: 55.4,  lng: -3.4 },
+  {
+    code: 'GBR',
+    name: 'United Kingdom',
+    flag: '🇬🇧',
+    lat: 55.4,
+    lng: -3.4
+  },
   { code: 'IRL', name: 'Ireland',             flag: '🇮🇪', lat: 53.4,  lng: -8.2 },
   { code: 'FRA', name: 'France',              flag: '🇫🇷', lat: 46.6,  lng:  2.2 },
   { code: 'DEU', name: 'Germany',             flag: '🇩🇪', lat: 51.2,  lng: 10.4 },
@@ -97,8 +97,13 @@ export const PASSPORTS = [
   { code: 'UKR', name: 'Ukraine',             flag: '🇺🇦', lat: 48.4,  lng: 31.2 },
   { code: 'RUS', name: 'Russia',              flag: '🇷🇺', lat: 61.5,  lng: 105.3 },
 
-  // Americas
-  { code: 'USA', name: 'United States',       flag: '🇺🇸', lat: 39.8,  lng: -98.6 },
+  {
+    code: 'USA',
+    name: 'United States',
+    flag: '🇺🇸',
+    lat: 39.8,
+    lng: -98.6
+  },
   { code: 'CAN', name: 'Canada',              flag: '🇨🇦', lat: 56.1,  lng: -106.3 },
   { code: 'MEX', name: 'Mexico',              flag: '🇲🇽', lat: 23.6,  lng: -102.6 },
   { code: 'BRA', name: 'Brazil',              flag: '🇧🇷', lat: -14.2, lng: -51.9 },
@@ -107,24 +112,28 @@ export const PASSPORTS = [
   { code: 'PER', name: 'Peru',                flag: '🇵🇪', lat: -9.2,  lng: -75.0 },
   { code: 'COL', name: 'Colombia',            flag: '🇨🇴', lat:  4.6,  lng: -74.3 },
 
-  // Oceania
-  { code: 'AUS', name: 'Australia',           flag: '🇦🇺', lat: -25.3, lng: 133.8 },
+  {
+    code: 'AUS',
+    name: 'Australia',
+    flag: '🇦🇺',
+    lat: -25.3,
+    lng: 133.8
+  },
   { code: 'NZL', name: 'New Zealand',         flag: '🇳🇿', lat: -40.9, lng: 174.9 }
 ];
 
-// ─── Destination country profiles (~55) ─────────────────────────────────────
-//
-// comfort values are self-reported ratings 0-3:
-//   0 = not really available / not friendly
-//   1 = limited pockets
-//   2 = widely available / friendly
-//   3 = the norm / very friendly
 export const DESTINATIONS = [
-  // Middle East & North Africa
-  { code: 'TUR', name: 'Türkiye', flag: '🇹🇷', region: 'Europe / Middle East', lat: 38.9, lng: 35.2,
+  {
+    code: 'TUR',
+    name: 'Türkiye',
+    flag: '🇹🇷',
+    region: 'Europe / Middle East',
+    lat: 38.9,
+    lng: 35.2,
     hero:  'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&q=70',
     pitch: 'Bazaars, bosphorus, and a food scene that never sleeps.',
-    comfort: { halal: 3, prayer: 3, conservative: 2, women_solo: 2 } },
+    comfort: { halal: 3, prayer: 3, conservative: 2, women_solo: 2 }
+  },
   { code: 'UAE', name: 'United Arab Emirates', flag: '🇦🇪', region: 'Middle East', lat: 23.4, lng: 53.8,
     hero:  'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=70',
     pitch: 'Skylines, souks, and the desert 40 minutes away.',
@@ -162,11 +171,17 @@ export const DESTINATIONS = [
     pitch: 'Roman ruins on the Mediterranean, plus a Sahara side quest.',
     comfort: { halal: 3, prayer: 3, conservative: 2, women_solo: 1 } },
 
-  // South & Central Asia
-  { code: 'IND', name: 'India', flag: '🇮🇳', region: 'South Asia', lat: 20.6, lng: 78.9,
+  {
+    code: 'IND',
+    name: 'India',
+    flag: '🇮🇳',
+    region: 'South Asia',
+    lat: 20.6,
+    lng: 78.9,
     hero:  'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=70',
     pitch: 'Every kind of trip in one country — Taj Mahal to Kerala backwaters.',
-    comfort: { halal: 1, prayer: 1, conservative: 1, women_solo: 1 } },
+    comfort: { halal: 1, prayer: 1, conservative: 1, women_solo: 1 }
+  },
   { code: 'LKA', name: 'Sri Lanka', flag: '🇱🇰', region: 'South Asia', lat: 7.9, lng: 80.8,
     hero:  'https://images.unsplash.com/photo-1546708770-599a844cbdf3?w=800&q=70',
     pitch: 'Tea hills, elephants, and empty tropical beaches.',
@@ -192,11 +207,17 @@ export const DESTINATIONS = [
     pitch: 'Steppe, mountains, futuristic Astana — Central Asia at scale.',
     comfort: { halal: 3, prayer: 3, conservative: 2, women_solo: 2 } },
 
-  // East & Southeast Asia
-  { code: 'MYS', name: 'Malaysia', flag: '🇲🇾', region: 'Southeast Asia', lat: 4.2, lng: 101.9,
+  {
+    code: 'MYS',
+    name: 'Malaysia',
+    flag: '🇲🇾',
+    region: 'Southeast Asia',
+    lat: 4.2,
+    lng: 101.9,
     hero:  'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=800&q=70',
     pitch: 'Rainforests, night markets, and the friendliest halal food in Asia.',
-    comfort: { halal: 3, prayer: 3, conservative: 2, women_solo: 3 } },
+    comfort: { halal: 3, prayer: 3, conservative: 2, women_solo: 3 }
+  },
   { code: 'IDN', name: 'Indonesia', flag: '🇮🇩', region: 'Southeast Asia', lat: -0.8, lng: 113.9,
     hero:  'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=70',
     pitch: 'Bali temples, Jakarta buzz, and 17,000 islands to choose from.',
@@ -242,21 +263,33 @@ export const DESTINATIONS = [
     pitch: 'Night markets, mountain hikes, and the sweetest hospitality in Asia.',
     comfort: { halal: 1, prayer: 1, conservative: 2, women_solo: 3 } },
 
-  // Caucasus & East Europe
-  { code: 'GEO', name: 'Georgia', flag: '🇬🇪', region: 'Caucasus', lat: 42.3, lng: 43.4,
+  {
+    code: 'GEO',
+    name: 'Georgia',
+    flag: '🇬🇪',
+    region: 'Caucasus',
+    lat: 42.3,
+    lng: 43.4,
     hero:  'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=800&q=70',
     pitch: 'Wine country in the mountains — cheap, dramatic, welcoming.',
-    comfort: { halal: 1, prayer: 1, conservative: 1, women_solo: 2 } },
+    comfort: { halal: 1, prayer: 1, conservative: 1, women_solo: 2 }
+  },
   { code: 'AZE', name: 'Azerbaijan', flag: '🇦🇿', region: 'Caucasus', lat: 40.1, lng: 47.6,
     hero:  'https://images.unsplash.com/photo-1596394723269-24d17e19fc7f?w=800&q=70',
     pitch: 'Old walled city, mud volcanoes, and a very underrated food scene.',
     comfort: { halal: 3, prayer: 3, conservative: 2, women_solo: 2 } },
 
-  // Western & Southern Europe
-  { code: 'GBR', name: 'United Kingdom', flag: '🇬🇧', region: 'Western Europe', lat: 55.4, lng: -3.4,
+  {
+    code: 'GBR',
+    name: 'United Kingdom',
+    flag: '🇬🇧',
+    region: 'Western Europe',
+    lat: 55.4,
+    lng: -3.4,
     hero:  'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&q=70',
     pitch: 'London, the Cotswolds, Highlands — one country, many trips.',
-    comfort: { halal: 2, prayer: 2, conservative: 1, women_solo: 3 } },
+    comfort: { halal: 2, prayer: 2, conservative: 1, women_solo: 3 }
+  },
   { code: 'IRL', name: 'Ireland', flag: '🇮🇪', region: 'Western Europe', lat: 53.4, lng: -8.2,
     hero:  'https://images.unsplash.com/photo-1518005020951-eccb494ad742?w=800&q=70',
     pitch: 'Cliffs of Moher, pub sessions, and the warmest strangers you\'ll ever meet.',
@@ -318,11 +351,17 @@ export const DESTINATIONS = [
     pitch: 'Stockholm archipelago, Lapland stargazing, and Nordic design at every corner.',
     comfort: { halal: 1, prayer: 1, conservative: 1, women_solo: 3 } },
 
-  // Sub-Saharan Africa
-  { code: 'KEN', name: 'Kenya', flag: '🇰🇪', region: 'East Africa', lat: -0.02, lng: 37.9,
+  {
+    code: 'KEN',
+    name: 'Kenya',
+    flag: '🇰🇪',
+    region: 'East Africa',
+    lat: -0.02,
+    lng: 37.9,
     hero:  'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&q=70',
     pitch: 'Safaris that live up to the name — Maasai Mara is unreal in migration season.',
-    comfort: { halal: 1, prayer: 1, conservative: 1, women_solo: 1 } },
+    comfort: { halal: 1, prayer: 1, conservative: 1, women_solo: 1 }
+  },
   { code: 'TZA', name: 'Tanzania', flag: '🇹🇿', region: 'East Africa', lat: -6.4, lng: 34.9,
     hero:  'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&q=70',
     pitch: 'Serengeti, Kilimanjaro, Zanzibar spice islands — the classic Africa trip.',
@@ -340,11 +379,17 @@ export const DESTINATIONS = [
     pitch: 'Tropical beaches with a Creole-French-Indian fusion food scene.',
     comfort: { halal: 2, prayer: 2, conservative: 2, women_solo: 2 } },
 
-  // Americas
-  { code: 'USA', name: 'United States', flag: '🇺🇸', region: 'North America', lat: 39.8, lng: -98.6,
+  {
+    code: 'USA',
+    name: 'United States',
+    flag: '🇺🇸',
+    region: 'North America',
+    lat: 39.8,
+    lng: -98.6,
     hero:  'https://images.unsplash.com/photo-1508433957232-3107f5fd5995?w=800&q=70',
     pitch: 'One country, fifty trips — coasts, canyons, cities, and open highways.',
-    comfort: { halal: 2, prayer: 2, conservative: 1, women_solo: 2 } },
+    comfort: { halal: 2, prayer: 2, conservative: 1, women_solo: 2 }
+  },
   { code: 'CAN', name: 'Canada', flag: '🇨🇦', region: 'North America', lat: 56.1, lng: -106.3,
     hero:  'https://images.unsplash.com/photo-1503614472-8c93d56e92ce?w=800&q=70',
     pitch: 'Rockies, prairies, Great Lakes, and cities that punch above their weight.',
@@ -366,53 +411,43 @@ export const DESTINATIONS = [
     pitch: 'Machu Picchu, Sacred Valley, and Lima\'s Michelin-starred food scene.',
     comfort: { halal: 0, prayer: 0, conservative: 1, women_solo: 2 } },
 
-  // Oceania
-  { code: 'AUS', name: 'Australia', flag: '🇦🇺', region: 'Oceania', lat: -25.3, lng: 133.8,
+  {
+    code: 'AUS',
+    name: 'Australia',
+    flag: '🇦🇺',
+    region: 'Oceania',
+    lat: -25.3,
+    lng: 133.8,
     hero:  'https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?w=800&q=70',
     pitch: 'Great Barrier Reef, Uluru, coastal drives — a country the size of a continent.',
-    comfort: { halal: 2, prayer: 2, conservative: 1, women_solo: 3 } },
+    comfort: { halal: 2, prayer: 2, conservative: 1, women_solo: 3 }
+  },
   { code: 'NZL', name: 'New Zealand', flag: '🇳🇿', region: 'Oceania', lat: -40.9, lng: 174.9,
     hero:  'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=70',
     pitch: 'Middle-earth landscapes, glaciers, fiords, and adventure sports galore.',
     comfort: { halal: 1, prayer: 1, conservative: 1, women_solo: 3 } }
 ];
 
-// ─── Passport alias — inherit rules from a similar-mobility passport ────────
-//
-// When VISA_RULES[X][Y] is missing, the service looks up VISA_RULES[ALIAS[X]][Y]
-// before falling back to embassy_visa. This keeps the rule table compact while
-// still giving high-mobility passports (Schengen / Anglosphere / Gulf) accurate
-// results for most destinations.
 export const PASSPORT_ALIAS = {
-  // Anglosphere → follow USA/GBR
   CAN: 'USA',
   AUS: 'GBR',
   NZL: 'GBR',
   IRL: 'GBR',
 
-  // Schengen / Western Europe → follow DEU (which mirrors FRA)
   NLD: 'DEU', BEL: 'DEU', CHE: 'DEU', AUT: 'DEU', ITA: 'DEU',
   ESP: 'DEU', PRT: 'DEU', GRC: 'DEU', POL: 'DEU', CZE: 'DEU',
   HUN: 'DEU', ROU: 'DEU', SWE: 'DEU', NOR: 'DEU', DNK: 'DEU',
   FIN: 'DEU', ISL: 'DEU',
 
-  // East Asia high-mobility
   JPN: 'GBR', KOR: 'GBR', SGP: 'GBR', TWN: 'GBR', HKG: 'GBR',
 
-  // Middle East high-mobility (mostly mirrors UAE for GCC citizens)
   QAT: 'UAE', KWT: 'UAE', BHR: 'UAE', OMN: 'UAE',
 
-  // Neighbouring / similar passports
   ISR: 'USA',
-  ARG: 'BRA',  // Mercosur reciprocity-ish (rough)
+  ARG: 'BRA',
   CHL: 'BRA',
   MEX: 'BRA',
-
-  // Restricted-mobility passports fall to embassy_visa (no alias needed)
-  // AFG, IRQ, YEM, SYR — intentionally not aliased
 };
-
-// ─── Visa rule table ─────────────────────────────────────────────────────────
 
 const V = (entry, processing_days, docs, stay, opts = {}) => ({
   entry,
@@ -425,7 +460,6 @@ const V = (entry, processing_days, docs, stay, opts = {}) => ({
 });
 
 export const VISA_RULES = {
-  // ─── Pakistan passport ─────────────────────────────────────────────────
   PAK: {
     TUR: V('e_visa',        1,  ['Passport (6mo)', 'Photo', 'Return ticket'],                 30),
     UAE: V('e_visa',        3,  ['Passport', 'Photo', 'Accommodation booking', 'Bank statement'],     30),
@@ -450,7 +484,6 @@ export const VISA_RULES = {
     MAR: V('embassy_visa',  15, ['Passport', 'Photos', 'Bank statement', 'Accommodation booking', 'Return ticket', 'Cover letter'], 90)
   },
 
-  // ─── India passport ────────────────────────────────────────────────────
   IND: {
     NPL: V('visa_free',     0,  ['Passport or Photo ID'],                                     180),
     BTN: V('visa_free',     0,  ['Passport or Voter ID'],                                     14),
@@ -482,7 +515,6 @@ export const VISA_RULES = {
     SAU: V('e_visa',        3,  ['Passport', 'Photo'],                                        90)
   },
 
-  // ─── Bangladesh passport ───────────────────────────────────────────────
   BGD: {
     NPL: V('visa_on_arrival', 0, ['Passport (6mo)', 'Photo'],                                 90),
     BTN: V('visa_on_arrival', 0, ['Passport'],                                                15),
@@ -503,7 +535,6 @@ export const VISA_RULES = {
     VNM: V('e_visa',        3,  ['Passport (6mo)', 'Photo'],                                  30)
   },
 
-  // ─── Indonesia passport ───────────────────────────────────────────────
   IDN: {
     MYS: V('visa_free',     0,  ['Passport (6mo)'],                                           30),
     SGP: V('visa_free',     0,  ['Passport (6mo)'],                                           30),
@@ -527,7 +558,6 @@ export const VISA_RULES = {
     SAU: V('e_visa',        3,  ['Passport', 'Photo'],                                        90)
   },
 
-  // ─── Türkiye passport ──────────────────────────────────────────────────
   TUR: {
     MYS: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
     THA: V('visa_free',     0,  ['Passport (6mo)'],                                           30),
@@ -556,7 +586,6 @@ export const VISA_RULES = {
     BTN: V('e_visa',        5,  ['Passport', 'Photo'],                                        30)
   },
 
-  // ─── UAE passport (very high mobility) ────────────────────────────────
   UAE: {
     TUR: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
     MYS: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
@@ -599,7 +628,6 @@ export const VISA_RULES = {
     SAU: V('visa_free',     0,  ['Passport'],                                                 90)
   },
 
-  // ─── Saudi Arabia passport ─────────────────────────────────────────────
   SAU: {
     TUR: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
     MYS: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
@@ -621,7 +649,6 @@ export const VISA_RULES = {
     HRV: V('visa_free',     0,  ['Passport'],                                                 90)
   },
 
-  // ─── Nigeria passport ──────────────────────────────────────────────────
   NGA: {
     NPL: V('visa_on_arrival', 0, ['Passport', 'Photo'],                                       30),
     LKA: V('e_visa',        3,  ['Passport', 'Photo'],                                        30),
@@ -637,7 +664,6 @@ export const VISA_RULES = {
     RWA: V('visa_free',     0,  ['Passport'],                                                 90)
   },
 
-  // ─── USA passport (very high mobility) ────────────────────────────────
   USA: {
     TUR: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
     UAE: V('visa_on_arrival', 0, ['Passport (6mo)'],                                          30),
@@ -659,7 +685,6 @@ export const VISA_RULES = {
     QAT: V('visa_on_arrival', 0, ['Passport (6mo)'],                                          30),
     OMN: V('e_visa',        3,  ['Passport', 'Photo'],                                        30),
     JOR: V('visa_on_arrival', 0, ['Passport (6mo)'],                                          30),
-    // Europe (Schengen + UK + Ireland + Balkans)
     FRA: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
     ITA: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
     ESP: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
@@ -676,24 +701,19 @@ export const VISA_RULES = {
     HUN: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
     GBR: V('visa_free',     0,  ['Passport (6mo)'],                                           180, { changed: true, verified: '2026-06-01', notes: 'UK ETA now required — apply before travel.' }),
     IRL: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
-    // Americas
     CAN: V('visa_free',     0,  ['Passport (6mo)'],                                           180),
     MEX: V('visa_free',     0,  ['Passport (6mo)'],                                           180),
     BRA: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
     ARG: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
     PER: V('visa_free',     0,  ['Passport (6mo)'],                                           180),
-    // Oceania
     AUS: V('e_visa',        1,  ['Passport (6mo)', 'ETA application'],                        90),
     NZL: V('e_visa',        1,  ['Passport (6mo)', 'NZeTA'],                                  90),
-    // East Asia
     HKG: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
     TWN: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
     CHN: V('visa_free',     0,  ['Passport'],                                                 15, { changed: true, verified: '2026-05-30', notes: 'China introduced 15-day visa-free transit; verify conditions.' }),
-    // SEA
     VNM: V('e_visa',        3,  ['Passport (6mo)', 'Photo'],                                  30),
     KHM: V('visa_on_arrival', 0, ['Passport (6mo)', 'Photo'],                                 30),
     PHL: V('visa_free',     0,  ['Passport (6mo)'],                                           30),
-    // Africa
     TZA: V('e_visa',        3,  ['Passport', 'Photo'],                                        90),
     ZAF: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
     MUS: V('visa_free',     0,  ['Passport'],                                                 60),
@@ -705,7 +725,6 @@ export const VISA_RULES = {
     SAU: V('e_visa',        1,  ['Passport (6mo)', 'Photo'],                                  90)
   },
 
-  // ─── UK passport (very high mobility) ─────────────────────────────────
   GBR: {
     TUR: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
     UAE: V('visa_on_arrival', 0, ['Passport (6mo)'],                                          30),
@@ -767,7 +786,6 @@ export const VISA_RULES = {
     SAU: V('e_visa',        1,  ['Passport (6mo)', 'Photo'],                                  90)
   },
 
-  // ─── Germany passport (Schengen — most of EU maps to this via alias) ──
   DEU: {
     TUR: V('visa_free',     0,  ['Passport'],                                                 90),
     UAE: V('visa_on_arrival', 0, ['Passport (6mo)'],                                          90),
@@ -789,7 +807,6 @@ export const VISA_RULES = {
     QAT: V('visa_on_arrival', 0, ['Passport (6mo)'],                                          30),
     OMN: V('e_visa',        3,  ['Passport', 'Photo'],                                        30),
     JOR: V('visa_on_arrival', 0, ['Passport (6mo)'],                                          30),
-    // Schengen internal (all visa-free)
     FRA: V('visa_free',     0,  ['ID card'],                                                  9999),
     ITA: V('visa_free',     0,  ['ID card'],                                                  9999),
     ESP: V('visa_free',     0,  ['ID card'],                                                  9999),
@@ -805,24 +822,20 @@ export const VISA_RULES = {
     HUN: V('visa_free',     0,  ['ID card'],                                                  9999),
     IRL: V('visa_free',     0,  ['ID card'],                                                  90),
     GBR: V('visa_free',     0,  ['Passport (6mo)'],                                           180, { changed: true, verified: '2026-06-01', notes: 'UK ETA now required.' }),
-    // Americas
     USA: V('e_visa',        2,  ['Passport (6mo)', 'ESTA'],                                   90),
     CAN: V('e_visa',        1,  ['Passport (6mo)', 'eTA'],                                    180),
     MEX: V('visa_free',     0,  ['Passport (6mo)'],                                           180),
     BRA: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
     ARG: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
     PER: V('visa_free',     0,  ['Passport (6mo)'],                                           183),
-    // Oceania
     AUS: V('e_visa',        1,  ['Passport (6mo)', 'eVisitor'],                               90),
     NZL: V('e_visa',        1,  ['Passport (6mo)', 'NZeTA'],                                  90),
-    // Asia
     HKG: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
     TWN: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
     CHN: V('visa_free',     0,  ['Passport'],                                                 15, { changed: true, verified: '2026-05-30' }),
     VNM: V('e_visa',        3,  ['Passport (6mo)', 'Photo'],                                  30),
     KHM: V('visa_on_arrival', 0, ['Passport (6mo)', 'Photo'],                                 30),
     PHL: V('visa_free',     0,  ['Passport (6mo)'],                                           30),
-    // Africa
     TZA: V('e_visa',        3,  ['Passport', 'Photo'],                                        90),
     ZAF: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
     MUS: V('visa_free',     0,  ['Passport'],                                                 60),
@@ -834,12 +847,7 @@ export const VISA_RULES = {
     SAU: V('e_visa',        1,  ['Passport (6mo)', 'Photo'],                                  90)
   },
 
-  // ─── France passport (identical to DEU for Schengen; kept for explicit hits) ──
   FRA: {
-    // Deliberately near-empty — falls through PASSPORT_ALIAS check to DEU rules
-    // (Since PASSPORT_ALIAS doesn't alias FRA, the fallback per-lookup handles it;
-    //  see whereCanIGoService.getRule which tries FRA → alias → default.)
-    // We list a few defining "as good as DEU" rules to be explicit.
     USA: V('e_visa',        2,  ['Passport (6mo)', 'ESTA'],                                   90),
     GBR: V('visa_free',     0,  ['Passport (6mo)'],                                           180, { changed: true, verified: '2026-06-01' }),
     JPN: V('visa_free',     0,  ['Passport (6mo)'],                                           90),
@@ -848,11 +856,9 @@ export const VISA_RULES = {
   }
 };
 
-// Alias FRA → DEU so France gets Germany's full rule sheet where FRA lacks one.
-// (Added programmatically since FRA is defined but sparse.)
-if (!PASSPORT_ALIAS.FRA) PASSPORT_ALIAS.FRA = 'DEU';
+if (!PASSPORT_ALIAS.FRA)
+  PASSPORT_ALIAS.FRA = 'DEU';
 
-/** Conservative fallback when a (passport, destination) rule isn't in the table. */
 export const FALLBACK_RULE = () => V(
   'embassy_visa',
   20,

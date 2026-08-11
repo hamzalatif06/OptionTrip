@@ -1,9 +1,9 @@
-/* Signup Page Styles - Full Screen No Scroll */
 
-/* Import base auth styles */
+
+
 @import '../Login/Login.css';
 
-/* Signup specific overrides - Ultra Compact */
+
 .signup-container .auth-form-section {
   overflow-y: auto;
   max-height: 100vh;
@@ -15,7 +15,7 @@
   padding: 0;
 }
 
-/* Ultra compact logo */
+
 .signup-container .auth-logo {
   margin-bottom: 16px;
 }
@@ -24,7 +24,7 @@
   height: 60px !important;
 }
 
-/* Ultra compact header */
+
 .signup-container .auth-header {
   margin-bottom: 14px;
 }
@@ -38,7 +38,7 @@
   font-size: 13px;
 }
 
-/* Ultra compact social buttons */
+
 .signup-container .auth-social-buttons {
   grid-template-columns: repeat(2, 1fr);
   margin-bottom: 14px;
@@ -59,7 +59,7 @@
   font-size: 10px;
 }
 
-/* Ultra compact divider */
+
 .signup-container .auth-divider {
   margin-bottom: 14px;
 }
@@ -68,7 +68,7 @@
   font-size: 12px;
 }
 
-/* Ultra compact input spacing */
+
 .signup-container .auth-input-wrapper {
   margin-bottom: 10px;
 }
@@ -87,7 +87,7 @@
   border-radius: 10px;
 }
 
-/* Terms Wrapper - Ultra compact */
+
 .auth-terms-wrapper {
   margin-bottom: 14px;
 }
@@ -108,7 +108,7 @@
   font-size: 12px;
 }
 
-/* Ultra compact footer */
+
 .signup-container .auth-footer {
   margin-top: 14px;
   margin-bottom: 14px;
@@ -118,19 +118,19 @@
   font-size: 13px;
 }
 
-/* Make button more compact */
+
 .signup-container .auth-button {
   padding: 11px 20px;
   font-size: 14px;
   border-radius: 10px;
 }
 
-/* Hide optional phone field to save space */
+
 .signup-container .phone-field {
-  /* display: none; */
+  
 }
 
-/* Responsive Styles for Signup */
+
 @media (max-width: 1200px) {
   .signup-container .auth-form-section {
     padding: 20px 40px;
@@ -236,7 +236,7 @@
   }
 }
 
-/* Special handling for small height screens */
+
 @media (max-height: 800px) {
   .signup-container .auth-form-section {
     padding: 15px 50px;
@@ -294,7 +294,7 @@
   }
 }
 
-/* OTP Verification Step */
+
 .otp-input-wrapper {
   margin-bottom: 20px;
 }

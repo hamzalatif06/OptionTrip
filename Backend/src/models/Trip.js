@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 
-// Activity schema for detailed itinerary (Phase 2 only)
 const activitySchema = new mongoose.Schema({
   time: {
     type: String,
@@ -38,7 +37,6 @@ const activitySchema = new mongoose.Schema({
   place_id: String
 });
 
-// Day itinerary schema for Phase 2
 const dayItinerarySchema = new mongoose.Schema({
   day_number: {
     type: Number,
@@ -60,7 +58,6 @@ const dayItinerarySchema = new mongoose.Schema({
   }
 });
 
-// Trip Option schema (Phase 1 - lightweight)
 const tripOptionSchema = new mongoose.Schema({
   option_id: {
     type: String,
@@ -101,7 +98,6 @@ const tripOptionSchema = new mongoose.Schema({
     label: String,
     value: String
   }],
-  // Phase 2 data (populated only after user selects this option)
   itinerary: [dayItinerarySchema],
   itinerary_generated: {
     type: Boolean,
@@ -109,7 +105,6 @@ const tripOptionSchema = new mongoose.Schema({
   }
 }, { _id: false });
 
-// Main Trip schema
 const tripSchema = new mongoose.Schema({
   trip_id: {
     type: String,
@@ -191,17 +186,14 @@ const tripSchema = new mongoose.Schema({
   customTitle: String,
   deleted: { type: Boolean, default: false, index: true },
 
-  // Phase 1: Trip options (lightweight)
   options: [tripOptionSchema],
   options_generated: {
     type: Boolean,
     default: false
   },
 
-  // Selected option
   selected_option_id: String,
 
-  // Bookings selected by the user from flight/hotel/car search tabs
   selectedFlight: {
     provider: String,
     bookingUrl: String,
@@ -236,21 +228,18 @@ const tripSchema = new mongoose.Schema({
   },
   totalEstimatedCost: { type: Number, default: 0 },
 
-  // Trip status
   status: {
     type: String,
     enum: ['draft', 'options_generated', 'option_selected', 'itinerary_generated', 'confirmed', 'booked_externally', 'archived'],
     default: 'draft'
   },
 
-  // Trip sharing
   shareToken: { type: String, index: true, sparse: true },
   isPublic: { type: Boolean, default: false }
 }, {
   timestamps: true
 });
 
-// Index for faster queries
 tripSchema.index({ user_id: 1, createdAt: -1 });
 
 const Trip = mongoose.model('Trip', tripSchema);

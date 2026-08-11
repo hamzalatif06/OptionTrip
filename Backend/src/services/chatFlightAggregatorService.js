@@ -1,11 +1,3 @@
-/**
- * Chat Flight Aggregator
- * Single entry point Vi's flight-search tool calls: fans out to all four
- * existing flight provider services in parallel, normalizes their differently
- * shaped results into one common flat shape, merges, sorts by price, and caps
- * to a small top-N suitable for an inline chat card list.
- */
-
 import { searchFlightsDuffel } from './duffelService.js';
 import { searchFlightsGoogle } from './googleFlightsService.js';
 import { searchFlights as searchFlightsAmadeus } from './amadeusService.js';
@@ -28,8 +20,6 @@ const extractTime = (iso) => {
   const m = String(iso).match(/T(\d{2}:\d{2})/);
   return m ? m[1] : '';
 };
-
-// ─── Per-provider normalization into one common flat shape ─────────────────
 
 const normalizeDuffel = (flights) =>
   (flights || []).map(f => ({
@@ -77,7 +67,6 @@ const normalizeGoogle = (flights) =>
     returnDuration: f.returnDuration || ''
   }));
 
-// Amadeus is the odd one out — nested itineraries[0].segments[], price is a string.
 const normalizeAmadeus = (offers, { originCode, destinationCode }) =>
   (offers || []).map(offer => {
     const itin = offer.itineraries?.[0];
@@ -130,16 +119,6 @@ const normalizeTravelpayouts = (flights) =>
     returnDuration: ''
   }));
 
-/**
- * @param {object} params
- * @param {string} params.origin        IATA code
- * @param {string} params.destination   IATA code
- * @param {string} params.departureDate YYYY-MM-DD
- * @param {string} [params.returnDate]  YYYY-MM-DD
- * @param {number} [params.adults=1]
- * @param {string} [params.travelClass='economy']
- * @returns {Promise<{results: Array, providerStatus: object, searchParams: object}>}
- */
 export const aggregateFlightSearch = async ({
   origin, destination, departureDate, returnDate = null, adults = 1, travelClass = 'economy'
 }) => {

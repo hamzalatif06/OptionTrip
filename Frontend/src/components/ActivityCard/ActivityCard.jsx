@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import useCurrency from '../../hooks/useCurrency';
 import './ActivityCard.css';
 
-// Material-UI Icons (matching TripTap icon system)
 import MuseumIcon from '@mui/icons-material/Museum';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import HikingIcon from '@mui/icons-material/Hiking';
@@ -38,7 +37,6 @@ const ActivityCard = ({
   isEditable = true,
 }) => {
   const { formatPrice } = useCurrency();
-  // Get activity icon based on category (MUI Icons)
   const getActivityIcon = (category) => {
     const iconSize = { fontSize: { xl: 24, lg: 20, xs: 16 } };
     const iconMap = {
@@ -64,7 +62,6 @@ const ActivityCard = ({
     return iconMap[category?.toLowerCase()] || <PlaceIcon sx={iconSize} />;
   };
 
-  // Render star rating with MUI icons
   const renderStars = (rating) => {
     const stars = [];
     const fullStars = Math.floor(rating);
@@ -82,17 +79,11 @@ const ActivityCard = ({
     return stars;
   };
 
-  // Get activity image from Google Places API data
-  // Images come from backend enrichment via placesService.js (NO Unsplash)
   const getActivityImage = () => {
-    // Return image from Google Places API enrichment
-    // If no image, return empty string and let onError handle fallback
     return activity.image || activity.activity_image_url || '';
   };
 
-  // Generate dynamic tags based on activity data
   const generateTags = useMemo(() => {
-    // If activity has tags, use them
     if (activity.tags && activity.tags.length > 0) {
       return activity.tags.slice(0, 4);
     }
@@ -100,11 +91,9 @@ const ActivityCard = ({
       return activity.businessCategories.slice(0, 4);
     }
 
-    // Generate tags dynamically from activity properties
     const tags = [];
     const category = activity.category || activity.type;
 
-    // Add category-based tag
     if (category) {
       const categoryLabels = {
         sightseeing: 'Landmark',
@@ -128,7 +117,6 @@ const ActivityCard = ({
       tags.push(categoryLabels[category?.toLowerCase()] || category);
     }
 
-    // Add duration-based tag
     if (activity.duration) {
       const durationLower = activity.duration.toLowerCase();
       if (durationLower.includes('hour') || durationLower.includes('hr')) {
@@ -139,7 +127,6 @@ const ActivityCard = ({
       }
     }
 
-    // Add cost-based tag
     if (activity.cost !== undefined && activity.cost !== null) {
       const cost = typeof activity.cost === 'number' ? activity.cost : parseInt(activity.cost) || 0;
       if (cost === 0) tags.push('Free');
@@ -148,7 +135,6 @@ const ActivityCard = ({
       else tags.push('Premium');
     }
 
-    // Add time-of-day based tag
     if (activity.time) {
       const hour = parseInt(activity.time.split(':')[0]);
       if (hour < 12) tags.push('Morning');
@@ -156,12 +142,10 @@ const ActivityCard = ({
       else tags.push('Evening');
     }
 
-    // Add rating-based tag if high rating
     if (activity.rating && activity.rating >= 4.5) {
       tags.push('Top Rated');
     }
 
-    // Add place name based tag if it contains keywords
     const placeName = (activity.place_name || activity.title || '').toLowerCase();
     if (placeName.includes('museum')) tags.push('Museum');
     else if (placeName.includes('park')) tags.push('Park');
@@ -170,11 +154,9 @@ const ActivityCard = ({
     else if (placeName.includes('market')) tags.push('Market');
     else if (placeName.includes('restaurant') || placeName.includes('cafe') || placeName.includes('café')) tags.push('Dining');
 
-    // Return unique tags, max 4
     return [...new Set(tags)].slice(0, 4);
   }, [activity]);
 
-  // Generate dynamic subtitle/header based on activity
   const generateSubtitle = useMemo(() => {
     if (activity.subtitle || activity.activity_header) {
       return activity.subtitle || activity.activity_header;
@@ -183,7 +165,6 @@ const ActivityCard = ({
     const category = activity.category || activity.type || '';
     const placeName = activity.place_name || activity.title || '';
 
-    // Generate contextual subtitle
     const subtitles = {
       sightseeing: `Popular ${placeName.includes('museum') ? 'museum' : 'attraction'} destination`,
       dining: `Local favorite for ${activity.time && parseInt(activity.time) < 12 ? 'breakfast & brunch' : 'dining'}`,
@@ -207,7 +188,6 @@ const ActivityCard = ({
     return subtitles[category.toLowerCase()] || 'Must-visit destination';
   }, [activity]);
 
-  // Activity details
   const activityType = activity.type || activity.category || 'Activity';
   const activityHeader = generateSubtitle;
   const activityName = activity.title || activity.name || activity.place_name || 'Activity';
@@ -218,7 +198,6 @@ const ActivityCard = ({
   const activityTime = activity.time || '';
   const hasBooking = activity.has_booking || false;
 
-  // Format cost display with selected currency
   const formatCost = (cost) => {
     if (cost === null || cost === undefined) return null;
     const num = typeof cost === 'number' ? cost : parseFloat(String(cost).replace(/[^0-9.]/g, ''));
@@ -226,10 +205,8 @@ const ActivityCard = ({
     return formatPrice(num);
   };
 
-  // Calculate distance from search center
   const calculateDistance = () => {
     if (activity.distance) return activity.distance;
-    // Calculate approximate distance if coordinates are available
     if (activity.location?.coordinates && searchCenter?.geo_location) {
       const lat1 = activity.location.coordinates.lat;
       const lng1 = activity.location.coordinates.lng;
@@ -237,8 +214,7 @@ const ActivityCard = ({
       const lng2 = searchCenter.geo_location[0];
 
       if (lat1 && lng1 && lat2 && lng2) {
-        // Haversine formula for distance
-        const R = 3959; // Earth's radius in miles
+        const R = 3959;
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLng = (lng2 - lng1) * Math.PI / 180;
         const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -254,9 +230,9 @@ const ActivityCard = ({
 
   return (
     <div className="activity-card">
-      {/* Main Card Content */}
+
       <div className="activity-card__main">
-        {/* Image Section */}
+
         <div className="activity-card__image-wrapper">
           <img
             src={getActivityImage()}
@@ -269,9 +245,9 @@ const ActivityCard = ({
           />
         </div>
 
-        {/* Content Section */}
+
         <div className="activity-card__content">
-          {/* First Row - Activity Type & Time Badge */}
+
           <div className="activity-card__header-row">
             <div className="activity-card__type-info">
               <span className="activity-card__type-icon">
@@ -292,7 +268,7 @@ const ActivityCard = ({
             )}
           </div>
 
-          {/* Second Row - Activity Title and Rating */}
+
           <div className="activity-card__title-section">
             <h3 className="activity-card__title">
               {activityName}
@@ -316,14 +292,14 @@ const ActivityCard = ({
             </div>
           </div>
 
-          {/* Third Row - Description */}
+
           {activityDescription && (
             <p className="activity-card__description">
               {activityDescription}
             </p>
           )}
 
-          {/* Fourth Row - Tags/Keywords */}
+
           {businessCategories.length > 0 && (
             <div className="activity-card__tags">
               {businessCategories.map((tag, index) => (
@@ -334,7 +310,7 @@ const ActivityCard = ({
             </div>
           )}
 
-          {/* Location with Get Directions */}
+
           <div className="activity-card__location">
             <RoomIcon sx={{ fontSize: { xl: 18, lg: 15, md: 16, xs: 14 }, color: '#17233e' }} />
             <span className="activity-card__location-text">
@@ -358,7 +334,7 @@ const ActivityCard = ({
           </div>
         </div>
 
-        {/* Action Buttons (Right Side) */}
+
         {isEditable && (
           <div className="activity-card__actions">
             <div className="activity-card__actions-divider"></div>
@@ -379,15 +355,7 @@ const ActivityCard = ({
                     <CloseIcon sx={{ fontSize: 20 }} />
                     <span>Remove</span>
                   </button>
-                  {/* TODO: Implement swap functionality
-                  <button
-                    className="activity-card__action-button activity-card__action-button--swap"
-                    onClick={() => onSwapActivity && onSwapActivity(activity)}
-                  >
-                    <SwapHorizIcon sx={{ fontSize: 20, transform: 'rotate(90deg)' }} />
-                    <span>Swap</span>
-                  </button>
-                  */}
+
                 </div>
               )}
               {hasBooking && (

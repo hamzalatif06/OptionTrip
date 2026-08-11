@@ -22,7 +22,7 @@
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* ── Airline ───────────────────────────────────────────────────────────────── */
+
 .ftc-airline {
   display: flex;
   flex-direction: column;
@@ -48,7 +48,7 @@
   font-weight: 500;
 }
 
-/* ── Route ─────────────────────────────────────────────────────────────────── */
+
 .ftc-route {
   display: flex;
   align-items: center;
@@ -89,7 +89,7 @@
   margin-top: 2px;
 }
 
-/* ── Route middle (line + info) ───────────────────────────────────────────── */
+
 .ftc-route__middle {
   flex: 1;
   display: flex;
@@ -147,7 +147,7 @@
   font-weight: 700;
 }
 
-/* ── CTA ───────────────────────────────────────────────────────────────────── */
+
 .ftc-cta {
   flex-shrink: 0;
   display: flex;
@@ -206,7 +206,7 @@
   margin: 0;
 }
 
-/* ── Responsive ────────────────────────────────────────────────────────────── */
+
 @media (max-width: 640px) {
   .ftc-card__main {
     flex-wrap: wrap;
@@ -230,7 +230,7 @@
   }
 }
 
-/* ── Return leg row ── */
+
 .ftc-return-row {
   display: flex;
   align-items: center;

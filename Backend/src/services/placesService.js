@@ -1,19 +1,7 @@
-/**
- * Google Places Service
- * Handles location enrichment with Google Places API
- */
-
 import { Client } from '@googlemaps/google-maps-services-js';
 
 const client = new Client({});
 
-/**
- * Enrich activity with Google Places data (photos, rating, location)
- * Uses Text Search API as specified - NO Unsplash, only Google Places photos
- * @param {string} placeQuery - Search query for the place (name only from AI)
- * @param {object} destination - Destination with lat/lng for location bias
- * @returns {object} Place details including photo URL, location, rating
- */
 export const enrichActivityWithPlaces = async (placeQuery, destination) => {
   try {
     if (!process.env.GOOGLE_PLACES_API_KEY) {
@@ -21,13 +9,12 @@ export const enrichActivityWithPlaces = async (placeQuery, destination) => {
       return null;
     }
 
-    // Use Text Search API to find the place
     const searchResponse = await client.textSearch({
       params: {
         query: placeQuery,
         location: destination?.geometry ?
           `${destination.geometry.lat},${destination.geometry.lng}` : undefined,
-        radius: 5000, // 5km radius for location bias
+        radius: 5000,
         key: process.env.GOOGLE_PLACES_API_KEY,
       },
     });
@@ -39,14 +26,11 @@ export const enrichActivityWithPlaces = async (placeQuery, destination) => {
 
     const place = searchResponse.data.results[0];
 
-    // Generate photo URL ONLY if photo exists (NO Unsplash fallback)
     let photoUrl = '';
     if (place.photos && place.photos.length > 0) {
       const photoReference = place.photos[0].photo_reference;
       photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoReference}&key=${process.env.GOOGLE_PLACES_API_KEY}`;
     }
-    // If no photo, leave empty string (frontend will use local fallback)
-
     return {
       name: place.name,
       address: place.formatted_address,
@@ -58,7 +42,7 @@ export const enrichActivityWithPlaces = async (placeQuery, destination) => {
         }
       },
       rating: place.rating || 0,
-      image: photoUrl, // Empty string if no photo available
+      image: photoUrl,
       place_id: place.place_id,
       types: place.types || []
     };
@@ -69,12 +53,6 @@ export const enrichActivityWithPlaces = async (placeQuery, destination) => {
   }
 };
 
-/**
- * Batch enrich multiple activities with Places data
- * @param {Array} activities - Array of activities with placeQuery
- * @param {object} destination - Destination for location bias
- * @returns {Array} Enriched activities
- */
 export const batchEnrichActivities = async (activities, destination) => {
   const enrichedActivities = [];
 
@@ -98,11 +76,9 @@ export const batchEnrichActivities = async (activities, destination) => {
           place_id: placeData.place_id
         });
       } else {
-        // Keep original activity if enrichment fails
         enrichedActivities.push(activity);
       }
 
-      // Rate limiting: wait 100ms between requests to avoid quota issues
       await new Promise(resolve => setTimeout(resolve, 100));
 
     } catch (error) {
@@ -114,11 +90,6 @@ export const batchEnrichActivities = async (activities, destination) => {
   return enrichedActivities;
 };
 
-/**
- * Get place details by place ID
- * @param {string} placeId - Google Place ID
- * @returns {object} Detailed place information
- */
 export const getPlaceDetails = async (placeId) => {
   try {
     if (!process.env.GOOGLE_PLACES_API_KEY) {
@@ -180,13 +151,6 @@ export const getPlaceDetails = async (placeId) => {
   }
 };
 
-/**
- * Search for places near a location
- * @param {string} query - Search query
- * @param {object} location - {lat, lng}
- * @param {number} radius - Search radius in meters (default: 5000)
- * @returns {Array} Array of places
- */
 export const searchNearbyPlaces = async (query, location, radius = 5000) => {
   try {
     if (!process.env.GOOGLE_PLACES_API_KEY) {
@@ -234,13 +198,6 @@ export const searchNearbyPlaces = async (query, location, radius = 5000) => {
   }
 };
 
-/**
- * PHASE 2: Enrich entire itinerary with Google Places data
- * Takes an itinerary array and enriches all activities with place data
- * @param {Array} itinerary - Array of day objects with activities
- * @param {object} destination - Destination for location bias
- * @returns {Array} Enriched itinerary
- */
 export const enrichItineraryWithPlaces = async (itinerary, destination) => {
   const enrichedItinerary = [];
 
@@ -255,7 +212,6 @@ export const enrichItineraryWithPlaces = async (itinerary, destination) => {
           continue;
         }
 
-        // Enrich activity with Google Places data
         const placeData = await enrichActivityWithPlaces(activity.place_name, destination);
 
         if (placeData) {
@@ -268,11 +224,9 @@ export const enrichItineraryWithPlaces = async (itinerary, destination) => {
             place_id: placeData.place_id || activity.place_id || ''
           });
         } else {
-          // Keep original activity if enrichment fails
           enrichedActivities.push(activity);
         }
 
-        // Rate limiting: wait 100ms between requests
         await new Promise(resolve => setTimeout(resolve, 100));
 
       } catch (error) {
@@ -281,7 +235,6 @@ export const enrichItineraryWithPlaces = async (itinerary, destination) => {
       }
     }
 
-    // Calculate day total cost
     const dayTotalCost = enrichedActivities.reduce((sum, act) => sum + (act.cost || 0), 0);
 
     enrichedItinerary.push({
@@ -294,13 +247,6 @@ export const enrichItineraryWithPlaces = async (itinerary, destination) => {
   return enrichedItinerary;
 };
 
-/**
- * PHASE 2B: Enrich a SINGLE day's itinerary with Google Places data
- * Used for progressive loading - enriches one day at a time
- * @param {object} day - Single day object with activities
- * @param {object} destination - Destination for location bias
- * @returns {object} Enriched day object
- */
 export const enrichSingleDayWithPlaces = async (day, destination) => {
   const enrichedActivities = [];
 
@@ -312,7 +258,6 @@ export const enrichSingleDayWithPlaces = async (day, destination) => {
         continue;
       }
 
-      // Enrich activity with Google Places data
       const placeData = await enrichActivityWithPlaces(activity.place_name, destination);
 
       if (placeData) {
@@ -325,11 +270,9 @@ export const enrichSingleDayWithPlaces = async (day, destination) => {
           place_id: placeData.place_id || activity.place_id || ''
         });
       } else {
-        // Keep original activity if enrichment fails
         enrichedActivities.push(activity);
       }
 
-      // Rate limiting: wait 100ms between requests
       await new Promise(resolve => setTimeout(resolve, 100));
 
     } catch (error) {
@@ -338,7 +281,6 @@ export const enrichSingleDayWithPlaces = async (day, destination) => {
     }
   }
 
-  // Calculate day total cost
   const dayTotalCost = enrichedActivities.reduce((sum, act) => sum + (act.cost || 0), 0);
 
   return {

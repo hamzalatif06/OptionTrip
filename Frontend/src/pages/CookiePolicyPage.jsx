@@ -49,7 +49,7 @@ const CookiePolicyPage = () => {
         keywords="cookie policy, cookies, tracking, optiontrip cookies"
         path="/cookie-policy"
       />
-      {/* Banner */}
+
       <div
         className="banner pt-10 pb-0 overflow-hidden"
         style={{ backgroundImage: `url(/images/testimonial.png)` }}
@@ -74,12 +74,12 @@ const CookiePolicyPage = () => {
         </div>
       </div>
 
-      {/* Content */}
+
       <section style={{ padding: '80px 0', background: '#fff' }}>
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-lg-9">
-              {/* Intro */}
+
               <div
                 style={{
                   background: 'linear-gradient(135deg, rgba(10,83,157,0.05), rgba(2,158,157,0.08))',
@@ -94,7 +94,7 @@ const CookiePolicyPage = () => {
                 </p>
               </div>
 
-              {/* What Are Cookies */}
+
               <div style={{ marginBottom: '48px' }}>
                 <h3 style={{ color: '#17233e', borderBottom: '2px solid #f0f0f0', paddingBottom: '12px', marginBottom: '16px' }}>
                   What Are Cookies?
@@ -107,7 +107,7 @@ const CookiePolicyPage = () => {
                 </p>
               </div>
 
-              {/* Cookie Types */}
+
               <div style={{ marginBottom: '48px' }}>
                 <h3 style={{ color: '#17233e', borderBottom: '2px solid #f0f0f0', paddingBottom: '12px', marginBottom: '28px' }}>
                   Types of Cookies We Use
@@ -180,7 +180,7 @@ const CookiePolicyPage = () => {
                 </div>
               </div>
 
-              {/* Managing Cookies */}
+
               <div style={{ marginBottom: '48px' }}>
                 <h3 style={{ color: '#17233e', borderBottom: '2px solid #f0f0f0', paddingBottom: '12px', marginBottom: '16px' }}>
                   How to Manage Cookies
@@ -205,7 +205,7 @@ const CookiePolicyPage = () => {
                 </div>
               </div>
 
-              {/* Contact */}
+
               <div style={{ marginBottom: '0' }}>
                 <h3 style={{ color: '#17233e', borderBottom: '2px solid #f0f0f0', paddingBottom: '12px', marginBottom: '16px' }}>
                   Contact Us

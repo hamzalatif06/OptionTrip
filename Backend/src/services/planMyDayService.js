@@ -1,11 +1,3 @@
-/**
- * Plan My Day Service
- * Generates an AI-powered single-day itinerary anchored to the user's
- * current city. Includes live weather (Open-Meteo, no API key required)
- * and a structured timeline of activities with food picks, tips, and
- * realistic costs.
- */
-
 import OpenAI from 'openai';
 
 let openai = null;
@@ -17,22 +9,6 @@ const getOpenAIClient = () => {
 };
 
 const MODEL = process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini';
-
-// ─── Google Places venue resolver ───────────────────────────────────────────
-//
-// We do NOT trust the LLM to give us accurate coordinates — it hallucinates
-// them. Instead, after the plan is generated, every activity + food pick is
-// resolved against Google Places API v1 (Text Search), which is the same
-// dataset that powers Google Maps. With a 50 km location-bias circle around
-// the trip's city, "Boot Café" finds the actual Boot Café in the right city
-// instead of one in a different country.
-//
-// The resolver attaches:
-//   - coordinates: { lat, lng }   — precise, from Google
-//   - place_id:    "ChIJ..."      — Google's place identifier (best for routing)
-//   - address:     full formatted address
-//
-// All resolutions run in parallel, so this only adds ~1s to plan generation.
 
 const GOOGLE_PLACES_BASE = 'https://places.googleapis.com/v1/places:searchText';
 
@@ -46,9 +22,6 @@ const resolveVenueViaGoogle = async (textQuery, biasCenter) => {
     languageCode: 'en'
   };
 
-  // Bias the search tightly to the trip's city — 25 km circle is enough for
-  // any urban area (catches outskirts + an airport but rejects accidental
-  // same-name matches in other cities).
   if (biasCenter && typeof biasCenter.lat === 'number' && typeof biasCenter.lng === 'number') {
     body.locationBias = {
       circle: {
@@ -58,8 +31,6 @@ const resolveVenueViaGoogle = async (textQuery, biasCenter) => {
     };
   }
 
-  // Only request the fields we actually use — Places v1 requires an explicit
-  // field mask, and a narrower mask means cheaper billing tier.
   const fieldMask = 'places.id,places.displayName,places.location,places.formattedAddress';
 
   try {
@@ -93,35 +64,14 @@ const resolveVenueViaGoogle = async (textQuery, biasCenter) => {
   }
 };
 
-/**
- * Build the textQuery we hand to Google Places.
- *
- * Strategy: lead with the EXACT venue name + city. This is how a human would
- * search Google Maps and it's what gives us the best hit rate. LLM-supplied
- * street addresses are unreliable (invented numbers) so we ignore them here.
- *
- *   "Boot Café, Paris"
- *   "Cooco's Den, Lahore"
- *   "Borough Market, Southwark, London"
- *
- * The 25 km location-bias circle in the API call handles disambiguation
- * across cities with the same business name.
- */
 const venueQueryFor = (item, city) => {
   const name = (item.title || item.name || '').trim();
   if (!name) return null;
-  // Strip vague descriptors the LLM might still slip into the name field.
-  // ("A popular café in Le Marais" → "café in Le Marais" — Google's never
-  //  going to find that, so we just won't match. The fallback button kicks in.)
-  if (/^\s*(a|the|some|any)\s+/i.test(name) && name.split(/\s+/).length > 3) return null;
+  if (/^\s*(a|the|some|any)\s+/i.test(name) && name.split(/\s+/).length > 3)
+    return null;
   return [name, item.neighborhood, city].filter(Boolean).join(', ');
 };
 
-/**
- * Resolve coordinates + place_id for every activity & food pick in the plan,
- * mutating the plan object in place. Failures per-venue are silent — the
- * frontend already has a fallback for missing coords.
- */
 const enrichPlanWithGoogleVenues = async (plan, location) => {
   if (!process.env.GOOGLE_PLACES_API_KEY) return;
   const city       = location?.city || '';
@@ -133,10 +83,7 @@ const enrichPlanWithGoogleVenues = async (plan, location) => {
     const query = venueQueryFor(item, city);
     if (!query) return null;
     const r = await resolveVenueViaGoogle(query, biasCenter);
-    if (!r) {
-      // Optional debug — uncomment to trace miss rate per-city in dev.
-      // console.log(`[plan-my-day] no Google match for: ${query}`);
-    } else {
+    if (!r) {} else {
       console.log(`[plan-my-day] ✓ ${query} → ${r.name} (${r.lat.toFixed(5)}, ${r.lng.toFixed(5)})`);
     }
     return r;
@@ -176,12 +123,6 @@ const enrichPlanWithGoogleVenues = async (plan, location) => {
   await Promise.all(tasks);
 };
 
-// ─── Weather (Open-Meteo — free, no API key) ────────────────────────────────
-
-/**
- * Map Open-Meteo weather codes → human label + emoji.
- * https://open-meteo.com/en/docs#weathervariables
- */
 const weatherCodeMap = {
   0:  { label: 'Clear sky',          emoji: '☀️' },
   1:  { label: 'Mostly clear',       emoji: '🌤️' },
@@ -245,8 +186,6 @@ const fetchWeather = async (lat, lng, dateISO) => {
     return null;
   }
 };
-
-// ─── Prompt builders ────────────────────────────────────────────────────────
 
 const PROMPT_VIBES = {
   foodie:    'a food-led day — coffee, brunch, bakery, lunch, dessert, dinner; treat the city like a tasting menu',
@@ -383,8 +322,6 @@ const getDayOfWeek = (iso) => {
   } catch { return null; }
 };
 
-// ─── Main generator ─────────────────────────────────────────────────────────
-
 export const generateDayPlan = async (params) => {
   const {
     location,
@@ -401,7 +338,6 @@ export const generateDayPlan = async (params) => {
     throw new Error('Location (city or coords) required');
   }
 
-  // Live weather in parallel with OpenAI call setup.
   const weatherPromise = fetchWeather(location.lat, location.lng, dateISO);
 
   const client = getOpenAIClient();
@@ -433,9 +369,6 @@ export const generateDayPlan = async (params) => {
       return generateFallbackPlan({ location, dateISO, vibe, weather });
     }
 
-    // Resolve precise coordinates + Google place IDs for every venue in
-    // parallel (typically ~1s for 6-10 venues). Failures are silent — any
-    // un-resolved venue simply keeps the LLM's address fallback.
     await enrichPlanWithGoogleVenues(parsed, location);
 
     return {
@@ -461,8 +394,6 @@ export const generateDayPlan = async (params) => {
     return generateFallbackPlan({ location, dateISO, vibe, weather });
   }
 };
-
-// ─── Fallback ───────────────────────────────────────────────────────────────
 
 const generateFallbackPlan = async ({ location, dateISO, vibe, weather, await: weatherPromise }) => {
   const w = weather ?? (await (weatherPromise || Promise.resolve(null)));

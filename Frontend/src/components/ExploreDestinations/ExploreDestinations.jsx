@@ -19,7 +19,6 @@ const fetchAISuggestions = async (query) => {
   return data.success ? data.data : [];
 };
 
-/** Resolve city string → { iata, display } or null */
 const resolveOrigin = async (cityName) => {
   const locs = await searchAirports(cityName);
   if (!locs[0]) return null;
@@ -30,7 +29,6 @@ const resolveOrigin = async (cityName) => {
   };
 };
 
-/** Reverse-geocode lat/lon → city string using Nominatim */
 const reverseGeocode = (lat, lon) =>
   fetch(
     `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1`,
@@ -48,20 +46,18 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
   const { formatPrice } = useCurrency();
   const [prices,    setPrices]    = useState({});
   const [loading,   setLoading]   = useState(false);
-  const [origin,    setOrigin]    = useState(originCode || '');   // IATA string
-  const [originObj, setOriginObj] = useState(null);               // { iata, display }
-  const [geoStatus, setGeoStatus] = useState('idle');             // 'idle'|'detecting'|'done'|'denied'
-  const [imageMap,  setImageMap]  = useState({});                 // iata → imageUrl
-  const [loadedImages, setLoadedImages] = useState({});           // iata → true once <img> fires onLoad
+  const [origin,    setOrigin]    = useState(originCode || '');
+  const [originObj, setOriginObj] = useState(null);
+  const [geoStatus, setGeoStatus] = useState('idle');
+  const [imageMap,  setImageMap]  = useState({});
+  const [loadedImages, setLoadedImages] = useState({});
 
-  // AI destination suggestions
   const [aiQuery,       setAiQuery]       = useState('');
   const [aiSuggestions, setAiSuggestions] = useState([]);
   const [aiLoading,     setAiLoading]     = useState(false);
   const [aiError,       setAiError]       = useState('');
   const aiSearched = useRef(false);
 
-  // Wishlist saves (iata → true)
   const [wishlisted, setWishlisted] = useState({});
 
   const handleWishlist = async (e, dest, imageUrl) => {
@@ -101,7 +97,6 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
     aiSearched.current = false;
   };
 
-  /** Set origin from a resolved { iata, display } object */
   const applyOrigin = (result) => {
     if (!result) return;
     setOrigin(result.iata);
@@ -109,14 +104,12 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
     onOriginDetected?.(result);
   };
 
-  /* Auto-detect origin on mount if not provided by parent */
   useEffect(() => {
     if (originCode) { setOrigin(originCode); return; }
 
-    // 1. Try cached location first (set by Header or previous visit)
     const cached   = localStorage.getItem('userLocation') || '';
     const cachedAt = parseInt(localStorage.getItem('userLocationTime') || '0', 10);
-    const fresh    = Date.now() - cachedAt < 60 * 60 * 1000; // 1-hour TTL
+    const fresh    = Date.now() - cachedAt < 60 * 60 * 1000;
 
     if (cached && fresh) {
       const city = cached.split(',')[0].trim();
@@ -124,8 +117,8 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
       return;
     }
 
-    // 2. Request browser geolocation
-    if (!('geolocation' in navigator)) { setGeoStatus('denied'); return; }
+    if (!('geolocation' in navigator))
+      { setGeoStatus('denied'); return; }
 
     setGeoStatus('detecting');
     navigator.geolocation.getCurrentPosition(
@@ -140,7 +133,6 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
         setGeoStatus('done');
       },
       () => {
-        // Permission denied — fall back to stale cache if any
         const city = cached.split(',')[0].trim();
         if (city) resolveOrigin(city).then(applyOrigin);
         setGeoStatus('denied');
@@ -149,12 +141,10 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
     );
   }, []); // eslint-disable-line
 
-  /* Sync when parent passes a new originCode */
   useEffect(() => {
     if (originCode && originCode !== origin) setOrigin(originCode);
   }, [originCode]); // eslint-disable-line
 
-  /* Fetch prices whenever origin is resolved */
   useEffect(() => {
     if (!origin) return;
     setLoading(true);
@@ -164,7 +154,6 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
     });
   }, [origin]);
 
-  /* Batch-fetch Google Places images once on mount (browser cache avoids repeat calls) */
   useEffect(() => {
     let mounted = true;
     const queries = EXPLORE_DESTINATIONS.map(d => `${d.city}, ${d.country}`);
@@ -185,7 +174,7 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
     <section className="explore-section">
       <div className="container">
 
-        {/* Header */}
+
         <div className="explore-header">
           <div className="explore-header__left">
             <div className="explore-header__icon">
@@ -213,7 +202,7 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
           {loading && <span className="explore-header__loading">Fetching prices…</span>}
         </div>
 
-        {/* AI destination search */}
+
         <form className="explore-ai-search" onSubmit={handleAiSearch}>
           <input
             className="explore-ai-input"
@@ -230,7 +219,7 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
           )}
         </form>
 
-        {/* AI suggestions */}
+
         {aiLoading && (
           <div className="explore-ai-loading">
             <div className="explore-ai-spinner" />
@@ -268,7 +257,7 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
           </>
         )}
 
-        {/* Destination grid */}
+
         {!aiSuggestions.length && <div className="explore-grid">
           {EXPLORE_DESTINATIONS.map(dest => {
             const priceData = prices[dest.iata];
@@ -278,7 +267,7 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
                 className="explore-card"
                 onClick={() => onSelect({ iata: dest.iata, city: dest.city, country: dest.country })}
               >
-                {/* Wishlist heart */}
+
                 <button
                   className={`explore-card__heart${wishlisted[dest.iata] ? ' explore-card__heart--saved' : ''}`}
                   onClick={(e) => handleWishlist(e, dest, imageMap[dest.iata])}
@@ -289,7 +278,7 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
                   </svg>
                 </button>
 
-                {/* Photo */}
+
                 <div className="explore-card__img-wrap">
                   {imageMap[dest.iata] && (
                     <img
@@ -300,7 +289,6 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
                       onLoad={() => setLoadedImages(prev => prev[dest.iata] ? prev : { ...prev, [dest.iata]: true })}
                       onError={(e) => {
                         e.currentTarget.onerror = null;
-                        // Mark as loaded so the skeleton disappears even on error
                         setLoadedImages(prev => prev[dest.iata] ? prev : { ...prev, [dest.iata]: true });
                       }}
                     />
@@ -311,10 +299,10 @@ const ExploreDestinations = ({ onSelect, originCode, onOriginDetected }) => {
                   <div className="explore-card__overlay" />
                 </div>
 
-                {/* IATA badge */}
+
                 <span className="explore-card__iata">{dest.iata}</span>
 
-                {/* Bottom info */}
+
                 <div className="explore-card__info">
                   <div className="explore-card__city">{dest.city}</div>
                   <div className="explore-card__country">{dest.country}</div>

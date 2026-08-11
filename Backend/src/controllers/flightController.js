@@ -1,8 +1,3 @@
-/**
- * Flight Controller
- * Handles flight search requests via Amadeus API.
- */
-
 import { searchFlights as amadeusSearchFlights } from '../services/amadeusService.js';
 import { searchFlights as tpSearchFlights, getCheapPrice, getExploreDestinations } from '../services/travelpayoutsFlightService.js';
 import { searchFlightsGoogle } from '../services/googleFlightsService.js';
@@ -16,9 +11,6 @@ import {
 import PlaceImage from '../models/PlaceImage.js';
 import { findNearbyAirports, findNearbyForRoute } from '../services/nearbyAirportsService.js';
 
-// ── Country → top airports mapping ───────────────────────────────────────────
-// Used when user types a country name instead of a city (e.g. "Pakistan", "India").
-// Keys must be lowercase; values are ordered by traffic/popularity.
 const COUNTRY_AIRPORTS = {
   'pakistan':             [
     { iataCode: 'KHI', cityName: 'Karachi',    name: 'Jinnah International Airport',                countryName: 'Pakistan' },
@@ -272,7 +264,6 @@ const COUNTRY_AIRPORTS = {
   ],
 };
 
-// ISO 3166-1 alpha-2 code for each country key
 const COUNTRY_ISO = {
   'pakistan': 'PK', 'india': 'IN', 'bangladesh': 'BD',
   'united arab emirates': 'AE', 'uae': 'AE',
@@ -290,26 +281,17 @@ const COUNTRY_ISO = {
   'switzerland': 'CH',
 };
 
-/**
- * Find the first country whose name starts with (or equals) the keyword.
- * Returns { key, displayName, isoCode, airports } or null.
- */
 const findCountryMatch = (keyword) => {
   const kw = keyword.toLowerCase().trim();
   for (const [key, airports] of Object.entries(COUNTRY_AIRPORTS)) {
     if (key.startsWith(kw) || kw === key) {
-      const displayName = key.replace(/\b\w/g, c => c.toUpperCase()); // "pakistan" → "Pakistan"
+      const displayName = key.replace(/\b\w/g, c => c.toUpperCase());
       return { key, displayName, isoCode: COUNTRY_ISO[key] || key.toUpperCase().slice(0, 2), airports };
     }
   }
   return null;
 };
 
-/**
- * GET /api/flights/airports?keyword=Paris
- * Proxies Travelpayouts places2 autocomplete (free, no auth required).
- * Also matches country names (e.g. "Pakistan" → KHI, LHE, ISB).
- */
 export const getAirports = async (req, res) => {
   try {
     const { keyword } = req.query;
@@ -317,10 +299,8 @@ export const getAirports = async (req, res) => {
       return res.status(400).json({ success: false, message: 'keyword must be at least 2 characters' });
     }
 
-    // ── Country name match ────────────────────────────────────────────────────
     const countryMatch = findCountryMatch(keyword.trim());
 
-    // ── Travelpayouts city/airport search ─────────────────────────────────────
     let apiLocations = [];
     try {
       const excludedCodes = new Set(countryMatch ? countryMatch.airports.map(a => a.iataCode) : []);
@@ -328,8 +308,6 @@ export const getAirports = async (req, res) => {
       const apiRes = await fetch(`https://autocomplete.travelpayouts.com/places2?${qs}`);
       if (apiRes.ok) {
         const raw = await apiRes.json();
-        // Sort: 'city' entries (represent whole metro area) first, then airports.
-        // This keeps the API's natural relevance order within each group.
         apiLocations = raw
           .filter(item => item.code && !excludedCodes.has(item.code))
           .sort((a, b) => {
@@ -350,11 +328,10 @@ export const getAirports = async (req, res) => {
             return acc;
           }, []);
       }
-    } catch { /* non-fatal */ }
+    } catch {}
 
     let locations = [];
     if (countryMatch) {
-      // Top entry: the whole country (isCountry: true)
       const countryEntry = {
         iataCode:        countryMatch.isoCode,
         name:            `${countryMatch.displayName} — All airports`,
@@ -363,7 +340,6 @@ export const getAirports = async (req, res) => {
         isCountry:       true,
         countryAirports: countryMatch.airports,
       };
-      // Then the individual cities of that country, then API results
       locations = [countryEntry, ...countryMatch.airports, ...apiLocations].slice(0, 10);
     } else {
       locations = apiLocations.slice(0, 10);
@@ -376,10 +352,6 @@ export const getAirports = async (req, res) => {
   }
 };
 
-/**
- * POST /api/flights/search
- * Body: { originCode, destinationCode, departureDate, returnDate?, adults, children?, currencyCode? }
- */
 export const searchFlights = async (req, res) => {
   try {
     const {
@@ -432,10 +404,6 @@ export const searchFlights = async (req, res) => {
   }
 };
 
-/**
- * GET /api/flights/cheap-price?origin=KHI&destination=DXB&departDate=2026-05-01
- * Returns cheapest cached TP price for a route/month (instant, no heavy search).
- */
 export const getCheapPriceHandler = async (req, res) => {
   try {
     const { origin, destination, departDate } = req.query;
@@ -448,12 +416,6 @@ export const getCheapPriceHandler = async (req, res) => {
   }
 };
 
-/**
- * GET /api/flights/monthly-prices?origin=KHI&destination=DXB&month=2026-05
- * Returns Travelpayouts cached prices keyed by date for the entire month.
- * Uses v3/prices_for_dates (returns ISO departure_at timestamps per ticket).
- * Response: { prices: { "2026-06-01": 275, "2026-06-03": 296, ... } }
- */
 export const getMonthlyPricesHandler = async (req, res) => {
   try {
     const { origin, destination, month } = req.query;
@@ -466,7 +428,6 @@ export const getMonthlyPricesHandler = async (req, res) => {
     const o     = origin.toUpperCase();
     const d     = destination.toUpperCase();
 
-    // v3 prices_for_dates — returns individual tickets with full departure timestamps
     const params = new URLSearchParams({
       origin:       o,
       destination:  d,
@@ -475,24 +436,22 @@ export const getMonthlyPricesHandler = async (req, res) => {
       currency:     'usd',
       sorting:      'price',
       page:         '1',
-      limit:        '100',    // max 100 to cover as many dates as possible
+      limit: '100',
       token,
     });
 
     const tpRes = await fetch(`https://api.travelpayouts.com/aviasales/v3/prices_for_dates?${params}`);
     const json  = await tpRes.json();
 
-    // Build date → minimum price map
     const prices = {};
     for (const ticket of (json.data || [])) {
       if (!ticket.departure_at || !ticket.price) continue;
-      const date = ticket.departure_at.slice(0, 10); // "2026-06-15T07:10:00..." → "2026-06-15"
+      const date = ticket.departure_at.slice(0, 10);
       if (!prices[date] || ticket.price < prices[date]) {
         prices[date] = ticket.price;
       }
     }
 
-    // Fallback: also try v1/prices/cheap which sometimes has different coverage
     if (Object.keys(prices).length === 0) {
       const p2 = new URLSearchParams({ origin: o, destination: d, depart_date: month, currency: 'usd', token });
       const r2 = await fetch(`https://api.travelpayouts.com/v1/prices/cheap?${p2}`);
@@ -511,10 +470,6 @@ export const getMonthlyPricesHandler = async (req, res) => {
   }
 };
 
-/**
- * GET /api/flights/google-search?origin=LAX&destination=JFK&departureDate=2026-04-15&adults=1[&returnDate=...]
- * Returns real-time flights via Google Flights (RapidAPI). Book Now → Aviasales affiliate.
- */
 export const searchFlightsGoogleHandler = async (req, res) => {
   try {
     const {
@@ -529,7 +484,6 @@ export const searchFlightsGoogleHandler = async (req, res) => {
 
     const params = { returnDate: returnDate || null, adults: Number(adults), travelClass };
 
-    // ── Standard single-pair search ───────────────────────────────────────────
     if (includeNearby !== 'true') {
       console.log(`🌐 Google Flights search: ${origin} → ${destination} on ${departureDate}`);
       const { topFlights, otherFlights } = await searchFlightsGoogle({ origin, destination, departureDate, ...params });
@@ -542,7 +496,6 @@ export const searchFlightsGoogleHandler = async (req, res) => {
       });
     }
 
-    // ── Nearby expansion ──────────────────────────────────────────────────────
     const radiusKm = Math.min(Math.max(parseInt(radius, 10) || 250, 50), 1000);
     const { originNearby, destNearby } = findNearbyForRoute(origin, destination, radiusKm, 3);
 
@@ -593,10 +546,6 @@ export const searchFlightsGoogleHandler = async (req, res) => {
   }
 };
 
-/**
- * GET /api/flights/tp-search?origin=LHR&destination=DXB&departureAt=2026-04-01[&returnAt=2026-04-05][&limit=20]
- * Returns real flight offers via Travelpayouts Aviasales API.
- */
 export const searchFlightsTravelpayouts = async (req, res) => {
   try {
     const { origin, destination, departureAt, returnAt, limit } = req.query;
@@ -628,10 +577,6 @@ export const searchFlightsTravelpayouts = async (req, res) => {
   }
 };
 
-/**
- * GET /api/flights/duffel-search?origin=LHR&destination=DXB&departureDate=2026-04-15&adults=1[&returnDate=...&travelClass=economy]
- * Returns real-time flights via Duffel API, normalised to FlightCardDuffel shape.
- */
 export const searchFlightsDuffelHandler = async (req, res) => {
   try {
     const {
@@ -646,7 +591,6 @@ export const searchFlightsDuffelHandler = async (req, res) => {
 
     const params = { returnDate: returnDate || null, adults: Number(adults), travelClass };
 
-    // ── Standard single-pair search ───────────────────────────────────────────
     if (includeNearby !== 'true') {
       console.log(`🛫  Duffel search: ${origin} → ${destination} on ${departureDate}`);
       const flights = await searchFlightsDuffel({ origin, destination, departureDate, ...params });
@@ -657,7 +601,6 @@ export const searchFlightsDuffelHandler = async (req, res) => {
       });
     }
 
-    // ── Nearby expansion ──────────────────────────────────────────────────────
     const radiusKm = Math.min(Math.max(parseInt(radius, 10) || 250, 50), 1000);
     const { originNearby, destNearby } = findNearbyForRoute(origin, destination, radiusKm, 3);
 
@@ -703,10 +646,6 @@ export const searchFlightsDuffelHandler = async (req, res) => {
   }
 };
 
-/**
- * GET /api/flights/nearby-airports?iata=KHI&radius=250&limit=3
- * Returns airports within radiusKm of the given IATA code, sorted by distance.
- */
 export const getNearbyAirportsHandler = async (req, res) => {
   try {
     const { iata, radius = '250', limit = '3' } = req.query;
@@ -723,10 +662,6 @@ export const getNearbyAirportsHandler = async (req, res) => {
   }
 };
 
-/**
- * GET /api/flights/explore?origin=LHE
- * Returns cheapest prices from origin to all known destinations.
- */
 export const exploreDestinationsHandler = async (req, res) => {
   try {
     const { origin } = req.query;
@@ -739,11 +674,6 @@ export const exploreDestinationsHandler = async (req, res) => {
   }
 };
 
-/**
- * GET /api/flights/destination-image?query=Dubai
- * Returns an Unsplash image URL for a destination query.
- * DEPRECATED: Use /api/flights/place-image instead (uses Google Places API with DB caching)
- */
 export const getDestinationImageHandler = async (req, res) => {
   try {
     const { query } = req.query;
@@ -755,7 +685,6 @@ export const getDestinationImageHandler = async (req, res) => {
     console.log(`📷 Getting image for query: ${query}`);
     const result = await searchDestinationImage(query.trim());
     
-    // Ensure response has the imageUrl at the right level
     const response = {
       success: true,
       data: {
@@ -779,29 +708,6 @@ export const getDestinationImageHandler = async (req, res) => {
   }
 };
 
-/**
- * GET /api/flights/place-image?placeName=Dubai
- * Returns an accurate image for a place using Google Places API with database caching.
- * 
- * FLOW:
- * 1. Check if place image is cached in database
- * 2. If cache is valid → return cached image (fast)
- * 3. If cache expired/not found → fetch from Google Places API
- * 4. Store fetched images in database for future use
- * 5. Return image URL with cache status
- * 
- * RESPONSE:
- * {
- *   success: true,
- *   data: {
- *     imageUrl: "https://...",
- *     source: "cached|google-places|fallback",
- *     cacheStatus: "hit|valid|new|failed|no_photos|error",
- *     placeDetails: { displayName, rating, ... },
- *     cacheInfo: { totalCached: 123, avgFetchCount: 4.5 }
- *   }
- * }
- */
 export const getPlaceImageHandler = async (req, res) => {
   try {
     const { placeName } = req.query;
@@ -818,7 +724,6 @@ export const getPlaceImageHandler = async (req, res) => {
     
     const result = await getPlaceImageWithCache(placeName.trim());
     
-    // Get cache stats for response
     const stats = await getCacheStats();
     
     const response = {
@@ -855,28 +760,6 @@ export const getPlaceImageHandler = async (req, res) => {
   }
 };
 
-/**
- * POST /api/flights/place-images-batch
- * Fetch images for multiple places at once (optimized with Promise.allSettled)
- * 
- * REQUEST BODY:
- * { placeNames: ["Dubai", "Paris", "Tokyo"] }
- * 
- * RESPONSE:
- * {
- *   success: true,
- *   data: {
- *     imageMap: {
- *       "Dubai": { imageUrl, source, cacheStatus, ... },
- *       "Paris": { imageUrl, source, cacheStatus, ... },
- *       "Tokyo": { imageUrl, source, cacheStatus, ... }
- *     },
- *     totalPlaces: 3,
- *     cachedCount: 2,
- *     newlyFetchedCount: 1
- *   }
- * }
- */
 export const getPlaceImagesBatchHandler = async (req, res) => {
   try {
     const { placeNames } = req.body;
@@ -899,7 +782,6 @@ export const getPlaceImagesBatchHandler = async (req, res) => {
     
     const imageMap = await getPlaceImagesForMultiplePlaces(placeNames);
     
-    // Count cache statuses
     const stats = {
       cached: 0,
       new: 0,
@@ -946,10 +828,6 @@ export const getPlaceImagesBatchHandler = async (req, res) => {
   }
 };
 
-/**
- * DELETE /api/flights/cache-clear
- * Wipes all cached place images so fresh ones are fetched with correct URLs
- */
 export const clearPlaceImageCacheHandler = async (req, res) => {
   try {
     const result = await PlaceImage.deleteMany({});
@@ -968,10 +846,6 @@ export const clearPlaceImageCacheHandler = async (req, res) => {
   }
 };
 
-/**
- * GET /api/flights/cache-stats
- * Returns cache statistics for monitoring
- */
 export const getCacheStatsHandler = async (req, res) => {
   try {
     const stats = await getCacheStats();

@@ -31,9 +31,9 @@ const HotelCard = ({ hotel }) => {
   const handleExpand = async () => {
     if (expanded) { setExpanded(false); return; }
     setExpanded(true);
-    if (rooms !== null) return; // already loaded
+    if (rooms !== null)
+      return;
 
-    // Hotelbeds hotels ship with pre-loaded room data from the availability API
     if (hotel.preloadedRooms) {
       setRooms(hotel.preloadedRooms);
       return;
@@ -57,7 +57,7 @@ const HotelCard = ({ hotel }) => {
   return (
     <div className="hc-card">
 
-      {/* ── Photo section ──────────────────────────────── */}
+
       <div className="hc-img-wrap">
         {photos.length > 1 && (
           <>
@@ -85,7 +85,7 @@ const HotelCard = ({ hotel }) => {
         )}
       </div>
 
-      {/* ── Main body ──────────────────────────────────── */}
+
       <div className="hc-body">
         <div className="hc-info">
           <h3 className="hc-name">{hotel.name}</h3>
@@ -120,7 +120,7 @@ const HotelCard = ({ hotel }) => {
             </div>
           )}
 
-          {/* Facilities from details (if loaded) */}
+
           {details?.facilities?.length > 0 && (
             <div className="hc-facilities">
               {details.facilities.map((f, i) => (
@@ -130,7 +130,7 @@ const HotelCard = ({ hotel }) => {
           )}
         </div>
 
-        {/* ── CTA panel ────────────────────────────────── */}
+
         <div className="hc-cta">
           {hotel.price && (
             <div className="hc-price">
@@ -156,7 +156,7 @@ const HotelCard = ({ hotel }) => {
         </div>
       </div>
 
-      {/* ── Expanded rooms section ──────────────────────── */}
+
       {expanded && (
         <div className="hc-rooms-section">
           {loadingMore ? (

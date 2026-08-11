@@ -5,10 +5,6 @@ import { generateLightweightTripOptions, generateDetailedItinerary, generateSing
 import { enrichItineraryWithPlaces, enrichSingleDayWithPlaces } from '../services/placesService.js';
 import { searchDestinationImage } from '../services/unsplashService.js';
 
-/**
- * PHASE 1: POST /api/trips/generate-options
- * Generate 3 lightweight trip options (FAST - no detailed itinerary)
- */
 export const generateTripOptions = async (req, res) => {
   try {
     const {
@@ -26,7 +22,6 @@ export const generateTripOptions = async (req, res) => {
       userPreferences
     } = req.body;
 
-    // Validate required fields
     if (!destination || !start_date || !end_date || !duration_days) {
       return res.status(400).json({
         success: false,
@@ -37,10 +32,8 @@ export const generateTripOptions = async (req, res) => {
 
     console.log(`📋 PHASE 1: Generating lightweight trip options for ${destination.name}...`);
 
-    // Generate unique trip ID
     const trip_id = `trip_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // PHASE 1: Generate 3 lightweight trip options (no detailed itinerary)
     const options = await generateLightweightTripOptions({
       origin,
       destination,
@@ -56,7 +49,6 @@ export const generateTripOptions = async (req, res) => {
 
     console.log(`✅ Generated ${options.length} trip options`);
 
-    // Create trip document with options only
     const trip = new Trip({
       trip_id,
       user_id: user_id || 'guest',
@@ -82,7 +74,7 @@ export const generateTripOptions = async (req, res) => {
       guests: guests || { total: 0, adults: 0, children: 0, infants: 0 },
       budget: budget || null,
       description,
-      options, // Phase 1: lightweight options only
+      options,
       options_generated: true,
       status: 'options_generated'
     });
@@ -99,7 +91,7 @@ export const generateTripOptions = async (req, res) => {
         origin: trip.origin,
         destination: trip.destination,
         dates: trip.dates,
-        options: trip.options, // Return lightweight options
+        options: trip.options,
         status: trip.status
       }
     });
@@ -114,17 +106,12 @@ export const generateTripOptions = async (req, res) => {
   }
 };
 
-/**
- * PHASE 2: POST /api/trips/:tripId/options/:optionId/generate-itinerary
- * Generate detailed itinerary for selected option (SLOW - with places enrichment)
- */
 export const generateItineraryForOption = async (req, res) => {
   try {
     const { tripId, optionId } = req.params;
 
     console.log(`📋 PHASE 2: Generating detailed itinerary for trip ${tripId}, option ${optionId}...`);
 
-    // Find the trip
     const trip = await Trip.findOne({ trip_id: tripId });
 
     if (!trip) {
@@ -134,7 +121,6 @@ export const generateItineraryForOption = async (req, res) => {
       });
     }
 
-    // Find the selected option
     const selectedOption = trip.options.find(opt => opt.option_id === optionId);
 
     if (!selectedOption) {
@@ -144,7 +130,6 @@ export const generateItineraryForOption = async (req, res) => {
       });
     }
 
-    // Check if itinerary already generated
     if (selectedOption.itinerary_generated) {
       return res.status(400).json({
         success: false,
@@ -155,7 +140,6 @@ export const generateItineraryForOption = async (req, res) => {
       });
     }
 
-    // PHASE 2: Generate detailed day-by-day itinerary
     const itinerary = await generateDetailedItinerary({
       destination: trip.destination,
       start_date: trip.dates.start_date,
@@ -170,17 +154,14 @@ export const generateItineraryForOption = async (req, res) => {
 
     console.log(`✅ Generated ${itinerary.length} days of itinerary`);
 
-    // Enrich itinerary with Google Places data
     console.log('📍 Enriching activities with Google Places data...');
     const enrichedItinerary = await enrichItineraryWithPlaces(itinerary, trip.destination);
 
     console.log('✅ Itinerary enriched with place data');
 
-    // Update the selected option with itinerary
     selectedOption.itinerary = enrichedItinerary;
     selectedOption.itinerary_generated = true;
 
-    // Update trip status
     trip.selected_option_id = optionId;
     trip.status = 'itinerary_generated';
 
@@ -209,7 +190,6 @@ export const generateItineraryForOption = async (req, res) => {
   }
 };
 
-// GET /api/trips/:tripId - Get trip by ID
 export const getTripById = async (req, res) => {
   try {
     const { tripId } = req.params;
@@ -238,7 +218,6 @@ export const getTripById = async (req, res) => {
   }
 };
 
-// PATCH /api/trips/:tripId/select-option - Update selected option
 export const selectOption = async (req, res) => {
   try {
     const { tripId } = req.params;
@@ -260,7 +239,6 @@ export const selectOption = async (req, res) => {
       });
     }
 
-    // Verify option exists
     const optionExists = trip.options.some(opt => opt.option_id === option_id);
     if (!optionExists) {
       return res.status(400).json({
@@ -269,7 +247,6 @@ export const selectOption = async (req, res) => {
       });
     }
 
-    // Update selected option and status
     trip.selected_option_id = option_id;
     trip.status = 'option_selected';
     await trip.save();
@@ -294,10 +271,6 @@ export const selectOption = async (req, res) => {
   }
 };
 
-/**
- * POST /api/trips/:tripId/save
- * Save/associate a trip with the authenticated user's account
- */
 export const saveTrip = async (req, res) => {
   try {
     const { tripId } = req.params;
@@ -314,7 +287,6 @@ export const saveTrip = async (req, res) => {
       });
     }
 
-    // Check if trip is already saved by this user
     if (trip.user_id === userId.toString()) {
       return res.status(200).json({
         success: true,
@@ -326,7 +298,6 @@ export const saveTrip = async (req, res) => {
       });
     }
 
-    // Update trip with user ID
     trip.user_id = userId;
     trip.saved_at = new Date();
     await trip.save();
@@ -353,10 +324,6 @@ export const saveTrip = async (req, res) => {
   }
 };
 
-/**
- * GET /api/trips/my-trips
- * Get authenticated user's saved trips
- */
 export const getMyTrips = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -368,7 +335,7 @@ export const getMyTrips = async (req, res) => {
       .sort({ saved_at: -1, createdAt: -1 })
       .limit(parseInt(limit))
       .skip(parseInt(skip))
-      .select('-options.itinerary'); // Exclude detailed itinerary for list view
+      .select('-options.itinerary');
 
     const total = await Trip.countDocuments({ user_id: userId, deleted: { $ne: true } });
 
@@ -394,7 +361,6 @@ export const getMyTrips = async (req, res) => {
   }
 };
 
-// GET /api/trips/map-data — lightweight projection for travel map
 export const getMapData = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -403,7 +369,6 @@ export const getMapData = async (req, res) => {
       .limit(100)
       .select('trip_id destination dates status budget description options.itinerary.activities.title options.itinerary.activities.location options.itinerary.activities.category');
 
-    // Build a slim payload — only what the map needs
     const mapTrips = trips.map(t => ({
       trip_id:     t.trip_id,
       destination: t.destination,
@@ -421,7 +386,6 @@ export const getMapData = async (req, res) => {
   }
 };
 
-// GET /api/trips/user/:userId - Get all trips for a user (public)
 export const getUserTrips = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -431,7 +395,7 @@ export const getUserTrips = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(parseInt(limit))
       .skip(parseInt(skip))
-      .select('-options.itinerary'); // Exclude detailed itinerary for list view
+      .select('-options.itinerary');
 
     const total = await Trip.countDocuments({ user_id: userId });
 
@@ -455,11 +419,6 @@ export const getUserTrips = async (req, res) => {
   }
 };
 
-/**
- * PHASE 2B: POST /api/trips/:tripId/options/:optionId/generate-day/:dayNumber
- * Generate a SINGLE day's itinerary (for progressive loading)
- * This enables showing Day 1 in ~3-5 seconds while other days load
- */
 export const generateSingleDay = async (req, res) => {
   try {
     const { tripId, optionId, dayNumber } = req.params;
@@ -467,7 +426,6 @@ export const generateSingleDay = async (req, res) => {
 
     console.log(`📅 Generating Day ${dayNum} for trip ${tripId}, option ${optionId}...`);
 
-    // Find the trip
     const trip = await Trip.findOne({ trip_id: tripId });
 
     if (!trip) {
@@ -477,7 +435,6 @@ export const generateSingleDay = async (req, res) => {
       });
     }
 
-    // Find the selected option
     const selectedOption = trip.options.find(opt => opt.option_id === optionId);
 
     if (!selectedOption) {
@@ -487,7 +444,6 @@ export const generateSingleDay = async (req, res) => {
       });
     }
 
-    // Validate day number
     if (dayNum < 1 || dayNum > trip.dates.duration_days) {
       return res.status(400).json({
         success: false,
@@ -495,7 +451,6 @@ export const generateSingleDay = async (req, res) => {
       });
     }
 
-    // Check if this day is already generated (from cache)
     const existingDay = selectedOption.itinerary?.find(d => d.day_number === dayNum);
     if (existingDay && existingDay.activities && existingDay.activities.length > 0) {
       console.log(`✅ Day ${dayNum} already exists, returning cached version`);
@@ -509,10 +464,8 @@ export const generateSingleDay = async (req, res) => {
       });
     }
 
-    // Get previously generated days for context (to avoid repetition)
     const previousDays = selectedOption.itinerary?.filter(d => d.day_number < dayNum) || [];
 
-    // Generate single day itinerary
     const dayItinerary = await generateSingleDayItinerary({
       destination: trip.destination,
       start_date: trip.dates.start_date,
@@ -528,11 +481,9 @@ export const generateSingleDay = async (req, res) => {
 
     console.log(`✅ Generated Day ${dayNum} itinerary`);
 
-    // Enrich with Google Places data
     console.log(`📍 Enriching Day ${dayNum} with Google Places...`);
     const enrichedDay = await enrichSingleDayWithPlaces(dayItinerary, trip.destination);
 
-    // Sanitize activity categories to ensure they match the enum
     const validCategories = ['sightseeing', 'dining', 'adventure', 'relaxation', 'culture', 'shopping', 'transport', 'nature', 'entertainment', 'nightlife', 'beach', 'museum', 'historical', 'outdoor', 'wellness', 'sports', 'photography', 'other'];
     if (enrichedDay.activities) {
       enrichedDay.activities = enrichedDay.activities.map(activity => ({
@@ -545,22 +496,18 @@ export const generateSingleDay = async (req, res) => {
 
     console.log(`✅ Day ${dayNum} enriched with place data`);
 
-    // Initialize itinerary array if it doesn't exist
     if (!selectedOption.itinerary) {
       selectedOption.itinerary = [];
     }
 
-    // Add or update this day in the itinerary
     const existingDayIndex = selectedOption.itinerary.findIndex(d => d.day_number === dayNum);
     if (existingDayIndex >= 0) {
       selectedOption.itinerary[existingDayIndex] = enrichedDay;
     } else {
       selectedOption.itinerary.push(enrichedDay);
-      // Sort by day number
       selectedOption.itinerary.sort((a, b) => a.day_number - b.day_number);
     }
 
-    // Check if all days are generated
     const allDaysGenerated = selectedOption.itinerary.length === trip.dates.duration_days;
     if (allDaysGenerated) {
       selectedOption.itinerary_generated = true;
@@ -593,10 +540,6 @@ export const generateSingleDay = async (req, res) => {
   }
 };
 
-/**
- * GET /api/trips/:tripId/options/:optionId/day/:dayNumber
- * Get a specific day's itinerary (check cache first)
- */
 export const getDayItinerary = async (req, res) => {
   try {
     const { tripId, optionId, dayNumber } = req.params;
@@ -649,10 +592,6 @@ export const getDayItinerary = async (req, res) => {
 };
 
 
-/**
- * POST /api/trips/parse-description
- * Parse a natural language trip description into structured trip data
- */
 export const parseTripDescriptionController = async (req, res) => {
   try {
     const { text } = req.body;
@@ -668,8 +607,6 @@ export const parseTripDescriptionController = async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to parse description', error: error.message });
   }
 };
-
-// ── Visited Locations ────────────────────────────────────────────────────────
 
 export const getVisitedLocations = async (req, res) => {
   try {
@@ -707,11 +644,6 @@ export const addVisitedLocation = async (req, res) => {
   }
 };
 
-/**
- * POST /api/trips/suggest-destinations
- * Uses gpt-4o-mini to suggest 3–5 destinations for a vague query, then
- * attaches an Unsplash photo to each suggestion.
- */
 export const suggestDestinationsController = async (req, res) => {
   try {
     const { query, budget } = req.body;
@@ -724,7 +656,6 @@ export const suggestDestinationsController = async (req, res) => {
       return res.json({ success: true, data: [] });
     }
 
-    // Attach Unsplash images in parallel (fire-and-forget per suggestion)
     const enriched = await Promise.all(
       suggestions.map(async (s) => {
         try {
@@ -743,9 +674,6 @@ export const suggestDestinationsController = async (req, res) => {
   }
 };
 
-/**
- * DELETE /api/trips/:tripId — soft delete (sets deleted: true)
- */
 export const deleteTrip = async (req, res) => {
   try {
     const { tripId } = req.params;
@@ -765,9 +693,6 @@ export const deleteTrip = async (req, res) => {
   }
 };
 
-/**
- * PATCH /api/trips/:tripId/rename — update customTitle
- */
 export const renameTrip = async (req, res) => {
   try {
     const { tripId } = req.params;
@@ -796,11 +721,6 @@ export const renameTrip = async (req, res) => {
   }
 };
 
-/**
- * PATCH /api/trips/:tripId/selection
- * Save/update selectedFlight, selectedHotel, or selectedCar on a trip.
- * Only the keys present in the request body are updated.
- */
 export const updateTripSelection = async (req, res) => {
   try {
     const { tripId } = req.params;
@@ -816,13 +736,11 @@ export const updateTripSelection = async (req, res) => {
     if (selectedHotel !== undefined) updates.selectedHotel = { ...selectedHotel, savedAt: new Date() };
     if (selectedCar   !== undefined) updates.selectedCar   = { ...selectedCar,   savedAt: new Date() };
 
-    // Recalculate total after merging with existing values
     const flight = updates.selectedFlight ?? trip.selectedFlight;
     const hotel  = updates.selectedHotel  ?? trip.selectedHotel;
     const car    = updates.selectedCar    ?? trip.selectedCar;
     updates.totalEstimatedCost = (flight?.price || 0) + (hotel?.price || 0) + (car?.price || 0);
 
-    // Mark intent to book when a flight or hotel is selected
     if ((updates.selectedFlight || updates.selectedHotel) &&
         !['confirmed', 'booked_externally'].includes(trip.status)) {
       updates.status = 'booked_externally';
@@ -864,9 +782,6 @@ export const markTripConfirmed = async (req, res) => {
   }
 };
 
-/**
- * POST /api/trips/:tripId/share — generate a public share link
- */
 export const shareTrip = async (req, res) => {
   try {
     const { tripId } = req.params;
@@ -893,9 +808,6 @@ export const shareTrip = async (req, res) => {
   }
 };
 
-/**
- * GET /api/trips/shared/:shareToken — public read-only trip view
- */
 export const getSharedTrip = async (req, res) => {
   try {
     const { shareToken } = req.params;

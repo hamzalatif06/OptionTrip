@@ -51,7 +51,7 @@ const HowItWorksPage = () => {
         keywords="how optiontrip works, AI trip planner, itinerary generator, personalized travel"
         path="/how-it-works"
       />
-      {/* Banner */}
+
       <div
         className="banner pt-10 pb-0 overflow-hidden"
         style={{ backgroundImage: `url(/images/bg/bg3.jpg)` }}
@@ -73,7 +73,7 @@ const HowItWorksPage = () => {
         </div>
       </div>
 
-      {/* Steps Section */}
+
       <section style={{ padding: '80px 0', background: '#fff' }}>
         <div className="container">
           <div className="text-center mb-5">
@@ -156,7 +156,7 @@ const HowItWorksPage = () => {
         </div>
       </section>
 
-      {/* Why Choose Us */}
+
       <section style={{ padding: '80px 0', background: '#f8f9fa' }}>
         <div className="container">
           <div className="text-center mb-5">
@@ -197,7 +197,7 @@ const HowItWorksPage = () => {
         </div>
       </section>
 
-      {/* CTA */}
+
       <section
         style={{
           padding: '80px 0',

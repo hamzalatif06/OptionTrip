@@ -1,8 +1,6 @@
-/* ═══════════════════════════════════════════════════════
-   FlightCardGF — Premium redesign (screenshot-matched)
-   ═══════════════════════════════════════════════════════ */
 
-/* ── Shared stop badges ── */
+
+
 .fc-badge {
   display: inline-block;
   font-size: 11px;
@@ -14,7 +12,7 @@
 .fc-badge--direct { color: #15803d; background: #dcfce7; }
 .fc-badge--stops  { color: #b45309; background: #fef9c3; }
 
-/* ── Card shell ── */
+
 .fcgf {
   background: #ffffff;
   border-radius: 16px;
@@ -31,13 +29,13 @@
   border-color: #029e9d;
 }
 
-/* ── Top row: legs + price panel ── */
+
 .fcgf__top {
   display: flex;
   align-items: stretch;
 }
 
-/* ── Legs section ── */
+
 .fcgf__legs {
   flex: 1;
   min-width: 0;
@@ -47,7 +45,7 @@
   justify-content: center;
 }
 
-/* ── Single leg row ── */
+
 .fcgf__leg {
   display: flex;
   align-items: center;
@@ -59,7 +57,7 @@
   border-top: 1px solid #f1f5f9;
 }
 
-/* ── Logo ── */
+
 .fcgf__logo-wrap {
   width: 46px;
   flex-shrink: 0;
@@ -90,7 +88,7 @@
   justify-content: center;
 }
 
-/* ── Airline label ── */
+
 .fcgf__airline-label {
   display: flex;
   flex-direction: column;
@@ -116,7 +114,7 @@
   letter-spacing: 0.02em;
 }
 
-/* ── Route (time → path → time) ── */
+
 .fcgf__leg-route {
   display: flex;
   align-items: center;
@@ -163,7 +161,7 @@
   max-width: 90px;
 }
 
-/* ── Middle path ── */
+
 .fcgf__route-mid {
   display: flex;
   flex-direction: column;
@@ -198,7 +196,7 @@
   margin-left: 2px;
 }
 
-/* ── Price panel ── */
+
 .fcgf__price-panel {
   width: 200px;
   flex-shrink: 0;
@@ -213,7 +211,7 @@
   gap: 0;
 }
 
-/* ── Heart icon — top-right corner of price panel ── */
+
 .fcgf__wishlist {
   position: absolute;
   top: 10px;
@@ -229,7 +227,7 @@
 }
 .fcgf__wishlist:hover { color: #ef4444; }
 
-/* ── Inline price row: "from  $99  / person" ── */
+
 .fcgf__price-row {
   display: flex;
   align-items: baseline;
@@ -258,7 +256,7 @@
   font-weight: 500;
 }
 
-/* ── Buttons ── */
+
 .fcgf__select-btn {
   display: flex;
   align-items: center;
@@ -303,7 +301,7 @@
 }
 .fcgf__details-btn:hover { color: #029e9d; }
 
-/* ── Expanded details ── */
+
 .fcgf__details {
   padding: 16px 22px 20px;
   border-top: 1px solid #f0f3f7;
@@ -417,7 +415,7 @@
   margin-top: 2px;
 }
 
-/* ── Responsive ── */
+
 @media (max-width: 860px) {
   .fcgf__airline-label { display: none; }
   .fcgf__leg { padding: 14px 16px; }

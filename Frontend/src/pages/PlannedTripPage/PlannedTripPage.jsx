@@ -1,24 +1,3 @@
-/**
- * PlannedTripPage - Main Planned Trip View
- *
- * Structure adapted from TripTap's PublicTripPageWrapper + TripIndex
- * Displays complete trip itinerary after trip generation
- *
- * Data Flow:
- * 1. Receives tripId from route params
- * 2. Fetches trip data from API
- * 3. If itinerary not generated, triggers progressive day-by-day generation
- * 4. Renders HeroSection (trip metadata)
- * 5. Renders ActivitiesSection (day-by-day itinerary with tabs)
- *
- * Components Used (from TripTap structure):
- * - HeroSection: Trip header with info cards
- * - ActivitiesSection: Main itinerary with multi-tab view
- *   - Tab 0: Itinerary (day-by-day activities)
- *   - Tab 1: Map View (optional)
- *   - Tab 2: Calendar View (optional)
- */
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import HeroSection from './sections/HeroSection';
@@ -39,7 +18,6 @@ import { getAccessToken } from '../../services/authService';
 import { useAuth } from '../../contexts/AuthContext';
 import './PlannedTripPage.css';
 
-// Simple Header Component for Planned Trip Page
 const PlannedTripHeader = ({ tripId }) => {
   return (
     <header className="planned-trip-header">
@@ -72,17 +50,14 @@ const PlannedTripPage = () => {
   const { isAuthenticated } = useAuth();
   const generationStarted = useRef(false);
 
-  // State management
   const [tripData, setTripData] = useState(null);
   const [tripDaysData, setTripDaysData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Save trip state
   const [isSaved, setIsSaved]   = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Selections from Flight/Hotel tabs
   const [selectedFlight, setSelectedFlight] = useState(tripData?.selectedFlight || null);
   const [selectedHotel,  setSelectedHotel]  = useState(tripData?.selectedHotel  || null);
   const [tripStatus,     setTripStatus]     = useState(tripData?.status || null);
@@ -107,7 +82,6 @@ const PlannedTripPage = () => {
     }
   };
 
-  // Progressive loading state
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState({ completed: 0, total: 0 });
 
@@ -120,7 +94,6 @@ const PlannedTripPage = () => {
     }
   }, [tripId]);
 
-  // Sync selections from loaded trip data
   useEffect(() => {
     if (tripData) {
       if (tripData.selectedFlight) setSelectedFlight(tripData.selectedFlight);
@@ -129,7 +102,6 @@ const PlannedTripPage = () => {
     }
   }, [tripData]);
 
-  // Start progressive generation when trip data loads and itinerary is empty
   useEffect(() => {
     if (tripData && tripDaysData.length === 0 && !generationStarted.current && !isGenerating) {
       const selectedOption = tripData.options?.find(opt => opt.option_id === tripData.selected_option_id);
@@ -148,11 +120,9 @@ const PlannedTripPage = () => {
 
       if (response.success && response.data) {
         setTripData(response.data);
-        // Get the selected option's itinerary
         const selectedOption = response.data.options?.find(opt => opt.option_id === response.data.selected_option_id);
         const existingItinerary = selectedOption?.itinerary || [];
 
-        // Check localStorage cache first
         if (existingItinerary.length === 0 && response.data.selected_option_id) {
           const cachedData = getCachedItinerary(tripId, response.data.selected_option_id);
           if (cachedData && cachedData.length > 0) {
@@ -190,7 +160,6 @@ const PlannedTripPage = () => {
         tripId,
         optionId,
         totalDays,
-        // onDayComplete - called when each day finishes
         (dayNumber, dayData, fromCache) => {
           console.log(`✅ Day ${dayNumber} loaded${fromCache ? ' (cached)' : ''}`);
 
@@ -205,14 +174,11 @@ const PlannedTripPage = () => {
             completed: prev.completed + 1
           }));
         },
-        // onAllComplete - called when all days are done
         (completedDays, results) => {
           console.log('✅ All days generated!', completedDays.length);
-          // Save to localStorage cache
           setCachedItinerary(tripId, optionId, completedDays);
           setIsGenerating(false);
         },
-        // onError - called when a day fails
         (dayNumber, error) => {
           console.error(`❌ Day ${dayNumber} failed:`, error);
         }
@@ -224,7 +190,6 @@ const PlannedTripPage = () => {
     }
   };
 
-  // Loading State
   if (loading) {
     return (
       <div className="planned-trip-page">
@@ -236,7 +201,6 @@ const PlannedTripPage = () => {
     );
   }
 
-  // Error State
   if (error) {
     return (
       <div className="planned-trip-page">
@@ -262,7 +226,6 @@ const PlannedTripPage = () => {
     );
   }
 
-  // Empty State - Show if no trip data at all (not just empty itinerary)
   if (!tripData) {
     return (
       <div className="planned-trip-page">
@@ -284,12 +247,11 @@ const PlannedTripPage = () => {
     );
   }
 
-  // Main Content
   return (
     <div className="planned-trip-page">
       <PageMeta title="Your Planned Trip" description="Your personalized trip itinerary." noIndex />
       <PlannedTripHeader tripId={tripId} />
-      {/* Hero Section - Trip Header with Metadata */}
+
       <HeroSection
         tripData={tripData}
         destination={tripData.destination}
@@ -301,7 +263,7 @@ const PlannedTripPage = () => {
         isSaving={isSaving}
       />
 
-      {/* Activities Section - Main Itinerary Content with Progressive Loading */}
+
       <ActivitiesSection
         tripId={tripId}
         tripData={tripData}
@@ -315,7 +277,7 @@ const PlannedTripPage = () => {
       />
       <ViAssistant />
 
-      {/* Share Button — always visible for authenticated users */}
+
       {isAuthenticated && (
         <div className="planned-trip-share-bar">
           {shareUrl ? (
@@ -340,7 +302,7 @@ const PlannedTripPage = () => {
                     setShareUrl(url);
                     navigator.clipboard?.writeText(url);
                   }
-                } catch { /* noop */ } finally { setIsSharing(false); }
+                } catch {} finally { setIsSharing(false); }
               }}
             >
               {isSharing ? 'Generating…' : '🔗 Share trip'}
@@ -349,7 +311,7 @@ const PlannedTripPage = () => {
         </div>
       )}
 
-      {/* Sticky Trip Summary Bar — appears when flight or hotel is selected */}
+
       {(selectedFlight || selectedHotel) && (
         <div className="planned-trip-summary-bar">
           <div className="planned-trip-summary-bar__inner">
@@ -383,7 +345,7 @@ const PlannedTripPage = () => {
                     const token = getAccessToken();
                     await confirmTrip(tripId, token);
                     setTripStatus('confirmed');
-                  } catch { /* noop */ } finally { setMarkingBooked(false); }
+                  } catch {} finally { setMarkingBooked(false); }
                 }}
               >
                 {markingBooked ? 'Saving…' : 'Mark as booked'}

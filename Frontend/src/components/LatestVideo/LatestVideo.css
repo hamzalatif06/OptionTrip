@@ -26,7 +26,7 @@
   margin: 0;
 }
 
-/* 16:9 responsive iframe */
+
 .latest-video__player {
   position: relative;
   width: 100%;
@@ -52,7 +52,7 @@
   text-align: center;
 }
 
-/* Skeleton */
+
 .latest-video__skeleton-player {
   width: 100%;
   padding-top: 56.25%;
@@ -67,7 +67,7 @@
   100% { background-position: -200% 0; }
 }
 
-/* Mobile */
+
 @media (max-width: 767px) {
   .latest-video__top {
     flex-direction: column;

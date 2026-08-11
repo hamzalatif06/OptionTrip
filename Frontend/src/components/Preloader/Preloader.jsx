@@ -5,7 +5,6 @@ const Preloader = () => {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    // Hide preloader after a short delay
     const timer = setTimeout(() => {
       setIsVisible(false);
     }, 500);

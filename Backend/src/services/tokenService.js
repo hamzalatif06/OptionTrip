@@ -2,11 +2,6 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
 class TokenService {
-  /**
-   * Generate access token (short-lived)
-   * @param {Object} payload - User data to encode
-   * @returns {String} JWT access token
-   */
   generateAccessToken(payload) {
     return jwt.sign(
       payload,
@@ -18,11 +13,6 @@ class TokenService {
     );
   }
 
-  /**
-   * Generate refresh token (long-lived)
-   * @param {Object} payload - User data to encode
-   * @returns {String} JWT refresh token
-   */
   generateRefreshToken(payload) {
     return jwt.sign(
       payload,
@@ -34,11 +24,6 @@ class TokenService {
     );
   }
 
-  /**
-   * Generate both access and refresh tokens
-   * @param {Object} user - User document
-   * @returns {Object} { accessToken, refreshToken }
-   */
   async generateTokenPair(user) {
     const payload = {
       id: user._id.toString(),
@@ -49,17 +34,11 @@ class TokenService {
     const accessToken = this.generateAccessToken(payload);
     const refreshToken = this.generateRefreshToken(payload);
 
-    // Store refresh token in database
     await this.storeRefreshToken(user._id, refreshToken);
 
     return { accessToken, refreshToken };
   }
 
-  /**
-   * Store refresh token in user document
-   * @param {String} userId - User ID
-   * @param {String} refreshToken - Refresh token to store
-   */
   async storeRefreshToken(userId, refreshToken) {
     await User.findByIdAndUpdate(
       userId,
@@ -74,11 +53,6 @@ class TokenService {
     );
   }
 
-  /**
-   * Verify access token
-   * @param {String} token - Access token to verify
-   * @returns {Object} Decoded token payload
-   */
   verifyAccessToken(token) {
     try {
       return jwt.verify(token, process.env.JWT_ACCESS_SECRET);
@@ -93,11 +67,6 @@ class TokenService {
     }
   }
 
-  /**
-   * Verify refresh token
-   * @param {String} token - Refresh token to verify
-   * @returns {Object} Decoded token payload
-   */
   verifyRefreshToken(token) {
     try {
       return jwt.verify(token, process.env.JWT_REFRESH_SECRET);
@@ -112,16 +81,9 @@ class TokenService {
     }
   }
 
-  /**
-   * Refresh access token using refresh token
-   * @param {String} refreshToken - Refresh token
-   * @returns {Object} { accessToken, refreshToken }
-   */
   async refreshAccessToken(refreshToken) {
-    // Verify refresh token
     const decoded = this.verifyRefreshToken(refreshToken);
 
-    // Find user and check if refresh token exists
     const user = await User.findById(decoded.id);
     if (!user) {
       throw new Error('User not found');
@@ -135,20 +97,13 @@ class TokenService {
       throw new Error('Invalid refresh token');
     }
 
-    // Generate new token pair
     const tokens = await this.generateTokenPair(user);
 
-    // Remove old refresh token
     await this.revokeRefreshToken(user._id, refreshToken);
 
     return tokens;
   }
 
-  /**
-   * Revoke a specific refresh token
-   * @param {String} userId - User ID
-   * @param {String} refreshToken - Token to revoke
-   */
   async revokeRefreshToken(userId, refreshToken) {
     await User.findByIdAndUpdate(
       userId,
@@ -160,10 +115,6 @@ class TokenService {
     );
   }
 
-  /**
-   * Revoke all refresh tokens for a user (logout from all devices)
-   * @param {String} userId - User ID
-   */
   async revokeAllRefreshTokens(userId) {
     await User.findByIdAndUpdate(
       userId,
@@ -173,10 +124,6 @@ class TokenService {
     );
   }
 
-  /**
-   * Clean up expired refresh tokens
-   * @param {String} userId - User ID
-   */
   async cleanExpiredTokens(userId) {
     const user = await User.findById(userId);
     if (!user) return;
@@ -187,9 +134,7 @@ class TokenService {
       try {
         this.verifyRefreshToken(tokenObj.token);
         validTokens.push(tokenObj);
-      } catch (error) {
-        // Token is expired or invalid, skip it
-      }
+      } catch (error) {}
     }
 
     user.refreshTokens = validTokens;

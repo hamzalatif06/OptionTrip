@@ -1,30 +1,20 @@
-/**
- * Google Flights Service (via RapidAPI)
- * Returns real-time flight results. Book Now redirects via Aviasales affiliate.
- */
-
 const RAPIDAPI_KEY  = process.env.RAPIDAPI_KEY  || '';
 const RAPIDAPI_HOST = 'google-flights2.p.rapidapi.com';
 const TP_MARKER     = process.env.TRAVELPAYOUTS_MARKER || '370056';
 
 const buildBookingUrl = ({ origin, destination, departureDate, returnDate, adults }) => {
-  // Aviasales format: {FROM}{DDMM}{TO}[{DDMM_RETURN}]{pax}
   const fmt = (d) => { const [, mm, dd] = d.split('-'); return `${dd}${mm}`; };
   const pax = String(Math.max(1, adults || 1));
   const returnPart = returnDate ? fmt(returnDate) : '';
   return `https://www.aviasales.com/search/${origin}${fmt(departureDate)}${destination}${returnPart}${pax}?marker=${TP_MARKER}`;
 };
 
-// Extract HH:MM from time strings like "2025-2-1 08:34" or "01-02-2025 08:34 AM"
 const extractTime = (raw) => {
   if (!raw) return '';
-  // "2025-2-1 08:34" → "08:34"
-  // "01-02-2025 08:34 AM" → "08:34 AM"
   const parts = String(raw).trim().split(' ');
   return parts.length >= 2 ? parts.slice(1).join(' ') : raw;
 };
 
-// duration field in segments can be a number (minutes) or {raw,text}
 const durationText = (d) => {
   if (!d) return '';
   if (typeof d === 'number') {
@@ -34,8 +24,6 @@ const durationText = (d) => {
   return d.text || '';
 };
 
-// Parse price to a clean per-person integer.
-// google-flights2 returns the TOTAL price for all passengers, so divide by adults.
 const parsePrice = (raw, adults = 1) => {
   const val = raw.price ?? null;
   if (val === null || val === undefined) return null;
@@ -44,7 +32,6 @@ const parsePrice = (raw, adults = 1) => {
   return Math.round(n / Math.max(1, adults));
 };
 
-// Extract key amenities from the extensions array
 const parseAmenities = (extensions = []) => {
   const result = { wifi: false, power: false, video: false, usb: false };
   for (const ext of extensions) {
@@ -57,16 +44,13 @@ const parseAmenities = (extensions = []) => {
   return result;
 };
 
-// Normalise a raw API itinerary into a clean object
 const normalise = (raw, { origin, destination, departureDate, returnDate, adults }) => {
   const segs = raw.flights || [];
   const first = segs[0] || {};
   const last  = segs[segs.length - 1] || first;
 
-  // All unique airlines for multi-stop
   const airlines = [...new Set(segs.map(s => s.airline).filter(Boolean))];
 
-  // Layovers — docs format: { airport_code, airport_name, duration_label, duration, city }
   const layovers = (raw.layovers || []).map(l => ({
     id:       l.airport_code || '',
     name:     l.airport_name || l.city || '',
@@ -74,7 +58,6 @@ const normalise = (raw, { origin, destination, departureDate, returnDate, adults
     overnight: !!l.overnight,
   }));
 
-  // ── Return leg ────────────────────────────────────────────────────────────
   const rSegs  = raw.return_flights || [];
   const rFirst = rSegs[0] || {};
   const rLast  = rSegs[rSegs.length - 1] || rFirst;
@@ -108,8 +91,7 @@ const normalise = (raw, { origin, destination, departureDate, returnDate, adults
     amenities:     parseAmenities(first.extensions || []),
     co2:           raw.carbon_emissions?.difference_percent ?? null,
     bookingUrl:    buildBookingUrl({ origin, destination, departureDate, returnDate, adults }),
-    // Return leg fields
-    isRoundTrip:           rSegs.length > 0,
+    isRoundTrip: rSegs.length > 0,
     returnOrigin:          rFirst.departure_airport?.airport_code || '',
     returnDestination:     rLast.arrival_airport?.airport_code   || '',
     returnDepartureTime:   extractTime(rFirst.departure_airport?.time) || '',
@@ -122,12 +104,6 @@ const normalise = (raw, { origin, destination, departureDate, returnDate, adults
   };
 };
 
-/**
- * Search real-time flights via Google Flights (RapidAPI).
- *
- * @param {{ origin, destination, departureDate, returnDate?, adults, travelClass? }}
- * @returns {Promise<Array>}
- */
 export const searchFlightsGoogle = async ({
   origin,
   destination,
@@ -188,7 +164,6 @@ export const searchFlightsGoogle = async ({
 
   const ctx = { origin: origin.toUpperCase(), destination: destination.toUpperCase(), departureDate, returnDate, adults };
 
-  // API returns either data.topFlights or data.itineraries.topFlights depending on version
   const itins      = data.data?.itineraries || data.data || {};
   const topFlights  = (itins.topFlights   || []).map(f => normalise(f, ctx)).filter(f => f.price !== null);
   const otherFlights = (itins.otherFlights || []).map(f => normalise(f, ctx)).filter(f => f.price !== null);

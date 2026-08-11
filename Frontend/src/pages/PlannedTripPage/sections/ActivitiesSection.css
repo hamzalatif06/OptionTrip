@@ -1,5 +1,5 @@
-/* ActivitiesSection Styles - Using OptionTrip Theme */
-/* Structure from TripTap, styled with OptionTrip colors */
+
+
 
 .activities-section {
   background: #FFFFFF;
@@ -13,7 +13,7 @@
   padding: 0;
 }
 
-/* ========== Main Tabs (TabsWrapper_V2 pattern) ========== */
+
 .activities-section__tabs-wrapper {
   background: #FFFFFF;
   padding: 24px 20px;
@@ -82,17 +82,17 @@
   line-height: 24px;
 }
 
-/* ========== Tab Content ========== */
+
 .activities-section__tab-content {
   min-height: 500px;
 }
 
-/* ========== Itinerary Tab ========== */
+
 .activities-section__itinerary {
   padding: 0;
 }
 
-/* ========== Day Tabs (TogglerTabsWrapper_V2 pattern) ========== */
+
 .activities-section__day-tabs-wrapper {
   position: sticky;
   top: 66px;
@@ -156,7 +156,7 @@
   cursor: not-allowed;
 }
 
-/* ========== Day Content (ItineraryDays pattern) ========== */
+
 .activities-section__day-content {
   padding: 32px 20px;
   max-width: 1400px;
@@ -207,7 +207,7 @@
   margin: 0;
 }
 
-/* ========== Activities List ========== */
+
 .activities-section__activities {
   display: flex;
   flex-direction: column;
@@ -219,7 +219,7 @@
   width: 100%;
 }
 
-/* Activity Placeholder Styles */
+
 .activity-placeholder {
   display: flex;
   background: #FFFFFF;
@@ -306,7 +306,7 @@
   gap: 6px;
 }
 
-/* ========== Day Footer ========== */
+
 .activities-section__day-footer {
   padding: 20px 0;
   border-top: 2px solid #F1F4F9;
@@ -332,7 +332,7 @@
   color: #F30F89;
 }
 
-/* ========== Empty States ========== */
+
 .activities-section__empty,
 .activities-section__empty-day {
   display: flex;
@@ -355,7 +355,7 @@
   margin: 0;
 }
 
-/* ========== Skeleton Loading ========== */
+
 @keyframes act-sk-shimmer-anim {
   0%   { background-position: -800px 0; }
   100% { background-position:  800px 0; }
@@ -523,7 +523,7 @@
   margin: 20px;
 }
 
-/* Fullpage Generating State */
+
 .activities-section__generating-fullpage {
   display: flex;
   align-items: center;
@@ -603,7 +603,7 @@
   margin: 0;
 }
 
-/* Responsive Generating State */
+
 @media (max-width: 767px) {
   .activities-section__generating-fullpage {
     min-height: 50vh;
@@ -630,7 +630,7 @@
   }
 }
 
-/* Loading Day Tab */
+
 .activities-section__day-tab.loading {
   background: linear-gradient(90deg, #E8ECEF 0%, #F8F9FA 50%, #E8ECEF 100%);
   background-size: 200% 100%;
@@ -658,7 +658,7 @@
   color: #596C7E;
 }
 
-/* ========== Trip Actions Footer (TravelTicketWidget pattern) ========== */
+
 .activities-section__actions {
   background: linear-gradient(135deg, #EAF4FF 0%, #FFEEF7 100%);
   border-top: 2px solid #E8ECEF;
@@ -739,7 +739,7 @@
   box-shadow: 0 8px 16px rgba(10, 83, 157, 0.15);
 }
 
-/* Save Button States */
+
 .activities-section__action-btn.primary.saved {
   background: #029e9d;
   border-color: #029e9d;
@@ -779,7 +779,7 @@
   }
 }
 
-/* ========== Responsive Design ========== */
+
 @media (max-width: 991px) {
   .activities-section__day-tabs-wrapper {
     top: 64px;

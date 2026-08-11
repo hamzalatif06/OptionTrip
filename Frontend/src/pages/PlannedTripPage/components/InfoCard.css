@@ -1,5 +1,5 @@
-/* InfoCard Styles - Using OptionTrip Theme */
-/* Structure from TripTap's HeroInfoCard */
+
+
 
 .info-card {
   background: #FFFFFF;
@@ -25,7 +25,7 @@
   border-color: #E8ECEF;
 }
 
-/* Header */
+
 .info-card__header {
   display: flex;
   align-items: flex-start;
@@ -48,7 +48,7 @@
   padding: 4px;
 }
 
-/* MUI Icon styling */
+
 .info-card__icon svg {
   width: 20px;
   height: 20px;
@@ -79,7 +79,7 @@
   line-height: 1.2;
 }
 
-/* Content */
+
 .info-card__content {
   flex: 1;
   display: flex;
@@ -102,7 +102,7 @@
   border-radius: 10px;
 }
 
-/* Info Table (from TripTap's AppInfoTable) */
+
 .info-card__table {
   display: flex;
   flex-direction: column;
@@ -138,7 +138,7 @@
   overflow-wrap: break-word;
 }
 
-/* See More Indicator */
+
 .info-card__see-more {
   font-size: 12px;
   font-weight: 700;
@@ -149,7 +149,7 @@
   border-top: 1px solid #F1F4F9;
 }
 
-/* Loading State (from TripTap's Skeleton) */
+
 .info-card--loading {
   background: #FFFFFF;
 }
@@ -210,7 +210,7 @@
   }
 }
 
-/* ========== Popover (from TripTap's HeroInfoCardPopup) ========== */
+
 .info-card-popover {
   position: fixed;
   top: 0;
@@ -281,7 +281,7 @@
   flex-shrink: 0;
 }
 
-/* MUI Icon styling in popover */
+
 .info-card-popover__icon svg {
   width: 32px;
   height: 32px;
@@ -340,7 +340,7 @@
   border-radius: 10px;
 }
 
-/* Responsive Design */
+
 @media (max-width: 991px) {
   .info-card {
     min-width: 240px !important;

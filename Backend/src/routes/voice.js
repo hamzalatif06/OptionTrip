@@ -1,9 +1,3 @@
-/**
- * Voice Routes
- * Handles Whisper Speech-to-Text and OpenAI Text-to-Speech
- */
-
-// Polyfill File global for Node < 20 (required by OpenAI SDK's toFile helper)
 import { File as NodeFile } from 'node:buffer';
 if (!globalThis.File) globalThis.File = NodeFile;
 
@@ -13,10 +7,9 @@ import OpenAI, { toFile } from 'openai';
 
 const router = express.Router();
 
-// Store audio in memory (no disk writes)
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 25 * 1024 * 1024 }, // 25 MB — Whisper's max
+  limits: { fileSize: 25 * 1024 * 1024 },
 });
 
 let openai = null;
@@ -27,12 +20,6 @@ const getClient = () => {
   return openai;
 };
 
-/**
- * @route  POST /api/voice/transcribe
- * @desc   Convert speech audio to text via OpenAI Whisper
- * @access Public
- * @body   multipart/form-data: audio (audio file), language (optional)
- */
 router.post('/transcribe', upload.single('audio'), async (req, res) => {
   try {
     const client = getClient();
@@ -44,7 +31,6 @@ router.post('/transcribe', upload.single('audio'), async (req, res) => {
       return res.status(400).json({ success: false, message: 'No audio file provided' });
     }
 
-    // Whisper requires a File-like object — use OpenAI's toFile helper (works in Node.js)
     const ext = getExtension(req.file.mimetype);
     const audioFile = await toFile(req.file.buffer, `audio.${ext}`, { type: req.file.mimetype });
 
@@ -63,12 +49,6 @@ router.post('/transcribe', upload.single('audio'), async (req, res) => {
   }
 });
 
-/**
- * @route  POST /api/voice/speak
- * @desc   Convert text to speech via OpenAI TTS, stream audio back
- * @access Public
- * @body   { text: string, voice?: "alloy"|"echo"|"fable"|"onyx"|"nova"|"shimmer" }
- */
 router.post('/speak', async (req, res) => {
   try {
     const client = getClient();
@@ -81,7 +61,6 @@ router.post('/speak', async (req, res) => {
       return res.status(400).json({ success: false, message: 'No text provided' });
     }
 
-    // Limit to 4096 chars (OpenAI TTS limit)
     const truncatedText = text.trim().slice(0, 4096);
 
     const mp3 = await client.audio.speech.create({
@@ -91,7 +70,6 @@ router.post('/speak', async (req, res) => {
       response_format: 'mp3',
     });
 
-    // Stream the audio buffer back to the client
     const buffer = Buffer.from(await mp3.arrayBuffer());
 
     res.set({
@@ -107,8 +85,6 @@ router.post('/speak', async (req, res) => {
     res.status(500).json({ success: false, message: 'Text-to-speech failed. Please try again.' });
   }
 });
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
 
 const mimeToExt = {
   'audio/webm': 'webm',

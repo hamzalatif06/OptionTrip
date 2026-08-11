@@ -10,7 +10,6 @@ import {
 import PageMeta from '../../hooks/usePageMeta';
 import './BlogDetail.css';
 
-// ─── Skeleton loader ──────────────────────────────────────────────
 const DetailSkeleton = () => (
   <div className="blog-detail">
     <div className="blog-detail__container">
@@ -26,7 +25,6 @@ const DetailSkeleton = () => (
   </div>
 );
 
-// ─── Share bar ────────────────────────────────────────────────────
 const ShareBar = ({ title, className = '', onShare, onCopy, onPrint, copied }) => (
   <div className={`blog-detail__share ${className}`}>
     <span className="blog-detail__share-label">Share:</span>
@@ -54,7 +52,6 @@ const ShareBar = ({ title, className = '', onShare, onCopy, onPrint, copied }) =
   </div>
 );
 
-// ─── Main component ───────────────────────────────────────────────
 const BlogDetail = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -71,15 +68,14 @@ const BlogDetail = () => {
   const [commentsLoading, setCommentsLoading] = useState(false);
 
   const [form, setForm]             = useState({ name: '', email: '', content: '' });
-  const [submitStatus, setSubmitStatus] = useState(null); // null | 'submitting' | 'success' | 'error'
+  const [submitStatus, setSubmitStatus] = useState(null);
   const [submitError, setSubmitError]   = useState('');
 
   const [copied, setCopied] = useState(false);
   const [smartImage, setSmartImage] = useState(null);
-  const [tripDestinations, setTripDestinations] = useState([]); // extracted destination names
-  const extractedRef = useRef(false); // prevent double-fetch
+  const [tripDestinations, setTripDestinations] = useState([]);
+  const extractedRef = useRef(false);
 
-  // ── Load main post ──────────────────────────────────────────────
   useEffect(() => {
     if (!slug) return;
     let cancelled = false;
@@ -107,7 +103,6 @@ const BlogDetail = () => {
     return () => { cancelled = true; };
   }, [slug]);
 
-  // ── Fetch smart Unsplash hero image when WP has no featured image ──
   useEffect(() => {
     if (!post || getFeaturedImage(post, 'full') || getFeaturedImage(post, 'medium_large')) return;
     let cancelled = false;
@@ -117,7 +112,6 @@ const BlogDetail = () => {
     return () => { cancelled = true; };
   }, [post]);
 
-  // ── Extract destinations from article content for the booking strip ──
   useEffect(() => {
     if (!post || extractedRef.current) return;
     extractedRef.current = true;
@@ -134,7 +128,6 @@ const BlogDetail = () => {
       .catch(() => {});
   }, [post]);
 
-  // ── Load prev/next + comments once post is available ────────────
   useEffect(() => {
     if (!post) return;
     fetchPrevPost(post.date).then(r => setPrevPost(r.data?.[0] || null)).catch(() => {});
@@ -146,14 +139,12 @@ const BlogDetail = () => {
       .finally(() => setCommentsLoading(false));
   }, [post]);
 
-  // ── Auto-clear "copied" after 2 s ───────────────────────────────
   useEffect(() => {
     if (!copied) return;
     const t = setTimeout(() => setCopied(false), 2000);
     return () => clearTimeout(t);
   }, [copied]);
 
-  // ── Share / print helpers ────────────────────────────────────────
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
   const handleShare = (platform) => {
     const u = encodeURIComponent(shareUrl);
@@ -169,7 +160,6 @@ const BlogDetail = () => {
   const handleCopy  = () => navigator.clipboard.writeText(shareUrl).then(() => setCopied(true));
   const handlePrint = () => window.print();
 
-  // ── Comment submit ───────────────────────────────────────────────
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     if (!form.name.trim() || !form.email.trim() || !form.content.trim()) return;
@@ -186,8 +176,8 @@ const BlogDetail = () => {
     }
   };
 
-  // ── Loading / error states ───────────────────────────────────────
-  if (loading) return <DetailSkeleton />;
+  if (loading)
+    return <DetailSkeleton />;
 
   if (notFound) {
     return (
@@ -222,9 +212,7 @@ const BlogDetail = () => {
     );
   }
 
-  // ── Derived data ─────────────────────────────────────────────────
   const wpImage   = getFeaturedImage(post, 'full') || getFeaturedImage(post, 'medium_large');
-  // Fallback chain: WP image → smart Unsplash (AI-selected) → Pollinations.ai
   const heroImage = wpImage || smartImage || getAIFallbackImage(post?.title?.rendered || 'travel', post?.id || 1);
   const isAIImage = !wpImage && !smartImage;
   const title      = post?.title?.rendered || '';
@@ -249,19 +237,19 @@ const BlogDetail = () => {
       />
       <div className="blog-detail__container">
 
-      <div> {/* Back link */}
-        <Link to="/blog" className="blog-detail__back-link">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-          Back to Blog
-        </Link>
-</div> 
-        {/* Category */}
+        <div> 
+          <Link to="/blog" className="blog-detail__back-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            Back to Blog
+          </Link>
+        </div>
+
         <span className="blog-detail__category">{categoryName}</span>
 
-        {/* Title */}
+
         <h1 className="blog-detail__title" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(title) }} />
 
-        {/* Meta */}
+
         <div className="blog-detail__meta">
           {authorAvatar && <img src={authorAvatar} alt={author} className="blog-detail__author-avatar" />}
           <span className="blog-detail__author">{author}</span>
@@ -277,10 +265,10 @@ const BlogDetail = () => {
           <span className="blog-detail__read-time">{readTime} min read</span>
         </div>
 
-        {/* Share bar — top */}
+
         <ShareBar {...shareProp} className="blog-detail__share--top" />
 
-        {/* Hero image */}
+
         <div className="blog-detail__hero">
           <img
             src={heroImage}
@@ -299,10 +287,10 @@ const BlogDetail = () => {
           )}
         </div>
 
-        {/* Article content */}
+
         <div className="blog-detail__content wp-content" dangerouslySetInnerHTML={{ __html: content }} />
 
-        {/* Booking strip — shown when AI detects destinations */}
+
         {tripDestinations.length > 0 && (
           <aside className="blog-booking-strip">
             <div className="blog-booking-strip__header">
@@ -350,10 +338,10 @@ const BlogDetail = () => {
           </aside>
         )}
 
-        {/* Share bar — bottom */}
+
         <ShareBar {...shareProp} className="blog-detail__share--bottom" />
 
-        {/* Prev / Next navigation */}
+
         {(prevPost || nextPost) && (
           <div className="blog-detail__nav">
             <div>
@@ -377,7 +365,7 @@ const BlogDetail = () => {
 
       </div>
 
-      {/* ── Comment section ────────────────────────────────────── */}
+
       <div className="blog-detail__comments-wrap">
         <div className="blog-detail__container">
 
@@ -389,7 +377,7 @@ const BlogDetail = () => {
             {comments.length > 0 && <span className="blog-detail__comment-count">({comments.length})</span>}
           </h3>
 
-          {/* Existing comments */}
+
           {commentsLoading ? (
             <p className="blog-detail__comments-loading">Loading comments…</p>
           ) : comments.length > 0 ? (
@@ -422,7 +410,7 @@ const BlogDetail = () => {
             <p className="blog-detail__no-comments">No comments yet. Be the first to share your thoughts!</p>
           )}
 
-          {/* Comment form */}
+
           <div className="blog-detail__comment-form-wrap">
             <h4 className="blog-detail__comment-form-title">Leave a Comment</h4>
             {submitStatus === 'success' ? (

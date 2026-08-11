@@ -1,9 +1,9 @@
-/* ── Wrapper ─────────────────────────────────────────────────────────────── */
+
 .tdp-wrap {
   position: relative;
 }
 
-/* ── Trigger row ─────────────────────────────────────────────────────────── */
+
 .tdp-trigger {
   display: flex;
   align-items: stretch;
@@ -19,7 +19,7 @@
   flex-shrink: 0;
 }
 
-/* ── Trigger field ───────────────────────────────────────────────────────── */
+
 .tdp-field {
   flex: 1;
   min-width: 0;
@@ -64,10 +64,8 @@
 .tdp-field__ph    { font-size: 13px; color: #94a3b8; white-space: nowrap; }
 .tdp-field__err   { font-size: 11px; color: #ef4444; margin: 4px 0 0; }
 
-/* ── Popup ───────────────────────────────────────────────────────────────── */
-/* Portalled to <body> (see TripDatePicker.jsx) — position: fixed with top/left
-   set inline from getBoundingClientRect(), so it always escapes whatever
-   ancestor stacking context the trigger happens to be inside. */
+
+
 .tdp-popup {
   position: fixed;
   z-index: 1000;
@@ -80,7 +78,7 @@
   max-width: calc(100vw - 32px);
 }
 
-/* ── Tabs ────────────────────────────────────────────────────────────────── */
+
 .tdp-tabs {
   display: flex;
   gap: 4px;
@@ -109,7 +107,7 @@
   background: transparent;
 }
 
-/* ── Flexible month grid ─────────────────────────────────────────────────── */
+
 .tdp-flex-wrap {
   padding: 20px 20px 8px;
 }
@@ -179,13 +177,13 @@
 .tdp-month-card--selected .tdp-month-card__name { color: #fff; }
 .tdp-month-card--between  .tdp-month-card__name { color: #029e9d; }
 
-/* ── Price Calendar ──────────────────────────────────────────────────────── */
+
 .pc-wrap {
   padding: 16px 20px 8px;
   min-width: 620px;
 }
 
-/* Header */
+
 .pc-header {
   display: flex;
   align-items: center;
@@ -247,7 +245,7 @@
   flex-shrink: 0;
 }
 
-/* Loading */
+
 .pc-loading {
   display: flex;
   flex-direction: column;
@@ -266,7 +264,7 @@
 }
 @keyframes pc-spin { to { transform: rotate(360deg); } }
 
-/* Weekday headers */
+
 .pc-weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -283,7 +281,7 @@
   padding: 4px 0;
 }
 
-/* Day grid */
+
 .pc-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -311,7 +309,7 @@
   box-shadow: 0 2px 8px rgba(2,158,157,0.15);
 }
 
-/* Price colour bands */
+
 .pc-day--cheap {
   background: #ecfdf5;
 }
@@ -324,7 +322,7 @@
 
 .pc-day--pricey .pc-day__price { color: #94a3b8; }
 
-/* States */
+
 .pc-day--past { opacity: 0.35; cursor: not-allowed; }
 .pc-day--past:hover { transform: none; box-shadow: none; background: transparent; }
 
@@ -335,7 +333,7 @@
 .pc-day--selected .pc-day__num   { color: #fff; }
 .pc-day--selected .pc-day__price { color: rgba(255,255,255,0.8); }
 
-/* Text inside day */
+
 .pc-day__num {
   font-size: 15px;
   font-weight: 600;
@@ -349,7 +347,7 @@
   white-space: nowrap;
 }
 
-/* Legend in footer */
+
 .tdp-legend {
   display: inline-block;
   width: 10px; height: 10px;
@@ -367,7 +365,7 @@
   .pc-day__price { font-size: 9px; }
 }
 
-/* ── Footer ──────────────────────────────────────────────────────────────── */
+
 .tdp-footer {
   display: flex;
   align-items: center;
@@ -399,9 +397,7 @@
 .tdp-btn--apply  { background: #029e9d; color: #fff; }
 .tdp-btn--apply:hover { background: #027b7a; transform: translateY(-1px); }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Override react-date-range default styles to match the app's design
-──────────────────────────────────────────────────────────────────────────*/
+
 
 .tdp-popup .rdrCalendarWrapper {
   font-family: inherit;
@@ -409,7 +405,7 @@
   background: transparent;
 }
 
-/* Month header */
+
 .tdp-popup .rdrMonthAndYearWrapper {
   padding-top: 16px;
 }
@@ -429,7 +425,7 @@
 .tdp-popup .rdrPprevButton i { border-right-color: #475569; }
 .tdp-popup .rdrNextButton i  { border-left-color: #475569; }
 
-/* Month name (shown per-month when direction=horizontal) */
+
 .tdp-popup .rdrMonthName {
   text-align: center;
   font-weight: 700;
@@ -438,7 +434,7 @@
   padding-bottom: 8px;
 }
 
-/* Week day headers */
+
 .tdp-popup .rdrWeekDay {
   font-size: 11px;
   font-weight: 700;
@@ -447,32 +443,32 @@
   letter-spacing: 0.3px;
 }
 
-/* Days */
+
 .tdp-popup .rdrDay:not(.rdrDayPassive) .rdrDayNumber span {
   color: #1e293b;
   font-weight: 500;
 }
 .tdp-popup .rdrDayPassive .rdrDayNumber span { color: #cbd5e1; }
 
-/* Today indicator */
+
 .tdp-popup .rdrDayToday .rdrDayNumber span::after { background: #029e9d; }
 
-/* Selected start / end circles */
+
 .tdp-popup .rdrStartEdge,
 .tdp-popup .rdrEndEdge {
   background: #029e9d;
   border-radius: 50%;
 }
 
-/* Range fill */
+
 .tdp-popup .rdrInRange {
   background: rgba(2, 158, 157, 0.13);
 }
 
-/* Single-date selection (Calendar component) */
+
 .tdp-popup .rdrSelected { background: #029e9d; border-radius: 50%; }
 
-/* Hover */
+
 .tdp-popup .rdrDayHovered .rdrDayNumber span { color: #029e9d; }
 .tdp-popup .rdrDayStartPreview,
 .tdp-popup .rdrDayEndPreview,
@@ -480,9 +476,9 @@
   border-color: rgba(2, 158, 157, 0.4);
 }
 
-/* Remove the blue date display at the top */
+
 .tdp-popup .rdrDateDisplayWrapper { display: none; }
 
-/* Month grid padding */
+
 .tdp-popup .rdrMonths.rdrMonthsHorizontal { padding: 0 12px 4px; }
 .tdp-popup .rdrMonth { width: 300px; padding-bottom: 12px; }

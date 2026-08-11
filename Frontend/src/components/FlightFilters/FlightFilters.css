@@ -1,4 +1,4 @@
-/* ── Filter sidebar ─────────────────────────────────────────────────────────── */
+
 .flf-aside {
   width: 260px;
   flex-shrink: 0;
@@ -6,11 +6,11 @@
   top: 16px;
   max-height: calc(100vh - 32px);
   overflow-y: auto;
-  scrollbar-width: none; /* Firefox — hide inner scrollbar */
+  scrollbar-width: none; 
 }
-.flf-aside::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+.flf-aside::-webkit-scrollbar { display: none; } 
 
-/* ── Mobile toggle (hidden on desktop) ─────────────────────────────────────── */
+
 .flf-mobile-toggle {
   display: none;
   width: 100%;
@@ -47,7 +47,7 @@
   transform: rotate(180deg);
 }
 
-/* ── Panel ──────────────────────────────────────────────────────────────────── */
+
 .flf-panel {
   background: #fff;
   border: 1.5px solid #e2e8f0;
@@ -57,7 +57,7 @@
   top: 88px;
 }
 
-/* ── Panel header ───────────────────────────────────────────────────────────── */
+
 .flf-header {
   display: flex;
   align-items: center;
@@ -87,7 +87,7 @@
 
 .flf-reset:hover { color: #027b7a; }
 
-/* ── Section ────────────────────────────────────────────────────────────────── */
+
 .flf-section {
   padding: 14px 18px;
   border-bottom: 1px solid #f1f5f9;
@@ -104,7 +104,7 @@
   margin-bottom: 10px;
 }
 
-/* ── Stops pills ────────────────────────────────────────────────────────────── */
+
 .flf-stops {
   display: flex;
   flex-wrap: wrap;
@@ -136,7 +136,7 @@
   box-shadow: 0 2px 6px rgba(2, 158, 157, 0.3);
 }
 
-/* ── Price range ────────────────────────────────────────────────────────────── */
+
 .flf-price-row {
   display: flex;
   align-items: flex-end;
@@ -182,7 +182,7 @@
 
 .flf-price-input:focus { border-color: #029e9d; background: #fff; }
 
-/* ── Airlines ───────────────────────────────────────────────────────────────── */
+
 .flf-airlines {
   display: flex;
   flex-direction: column;
@@ -213,7 +213,7 @@
   text-overflow: ellipsis;
 }
 
-/* ── Departure time grid ────────────────────────────────────────────────────── */
+
 .flf-time-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -260,7 +260,7 @@
   font-weight: 500;
 }
 
-/* ── Duration slider ────────────────────────────────────────────────────────── */
+
 .flf-slider {
   width: 100%;
   -webkit-appearance: none;
@@ -307,7 +307,7 @@
   font-weight: 500;
 }
 
-/* ── Responsive ─────────────────────────────────────────────────────────────── */
+
 @media (max-width: 900px) {
   .flf-aside {
     width: 100%;

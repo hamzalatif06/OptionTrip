@@ -1,7 +1,3 @@
-/**
- * Booking.com Hotel Service (via RapidAPI booking-com15)
- */
-
 const RAPIDAPI_HOST = 'booking-com15.p.rapidapi.com';
 const AID           = process.env.TRAVELPAYOUTS_MARKER || '370056';
 
@@ -21,7 +17,6 @@ const apiFetch = async (path, params) => {
   }
   const json = await res.json();
   if (!json.status) {
-    // message can be a string, object, or array of objects
     const msg = Array.isArray(json.message)
       ? json.message.map(m => (typeof m === 'object' ? (m.message || m.messages || JSON.stringify(m)) : String(m))).join('; ')
       : (typeof json.message === 'object' ? JSON.stringify(json.message) : String(json.message || 'API error'));
@@ -31,7 +26,6 @@ const apiFetch = async (path, params) => {
   return json.data;
 };
 
-// ── Destination autocomplete ──────────────────────────────────────────────────
 export const searchDestination = async (query) => {
   if (!process.env.RAPIDAPI_KEY) { console.error('❌ RAPIDAPI_KEY not set'); return []; }
   console.log(`🔍 Hotel destination search: "${query}"`);
@@ -55,7 +49,6 @@ export const searchDestination = async (query) => {
   }
 };
 
-// ── Hotel search ──────────────────────────────────────────────────────────────
 export const searchHotels = async ({ destId, searchType = 'CITY', checkIn, checkOut, adults = 1, rooms = 1, cityName = '' }) => {
   if (!process.env.RAPIDAPI_KEY) throw new Error('RAPIDAPI_KEY not configured');
   console.log(`🏨 Hotel search: ${cityName || destId} | ${checkIn} → ${checkOut}`);
@@ -77,7 +70,6 @@ export const searchHotels = async ({ destId, searchType = 'CITY', checkIn, check
   return raw.map(h => normaliseHotel(h, { checkIn, checkOut, adults, destId, searchType, cityName }));
 };
 
-// ── Hotel details + facilities ────────────────────────────────────────────────
 export const getHotelDetails = async (hotelId) => {
   const data = await apiFetch('/api/v1/hotels/getHotelDetails', { hotel_id: hotelId, languagecode: 'en-us' });
   const facilities = (data?.facilities_block?.facilities || []).slice(0, 12).map(f => f.name || f.facility_name || '').filter(Boolean);
@@ -86,7 +78,6 @@ export const getHotelDetails = async (hotelId) => {
   return { facilities, description, photos };
 };
 
-// ── Room list with prices ─────────────────────────────────────────────────────
 export const getRoomList = async ({ hotelId, checkIn, checkOut, adults }) => {
   const data = await apiFetch('/api/v1/hotels/getRoomList', {
     hotel_id:       hotelId,
@@ -110,7 +101,6 @@ export const getRoomList = async ({ hotelId, checkIn, checkOut, adults }) => {
     const price = b.min_price?.price ?? b.price_breakdown?.gross_price ?? null;
     const currency = b.min_price?.currency ?? b.price_breakdown?.currency ?? 'USD';
 
-    // Booking URL
     let bookingUrl = b.url || '';
     if (bookingUrl) {
       bookingUrl = bookingUrl.includes('?') ? `${bookingUrl}&aid=${AID}` : `${bookingUrl}?aid=${AID}`;
@@ -133,7 +123,6 @@ export const getRoomList = async ({ hotelId, checkIn, checkOut, adults }) => {
   }).filter(r => r.price !== null);
 };
 
-// ── Hotel photos ──────────────────────────────────────────────────────────────
 export const getHotelPhotos = async (hotelId) => {
   try {
     const data = await apiFetch('/api/v1/hotels/getHotelPhotos', { hotel_id: hotelId });
@@ -146,7 +135,6 @@ export const getHotelPhotos = async (hotelId) => {
   }
 };
 
-// ── Review scores ─────────────────────────────────────────────────────────────
 export const getReviewScores = async (hotelId) => {
   try {
     const data = await apiFetch('/api/v1/hotels/getHotelReviewScores', { hotel_id: hotelId, languagecode: 'en-us' });
@@ -160,7 +148,6 @@ export const getReviewScores = async (hotelId) => {
   }
 };
 
-// ── Normaliser ────────────────────────────────────────────────────────────────
 const normaliseHotel = (h, { checkIn, checkOut, adults, destId, searchType, cityName }) => {
   const prop = h.property || {};
   const id   = prop.id ?? h.hotel_id ?? '';

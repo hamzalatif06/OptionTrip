@@ -1,5 +1,5 @@
-/* InfoCardsCarousel Styles - Matching TripTap Image */
-/* Cards overlapping the banner */
+
+
 
 .info-cards-carousel {
   position: relative;
@@ -19,11 +19,11 @@
   scrollbar-width: thin;
   scrollbar-color: #C2CAD2 transparent;
 
-  /* Prevent scroll chaining on mobile */
+  
   overscroll-behavior-x: contain;
 }
 
-/* Custom scrollbar for webkit browsers */
+
 .info-cards-carousel__scroll::-webkit-scrollbar {
   height: 8px;
 }
@@ -43,12 +43,12 @@
   background: #9FAAB6;
 }
 
-/* Ensure cards don't shrink */
+
 .info-cards-carousel__scroll > * {
   flex-shrink: 0;
 }
 
-/* Responsive Design */
+
 @media (max-width: 991px) {
   .info-cards-carousel {
     padding: 12px 0;

@@ -1,11 +1,5 @@
-/**
- * OpenAI Service
- * Handles all OpenAI API interactions for trip generation
- */
-
 import OpenAI from 'openai';
 
-// Lazy initialization of OpenAI client
 let openai = null;
 
 const getOpenAIClient = () => {
@@ -17,10 +11,6 @@ const getOpenAIClient = () => {
   return openai;
 };
 
-/**
- * PHASE 1: Generate lightweight trip options (FAST)
- * Returns 3 trip options with NO detailed itinerary
- */
 export const generateLightweightTripOptions = async ({
   origin,
   destination,
@@ -97,7 +87,6 @@ Return ONLY valid JSON format with NO markdown, NO code blocks, NO backticks.`
       throw new Error('Invalid response structure from OpenAI Phase 1');
     }
 
-    // Add option IDs
     const options = parsedResponse.options.map((option, index) => ({
       ...option,
       option_id: `opt_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
@@ -112,10 +101,6 @@ Return ONLY valid JSON format with NO markdown, NO code blocks, NO backticks.`
   }
 };
 
-/**
- * PHASE 2: Generate detailed itinerary for selected option (SLOW)
- * Returns day-by-day itinerary with activities and place names
- */
 export const generateDetailedItinerary = async ({
   destination,
   start_date,
@@ -196,9 +181,6 @@ Return ONLY valid JSON format with NO markdown, NO code blocks, NO backticks.`
   }
 };
 
-/**
- * PHASE 1 PROMPT: Generate lightweight trip options only
- */
 const createPhase1Prompt = ({
   origin,
   destination,
@@ -229,7 +211,6 @@ const createPhase1Prompt = ({
     premium: { min: 5000, max: 15000 }
   };
 
-  // Build user preferences line if available
   let prefLines = '';
   if (userPreferences) {
     const p = userPreferences;
@@ -328,9 +309,6 @@ REQUIRED JSON FORMAT:
 Return ONLY the JSON object. No markdown, no explanations.`;
 };
 
-/**
- * PHASE 2 PROMPT: Generate detailed itinerary for selected option
- */
 const createPhase2Prompt = ({
   destination,
   start_date,
@@ -437,10 +415,6 @@ Return ONLY the JSON object. No markdown, no explanations.`;
 };
 
 
-/**
- * PHASE 2B: Generate itinerary for a SINGLE DAY (for progressive loading)
- * Returns a single day's itinerary with activities
- */
 export const generateSingleDayItinerary = async ({
   destination,
   start_date,
@@ -487,7 +461,6 @@ export const generateSingleDayItinerary = async ({
       fast: 4
     };
 
-    // Build context from previous days to ensure consistency
     const previousDaysContext = previousDays.length > 0
       ? '\n\nPREVIOUS DAYS (avoid repetition):\n' + previousDays.map(d =>
           'Day ' + d.day_number + ': ' + d.title + ' - ' + (d.activities?.map(a => a.title).join(', ') || '')
@@ -539,11 +512,6 @@ export const generateSingleDayItinerary = async ({
   }
 };
 
-/**
- * Parse a natural language trip description into structured trip data.
- * Powers both the "What you love" textarea and the voice (speech-to-text) input,
- * so inputs may contain run-on sentences, filler words, and minor mistranscriptions.
- */
 export const parseTripDescription = async (text) => {
   const client = getOpenAIClient();
   if (!client) {
@@ -671,11 +639,6 @@ Return ONLY the JSON. No explanations, no markdown fences.`;
   return sanitized;
 };
 
-/**
- * Defensive post-processing of the LLM output.
- * Enforces shape and corrects common model slips (same city in origin+destination,
- * invalid dates, past dates for future-intent phrases, missing derivable fields).
- */
 const sanitizeParsedTrip = (p, todayStr) => {
   const out = {
     origin: null,
@@ -701,7 +664,6 @@ const sanitizeParsedTrip = (p, todayStr) => {
   if (p.destination && p.destination.text) {
     out.destination = { text: String(p.destination.text), name: String(p.destination.name || p.destination.text) };
   }
-  // Same-city protection (model occasionally echoes destination into origin)
   if (out.origin && out.destination &&
       out.origin.name.trim().toLowerCase() === out.destination.name.trim().toLowerCase()) {
     out.origin = null;
@@ -714,7 +676,6 @@ const sanitizeParsedTrip = (p, todayStr) => {
     out.duration_days = p.duration_days;
   }
 
-  // Derive missing fields from the others
   if (out.start_date && out.end_date) {
     const days = Math.round((new Date(out.end_date) - new Date(out.start_date)) / 86400000) + 1;
     if (days > 0 && days <= 60) out.duration_days = days;
@@ -728,7 +689,6 @@ const sanitizeParsedTrip = (p, todayStr) => {
     out.start_date = e.toISOString().split('T')[0];
   }
 
-  // If model emitted past dates for a future-intent phrase, bump by one year
   if (out.start_date && out.start_date < todayStr) {
     const s = new Date(out.start_date);
     s.setFullYear(s.getFullYear() + 1);
@@ -764,10 +724,6 @@ const sanitizeParsedTrip = (p, todayStr) => {
   return out;
 };
 
-/**
- * Suggest 3–5 travel destinations matching a vague user query.
- * Returns a lightweight array — cheap call, max 400 tokens.
- */
 export const suggestDestinations = async ({ query, budget }) => {
   const client = getOpenAIClient();
   if (!client) throw new Error('OpenAI API key not configured');

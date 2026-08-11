@@ -14,7 +14,7 @@
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.13);
 }
 
-/* Main body */
+
 .flight-card__body {
   flex: 1;
   padding: 20px 24px;
@@ -23,7 +23,7 @@
   gap: 12px;
 }
 
-/* Each leg (outbound / return) */
+
 .flight-leg {
   display: flex;
   align-items: center;
@@ -35,7 +35,7 @@
   border-top: 1px dashed #e2e8f0;
 }
 
-/* Carrier badge */
+
 .flight-leg__carrier {
   display: flex;
   flex-direction: column;
@@ -60,7 +60,7 @@
   color: #94a3b8;
 }
 
-/* Route row */
+
 .flight-leg__route {
   flex: 1;
   display: flex;
@@ -97,7 +97,7 @@
   color: #94a3b8;
 }
 
-/* Middle segment */
+
 .route-middle {
   flex: 1;
   display: flex;
@@ -144,7 +144,7 @@
   color: #f59e0b;
 }
 
-/* CTA panel */
+
 .flight-card__cta {
   display: flex;
   flex-direction: column;
@@ -198,7 +198,7 @@
   color: #ffffff;
 }
 
-/* Responsive */
+
 @media (max-width: 768px) {
   .flight-card {
     flex-direction: column;

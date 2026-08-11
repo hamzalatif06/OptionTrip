@@ -2,17 +2,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './TripMapPopup.css';
 
-/**
- * Trip popup card. Originally a `react-map-gl` Popup; now rendered as a plain
- * React card the parent absolutely positions on top of the map using
- * `map.latLngToContainerPoint(latLng)`.
- *
- * Props:
- *   trip       — full trip doc
- *   position   — { x, y } in CSS pixels relative to the map wrap
- *   onClose    — close handler
- */
-
 const STATUS_COLORS = {
   confirmed:           { bg: '#dcfce7', text: '#15803d' },
   itinerary_generated: { bg: '#dbeafe', text: '#1d4ed8' },

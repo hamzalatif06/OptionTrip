@@ -1,4 +1,4 @@
-/* ── Root container ──────────────────────────────────────────────────────── */
+
 .tmt-root {
   border-radius: 16px;
   border: 1px solid #e8ecef;
@@ -7,7 +7,7 @@
   background: #fff;
 }
 
-/* ── Style picker bar ────────────────────────────────────────────────────── */
+
 .tmt-style-bar {
   display: flex;
   gap: 2px;
@@ -72,7 +72,7 @@
   color: #029e9d;
 }
 
-/* ── Light preset bar ────────────────────────────────────────────────────── */
+
 .tmt-preset-bar {
   display: flex;
   align-items: center;
@@ -133,7 +133,7 @@
   color: #fff;
 }
 
-/* ── Map container ───────────────────────────────────────────────────────── */
+
 .tmt-wrap {
   position: relative;
   width: 100%;
@@ -148,7 +148,7 @@
 }
 [data-theme="dark"] .tmt-leaflet { background: #0f172a; }
 
-/* ── Leaflet control overrides ───────────────────────────────────────────── */
+
 .tmt-root .leaflet-bar {
   border-radius: 10px !important;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
@@ -180,7 +180,7 @@
 [data-theme="dark"] .tmt-root .leaflet-bar a:hover,
 [data-theme="dark"] .tmt-fs-btn:hover { background: #293548; color: #5eead4; }
 
-/* ── Leaflet popup overrides (destination card) ──────────────────────────── */
+
 .tmt-popup-wrap.leaflet-popup .leaflet-popup-content-wrapper {
   border-radius: 12px;
   padding: 6px 4px;
@@ -195,7 +195,7 @@
 [data-theme="dark"] .tmt-popup-wrap.leaflet-popup .leaflet-popup-tip { background: #1e293b; color: #f1f5f9; }
 [data-theme="dark"] .tmt-popup-wrap .tmt-popup__title { color: #f8fafc; }
 
-/* ── Destination pin ─────────────────────────────────────────────────────── */
+
 .tmt-pin {
   position: relative;
   display: flex;
@@ -257,7 +257,7 @@
   color: #5eead4;
 }
 
-/* ── Activity pin ────────────────────────────────────────────────────────── */
+
 .tmt-pin--sm .tmt-pin__dot {
   width: 14px;
   height: 14px;
@@ -297,7 +297,7 @@
   border-top-color: #1e293b;
 }
 
-/* ── Popup ───────────────────────────────────────────────────────────────── */
+
 .tmt-popup {
   position: relative;
   padding: 10px 12px;
@@ -341,7 +341,7 @@
   font-weight: 600;
 }
 
-/* ── Legend ──────────────────────────────────────────────────────────────── */
+
 .tmt-legend {
   position: absolute;
   bottom: 36px;
@@ -376,7 +376,7 @@
   flex-shrink: 0;
 }
 
-/* ── No token ────────────────────────────────────────────────────────────── */
+
 .tmt-no-token {
   display: flex;
   flex-direction: column;
@@ -409,7 +409,7 @@
   font-size: 12px;
 }
 
-/* ── Responsive ──────────────────────────────────────────────────────────── */
+
 @media (max-width: 768px) {
   .tmt-wrap {
     height: 440px;

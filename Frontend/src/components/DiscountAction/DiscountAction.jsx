@@ -66,7 +66,7 @@ const DiscountAction = () => {
                   </p>
                 </div>
 
-                {/* Play Button */}
+
                 <div className="video-button text-center position-relative">
                   <div className="call-button text-center">
                     <button
@@ -87,14 +87,12 @@ const DiscountAction = () => {
         <div className="white-overlay"></div>
       </section>
 
-      {/* ======================
-         🎬 YouTube MODAL
-      ====================== */}
+
       {showModal && (
         <div className="video-modal-overlay" onClick={closeModal}>
           <div
             className="video-modal"
-            onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
+            onClick={(e) => e.stopPropagation()}
           >
             <button className="close-btn" onClick={closeModal}>
               ×

@@ -35,24 +35,7 @@ const AboutSection = () => {
                 </div>
               </div>
             </div>
-            {/* <div className="col-lg-12">
-              <div className="counter-main w-75 float-end">
-                <div className="counter p-4 pb-0 box-shadow bg-white rounded">
-                  <div className="row">
-                    {stats.map((stat, index) => (
-                      <div key={index} className="col-lg-3 col-md-6 col-sm-6 mb-4">
-                        <div className={`counter-item ${index < stats.length - 1 ? 'border-end pe-4' : ''}`}>
-                          <div className="counter-content">
-                            <h2 className="value mb-0 theme">{stat.value}</h2>
-                            <span className="m-0">{stat.label}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div> */}
+
           </div>
         </div>
       </div>

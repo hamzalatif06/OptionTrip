@@ -1,4 +1,4 @@
-/* Auth Button Component Styles */
+
 
 .auth-button {
   display: inline-flex;
@@ -22,7 +22,7 @@
   box-shadow: 0 0 0 3px rgba(10, 83, 157, 0.2);
 }
 
-/* Button Variants */
+
 .auth-button-primary {
   background: linear-gradient(135deg, #F30F89 0%, #d00d75 100%);
   color: #fff;
@@ -85,7 +85,7 @@
   transform: translateY(-2px);
 }
 
-/* Button Sizes */
+
 .auth-button-small {
   padding: 8px 16px;
   font-size: 14px;
@@ -103,12 +103,12 @@
   border-radius: 5px;
 }
 
-/* Full Width */
+
 .auth-button-full {
   width: 100%;
 }
 
-/* Disabled State */
+
 .auth-button:disabled,
 .auth-button-disabled {
   opacity: 0.5;
@@ -116,7 +116,7 @@
   transform: none !important;
 }
 
-/* Loading State */
+
 .auth-button-loading {
   pointer-events: none;
 }
@@ -158,12 +158,12 @@
   }
 }
 
-/* Button Text */
+
 .auth-button-text {
   display: inline-block;
 }
 
-/* Button Icons */
+
 .auth-button-icon {
   display: inline-flex;
   align-items: center;
@@ -186,7 +186,7 @@
   height: 22px;
 }
 
-/* Responsive Styles */
+
 @media (max-width: 767px) {
   .auth-button-medium {
     padding: 12px 20px;

@@ -1,4 +1,4 @@
-/* Skeleton Shimmer Animation */
+
 @keyframes shimmer {
   0% {
     background-position: -200% 0;
@@ -38,7 +38,7 @@
   border-radius: 4px;
 }
 
-/* Day Skeleton Styles */
+
 .day-skeleton {
   background: #fff;
   border-radius: 16px;
@@ -97,7 +97,7 @@
   width: 30%;
 }
 
-/* Activity Skeleton */
+
 .day-skeleton__activities {
   display: flex;
   flex-direction: column;
@@ -160,7 +160,7 @@
   width: 80px;
 }
 
-/* Footer */
+
 .day-skeleton__footer {
   margin-top: 20px;
   padding-top: 16px;
@@ -174,14 +174,14 @@
   width: 120px;
 }
 
-/* Itinerary Skeleton Container */
+
 .itinerary-skeleton {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-/* Activity Skeleton (standalone) */
+
 .activity-skeleton {
   display: flex;
   gap: 16px;
@@ -230,7 +230,7 @@
   margin-top: 8px;
 }
 
-/* Responsive */
+
 @media (max-width: 768px) {
   .day-skeleton {
     padding: 16px;

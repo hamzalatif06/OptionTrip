@@ -16,11 +16,8 @@ import {
   HB_PREFIX,
 } from '../services/hotelbedsService.js';
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-/** Parse "HB_{hotelCode}_{destCode}" back into its parts. */
 const parseHbId = (hotelId) => {
-  const inner = hotelId.slice(HB_PREFIX.length); // e.g. "12345_DXB"
+  const inner = hotelId.slice(HB_PREFIX.length);
   const idx   = inner.indexOf('_');
   if (idx === -1) return { hotelCode: inner, destinationCode: '' };
   return {
@@ -28,8 +25,6 @@ const parseHbId = (hotelId) => {
     destinationCode: inner.slice(idx + 1),
   };
 };
-
-// ── Handlers ──────────────────────────────────────────────────────────────────
 
 export const getHotelLocations = async (req, res) => {
   try {
@@ -60,7 +55,6 @@ export const searchHotels = async (req, res) => {
   if (!destId || !checkIn || !checkOut)
     return res.status(400).json({ success: false, message: 'destId, checkIn and checkOut are required' });
 
-  // ── 1. Try Hotelbeds (primary) ────────────────────────────────────────────
   try {
     const hotels = await searchHotelsHotelbeds({
       destinationCode: destId,
@@ -81,8 +75,6 @@ export const searchHotels = async (req, res) => {
     console.warn(`⚠️  Hotelbeds failed for "${destId}": ${err.message} — trying Booking.com fallback`);
   }
 
-  // ── 2. Fallback to Booking.com (via RapidAPI) ─────────────────────────────
-  // Booking.com uses its own destination IDs, so we resolve the city name first.
   try {
     const searchTerm = cityName || destId;
     const destinations = await searchDestination(searchTerm);
@@ -185,7 +177,6 @@ export const getReviewScoresHandler = async (req, res) => {
     const { hotelId } = req.query;
     if (!hotelId) return res.status(400).json({ success: false, message: 'hotelId required' });
 
-    // Hotelbeds doesn't provide review scores — return null gracefully
     if (hotelId.startsWith(HB_PREFIX)) {
       return res.json({ success: true, data: null });
     }

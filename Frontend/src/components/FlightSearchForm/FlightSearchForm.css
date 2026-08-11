@@ -1,12 +1,10 @@
-/* ═══════════════════════════════════════════════════════
-   FlightSearchForm — Premium Design
-   ═══════════════════════════════════════════════════════ */
+
 
 .flight-search-section {
   padding: 0;
   position: relative;
   z-index: 10;
-  margin-top: -32px; /* overlap onto hero */
+  margin-top: -32px; 
 }
 
 .flight-search-card {
@@ -17,7 +15,7 @@
   border: 1px solid rgba(255, 255, 255, 0.9);
 }
 
-/* ── Trip type toggle ─────────────────────────────────────── */
+
 .trip-type-toggle {
   display: flex;
   gap: 8px;
@@ -47,7 +45,7 @@
   background: rgba(2, 158, 157, 0.07);
 }
 
-/* ── Form row ─────────────────────────────────────────────── */
+
 .fsf-row {
   display: flex;
   flex-wrap: wrap;
@@ -63,7 +61,7 @@
 .fsf-col--pax            { flex: 1.3; min-width: 160px; }
 .fsf-col--btn            { flex: 1.3; min-width: 160px; }
 
-/* ── Label ────────────────────────────────────────────────── */
+
 .fsf-label {
   display: block;
   font-size: 10.5px;
@@ -74,7 +72,7 @@
   margin-bottom: 7px;
 }
 
-/* ── Shared input ─────────────────────────────────────────── */
+
 .fsf-input {
   width: 100%;
   padding: 12px 14px;
@@ -102,7 +100,7 @@
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
-/* ── Autocomplete wrapper ─────────────────────────────────── */
+
 .fsf-ac-wrap        { position: relative; }
 
 .fsf-ac-wrap--error .fsf-ac-field {
@@ -241,7 +239,7 @@
   letter-spacing: 0.05em;
 }
 
-/* ── Dropdown ─────────────────────────────────────────────── */
+
 .fsf-ac-dropdown {
   position: absolute;
   top: calc(100% + 6px);
@@ -272,7 +270,7 @@
 
 .fsf-ac-item:hover { background: #f0fdfa; }
 
-/* Country-level entry in dropdown */
+
 .fsf-ac-item--country {
   background: #f0fdfa;
   border-left: 3px solid #029e9d;
@@ -320,7 +318,7 @@
   border-radius: 7px;
 }
 
-/* ── Swap button ──────────────────────────────────────────── */
+
 .fsf-swap-col {
   display: flex;
   align-items: flex-end;
@@ -350,7 +348,7 @@
   transform: rotate(180deg);
 }
 
-/* ── Search button ────────────────────────────────────────── */
+
 .fsf-search-btn {
   width: 100%;
   height: 50px;
@@ -388,7 +386,7 @@
   transform: none;
 }
 
-/* ── Explore Anywhere dropdown item ──────────────────────────── */
+
 .fsf-ac-item--explore {
   background: linear-gradient(135deg, #f0fdfa 0%, #e0f7f6 100%);
   border-bottom: 1.5px solid #ccfbf1;
@@ -419,7 +417,7 @@
   flex-shrink: 0;
 }
 
-/* ── Validation error ─────────────────────────────────────── */
+
 .fsf-error {
   display: flex;
   align-items: center;
@@ -446,7 +444,7 @@
   60%       { transform: translateX(4px); }
 }
 
-/* ── Spinner ──────────────────────────────────────────────── */
+
 .btn-spinner {
   width: 16px;
   height: 16px;
@@ -459,7 +457,7 @@
 
 @keyframes fsf-spin { to { transform: rotate(360deg); } }
 
-/* ── Nearby airports + hotel toggles ─────────────────────── */
+
 .fsf-options-row {
   display: flex;
   align-items: center;
@@ -488,7 +486,7 @@
 .fsf-nearby-icon { color: #029e9d; flex-shrink: 0; }
 .fsf-nearby-hint { color: #94a3b8; font-weight: 400; font-size: 12px; }
 
-/* ── Responsive ───────────────────────────────────────────── */
+
 @media (max-width: 1024px) {
   .flight-search-card { padding: 24px 24px 20px; }
 }

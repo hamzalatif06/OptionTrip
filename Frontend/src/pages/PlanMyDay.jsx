@@ -14,8 +14,6 @@ import { logActivity } from '../services/activityService';
 import { trackPlanMyDayGenerated } from '../services/analyticsService';
 import './PlanMyDay.css';
 
-// ─── Constants ──────────────────────────────────────────────────────────────
-
 const VIBES = [
   { key: 'foodie',    label: 'Foodie Hunt',     icon: 'fa-utensils',     accent: '#f59e0b' },
   { key: 'cultural',  label: 'Cultural',        icon: 'fa-landmark',     accent: '#8b5cf6' },
@@ -79,8 +77,6 @@ const LOADING_MESSAGES = [
   'Polishing the final plan…'
 ];
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
 const formatTimeLabel = (hhmm) => {
@@ -107,19 +103,6 @@ const formatCost = (val, currency) => {
   return `${symbol}${Math.round(val)}${symbol ? '' : ` ${currency || ''}`}`.trim();
 };
 
-/**
- * Build the best Google Maps Directions URL we can.
- *
- * Priority (best → worst):
- *   1. coordinates + place_id  — pins the EXACT venue on Google's map. Both
- *      params combined are how Google's own apps build deep links.
- *   2. place_id alone          — Google resolves the venue from its ID.
- *   3. coordinates alone       — drops a pin but no place name shown.
- *   4. address string          — text search fallback.
- *
- * No `origin` parameter is passed → Google Maps uses the user's current
- * location automatically when they tap "Directions".
- */
 const buildDirectionsUrl = (placeOrActivity, planLocation) => {
   const { coordinates, place_id, address, title, name, neighborhood } = placeOrActivity || {};
   const city    = planLocation?.city    || '';
@@ -132,7 +115,6 @@ const buildDirectionsUrl = (placeOrActivity, planLocation) => {
            `&destination_place_id=${encodeURIComponent(place_id)}`;
   }
   if (place_id) {
-    // Google still requires a destination string with place_id; use a sensible label.
     const label = title || name || address || 'Destination';
     return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(label)}` +
            `&destination_place_id=${encodeURIComponent(place_id)}`;
@@ -151,10 +133,8 @@ const openDirections = (placeOrActivity, planLocation) => {
   window.open(url, '_blank', 'noopener,noreferrer');
 };
 
-/** Pull "HH:MM" out of Open-Meteo's naive ISO string (already destination-local). */
 const extractTime = (iso) => (iso || '').slice(11, 16);
 
-/** Haversine great-circle distance in meters between two {lat,lng}. */
 const haversineMeters = (a, b) => {
   if (!a || !b || typeof a.lat !== 'number' || typeof b.lat !== 'number') return null;
   const toRad = (x) => (x * Math.PI) / 180;
@@ -166,71 +146,50 @@ const haversineMeters = (a, b) => {
   return Math.round(2 * R * Math.asin(Math.sqrt(s)));
 };
 
-/**
- * Estimate the on-the-ground "as you'd walk it" distance from a straight-line.
- * In dense cities, road networks add roughly 1.3× to crow-flies distance
- * (longer in some grid-pattern cities, shorter in others — 1.3× is a solid
- * average). For ride distances at longer ranges, freeways and direct routes
- * pull this closer to 1.15×.
- */
 const estimateRouteDistance = (straightLineMeters) => {
   if (straightLineMeters == null) return null;
   if (straightLineMeters < 4000) return Math.round(straightLineMeters * 1.3);
   return Math.round(straightLineMeters * 1.2);
 };
 
-/** Round to a sensible step so the number reads as an estimate, not GPS-exact. */
 const roundDistance = (meters) => {
-  if (meters < 100)   return Math.round(meters / 10) * 10;   // nearest 10 m
-  if (meters < 1000)  return Math.round(meters / 50) * 50;   // nearest 50 m
-  if (meters < 10000) return Math.round(meters / 100) * 100; // nearest 100 m → one-decimal km
-  return Math.round(meters / 1000) * 1000;                   // nearest km
+  if (meters < 100)
+    return Math.round(meters / 10) * 10;
+  if (meters < 1000)
+    return Math.round(meters / 50) * 50;
+  if (meters < 10000)
+    return Math.round(meters / 100) * 100;
+  return Math.round(meters / 1000) * 1000;
 };
 
 const formatDistance = (meters) =>
   meters < 1000 ? `${meters} m` : `${(meters / 1000).toFixed(meters < 10000 ? 1 : 0)} km`;
 
-/** Round walking time so it doesn't look deceptively precise. */
 const roundWalkMin = (m) => (m < 5 ? m : Math.round(m / 5) * 5);
 
-/**
- * Builds a clear, approximate distance label like:
- *   "Around 1.2 km · ~15 min walk"
- *   "Around 8 km away"
- *   "Just steps away"
- */
 const describeDistance = (straightLineMeters) => {
   if (straightLineMeters == null) return null;
   const realistic = roundDistance(estimateRouteDistance(straightLineMeters));
   const distStr   = formatDistance(realistic);
   if (realistic < 100) return 'Just steps away';
   if (realistic < 4000) {
-    // Walking pace ≈ 80 m/min (tourist pace) on the route-distance estimate.
     const walkMin = roundWalkMin(Math.round(realistic / 80));
     return `Around ${distStr} · ~${walkMin} min walk`;
   }
   return `Around ${distStr} away`;
 };
 
-// ─── Component ──────────────────────────────────────────────────────────────
-
 const PlanMyDay = () => {
-  // Stage: 'setup' | 'loading' | 'results'
   const [stage, setStage] = useState('setup');
 
-  // Scroll to top whenever the stage changes. Without this, clicking
-  // "Build My Day" from the bottom of a tall setup page leaves the user
-  // scrolled past the loader animation (or past the result hero).
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' in document.documentElement.style ? 'instant' : 'auto' });
   }, [stage]);
 
-  // Location
   const [location, setLocation]           = useState({ city: '', country: '', neighborhood: '', lat: null, lng: null });
-  // 'idle' | 'detecting' | 'improving' | 'detected' | 'ip-fallback' | 'denied' | 'manual'
   const [locStatus, setLocStatus]         = useState('idle');
   const [accuracyM, setAccuracyM]         = useState(null);
-  const [locSource, setLocSource]         = useState(null); // 'gps' | 'ip' | 'cache' | 'manual'
+  const [locSource, setLocSource]         = useState(null);
   const [manualCity, setManualCity]       = useState('');
   const [manualLoading, setManualLoading] = useState(false);
   const [manualError, setManualError]     = useState('');
@@ -238,7 +197,6 @@ const PlanMyDay = () => {
   const [editCity, setEditCity]           = useState('');
   const [editNeighborhood, setEditNeighborhood] = useState('');
 
-  // Plan settings
   const [date, setDate]                 = useState(todayISO());
   const [startTime, setStartTime]       = useState('10:00');
   const [durationHours, setDurationHours] = useState(8);
@@ -247,21 +205,13 @@ const PlanMyDay = () => {
   const [interests, setInterests]       = useState([]);
   const [partySize, setPartySize]       = useState(1);
 
-  // Result
   const [plan, setPlan]   = useState(null);
   const [error, setError] = useState('');
 
-  // Loading message rotation
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const loadingTimerRef = useRef(null);
 
-  // ── Robust multi-stage location detection ──────────────────────────────
-  // 1. Try session cache (fresh, accurate-enough fix from this session)
-  // 2. Progressive GPS (watchPosition, high accuracy, up to 12s)
-  // 3. Dual reverse-geocoder (Nominatim + BigDataCloud merged)
-  // 4. IP fallback if GPS denied/failed
   const runLocationDetection = async ({ cancelledRef }) => {
-    // ── 1. Cache hit?
     const cached = readCachedLocation();
     if (cached && cached.location?.city) {
       setLocation(cached.location);
@@ -272,7 +222,6 @@ const PlanMyDay = () => {
     }
 
     if (!('geolocation' in navigator)) {
-      // Skip straight to IP fallback if the API isn't there at all.
       const ip = await ipGeolocate();
       if (cancelledRef.current) return;
       if (ip) {
@@ -286,7 +235,6 @@ const PlanMyDay = () => {
       return;
     }
 
-    // ── 2. Progressive GPS
     setLocStatus('detecting');
     setAccuracyM(null);
     try {
@@ -301,7 +249,6 @@ const PlanMyDay = () => {
       });
       if (cancelledRef.current) return;
 
-      // ── 3. Dual reverse-geocode
       const rev = await reverseGeocodeRobust(fix.lat, fix.lng);
       if (cancelledRef.current) return;
 
@@ -322,7 +269,6 @@ const PlanMyDay = () => {
       writeCachedLocation(next, Math.round(fix.accuracy), 'gps');
     } catch (err) {
       console.warn('Precise GPS failed:', err?.message || err);
-      // ── 4. IP fallback
       const ip = await ipGeolocate();
       if (cancelledRef.current) return;
       if (ip) {
@@ -353,7 +299,6 @@ const PlanMyDay = () => {
     runLocationDetection({ cancelledRef });
   };
 
-  // ── Loading message rotator ────────────────────────────────────────────
   useEffect(() => {
     if (stage !== 'loading') return;
     setLoadingMsgIdx(0);
@@ -363,7 +308,6 @@ const PlanMyDay = () => {
     return () => clearInterval(loadingTimerRef.current);
   }, [stage]);
 
-  // ── Manual location search ─────────────────────────────────────────────
   const handleManualLocation = async (e) => {
     e?.preventDefault?.();
     if (!manualCity.trim()) return;
@@ -388,7 +332,6 @@ const PlanMyDay = () => {
     }
   };
 
-  // ── Edit detected location (manual override) ───────────────────────────
   const startEditingLocation = () => {
     setEditCity(location.city || '');
     setEditNeighborhood(location.neighborhood || '');
@@ -416,7 +359,6 @@ const PlanMyDay = () => {
       : prev.length >= 6 ? prev : [...prev, tag]);
   };
 
-  // ── Submit ─────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!location.city && !(location.lat && location.lng)) {
       setError('Please share your location or enter a city to start.');
@@ -493,7 +435,7 @@ const PlanMyDay = () => {
     }
     try {
       await navigator.clipboard.writeText(lines.join('\n'));
-    } catch { /* noop */ }
+    } catch {}
   };
 
   const handleShare = async () => {
@@ -503,13 +445,11 @@ const PlanMyDay = () => {
     try {
       if (navigator.share) await navigator.share({ title, text, url: window.location.href });
       else await handleCopyPlan();
-    } catch { /* noop */ }
+    } catch {}
   };
 
-  // ── Derived ────────────────────────────────────────────────────────────
   const canSubmit = !!location.city || (location.lat && location.lng);
 
-  // ── Render: SETUP ──────────────────────────────────────────────────────
   if (stage === 'setup') {
     return (
       <div className="pmd-page">
@@ -557,7 +497,6 @@ const PlanMyDay = () => {
     );
   }
 
-  // ── Render: LOADING ────────────────────────────────────────────────────
   if (stage === 'loading') {
     return (
       <div className="pmd-page pmd-loading">
@@ -574,7 +513,6 @@ const PlanMyDay = () => {
     );
   }
 
-  // ── Render: RESULTS ────────────────────────────────────────────────────
   return (
     <div className="pmd-page">
       <PageMeta title="Plan My Day" description="Tell us where you are and what you're into — get a personalised day plan with activities, food, and local tips." path="/plan-my-day" />
@@ -589,10 +527,6 @@ const PlanMyDay = () => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Setup form
-// ═══════════════════════════════════════════════════════════════════════════
-// Returns { tier, label } based on accuracy radius in meters.
 const accuracyTier = (m) => {
   if (m == null)        return { tier: 'unknown', label: '' };
   if (m <= 60)          return { tier: 'great',   label: `Pinpointed within ~${m} m` };
@@ -621,7 +555,7 @@ const PlanSetupForm = ({
   error, canSubmit, onSubmit
 }) => (
   <>
-    {/* Location card */}
+
     <section className="pmd-card pmd-card--location">
       <div className="pmd-card__head">
         <div className="pmd-card__icon"><i className="fas fa-location-crosshairs" /></div>
@@ -750,7 +684,7 @@ const PlanSetupForm = ({
       )}
     </section>
 
-    {/* Vibe + when */}
+
     <section className="pmd-card">
       <div className="pmd-card__head">
         <div className="pmd-card__icon pmd-card__icon--alt"><i className="fas fa-wand-magic-sparkles" /></div>
@@ -775,7 +709,7 @@ const PlanSetupForm = ({
       </div>
     </section>
 
-    {/* When & duration */}
+
     <section className="pmd-card">
       <div className="pmd-card__head">
         <div className="pmd-card__icon pmd-card__icon--alt"><i className="fas fa-clock" /></div>
@@ -804,7 +738,7 @@ const PlanSetupForm = ({
       </div>
     </section>
 
-    {/* Budget + party */}
+
     <section className="pmd-card">
       <div className="pmd-card__head">
         <div className="pmd-card__icon pmd-card__icon--alt"><i className="fas fa-coins" /></div>
@@ -841,7 +775,7 @@ const PlanSetupForm = ({
       </div>
     </section>
 
-    {/* Interests */}
+
     <section className="pmd-card">
       <div className="pmd-card__head">
         <div className="pmd-card__icon pmd-card__icon--alt"><i className="fas fa-heart" /></div>
@@ -865,7 +799,7 @@ const PlanSetupForm = ({
       </div>
     </section>
 
-    {/* Submit */}
+
     {error && <div className="pmd-form-error"><i className="fas fa-circle-exclamation" /> {error}</div>}
     <div className="pmd-submit-row">
       <button
@@ -883,9 +817,6 @@ const PlanSetupForm = ({
   </>
 );
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Results
-// ═══════════════════════════════════════════════════════════════════════════
 const PlanResults = ({ plan, onStartOver, onRegenerate, onCopy, onShare }) => {
   const [copied, setCopied] = useState(false);
 
@@ -904,7 +835,7 @@ const PlanResults = ({ plan, onStartOver, onRegenerate, onCopy, onShare }) => {
 
   return (
     <>
-      {/* Hero card */}
+
       <div className="pmd-result-hero">
         <div className="pmd-result-hero__bg" />
         <div className="container pmd-result-hero__inner">
@@ -951,7 +882,7 @@ const PlanResults = ({ plan, onStartOver, onRegenerate, onCopy, onShare }) => {
             )}
           </div>
 
-          {/* Weather strip */}
+
           {plan.weather && (
             <div className="pmd-weather-strip">
               <div className="pmd-weather-strip__emoji">{plan.weather.emoji}</div>
@@ -966,7 +897,7 @@ const PlanResults = ({ plan, onStartOver, onRegenerate, onCopy, onShare }) => {
             </div>
           )}
 
-          {/* Action bar */}
+
           <div className="pmd-action-bar">
             <button className="pmd-action-btn" onClick={handleCopy}>
               <i className={`fas ${copied ? 'fa-check' : 'fa-copy'}`} /> {copied ? 'Copied!' : 'Copy plan'}
@@ -984,7 +915,7 @@ const PlanResults = ({ plan, onStartOver, onRegenerate, onCopy, onShare }) => {
         </div>
       </div>
 
-      {/* Timeline — each card includes its own mini-map */}
+
       <div className="container pmd-timeline-wrap">
         <h2 className="pmd-section-heading"><i className="fas fa-route" /> Your day, hour by hour</h2>
         <div className="pmd-timeline">
@@ -999,7 +930,7 @@ const PlanResults = ({ plan, onStartOver, onRegenerate, onCopy, onShare }) => {
           ))}
         </div>
 
-        {/* Food picks */}
+
         {plan.food_picks?.length > 0 && (
           <>
             <h2 className="pmd-section-heading"><i className="fas fa-utensils" /> Food picks</h2>
@@ -1022,14 +953,14 @@ const PlanResults = ({ plan, onStartOver, onRegenerate, onCopy, onShare }) => {
                     <i className="fas fa-diamond-turn-right" />
                     Directions
                   </button>
-                  {/* `f` already carries place_id + coordinates resolved server-side; openDirections picks them up. */}
+
                 </div>
               ))}
             </div>
           </>
         )}
 
-        {/* Local phrases card */}
+
         {plan.local_phrases?.length > 0 && (
           <>
             <h2 className="pmd-section-heading"><i className="fas fa-comment-dots" /> Speak like a local</h2>
@@ -1046,7 +977,7 @@ const PlanResults = ({ plan, onStartOver, onRegenerate, onCopy, onShare }) => {
           </>
         )}
 
-        {/* Insider tips card */}
+
         {plan.insider_tips?.length > 0 && (
           <>
             <h2 className="pmd-section-heading"><i className="fas fa-key" /> Insider intel</h2>
@@ -1061,7 +992,7 @@ const PlanResults = ({ plan, onStartOver, onRegenerate, onCopy, onShare }) => {
           </>
         )}
 
-        {/* Tips & extras */}
+
         <div className="pmd-extras">
           {plan.tips?.length > 0 && (
             <div className="pmd-extra-card">
@@ -1098,7 +1029,6 @@ const PlanResults = ({ plan, onStartOver, onRegenerate, onCopy, onShare }) => {
   );
 };
 
-// ─── Activity card ──────────────────────────────────────────────────────────
 const ActivityCard = ({ activity, index, currency, planLocation }) => {
   const cat = CATEGORY_META[activity.category] || CATEGORY_META.local;
   const hasCoords =
@@ -1161,16 +1091,14 @@ const ActivityCard = ({ activity, index, currency, planLocation }) => {
             color={cat.color}
           />
         ) : (
-          /* Fallback when the AI didn't give us coords — keep the address-based directions link */
           <button
             type="button"
             className="pmd-directions-btn"
             onClick={() => openDirections(activity, planLocation)}
             title={activity.address || `${activity.title}${activity.neighborhood ? `, ${activity.neighborhood}` : ''}`}
           >
-            <i className="fas fa-diamond-turn-right" />
-            Get directions
-            <i className="fas fa-arrow-up-right-from-square pmd-directions-btn__ext" />
+            <i className="fas fa-diamond-turn-right" />Get directions
+                        <i className="fas fa-arrow-up-right-from-square pmd-directions-btn__ext" />
           </button>
         )}
       </div>
@@ -1178,26 +1106,17 @@ const ActivityCard = ({ activity, index, currency, planLocation }) => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
-// ActivityMap — small Leaflet map for a single activity, with a directions
-// overlay that opens Google Maps routing from the user's current location.
-//
-// Lazy-mounted via IntersectionObserver so we don't initialize 6+ Leaflet
-// instances on first render (each one pulls down tiles, eats memory, and
-// slows the page). The map mounts only when its card scrolls within ~250px
-// of the viewport.
-// ═══════════════════════════════════════════════════════════════════════════
 const ActivityMap = ({ lat, lng, placeId, title, address, neighborhood, planLocation, color }) => {
-  const wrapperRef = useRef(null);   // the container we observe for visibility
-  const nodeRef    = useRef(null);   // the actual map div
+  const wrapperRef = useRef(null);
+  const nodeRef    = useRef(null);
   const mapInstRef = useRef(null);
   const [visible, setVisible]       = useState(false);
   const [leafletReady, setLeafletReady] = useState(typeof window !== 'undefined' && !!window.L);
 
-  // 1. Wait until this map is actually near the viewport.
   useEffect(() => {
     if (!wrapperRef.current || visible) return;
-    if (!('IntersectionObserver' in window)) { setVisible(true); return; } // graceful fallback
+    if (!('IntersectionObserver' in window))
+      { setVisible(true); return; }
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
@@ -1210,7 +1129,6 @@ const ActivityMap = ({ lat, lng, placeId, title, address, neighborhood, planLoca
     return () => io.disconnect();
   }, [visible]);
 
-  // 2. Wait for the Leaflet script (loaded with `defer` from index.html).
   useEffect(() => {
     if (leafletReady) return;
     const start = Date.now();
@@ -1221,12 +1139,10 @@ const ActivityMap = ({ lat, lng, placeId, title, address, neighborhood, planLoca
     return () => clearInterval(id);
   }, [leafletReady]);
 
-  // The user's plan location — used as the origin of the path line.
   const userLat = planLocation && typeof planLocation.lat === 'number' ? planLocation.lat : null;
   const userLng = planLocation && typeof planLocation.lng === 'number' ? planLocation.lng : null;
   const hasUserPoint = userLat != null && userLng != null;
 
-  // 3. When both are ready, build the map.
   useEffect(() => {
     if (!visible || !leafletReady || !nodeRef.current) return;
     const L = window.L;
@@ -1249,9 +1165,6 @@ const ActivityMap = ({ lat, lng, placeId, title, address, neighborhood, planLoca
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
     }).addTo(map);
 
-    // Always center tight on the destination so the activity location is
-    // clearly visible — distance from the user is shown as an overlay chip
-    // instead of forcing both points into the viewport (which over-zooms).
     map.setView([lat, lng], 15);
 
     const destPinHtml = `<div class="pmd-act-map__pin" style="background:${color || '#029e9d'}"><i class="fas fa-location-dot"></i></div>`;
@@ -1264,13 +1177,11 @@ const ActivityMap = ({ lat, lng, placeId, title, address, neighborhood, planLoca
       </div>`;
     destMarker.bindPopup(destPopupHtml, { closeButton: false, offset: [0, -12] });
 
-    // Open the destination popup once so the place name is visible immediately.
     setTimeout(() => destMarker.openPopup(), 0);
 
     return () => { map.remove(); mapInstRef.current = null; };
   }, [visible, leafletReady, lat, lng, title, neighborhood, color, userLat, userLng, hasUserPoint]);
 
-  // Distance / walking-time label
   const distanceMeters = hasUserPoint
     ? haversineMeters({ lat: userLat, lng: userLng }, { lat, lng })
     : null;

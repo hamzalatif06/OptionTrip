@@ -1,9 +1,5 @@
 import Joi from 'joi';
 
-/**
- * Validation schemas for authentication routes
- */
-
 export const registerSchema = Joi.object({
   name: Joi.string()
     .min(2)
@@ -166,16 +162,11 @@ export const deleteAccountSchema = Joi.object({
     })
 });
 
-/**
- * Validation middleware factory
- * @param {Joi.Schema} schema - Joi validation schema
- * @returns {Function} Express middleware
- */
 export const validate = (schema) => {
   return (req, res, next) => {
     const { error, value } = schema.validate(req.body, {
-      abortEarly: false, // Return all errors
-      stripUnknown: true // Remove unknown fields
+      abortEarly: false,
+      stripUnknown: true
     });
 
     if (error) {
@@ -191,15 +182,11 @@ export const validate = (schema) => {
       });
     }
 
-    // Replace req.body with validated and sanitized data
     req.body = value;
     next();
   };
 };
 
-/**
- * Specific validation middleware for each route
- */
 export const validateRegister = validate(registerSchema);
 export const validateLogin = validate(loginSchema);
 export const validateRefreshToken = validate(refreshTokenSchema);

@@ -4,7 +4,6 @@ import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// GET /api/reviews?destination=Dubai&page=1
 router.get('/', async (req, res) => {
   try {
     const { destination, page = 1, limit = 20 } = req.query;
@@ -32,7 +31,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/reviews
 router.post('/', authenticate, async (req, res) => {
   try {
     const { destinationName, country, rating, text, tripId } = req.body;
@@ -60,7 +58,6 @@ router.post('/', authenticate, async (req, res) => {
   }
 });
 
-// DELETE /api/reviews/:id
 router.delete('/:id', authenticate, async (req, res) => {
   try {
     const review = await Review.findById(req.params.id);

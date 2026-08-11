@@ -12,19 +12,16 @@ const ProductsSection = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch products data
   useEffect(() => {
     const loadProducts = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        // Try to fetch from API
         const data = await fetchHomepageProducts();
         setProducts(data);
       } catch (err) {
         console.error('Error fetching products:', err);
         setError(err.message);
-        // Fallback to mock data for development
         setProducts(getMockProductsData());
       } finally {
         setIsLoading(false);
@@ -34,13 +31,11 @@ const ProductsSection = () => {
     loadProducts();
   }, []);
 
-  // Get available regions from products data
   const regions = useMemo(() => {
     if (!products?.data) return [];
     return Object.keys(products.data);
   }, [products]);
 
-  // Transform data for selected region
   const regionData = useMemo(() => {
     if (!products?.data || !selectedRegion) return { categories: [], items: [] };
     
@@ -65,7 +60,6 @@ const ProductsSection = () => {
     };
   }, [products, selectedRegion]);
 
-  // Filter items by selected category
   const filteredItems = useMemo(() => {
     if (selectedCategory === 'all') {
       return regionData.items;
@@ -73,7 +67,6 @@ const ProductsSection = () => {
     return regionData.items.filter(item => item.category === selectedCategory);
   }, [regionData, selectedCategory]);
 
-  // Don't render if no data
   if (!products?.data || Object.keys(products.data).length === 0) {
     return null;
   }
@@ -81,7 +74,7 @@ const ProductsSection = () => {
   return (
     <section className="products-section pt-6 pb-4" style={{backgroundImage: `url(/images/shape2.png)`}}>
       <div className="container">
-        {/* Header */}
+
         <div className="section-title mb-6 w-75 mx-auto text-center">
           <div className="d-flex align-items-center justify-content-center gap-3 mb-3">
             <i className="icon-bag theme fs-1"></i>
@@ -90,7 +83,7 @@ const ProductsSection = () => {
           <p>Discover the perfect travel products and accessories for your next adventure</p>
         </div>
 
-        {/* Region Tabs */}
+
         {regions.length > 0 && (
           <div className="products-tabs-wrapper mb-5">
             <div className="tabs-nav d-flex flex-wrap justify-content-center gap-2">
@@ -101,7 +94,7 @@ const ProductsSection = () => {
                   className={`tab-btn ${selectedRegion === region ? 'active' : ''}`}
                   onClick={() => {
                     setSelectedRegion(region);
-                    setSelectedCategory('all'); // Reset category when region changes
+                    setSelectedCategory('all');
                   }}
                 >
                   {region}
@@ -111,7 +104,7 @@ const ProductsSection = () => {
           </div>
         )}
 
-        {/* Category Tabs */}
+
         {regionData.categories.length > 0 && (
           <div className="products-category-tabs mb-5">
             <div className="tabs-nav d-flex flex-wrap justify-content-center gap-2">
@@ -136,7 +129,7 @@ const ProductsSection = () => {
           </div>
         )}
 
-        {/* Products Grid/Carousel */}
+
         {isLoading ? (
           <div className="row">
             {[1, 2, 3, 4].map((i) => (

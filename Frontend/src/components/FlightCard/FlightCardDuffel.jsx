@@ -4,7 +4,6 @@ import { trackBookingClick } from '../../services/analyticsService';
 import { logActivity } from '../../services/activityService';
 import './FlightCardDuffel.css';
 
-/* ── SVG icon set ── */
 const Ic = {
   airplane:   <svg viewBox="0 0 24 24" fill="none" width="15" height="15"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
   seat:       <svg viewBox="0 0 24 24" fill="none" width="15" height="15"><path d="M5 4v9M19 4v9M5 13h14a2 2 0 010 4H5a2 2 0 010-4zM10 21h4M12 17v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
@@ -16,7 +15,6 @@ const Ic = {
   cross:      <svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8"/><path d="M9 9l6 6M15 9l-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>,
 };
 
-/* ── Helpers ── */
 const StopBadge = ({ stops }) =>
   stops === 0
     ? <span className="fc-badge fc-badge--direct">Direct</span>
@@ -39,7 +37,6 @@ const AirlineLogo = ({ src, name }) => {
   return <div className="fcdf__logo-fallback">{(name || '?').slice(0, 2).toUpperCase()}</div>;
 };
 
-/* ── Single flight leg row ── */
 const Leg = ({ logo, airline, time1, iata1, city1, duration, stops, time2, iata2, city2, flightNum }) => (
   <div className="fcdf__leg">
     <div className="fcdf__logo-wrap">
@@ -76,7 +73,6 @@ const Leg = ({ logo, airline, time1, iata1, city1, duration, stops, time2, iata2
   </div>
 );
 
-/* ── InfoChip for expanded ── */
 const InfoChip = ({ icon, label, value, highlight }) => (
   <div className={`fcdf__chip${highlight ? ' fcdf__chip--hl' : ''}`}>
     <div className="fcdf__chip-icon">{icon}</div>
@@ -87,7 +83,6 @@ const InfoChip = ({ icon, label, value, highlight }) => (
   </div>
 );
 
-/* ── Main card ── */
 const FlightCardDuffel = ({ flight }) => {
   const [expanded, setExpanded] = useState(false);
   const { formatPriceFromCurrency } = useCurrency();
@@ -110,7 +105,7 @@ const FlightCardDuffel = ({ flight }) => {
     <div className="fcdf">
       <div className="fcdf__top">
 
-        {/* ── Legs ── */}
+
         <div className="fcdf__legs">
           <Leg
             logo={airlineLogo} airline={airline} flightNum={flightNumber}
@@ -128,7 +123,7 @@ const FlightCardDuffel = ({ flight }) => {
           )}
         </div>
 
-        {/* ── Price panel ── */}
+
         <div className="fcdf__price-panel">
           <button className="fcdf__wishlist" aria-label="Save">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -161,7 +156,7 @@ const FlightCardDuffel = ({ flight }) => {
         </div>
       </div>
 
-      {/* ── Expanded details ── */}
+
       {expanded && (
         <div className="fcdf__details">
           <div className="fcdf__chips">

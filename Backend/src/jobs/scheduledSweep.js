@@ -1,14 +1,3 @@
-/**
- * Shared scheduled sweep — runs Phase 1's memory-profile maintenance and
- * Phase 2's notification generators. Invoked either by the protected
- * /api/internal/cron/run-sweep endpoint (external scheduler, hosting-agnostic)
- * or by the optional in-process node-cron fallback in server.js.
- *
- * Every step is independently idempotent (memory profile's re-summarization
- * gate; Notification's unique {user_id, dedupe_key} index), so running this
- * concurrently from both invocation paths is safe.
- */
-
 import { sweepStaleProfiles } from '../services/memoryProfileService.js';
 import {
   generateTripReminders,

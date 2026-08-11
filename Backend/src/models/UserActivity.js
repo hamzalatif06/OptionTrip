@@ -1,14 +1,5 @@
 import mongoose from 'mongoose';
 
-/**
- * UserActivity — captures meaningful things a signed-in user does on the
- * platform (trip creation, search, plan generation, page visits, etc.).
- * Used to feed the Vi AI assistant with concrete, recent context so it can
- * give sharper, more personal recommendations.
- *
- * `fed_to_assistant` flips to true the moment an activity is injected into a
- * chat system prompt, so we don't re-feed the same history on every turn.
- */
 const userActivitySchema = new mongoose.Schema({
   user_id: {
     type: mongoose.Schema.Types.ObjectId,
@@ -25,26 +16,22 @@ const userActivitySchema = new mongoose.Schema({
     ],
     index: true
   },
-  // 'created' | 'viewed' | 'searched' | 'opened' | 'completed' | etc.
   action: {
     type: String,
     required: true,
     trim: true,
     maxlength: 40
   },
-  // Short, human-readable label that goes straight into the LLM prompt.
   title: {
     type: String,
     trim: true,
     maxlength: 240,
     default: ''
   },
-  // Free-form per-type payload (destination, dates, vibe, budget, etc.).
   metadata: {
     type: mongoose.Schema.Types.Mixed,
     default: {}
   },
-  // Snapshot of where the user was when this activity happened (optional).
   location: {
     city: String,
     country: String,

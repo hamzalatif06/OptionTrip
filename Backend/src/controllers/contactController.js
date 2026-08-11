@@ -2,13 +2,12 @@ import nodemailer from 'nodemailer';
 
 const RECIPIENT = process.env.CONTACT_EMAIL || 'optiontripcom@gmail.com';
 
-// Create Gmail SMTP transporter (uses App Password — no OAuth needed)
 const createTransporter = () =>
   nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,  // Gmail App Password (16-char, no spaces)
+      pass: process.env.SMTP_PASS,
     },
   });
 
@@ -19,7 +18,6 @@ export const sendContactMessage = async (req, res) => {
     return res.status(400).json({ success: false, message: 'All fields are required.' });
   }
 
-  // Basic email format check
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ success: false, message: 'Invalid email address.' });
   }
@@ -32,7 +30,6 @@ export const sendContactMessage = async (req, res) => {
   try {
     const transporter = createTransporter();
 
-    // Email to OptionTrip inbox
     await transporter.sendMail({
       from: `"OptionTrip Contact" <${process.env.SMTP_USER}>`,
       to: RECIPIENT,
@@ -70,7 +67,6 @@ export const sendContactMessage = async (req, res) => {
       `,
     });
 
-    // Auto-reply to the sender
     await transporter.sendMail({
       from: `"OptionTrip" <${process.env.SMTP_USER}>`,
       to: `"${name}" <${email}>`,

@@ -35,7 +35,7 @@ const TravelSidebar = ({ trips = [], selectedTrip, onSelectTrip, isOpen, onToggl
 
   return (
     <>
-      {/* Mobile toggle */}
+
       <button className="tsb-toggle" onClick={onToggle} title={isOpen ? 'Close sidebar' : 'Open trips'}>
         <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
           {isOpen
@@ -45,7 +45,7 @@ const TravelSidebar = ({ trips = [], selectedTrip, onSelectTrip, isOpen, onToggl
       </button>
 
       <aside className={`tsb${isOpen ? ' tsb--open' : ''}`}>
-        {/* Header */}
+
         <div className="tsb-header">
           <div className="tsb-header__title">
             <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
@@ -57,7 +57,7 @@ const TravelSidebar = ({ trips = [], selectedTrip, onSelectTrip, isOpen, onToggl
           <span className="tsb-count">{visible.length}</span>
         </div>
 
-        {/* Search */}
+
         <div className="tsb-search">
           <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
             <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/>
@@ -74,7 +74,7 @@ const TravelSidebar = ({ trips = [], selectedTrip, onSelectTrip, isOpen, onToggl
           )}
         </div>
 
-        {/* Filters */}
+
         <div className="tsb-filters">
           {FILTERS.map(f => (
             <button
@@ -87,7 +87,7 @@ const TravelSidebar = ({ trips = [], selectedTrip, onSelectTrip, isOpen, onToggl
           ))}
         </div>
 
-        {/* Trip list */}
+
         <div className="tsb-list">
           {visible.length === 0 ? (
             <div className="tsb-empty">

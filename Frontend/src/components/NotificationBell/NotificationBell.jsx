@@ -35,7 +35,6 @@ const NotificationBell = () => {
     setUnreadCount(await getUnreadCount());
   }, []);
 
-  // Poll unread count only while the tab is actually visible.
   useEffect(() => {
     if (!isAuthenticated) return;
     refreshUnreadCount();
@@ -45,7 +44,6 @@ const NotificationBell = () => {
     return () => clearInterval(interval);
   }, [isAuthenticated, refreshUnreadCount]);
 
-  // Close on outside click — same idiom as the header's language dropdown.
   useEffect(() => {
     const handler = (e) => {
       const clickedBtn = btnRef.current?.contains(e.target);

@@ -7,7 +7,7 @@
   box-shadow: 0 4px 24px rgba(0,0,0,0.07);
 }
 
-/* ── Sidebar ── */
+
 .vt__sidebar {
   width: 280px;
   flex-shrink: 0;
@@ -60,7 +60,7 @@
 }
 .vt__add-btn:hover { background: #017f7e; }
 
-/* ── Add Form ── */
+
 .vt__form {
   display: flex;
   flex-direction: column;
@@ -118,7 +118,7 @@
 .vt__submit-btn:hover:not(:disabled) { background: #017f7e; }
 .vt__submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* ── Quick-mark trips ── */
+
 .vt__trips-section {
   display: flex;
   flex-direction: column;
@@ -157,7 +157,7 @@
   border-color: #029e9d;
 }
 
-/* ── List ── */
+
 .vt__list {
   display: flex;
   flex-direction: column;
@@ -226,7 +226,7 @@
 }
 .vt__remove-btn:hover { color: #ef4444; }
 
-/* ── Map ── */
+
 .vt__map {
   flex: 1;
   min-width: 0;

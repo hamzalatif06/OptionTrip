@@ -58,20 +58,6 @@ const CityCard = ({ city, onSelect, originCode, departureDate, returnDate, adult
   );
 };
 
-/**
- * Multi-step country → city picker.
- *
- * Props:
- *  step          'dest' | 'origin'
- *  cities        array of { iataCode, cityName, countryName }
- *  countryName   display name for the country (e.g. "India")
- *  originCode    used for Aviasales affiliate links (null when selecting dest)
- *  departureDate YYYY-MM-DD
- *  returnDate    YYYY-MM-DD | null
- *  adults        number
- *  onSelect      (city) => void
- *  onBack        () => void
- */
 const CountryCityPicker = ({
   step,
   cities = [],

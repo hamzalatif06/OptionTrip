@@ -1,19 +1,7 @@
-/**
- * Trips API Service
- * Handles trip generation, retrieval, and management
- */
-
 import { refreshAccessToken, getAccessToken as getStoredToken } from './authService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-/**
- * Make authenticated fetch request with automatic token refresh
- * @param {string} url - Request URL
- * @param {Object} options - Fetch options
- * @param {string} token - Access token
- * @returns {Promise} Fetch response
- */
 const authenticatedFetch = async (url, options = {}, token) => {
   const config = {
     ...options,
@@ -28,12 +16,10 @@ const authenticatedFetch = async (url, options = {}, token) => {
 
   let response = await fetch(url, config);
 
-  // If unauthorized, try to refresh token
   if (response.status === 401) {
     const refreshed = await refreshAccessToken();
 
     if (refreshed) {
-      // Retry with new token
       const newToken = getStoredToken();
       config.headers['Authorization'] = `Bearer ${newToken}`;
       response = await fetch(url, config);
@@ -43,11 +29,6 @@ const authenticatedFetch = async (url, options = {}, token) => {
   return response;
 };
 
-/**
- * PHASE 1: Generate lightweight trip options (FAST - ~10 seconds)
- * @param {Object} tripData - Trip generation parameters
- * @returns {Promise} Generated trip with 3 lightweight options (NO detailed itinerary)
- */
 export const generateTripOptions = async (tripData) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/trips/generate-options`, {
@@ -72,12 +53,6 @@ export const generateTripOptions = async (tripData) => {
   }
 };
 
-/**
- * PHASE 2: Generate detailed itinerary for selected option (SLOW - ~30 seconds)
- * @param {string} tripId - The trip ID
- * @param {string} optionId - The option ID to generate itinerary for
- * @returns {Promise} Detailed itinerary with Google Places data
- */
 export const generateItineraryForOption = async (tripId, optionId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/trips/${tripId}/options/${optionId}/generate-itinerary`, {
@@ -101,11 +76,6 @@ export const generateItineraryForOption = async (tripId, optionId) => {
   }
 };
 
-/**
- * Get trip by ID
- * @param {string} tripId - The trip ID
- * @returns {Promise} Trip data with iterations
- */
 export const getTripById = async (tripId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/trips/${tripId}`, {
@@ -127,12 +97,6 @@ export const getTripById = async (tripId) => {
   }
 };
 
-/**
- * Select a trip option (marks user's choice)
- * @param {string} tripId - The trip ID
- * @param {string} optionId - The option ID to select
- * @returns {Promise} Updated trip data
- */
 export const selectTripOption = async (tripId, optionId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/trips/${tripId}/select-option`, {
@@ -157,12 +121,6 @@ export const selectTripOption = async (tripId, optionId) => {
   }
 };
 
-/**
- * Save/associate a trip with a user account
- * @param {string} tripId - The trip ID to save
- * @param {string} token - User's access token
- * @returns {Promise} Saved trip data
- */
 export const saveTrip = async (tripId, token) => {
   try {
     const response = await authenticatedFetch(
@@ -184,12 +142,6 @@ export const saveTrip = async (tripId, token) => {
   }
 };
 
-/**
- * Get all trips for a user
- * @param {string} userId - The user ID
- * @param {Object} options - Query options (limit, skip)
- * @returns {Promise} List of trips
- */
 export const getUserTrips = async (userId, options = {}) => {
   try {
     const { limit = 10, skip = 0 } = options;
@@ -217,12 +169,6 @@ export const getUserTrips = async (userId, options = {}) => {
   }
 };
 
-/**
- * Get current authenticated user's saved trips
- * @param {string} token - User's access token
- * @param {Object} options - Query options (limit, skip)
- * @returns {Promise} List of user's saved trips
- */
 export const getMyTrips = async (token, options = {}) => {
   try {
     const { limit = 20, skip = 0 } = options;
@@ -250,13 +196,6 @@ export const getMyTrips = async (token, options = {}) => {
   }
 };
 
-/**
- * PHASE 2B: Generate single day itinerary (PROGRESSIVE - ~3-5 seconds per day)
- * @param {string} tripId - The trip ID
- * @param {string} optionId - The option ID
- * @param {number} dayNumber - The day number to generate (1-based)
- * @returns {Promise} Single day itinerary with Google Places data
- */
 export const generateSingleDayItinerary = async (tripId, optionId, dayNumber) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/trips/${tripId}/options/${optionId}/generate-day/${dayNumber}`, {
@@ -280,13 +219,6 @@ export const generateSingleDayItinerary = async (tripId, optionId, dayNumber) =>
   }
 };
 
-/**
- * Get specific day itinerary (check cache first)
- * @param {string} tripId - The trip ID
- * @param {string} optionId - The option ID
- * @param {number} dayNumber - The day number (1-based)
- * @returns {Promise} Single day itinerary
- */
 export const getDayItinerary = async (tripId, optionId, dayNumber) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/trips/${tripId}/options/${optionId}/day/${dayNumber}`, {
@@ -298,7 +230,6 @@ export const getDayItinerary = async (tripId, optionId, dayNumber) => {
 
     if (!response.ok) {
       const errorData = await response.json();
-      // Return needs_generation flag instead of throwing
       if (errorData.needs_generation) {
         return { success: false, needs_generation: true };
       }
@@ -313,17 +244,6 @@ export const getDayItinerary = async (tripId, optionId, dayNumber) => {
   }
 };
 
-/**
- * Generate all days progressively (SEQUENTIAL - Day 1 first, then Day 2, etc.)
- * Generates days one-by-one in order, calls onDayComplete callback as each day finishes
- * @param {string} tripId - The trip ID
- * @param {string} optionId - The option ID
- * @param {number} totalDays - Total number of days
- * @param {Function} onDayComplete - Callback when a day is completed (dayNumber, dayData)
- * @param {Function} onAllComplete - Callback when all days are completed
- * @param {Function} onError - Callback when an error occurs (dayNumber, error)
- * @returns {Promise} Resolves when all days are generated
- */
 export const generateAllDaysProgressively = async (
   tripId,
   optionId,
@@ -335,7 +255,6 @@ export const generateAllDaysProgressively = async (
   const completedDays = [];
   const results = [];
 
-  // Generate days SEQUENTIALLY - Day 1 first, then Day 2, etc.
   for (let dayNum = 1; dayNum <= totalDays; dayNum++) {
     try {
       console.log(`🚀 Starting generation for Day ${dayNum}...`);
@@ -354,14 +273,11 @@ export const generateAllDaysProgressively = async (
       console.error(`Failed to generate Day ${dayNum}:`, error);
       onError?.(dayNum, error);
       results.push({ success: false, dayNumber: dayNum, error });
-      // Continue to next day even if this one fails
     }
   }
 
-  // Sort completed days by day number (should already be sorted, but just in case)
   completedDays.sort((a, b) => a.day_number - b.day_number);
 
-  // Call completion callback
   onAllComplete?.(completedDays, results);
 
   return {
@@ -371,23 +287,15 @@ export const generateAllDaysProgressively = async (
   };
 };
 
-/**
- * Check local storage cache for trip itinerary
- * @param {string} tripId - The trip ID
- * @param {string} optionId - The option ID
- * @returns {Object|null} Cached itinerary data or null
- */
 export const getCachedItinerary = (tripId, optionId) => {
   try {
     const cacheKey = `trip_itinerary_${tripId}_${optionId}`;
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       const parsed = JSON.parse(cached);
-      // Check if cache is still valid (24 hours)
       if (Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
         return parsed.data;
       }
-      // Cache expired, remove it
       localStorage.removeItem(cacheKey);
     }
     return null;
@@ -397,12 +305,6 @@ export const getCachedItinerary = (tripId, optionId) => {
   }
 };
 
-/**
- * Save itinerary to local storage cache
- * @param {string} tripId - The trip ID
- * @param {string} optionId - The option ID
- * @param {Array} days - Array of day itineraries
- */
 export const setCachedItinerary = (tripId, optionId, days) => {
   try {
     const cacheKey = `trip_itinerary_${tripId}_${optionId}`;
@@ -415,11 +317,6 @@ export const setCachedItinerary = (tripId, optionId, days) => {
   }
 };
 
-/**
- * Clear cached itinerary
- * @param {string} tripId - The trip ID
- * @param {string} optionId - The option ID
- */
 export const clearCachedItinerary = (tripId, optionId) => {
   try {
     const cacheKey = `trip_itinerary_${tripId}_${optionId}`;
@@ -429,11 +326,6 @@ export const clearCachedItinerary = (tripId, optionId) => {
   }
 };
 
-/**
- * Parse a natural language trip description into structured trip data
- * @param {string} text - The natural language trip description
- * @returns {Promise} Parsed trip data (destination, dates, guests, budget, tripType, activities)
- */
 export const parseTripDescription = async (text) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/trips/parse-description`, {
@@ -509,11 +401,6 @@ export const removeVisitedLocation = async (id, token) => {
   }
 };
 
-/**
- * PATCH /api/trips/:tripId/selection
- * Save selected flight, hotel, or car to the trip.
- * Pass only the keys you want to update (e.g. { selectedFlight: {...} }).
- */
 export const updateTripSelection = async (tripId, selectionData, token) => {
   try {
     const response = await authenticatedFetch(
@@ -532,9 +419,6 @@ export const updateTripSelection = async (tripId, selectionData, token) => {
   }
 };
 
-/**
- * DELETE /api/trips/:tripId — soft delete a trip
- */
 export const deleteTrip = async (tripId, token) => {
   try {
     const response = await authenticatedFetch(
@@ -553,9 +437,6 @@ export const deleteTrip = async (tripId, token) => {
   }
 };
 
-/**
- * PATCH /api/trips/:tripId/rename — update trip custom title
- */
 export const renameTrip = async (tripId, customTitle, token) => {
   try {
     const response = await authenticatedFetch(

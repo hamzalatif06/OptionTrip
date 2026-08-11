@@ -1,13 +1,6 @@
-/* ═══════════════════════════════════════════════════════════════════════════
-   ViAssistant — Vi AI Travel Concierge
-   Layout sizes:
-     • Default window:    480 × 700
-     • With sidebar:      760 × 720
-     • Fullscreen:        almost full viewport
-     • Mobile:            edge-to-edge with safe spacing
-   ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ─── Design Tokens ──────────────────────────────────────────────────────── */
+
+
 .vi-button,
 .vi-window {
   --vi-gradient:    linear-gradient(135deg, #0A539D 0%, #029e9d 100%);
@@ -24,7 +17,7 @@
   --vi-radius:     22px;
 }
 
-/* ─── Floating Launcher Button ─────────────────────────────────────────── */
+
 .vi-button {
   position: fixed;
   bottom: 28px;
@@ -68,7 +61,7 @@
 .vi-button.active .vi-pulse { display: none; }
 .vi-button i.fa-times { color: #fff; font-size: 20px; }
 
-/* ─── Chat Window ──────────────────────────────────────────────────────── */
+
 .vi-window {
   position: fixed;
   bottom: 110px;
@@ -94,7 +87,7 @@
   flex-direction: row;
 }
 
-/* Fullscreen mode: near-edge of viewport */
+
 .vi-window--fullscreen {
   inset: 24px;
   bottom: 24px;
@@ -115,7 +108,7 @@
   to   { opacity: 1; transform: translateY(0)    scale(1);    }
 }
 
-/* ─── Sidebar (conversations) ──────────────────────────────────────────── */
+
 .vi-sidebar {
   width: 260px;
   flex-shrink: 0;
@@ -218,13 +211,13 @@
 
 .vi-btn-history.active { background: rgba(2,158,157,0.35); border-color: rgba(2,158,157,0.5); }
 
-/* ─── Main chat column ─────────────────────────────────────────────────── */
+
 .vi-chat-main {
   flex: 1; min-width: 0;
   display: flex; flex-direction: column; overflow: hidden;
 }
 
-/* ─── Header ───────────────────────────────────────────────────────────── */
+
 .vi-header {
   background: var(--vi-gradient);
   color: #fff;
@@ -303,7 +296,7 @@
 }
 .vi-btn-icon:hover { background: rgba(255,255,255,0.3); transform: scale(1.08); }
 
-/* ─── Trip Context Bar (with switcher) ─────────────────────────────────── */
+
 .vi-trip-bar {
   position: relative;
   padding: 10px 14px;
@@ -373,7 +366,7 @@
 .vi-trip-picker__name { font-size: 13px; font-weight: 600; color: var(--vi-ink); }
 .vi-trip-picker__dates { font-size: 11px; color: var(--vi-ink-muted); }
 
-/* ─── Disclaimer ───────────────────────────────────────────────────────── */
+
 .vi-disclaimer {
   background: #f0fdf4;
   border-bottom: 1px solid #bbf7d0;
@@ -393,7 +386,7 @@
 }
 .disclaimer-close:hover { color: #166534; }
 
-/* ─── Messages Area ────────────────────────────────────────────────────── */
+
 .vi-messages {
   flex: 1; overflow-y: auto;
   padding: 22px 18px;
@@ -448,7 +441,7 @@
 
 .message-time { font-size: 10px; opacity: 0.48; display: block; margin-top: 6px; }
 
-/* ─── Markdown rendering ───────────────────────────────────────────────── */
+
 .vi-md { font-size: 14px; line-height: 1.7; color: var(--vi-ink); }
 .vi-md p        { margin: 0 0 12px; }
 .vi-md p:last-child { margin-bottom: 0; }
@@ -492,7 +485,7 @@
   font-style: italic;
 }
 
-/* ─── Bot message actions ──────────────────────────────────────────────── */
+
 .vi-msg-actions {
   display: flex;
   gap: 4px;
@@ -521,7 +514,7 @@
 }
 .vi-msg-action:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* ─── Quick replies ────────────────────────────────────────────────────── */
+
 .quick-replies {
   display: flex; flex-wrap: wrap; gap: 7px;
   margin-top: 11px;
@@ -547,7 +540,7 @@
 }
 .quick-reply-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* ─── Prompt starters (empty state) ────────────────────────────────────── */
+
 .vi-starters { margin-top: 6px; }
 .vi-starters__title {
   font-size: 11.5px;
@@ -595,7 +588,7 @@
 }
 .vi-starter__label { flex: 1; }
 
-/* ─── Search status (shown in place of/alongside typing dots during a tool call) ── */
+
 .vi-search-status {
   display: block;
   font-size: 12px;
@@ -604,7 +597,7 @@
   padding: 12px 18px 0;
 }
 
-/* ─── Typing indicator ─────────────────────────────────────────────────── */
+
 .typing-indicator {
   display: flex; align-items: center; gap: 5px;
   padding: 14px 18px 12px;
@@ -622,7 +615,7 @@
   30%            { transform: translateY(-9px); opacity: 1;    }
 }
 
-/* ─── Streaming cursor ─────────────────────────────────────────────────── */
+
 .vi-message.bot .vi-md::after {
   content: none;
 }
@@ -638,7 +631,7 @@
   50%       { opacity: 0; }
 }
 
-/* ─── Stop generating button ───────────────────────────────────────────── */
+
 .vi-stop-gen {
   margin: 0 auto 10px;
   display: flex; align-items: center; gap: 6px;
@@ -655,7 +648,7 @@
 .vi-stop-gen:hover { background: #fef2f2; }
 .vi-stop-gen i { font-size: 10px; }
 
-/* ─── Input Area ───────────────────────────────────────────────────────── */
+
 .vi-input-container {
   padding: 14px 16px 12px;
   background: #fff;
@@ -715,7 +708,7 @@
   border: 1px solid #e2e8f0;
 }
 
-/* ─── Send button ──────────────────────────────────────────────────────── */
+
 .vi-send-btn {
   width: 40px; height: 40px;
   background: var(--vi-gradient);
@@ -735,7 +728,7 @@
 }
 .vi-send-btn:disabled { opacity: 0.38; cursor: not-allowed; box-shadow: none; }
 
-/* ─── Mic Button ───────────────────────────────────────────────────────── */
+
 .vi-mic-btn {
   position: relative;
   flex-shrink: 0;
@@ -774,7 +767,7 @@
   100% { transform: scale(1.5); opacity: 0; }
 }
 
-/* ─── Voice mode button (phone icon in header) ─────────────────────────── */
+
 .vi-voice-mode-btn { color: rgba(255,255,255,0.92); }
 .vi-voice-mode-btn.active {
   background: rgba(239,68,68,0.25) !important;
@@ -783,7 +776,7 @@
 }
 .vi-voice-mode-btn.active:hover { background: rgba(239,68,68,0.35) !important; }
 
-/* ─── Speaking animation in avatar ─────────────────────────────────────── */
+
 .vi-speaking-animation {
   display: flex; align-items: flex-end;
   gap: 3px;
@@ -806,7 +799,7 @@
   50%       { transform: scaleY(1.0); opacity: 1;   }
 }
 
-/* ─── Voice mode banner ────────────────────────────────────────────────── */
+
 .vi-voice-banner {
   background: linear-gradient(135deg, rgba(2,158,157,0.08), rgba(10,83,157,0.08));
   border-bottom: 1px solid rgba(2,158,157,0.15);
@@ -837,7 +830,7 @@
 }
 .vi-voice-banner__label { font-size: 13.5px; color: #555; font-weight: 500; }
 
-/* ─── Speech error/status ──────────────────────────────────────────────── */
+
 .vi-speech-error {
   font-size: 11.5px;
   color: #dc2626;
@@ -846,7 +839,7 @@
 }
 .vi-speech-status { color: var(--vi-teal) !important; }
 
-/* ─── Scrollbar ────────────────────────────────────────────────────────── */
+
 .vi-messages::-webkit-scrollbar { width: 5px; }
 .vi-messages::-webkit-scrollbar-track { background: transparent; }
 .vi-messages::-webkit-scrollbar-thumb {
@@ -855,7 +848,7 @@
 }
 .vi-messages::-webkit-scrollbar-thumb:hover { background: #9faab6; }
 
-/* ─── Responsive ───────────────────────────────────────────────────────── */
+
 @media (max-width: 900px) {
   .vi-window--with-sidebar { width: calc(100vw - 36px); }
 }
@@ -905,7 +898,7 @@
   .vi-header-tag     { display: none; }
 }
 
-/* ─── RTL ──────────────────────────────────────────────────────────────── */
+
 [dir="rtl"] .vi-button { right: auto; left: 28px; }
 [dir="rtl"] .vi-window { right: auto; left: 28px; }
 [dir="rtl"] .vi-message.user { flex-direction: row; }

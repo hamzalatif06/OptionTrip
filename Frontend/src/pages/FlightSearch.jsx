@@ -20,7 +20,6 @@ import './FlightSearch.css';
 const TP_MARKER = '370056';
 
 const buildAviasalesUrl = ({ originCode, destinationCode, departureDate, returnDate, adults }) => {
-  // Aviasales format: {FROM}{DDMM}{TO}[{DDMM_RETURN}]{pax}
   const fmt = (d) => { const [, mm, dd] = d.split('-'); return `${dd}${mm}`; };
   const pax = String(adults || 1);
   const returnPart = returnDate ? fmt(returnDate) : '';
@@ -117,7 +116,6 @@ const Pagination = ({ page, total, onChange }) => {
   );
 };
 
-// 'duffel' | 'gf' | 'tp' | 'amadeus'
 const SOURCE_NONE = null;
 
 const EXPLORE_MODAL_LIMIT = 8;
@@ -128,8 +126,6 @@ const formatModalTime = (value) => {
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
 };
-
-// formatModalPrice replaced by useCurrency.formatPriceFromCurrency — see FlightSearch component
 
 const normalizeExploreFlight = (flight, source, fallbackOrigin, fallbackDestination) => {
   if (source === 'amadeus') {
@@ -170,12 +166,12 @@ const normalizeExploreFlight = (flight, source, fallbackOrigin, fallbackDestinat
 
 const FlightSearch = () => {
   const { formatPriceFromCurrency } = useCurrency();
-  const [source,        setSource]       = useState(SOURCE_NONE); // which API won
-  const [duffelFlights, setDuffelFlights]= useState([]);          // Duffel
-  const [topFlights,    setTopFlights]   = useState([]);          // GF top
-  const [otherFlights,  setOtherFlights] = useState([]);          // GF other
-  const [tpFlights,     setTpFlights]    = useState([]);          // TP
-  const [amadFlights,   setAmadFlights]  = useState([]);          // Amadeus
+  const [source,        setSource]       = useState(SOURCE_NONE);
+  const [duffelFlights, setDuffelFlights]= useState([]);
+  const [topFlights,    setTopFlights]   = useState([]);
+  const [otherFlights,  setOtherFlights] = useState([]);
+  const [tpFlights,     setTpFlights]    = useState([]);
+  const [amadFlights,   setAmadFlights]  = useState([]);
 
   const [isLoading,    setIsLoading]    = useState(false);
   const [error,        setError]        = useState('');
@@ -185,7 +181,7 @@ const FlightSearch = () => {
   const [prefillDest,     setPrefillDest]     = useState(null);
   const [prefillOrigin,   setPrefillOrigin]   = useState(null);
   const [originFieldError,setOriginFieldError]= useState('');
-  const [detectedOrigin,  setDetectedOrigin]  = useState(null); // { iata, display }
+  const [detectedOrigin,  setDetectedOrigin]  = useState(null);
   const [filters,             setFilters]            = useState(DEFAULT_FILTERS);
   const [exploreTripType,     setExploreTripType]     = useState('one-way');
   const [exploreReturnDate,   setExploreReturnDate]   = useState('');
@@ -199,13 +195,9 @@ const FlightSearch = () => {
     source: '',
   });
 
-  // Country → city multi-step flow
-  // null = normal mode
-  // { step:'dest'|'origin', originCountry, destCountry, selectedDestCity, departureDate, returnDate, adults }
   const [countryFlow, setCountryFlow] = useState(null);
   const [nearbyMeta,  setNearbyMeta]  = useState(null);
 
-  // Hotels-under-flights state
   const [hotelResults,  setHotelResults]  = useState([]);
   const [hotelsLoading, setHotelsLoading] = useState(false);
   const [hotelError,    setHotelError]    = useState(null);
@@ -238,9 +230,7 @@ const FlightSearch = () => {
   };
 
   const handleSearch = async (params) => {
-    // ── Country flow: intercept when origin or destination is a whole country ─
     if (params.originCountryData?.isCountry || params.destCountryData?.isCountry) {
-      // Clear any previous flight results so they don't show under the city picker
       setSearched(false);
       resetResults();
       setCountryFlow({
@@ -256,7 +246,7 @@ const FlightSearch = () => {
       return;
     }
 
-    setCountryFlow(null);   // dismiss picker if user re-searches with specific airports
+    setCountryFlow(null);
     setIsLoading(true);
     setSearched(true);
     setLastSearch(params);
@@ -276,7 +266,6 @@ const FlightSearch = () => {
       }
     });
 
-    // ── Hotel search (fire-and-forget — never blocks the flight cascade) ──────
     if (params.includeHotels && params.destinationCode && !/^[A-Z]{2}$/i.test(params.destinationCode)) {
       const cityName = (params.destinationDisplay || '').split(' (')[0].trim();
       const checkIn  = params.departureDate;
@@ -300,7 +289,6 @@ const FlightSearch = () => {
     }
 
     try {
-      /* ── Stage 0: Duffel ─────────────────────────────────────── */
       let duffelResult = null;
       try {
         duffelResult = await searchFlightsDuffel({
@@ -311,7 +299,7 @@ const FlightSearch = () => {
           adults:          params.adults,
           includeNearby:   params.includeNearby || false,
         });
-      } catch { /* fall through */ }
+      } catch {}
 
       if (duffelResult?.flights?.length > 0) {
         setSource('duffel');
@@ -320,7 +308,6 @@ const FlightSearch = () => {
         return;
       }
 
-      /* ── Stage 1: Google Flights ─────────────────────────────── */
       let gfResult = null;
       try {
         gfResult = await searchFlightsGoogle({
@@ -331,7 +318,7 @@ const FlightSearch = () => {
           adults:          params.adults,
           includeNearby:   params.includeNearby || false,
         });
-      } catch { /* fall through */ }
+      } catch {}
 
       const gfCount = (gfResult?.topFlights?.length || 0) + (gfResult?.otherFlights?.length || 0);
 
@@ -343,7 +330,6 @@ const FlightSearch = () => {
         return;
       }
 
-      /* ── Stage 2: Travelpayouts ──────────────────────────────── */
       let tpResult = null;
       try {
         tpResult = await searchFlightsTP({
@@ -353,7 +339,7 @@ const FlightSearch = () => {
           returnAt:    params.returnDate || null,
           limit:       30,
         });
-      } catch { /* fall through */ }
+      } catch {}
 
       if (tpResult?.flights?.length > 0) {
         setSource('tp');
@@ -361,7 +347,6 @@ const FlightSearch = () => {
         return;
       }
 
-      /* ── Stage 3: Amadeus ────────────────────────────────────── */
       let amadResult = null;
       try {
         amadResult = await searchFlightsAmadeus({
@@ -371,7 +356,7 @@ const FlightSearch = () => {
           returnDate:      params.returnDate || null,
           adults:          params.adults,
         });
-      } catch { /* fall through */ }
+      } catch {}
 
       if (amadResult?.flights?.length > 0) {
         setSource('amadeus');
@@ -379,7 +364,6 @@ const FlightSearch = () => {
         return;
       }
 
-      /* ── All sources empty — show whatever GF returned ────────── */
       setSource('gf');
       setTopFlights(gfResult?.topFlights || []);
       setOtherFlights(gfResult?.otherFlights || []);
@@ -413,7 +397,7 @@ const FlightSearch = () => {
   };
 
   const handleOriginDetected = (result) => {
-    setDetectedOrigin(result); // { iata, display }
+    setDetectedOrigin(result);
   };
 
   const closeExploreModal = () => {
@@ -432,7 +416,7 @@ const FlightSearch = () => {
         returnDate,
         adults,
       });
-    } catch { /* continue fallback chain */ }
+    } catch {}
     if (duffelResult?.flights?.length) return { source: 'duffel', flights: duffelResult.flights };
 
     let gfResult = null;
@@ -444,7 +428,7 @@ const FlightSearch = () => {
         returnDate,
         adults,
       });
-    } catch { /* continue fallback chain */ }
+    } catch {}
     const gfFlights = [...(gfResult?.topFlights || []), ...(gfResult?.otherFlights || [])];
     if (gfFlights.length) return { source: 'gf', flights: gfFlights };
 
@@ -457,7 +441,7 @@ const FlightSearch = () => {
         returnAt:    returnDate || null,
         limit:       20,
       });
-    } catch { /* continue fallback chain */ }
+    } catch {}
     if (tpResult?.flights?.length) return { source: 'tp', flights: tpResult.flights };
 
     let amadeusResult = null;
@@ -469,7 +453,7 @@ const FlightSearch = () => {
         returnDate,
         adults,
       });
-    } catch { /* no more fallback */ }
+    } catch {}
     if (amadeusResult?.flights?.length) return { source: 'amadeus', flights: amadeusResult.flights };
 
     return { source: 'none', flights: [] };
@@ -537,7 +521,6 @@ const FlightSearch = () => {
         openExploreTicketsModal({ destination: exploreModal.destination, returnDate: null });
       }
     }
-    // If switching to round-trip, wait for user to pick return date
   };
 
   const handleExploreReturnDateChange = (date) => {
@@ -564,7 +547,6 @@ const FlightSearch = () => {
     openExploreTicketsModal({ destination: { iata, city } });
   };
 
-  /* ── Derived data for filters ─────────────────────────────────── */
   const allRaw = source === 'duffel'
     ? duffelFlights
     : source === 'gf'
@@ -573,7 +555,6 @@ const FlightSearch = () => {
         ? tpFlights
         : amadFlights;
 
-  // Filters only apply to Duffel, GF, and TP; Amadeus uses a different schema
   const filterable = source !== 'amadeus';
   const filtered   = filterable ? applyFilters(allRaw, filters) : allRaw;
 
@@ -587,7 +568,7 @@ const FlightSearch = () => {
   return (
     <>
       <PageMeta title="Search Flights" description="Search and compare flights from Duffel, Google Flights, and more. Find the best prices for your next trip." path="/flights" />
-      {/* Hero */}
+
       <section className="flight-hero">
         <div className="container">
           <div className="flight-hero__content text-center">
@@ -599,7 +580,7 @@ const FlightSearch = () => {
         </div>
       </section>
 
-      {/* Search Form */}
+
       <div ref={formRef}>
         <FlightSearchForm
           onSearch={handleSearch}
@@ -612,7 +593,7 @@ const FlightSearch = () => {
         />
       </div>
 
-      {/* ── Country city picker (multi-step flow) ── */}
+
       {countryFlow && (
         <section className="flight-results-section">
           <div className="container">
@@ -627,10 +608,8 @@ const FlightSearch = () => {
                 adults={countryFlow.adults}
                 onSelect={(city) => {
                   if (countryFlow.originCountry) {
-                    // Origin is also a country → go to origin city step
                     setCountryFlow(f => ({ ...f, step: 'origin', selectedDestCity: city }));
                   } else {
-                    // Origin is a specific airport → search immediately
                     setCountryFlow(null);
                     handleSearch({
                       originCode:    countryFlow.originCode,
@@ -672,7 +651,7 @@ const FlightSearch = () => {
         </section>
       )}
 
-      {/* Explore Anywhere */}
+
       {!searched && !countryFlow && (
         <div ref={exploreRef}>
           <ExploreDestinations
@@ -682,7 +661,7 @@ const FlightSearch = () => {
         </div>
       )}
 
-      {/* Results */}
+
       {searched && (
         <section className="flight-results-section">
           <div className="container">
@@ -707,13 +686,11 @@ const FlightSearch = () => {
 
             {!isLoading && !error && allRaw.length === 0 && (
               !lastSearch?.includeNearby ? (
-                /* Auto-suggest: offer nearby airports when not yet tried */
                 <NearbyAirportsBanner
                   lastSearch={lastSearch}
                   onRetry={(enrichedParams) => handleSearch(enrichedParams)}
                 />
               ) : (
-                /* Already tried nearby — show final empty state */
                 <div className="flight-empty">
                   <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>✈️</div>
                   <h3>No flights found</h3>
@@ -764,7 +741,7 @@ const FlightSearch = () => {
                   </div>
 
                   <div className="fs-results-layout">
-                    {/* Filters sidebar — skip for Amadeus (different schema) */}
+
                     {filterable && (
                       <FlightFilters
                         flights={allRaw}
@@ -775,7 +752,7 @@ const FlightSearch = () => {
 
                     <div className="fs-results-col">
 
-                      {/* ── Duffel ── */}
+
                       {source === 'duffel' && (() => {
                         const filtDuffel = applyFilters(duffelFlights, filters);
                         const pSlice     = filtDuffel.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
@@ -790,7 +767,7 @@ const FlightSearch = () => {
                         );
                       })()}
 
-                      {/* ── Google Flights ── */}
+
                       {source === 'gf' && (() => {
                         const filtTop   = applyFilters(topFlights,   filters);
                         const filtOther = applyFilters(otherFlights,  filters);
@@ -821,7 +798,7 @@ const FlightSearch = () => {
                         );
                       })()}
 
-                      {/* ── Travelpayouts ── */}
+
                       {source === 'tp' && (() => {
                         const filtTP  = applyFilters(tpFlights, filters);
                         const pSlice  = filtTP.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
@@ -836,7 +813,7 @@ const FlightSearch = () => {
                         );
                       })()}
 
-                      {/* ── Amadeus ── */}
+
                       {source === 'amadeus' && (() => {
                         const pSlice = amadFlights.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
                         return (
@@ -876,7 +853,7 @@ const FlightSearch = () => {
                   : 'Set departure city to load available tickets'}
               </p>
 
-              {/* Trip type toggle */}
+
               <div className="explore-trip-type-row" style={{ display: 'flex', gap: '8px', marginTop: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <button
                   className={`explore-trip-type-btn${exploreTripType === 'one-way' ? ' explore-trip-type-btn--active' : ''}`}
@@ -968,16 +945,16 @@ const FlightSearch = () => {
         </div>
       )}
 
-      {/* ── Hotels in destination ── */}
+
       {(hotelsLoading || hotelResults.length > 0 || hotelError) && (
         <section className="flt-hotels-section">
           <div className="container">
 
-            {/* Header — same design language as flight section headers */}
+
             <div className="fs-section-header fs-section-header--hotel" style={{ marginTop: 0 }}>
               <div className="fs-section-header__left">
                 <div className="fs-section-header__icon">
-                  {/* Hotel/bed icon */}
+
                   <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
                     <path d="M2 20h20M2 20V8l10-5 10 5v12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     <path d="M9 20v-5h6v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1046,7 +1023,6 @@ const FlightSearch = () => {
   );
 };
 
-/** Return YYYY-MM-DD for N days from today */
 function getFutureDate(days) {
   const d = new Date();
   d.setDate(d.getDate() + days);

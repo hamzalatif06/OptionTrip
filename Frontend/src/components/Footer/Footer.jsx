@@ -21,7 +21,7 @@ const Footer = () => {
 
   return (
     <>
-      {/* ── Email Subscription Strip ──────────────────────────── */}
+
       <div className="footer-subscribe-strip">
         <div className="container">
           <div className="footer-subscribe-inner">
@@ -48,15 +48,15 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* ── Main Footer ───────────────────────────────────────── */}
+
       <footer className="footer-main" style={{ backgroundImage: `url(/images/background_pattern.png)` }}>
 
-        {/* Five-column links section */}
+
         <div className="footer-columns">
           <div className="container">
             <div className="footer-columns-grid">
 
-              {/* Col 1 — About */}
+
               <div className="footer-col footer-col--about">
                 <img src="/images/logo-white.png" alt="Option Trip" className="footer-logo" />
                 <p className="footer-about-desc">
@@ -73,7 +73,7 @@ const Footer = () => {
                   </li>
                 </ul>
 
-                {/* Trust block */}
+
                 <div className="footer-trust-block">
                   <ul className="footer-trust-list">
                     <li><i className="fas fa-robot"></i> Powered by Travel Partner Vi</li>
@@ -84,7 +84,7 @@ const Footer = () => {
                 </div>
               </div>
 
-              {/* Col 2 — Company */}
+
               <div className="footer-col">
                 <h4 className="footer-col-title">Company</h4>
                 <ul className="footer-col-links">
@@ -96,7 +96,7 @@ const Footer = () => {
                 </ul>
               </div>
 
-              {/* Col 3 — Travel */}
+
               <div className="footer-col">
                 <h4 className="footer-col-title">Travel</h4>
                 <ul className="footer-col-links">
@@ -108,7 +108,7 @@ const Footer = () => {
                 </ul>
               </div>
 
-              {/* Col 4 — Support */}
+
               <div className="footer-col">
                 <h4 className="footer-col-title">Support</h4>
                 <ul className="footer-col-links">
@@ -119,7 +119,7 @@ const Footer = () => {
                 </ul>
               </div>
 
-              {/* Col 5 — Legal */}
+
               <div className="footer-col">
                 <h4 className="footer-col-title">Legal</h4>
                 <ul className="footer-col-links">
@@ -134,7 +134,7 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Locale bar */}
+
         <div className="footer-locale-section">
           <div className="container">
             <div className="footer-locale-bar">
@@ -145,7 +145,7 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Bottom bar */}
+
         <div className="footer-bottom">
           <div className="container">
             <div className="footer-bottom-inner">

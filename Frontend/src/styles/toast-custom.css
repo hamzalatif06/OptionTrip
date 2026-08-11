@@ -1,4 +1,4 @@
-/* Ensure ToastContainer doesn't affect layout */
+
 .Toastify__toast-container {
   position: fixed !important;
   z-index: 9999 !important;
@@ -13,12 +13,12 @@
   height: auto !important;
 }
 
-/* Re-enable pointer events on actual toasts */
+
 .Toastify__toast-container .Toastify__toast {
   pointer-events: auto !important;
 }
 
-/* Position adjustments for top-right */
+
 .Toastify__toast-container--top-right {
   top: 0 !important;
   right: 0 !important;
@@ -28,7 +28,7 @@
   width: auto !important;
 }
 
-/* Custom toast styling */
+
 .Toastify__toast {
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -37,7 +37,7 @@
   min-height: 64px;
 }
 
-/* Success toast - Teal theme */
+
 .Toastify__toast--success {
   background: linear-gradient(135deg, #029e9d 0%, #017a79 100%);
   color: white;
@@ -51,7 +51,7 @@
   background: #fdc703;
 }
 
-/* Error toast - Pink/Red accent */
+
 .Toastify__toast--error {
   background: linear-gradient(135deg, #F30F89 0%, #d10a75 100%);
   color: white;
@@ -65,7 +65,7 @@
   background: #fdc703;
 }
 
-/* Info toast - Teal variation */
+
 .Toastify__toast--info {
   background: linear-gradient(135deg, #029e9d 0%, #0A539D 100%);
   color: white;
@@ -79,7 +79,7 @@
   background: #fdc703;
 }
 
-/* Warning toast - Yellow/Gold theme */
+
 .Toastify__toast--warning {
   background: linear-gradient(135deg, #fdc703 0%, #e5b303 100%);
   color: #122D46;
@@ -93,13 +93,13 @@
   background: #029e9d;
 }
 
-/* Progress bar default */
+
 .Toastify__progress-bar {
   background: rgba(255, 255, 255, 0.7);
   height: 4px;
 }
 
-/* Close button */
+
 .Toastify__close-button {
   color: white;
   opacity: 0.7;
@@ -109,19 +109,19 @@
   opacity: 1;
 }
 
-/* Warning toast close button - dark color */
+
 .Toastify__toast--warning .Toastify__close-button {
   color: #122D46;
 }
 
-/* Toast body */
+
 .Toastify__toast-body {
   padding: 0;
   font-size: 14px;
   line-height: 1.5;
 }
 
-/* Animation */
+
 @keyframes toastSlideIn {
   from {
     transform: translate3d(110%, 0, 0);
@@ -137,7 +137,7 @@
   animation: toastSlideIn 0.3s ease-out;
 }
 
-/* Mobile responsive */
+
 @media only screen and (max-width: 480px) {
   .Toastify__toast-container {
     width: 100vw;

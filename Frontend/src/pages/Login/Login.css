@@ -1,4 +1,4 @@
-/* Login Page Styles - Full Screen No Scroll */
+
 
 .auth-page {
   height: 100vh;
@@ -16,7 +16,7 @@
   bottom: 0;
 }
 
-/* Error Banner */
+
 .auth-error-banner {
   background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
   border-left: 4px solid #F30F89;
@@ -49,7 +49,7 @@
   overflow: hidden;
 }
 
-/* Form Section */
+
 .auth-form-section {
   padding: 40px 60px;
   display: flex;
@@ -59,7 +59,7 @@
   max-height: 100vh;
 }
 
-/* Custom scrollbar for form section */
+
 .auth-form-section::-webkit-scrollbar {
   width: 6px;
 }
@@ -113,7 +113,7 @@
   font-weight: 400;
 }
 
-/* Social Buttons */
+
 .auth-social-buttons {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -121,7 +121,7 @@
   margin-bottom: 28px;
 }
 
-/* Divider */
+
 .auth-divider {
   display: flex;
   align-items: center;
@@ -142,7 +142,7 @@
   white-space: nowrap;
 }
 
-/* Form */
+
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -155,7 +155,7 @@
   margin-bottom: 20px;
 }
 
-/* Checkbox */
+
 .auth-checkbox {
   display: flex;
   align-items: center;
@@ -177,7 +177,7 @@
   user-select: none;
 }
 
-/* Links */
+
 .auth-link {
   font-size: 13px;
   color: #0A539D;
@@ -199,7 +199,7 @@
   color: #d00d75;
 }
 
-/* Footer */
+
 .auth-footer {
   margin-top: 24px;
   text-align: center;
@@ -211,7 +211,7 @@
   margin: 0;
 }
 
-/* Illustration Section */
+
 .auth-illustration-section {
   background: linear-gradient(135deg, #0A539D 0%, #083d73 100%);
   padding: 60px 40px;
@@ -313,7 +313,7 @@
   }
 }
 
-/* Decorative Elements */
+
 .auth-illustration-section::before {
   content: '';
   position: absolute;
@@ -334,7 +334,7 @@
   }
 }
 
-/* Full Screen No Scroll Optimization */
+
 .auth-page {
   height: 100vh;
   min-height: 100vh;
@@ -386,7 +386,7 @@
   max-width: 420px;
 }
 
-/* Compact spacing for full-screen */
+
 .auth-logo {
   margin-bottom: 30px;
 }
@@ -426,12 +426,12 @@
   margin-bottom: 20px;
 }
 
-/* Input component spacing adjustment */
+
 .auth-form .auth-input-wrapper {
   margin-bottom: 16px;
 }
 
-/* Responsive - Maintain full screen */
+
 @media (max-width: 1200px) {
   .auth-container {
     grid-template-columns: 50% 50%;
@@ -500,7 +500,7 @@
   }
 }
 
-/* Improve visual hierarchy */
+
 .auth-page {
   background: #f8f9fa;
 }
@@ -524,7 +524,7 @@
   line-height: 1.5;
 }
 
-/* Enhanced animations */
+
 @keyframes fadeInUp {
   from {
     opacity: 0;

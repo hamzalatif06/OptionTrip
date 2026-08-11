@@ -4,12 +4,12 @@
   margin: 0 auto;
 }
 
-/* ── Discounted Flights section ───────────────────────────────────────────── */
+
 .ft-suggested {
   margin-bottom: 40px;
 }
 
-/* Banner header */
+
 .ft-disc-header {
   display: flex;
   align-items: center;
@@ -24,7 +24,7 @@
   overflow: hidden;
 }
 
-/* subtle decorative plane watermark */
+
 .ft-disc-header::after {
   content: '✈';
   position: absolute;
@@ -73,7 +73,7 @@
   text-overflow: ellipsis;
 }
 
-/* Price pill */
+
 .ft-disc-price-pill {
   display: flex;
   flex-direction: column;
@@ -137,7 +137,7 @@
   text-align: center;
 }
 
-/* ── Manual section ───────────────────────────────────────────────────────── */
+
 .ft-manual-section {
   border-top: 2px dashed #e8ecef;
   padding-top: 28px;
@@ -152,7 +152,7 @@
   letter-spacing: 0.08em;
 }
 
-/* ── Trip-type toggle ─────────────────────────────────────────────────────── */
+
 .ft-toggle {
   display: flex;
   gap: 10px;
@@ -181,7 +181,7 @@
   background: rgba(2, 158, 157, 0.08);
 }
 
-/* ── Search card ──────────────────────────────────────────────────────────── */
+
 .ft-card {
   background: #ffffff;
   border-radius: 16px;
@@ -190,7 +190,7 @@
   border: 1px solid #e8ecef;
 }
 
-/* ── From / To row ────────────────────────────────────────────────────────── */
+
 .ft-route-row {
   display: flex;
   align-items: flex-start;
@@ -202,7 +202,7 @@
   flex: 1;
 }
 
-/* Swap button */
+
 .ft-swap-btn {
   flex-shrink: 0;
   width: 40px;
@@ -225,7 +225,7 @@
   background: #f0fdfc;
 }
 
-/* ── Options row ──────────────────────────────────────────────────────────── */
+
 .ft-options-row {
   display: flex;
   align-items: flex-start;
@@ -233,7 +233,7 @@
   flex-wrap: wrap;
 }
 
-/* ── Generic field ────────────────────────────────────────────────────────── */
+
 .ft-field {
   position: relative;
   border: 1.5px solid #dde1e7;
@@ -316,7 +316,7 @@
   margin-top: 3px;
 }
 
-/* ── Airport autocomplete ─────────────────────────────────────────────────── */
+
 .ft-field--autocomplete {
   overflow: visible;
 }
@@ -392,7 +392,7 @@
   white-space: nowrap;
 }
 
-/* ── Passengers dropdown ──────────────────────────────────────────────────── */
+
 .ft-field--passengers {
   position: relative;
 }
@@ -498,7 +498,7 @@
   background: #027b7a;
 }
 
-/* ── Search button row (bottom) ───────────────────────────────────────────── */
+
 .ft-search-row {
   display: flex;
   justify-content: flex-end;
@@ -549,7 +549,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* ── Affiliate redirect info ──────────────────────────────────────────────── */
+
 .ft-redirect-info {
   margin-top: 12px;
   text-align: right;
@@ -567,7 +567,7 @@
   margin: 0;
 }
 
-/* ── Results ──────────────────────────────────────────────────────────────── */
+
 .ft-results {
   margin-top: 32px;
 }
@@ -643,7 +643,7 @@
   margin: 0;
 }
 
-/* ── Flight section headers (Top / Other) ─────────────────────────────────── */
+
 .ft-section-header {
   display: flex;
   align-items: center;
@@ -709,7 +709,7 @@
   flex-shrink: 0;
 }
 
-/* ── Pagination ───────────────────────────────────────────────────────────── */
+
 .ft-pagination {
   display: flex;
   align-items: center;
@@ -772,7 +772,7 @@
   user-select: none;
 }
 
-/* ── Results layout (filters + cards) ────────────────────────────────────── */
+
 .ft-results-layout {
   display: flex;
   align-items: flex-start;
@@ -785,7 +785,7 @@
   min-width: 0;
 }
 
-/* ── Section headers (Top / Other) ───────────────────────────────────────── */
+
 .ft-section-header {
   display: flex;
   align-items: center;
@@ -839,7 +839,7 @@
   white-space: nowrap;
 }
 
-/* ── Responsive ───────────────────────────────────────────────────────────── */
+
 @media (max-width: 900px) {
   .ft-results-layout {
     flex-direction: column;
@@ -889,7 +889,7 @@
 }
 
 
-/* ── Select for this trip button ─────────────────────────────────────────────── */
+
 .ft-select-btn {
   display: block;
   width: 100%;

@@ -24,7 +24,7 @@
   gap: 20px;
 }
 
-/* Spinner Animation */
+
 .oauth-spinner {
   width: 60px;
   height: 60px;
@@ -34,7 +34,7 @@
   animation: oauth-spin 1s linear infinite;
 }
 
-/* Loader GIF */
+
 .oauth-loader-gif {
   width: 80px;
   height: 80px;
@@ -46,7 +46,7 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Success Icon */
+
 .oauth-success-icon {
   width: 80px;
   height: 80px;
@@ -61,7 +61,7 @@
   animation: oauth-scaleIn 0.5s ease-out;
 }
 
-/* Error Icon */
+
 .oauth-error-icon {
   width: 80px;
   height: 80px;
@@ -107,7 +107,7 @@
   margin-top: 10px;
 }
 
-/* Mobile Responsive */
+
 @media (max-width: 640px) {
   .oauth-callback-container {
     padding: 40px 30px;

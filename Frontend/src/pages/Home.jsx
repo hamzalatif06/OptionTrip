@@ -10,7 +10,6 @@ import LastMinuteDeals from '../components/LastMinuteDeals/LastMinuteDeals';
 import DiscountAction from '../components/DiscountAction/DiscountAction';
 import FeaturedBlogSection from '../components/FeaturedBlogSection/FeaturedBlogSection';
 import WhyChooseUs from '../components/WhyChooseUs/WhyChooseUs';
-// import OfferPackages from '../components/OfferPackages/OfferPackages';
 import OurTeam from '../components/OurTeam/OurTeam';
 import Testimonials from '../components/Testimonials/Testimonials';
 import RecentArticles from '../components/RecentArticles/RecentArticles';
@@ -27,16 +26,13 @@ const Home = () => {
   const { refreshProfile } = useAuth();
 
   useEffect(() => {
-    // Handle OAuth callback token
     const params = new URLSearchParams(location.search);
     const token = params.get('token');
 
     if (token) {
-      // Store token and fetch user profile
       setAccessToken(token);
       refreshProfile()
         .then(() => {
-          // Clear token from URL after successful login
           navigate('/', { replace: true });
         })
         .catch((err) => {
@@ -45,7 +41,6 @@ const Home = () => {
         });
     }
 
-    // Show loader on initial load
     const timer = setTimeout(() => {
       setLoading(false);
     }, 1000);
@@ -63,18 +58,18 @@ const Home = () => {
       <WelcomeModal />
       <Banner />
       <HomeBookingSection />
-      {/* <AboutUs /> */}
-      {/* <TopDestinations /> */}
-      {/* <AboutSection /> */}
+
+
+
       <WhyChooseUs ctaOnly />
       <BestTours />
-      {/* <LastMinuteDeals /> */}
+
       <FeaturedBlogSection />
-      {/* <DiscountAction /> */}
-      {/* <OfferPackages /> */}
-      {/* <OurTeam /> */}
-      {/* <Testimonials /> */}
-      {/* <RecentArticles /> */}
+
+
+
+
+
     </>
   );
 };

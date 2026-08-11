@@ -21,11 +21,9 @@ const AdminPage = () => {
 
   const [tab, setTab] = useState('stats');
 
-  // Stats
   const [stats, setStats]           = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
 
-  // Users
   const [users, setUsers]           = useState([]);
   const [usersTotal, setUsersTotal] = useState(0);
   const [usersPage, setUsersPage]   = useState(1);
@@ -33,7 +31,6 @@ const AdminPage = () => {
   const [userSearch, setUserSearch] = useState('');
   const [usersLoading, setUsersLoading] = useState(false);
 
-  // Activity
   const [activities, setActivities]     = useState([]);
   const [actTotal, setActTotal]         = useState(0);
   const [actPage, setActPage]           = useState(1);
@@ -41,14 +38,12 @@ const AdminPage = () => {
   const [actType, setActType]           = useState('');
   const [actLoading, setActLoading]     = useState(false);
 
-  // Guard: must be admin
   useEffect(() => {
     if (!loading && (!isAuthenticated || user?.role !== 'admin')) {
       navigate('/');
     }
   }, [loading, isAuthenticated, user, navigate]);
 
-  // Load stats on mount / tab switch
   useEffect(() => {
     if (tab !== 'stats') return;
     setStatsLoading(true);
@@ -58,7 +53,6 @@ const AdminPage = () => {
       .finally(() => setStatsLoading(false));
   }, [tab]);
 
-  // Load users
   const loadUsers = useCallback(() => {
     setUsersLoading(true);
     getAdminUsers(usersPage, userSearch)
@@ -73,7 +67,6 @@ const AdminPage = () => {
 
   useEffect(() => { if (tab === 'users') loadUsers(); }, [tab, usersPage, userSearch, loadUsers]);
 
-  // Load activity
   const loadActivity = useCallback(() => {
     setActLoading(true);
     getAdminActivity(actType, actPage)
@@ -93,7 +86,7 @@ const AdminPage = () => {
     try {
       await deactivateUser(id);
       loadUsers();
-    } catch { /* noop */ }
+    } catch {}
   };
 
   if (loading || !user) return null;
@@ -121,7 +114,7 @@ const AdminPage = () => {
 
       <main className="adm-main">
 
-        {/* ── Stats ── */}
+
         {tab === 'stats' && (
           <div className="adm-stats-section">
             {statsLoading ? (
@@ -153,7 +146,7 @@ const AdminPage = () => {
           </div>
         )}
 
-        {/* ── Users ── */}
+
         {tab === 'users' && (
           <div className="adm-users-section">
             <div className="adm-toolbar">
@@ -208,7 +201,7 @@ const AdminPage = () => {
           </div>
         )}
 
-        {/* ── Activity ── */}
+
         {tab === 'activity' && (
           <div className="adm-activity-section">
             <div className="adm-toolbar">

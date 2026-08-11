@@ -1,20 +1,3 @@
-/**
- * Leaflet shared utilities.
- *
- * Leaflet is loaded globally via CDN in `Frontend/index.html` (`window.L`),
- * so this module focuses on:
- *   1. Waiting for the CDN script to be ready before we try to use it
- *   2. A registry of free tile providers (no API key) we can swap between
- *   3. Helpers for building the route lines / fit-bounds we use across the app
- *
- * No npm install needed — keeps the bundle leaner.
- */
-
-/**
- * Resolves with `window.L` once the Leaflet CDN script has finished loading.
- * Polls a few times to cover the "page just loaded" race. Rejects after a
- * generous timeout so calling code can fall back gracefully.
- */
 export const ensureLeafletReady = ({ timeoutMs = 4000, pollMs = 80 } = {}) =>
   new Promise((resolve, reject) => {
     if (typeof window === 'undefined') return reject(new Error('SSR: no window'));
@@ -29,10 +12,6 @@ export const ensureLeafletReady = ({ timeoutMs = 4000, pollMs = 80 } = {}) =>
     tick();
   });
 
-/**
- * Free tile providers — every one is API-key-free. The "label" / "preview"
- * fields drive the style-picker UI in TripMapTab.
- */
 export const TILE_PROVIDERS = {
   streets: {
     id: 'streets',
@@ -114,18 +93,10 @@ export const TILE_PROVIDERS = {
   }
 };
 
-/** Default order shown in the TripMapTab style picker. */
 export const TILE_STYLE_ORDER = [
   'streets', 'voyager', 'outdoors', 'satellite', 'hybrid', 'light', 'dark'
 ];
 
-/**
- * Attach a tile layer (and optional overlay for "hybrid") to a Leaflet map.
- * Removes any previously-attached managed layers first.
- *
- * The map is decorated with `_optMainTile` / `_optOverlayTile` so we can find
- * and remove them on the next switch.
- */
 export const applyTileStyle = (L, map, styleId) => {
   const provider = TILE_PROVIDERS[styleId] || TILE_PROVIDERS.streets;
 
@@ -139,7 +110,6 @@ export const applyTileStyle = (L, map, styleId) => {
   }
 };
 
-/** Linear distance-sorted polyline — straight lat/lng segments between stops. */
 export const buildRouteLatLngs = (points) => {
   if (!Array.isArray(points) || points.length < 2) return [];
   return points
@@ -147,10 +117,6 @@ export const buildRouteLatLngs = (points) => {
     .map(p => [p.lat, p.lng]);
 };
 
-/**
- * Fit the map to a list of coords. Single-point: fly to with a moderate zoom.
- * Multi-point: fit bounds with padding so all pins sit inside the viewport.
- */
 export const fitMapToPoints = (L, map, points, opts = {}) => {
   const {
     singleZoom  = 11,

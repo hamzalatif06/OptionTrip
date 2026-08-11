@@ -1,24 +1,8 @@
-/**
- * Amadeus Travel API Service
- *
- * Handles:
- *  - OAuth 2.0 client_credentials token fetch + in-memory caching
- *  - Flight Offers Search (GET /v2/shopping/flight-offers)
- *  - Response normalization to a simplified shape
- *  - MVP booking URL builder (Google Flights deep link)
- */
-
 import { AMADEUS_CONFIG } from '../config/amadeus.js';
 
-// ── Token cache ───────────────────────────────────────────────────────────────
-
 let cachedToken = null;
-let tokenExpiresAt = 0; // Unix ms
+let tokenExpiresAt = 0;
 
-/**
- * Fetch (or return cached) Amadeus OAuth token.
- * Refreshes automatically when within 60 s of expiry.
- */
 export const getAccessToken = async () => {
   const now = Date.now();
   if (cachedToken && now < tokenExpiresAt - 60_000) {
@@ -54,11 +38,6 @@ export const getAccessToken = async () => {
   return cachedToken;
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-/**
- * Format ISO 8601 duration (e.g. "PT2H35M") → "2h 35m"
- */
 const formatDuration = (iso) => {
   if (!iso) return '';
   const h = iso.match(/(\d+)H/)?.[1];
@@ -69,7 +48,6 @@ const formatDuration = (iso) => {
 const TP_MARKER = process.env.TRAVELPAYOUTS_MARKER || '370056';
 
 const buildBookingUrl = (offer, params) => {
-  // Aviasales format: {FROM}{DDMM}{TO}[{DDMM_RETURN}]{pax}
   const seg         = offer.itineraries?.[0]?.segments?.[0];
   const origin      = (seg?.departure?.iataCode || params.originCode      || '').toUpperCase();
   const destination = (seg?.arrival?.iataCode   || params.destinationCode || '').toUpperCase();
@@ -79,9 +57,6 @@ const buildBookingUrl = (offer, params) => {
   return `https://www.aviasales.com/search/${origin}${fmt(params.departureDate)}${destination}${returnPart}${pax}?marker=${TP_MARKER}`;
 };
 
-/**
- * Normalize a raw Amadeus flight offer into a simple flat object.
- */
 const normalizeOffer = (offer, params) => {
   const itineraries = (offer.itineraries || []).map(itin => ({
     totalDuration: formatDuration(itin.duration),
@@ -118,26 +93,6 @@ const normalizeOffer = (offer, params) => {
   };
 };
 
-// ── Main search function ──────────────────────────────────────────────────────
-
-/**
- * Search for flight offers via Amadeus API.
- *
- * @param {object} params
- * @param {string} params.originCode          IATA airport code (e.g. "JFK")
- * @param {string} params.destinationCode     IATA airport code (e.g. "LAX")
- * @param {string} params.departureDate       YYYY-MM-DD
- * @param {string} [params.returnDate]        YYYY-MM-DD (round-trip)
- * @param {number} [params.adults=1]
- * @param {number} [params.children=0]
- * @param {string} [params.currencyCode]      ISO 4217 (e.g. "USD")
- * @param {number} [params.max=20]            Max results
- * @returns {Promise<Array>} Normalized flight offers
- */
-/**
- * Search airports/cities by keyword (for autocomplete).
- * Calls GET /v1/reference-data/locations
- */
 export const searchAirports = async (keyword) => {
   if (!keyword || keyword.trim().length < 2) return [];
 

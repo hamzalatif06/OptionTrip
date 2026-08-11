@@ -1,15 +1,6 @@
-/**
- * Trip Generation Service
- * Orchestrates trip generation using OpenAI and Google Places APIs
- */
-
 import { generateTripIterationsWithAI } from './openaiService.js';
 import { batchEnrichActivities } from './placesService.js';
 
-/**
- * Main function to generate trip iterations
- * Uses OpenAI for generation and Google Places for enrichment
- */
 export const generateTripIterations = async ({
   destination,
   start_date,
@@ -23,7 +14,6 @@ export const generateTripIterations = async ({
   try {
     console.log('🚀 Starting trip generation for:', destination.name);
 
-    // Step 1: Generate trip iterations using OpenAI
     console.log('📝 Generating trip options with AI...');
     const aiGeneratedIterations = await generateTripIterationsWithAI({
       destination,
@@ -38,7 +28,6 @@ export const generateTripIterations = async ({
 
     console.log(`✅ Generated ${aiGeneratedIterations.length} trip iterations`);
 
-    // Step 2: Enrich each iteration with Google Places data
     console.log('📍 Enriching activities with location data...');
     const enrichedIterations = await enrichIterationsWithPlaces(
       aiGeneratedIterations,
@@ -51,7 +40,6 @@ export const generateTripIterations = async ({
   } catch (error) {
     console.error('❌ Error in trip generation:', error);
 
-    // Fallback to mock data if AI fails
     console.log('⚠️ Falling back to mock data generation...');
     return generateFallbackIterations({
       destination,
@@ -66,9 +54,6 @@ export const generateTripIterations = async ({
   }
 };
 
-/**
- * Enrich all iterations with Google Places data
- */
 const enrichIterationsWithPlaces = async (iterations, destination) => {
   const enrichedIterations = [];
 
@@ -79,13 +64,11 @@ const enrichIterationsWithPlaces = async (iterations, destination) => {
       const enrichedItinerary = [];
 
       for (const day of iteration.itinerary) {
-        // Enrich all activities for this day
         const enrichedActivities = await batchEnrichActivities(
           day.activities,
           destination
         );
 
-        // Recalculate day total cost
         const dayTotalCost = enrichedActivities.reduce(
           (sum, activity) => sum + (activity.cost || 0),
           0
@@ -98,7 +81,6 @@ const enrichIterationsWithPlaces = async (iterations, destination) => {
         });
       }
 
-      // Recalculate iteration total cost
       const totalCost = enrichedItinerary.reduce(
         (sum, day) => sum + day.total_cost,
         0
@@ -114,7 +96,6 @@ const enrichIterationsWithPlaces = async (iterations, destination) => {
 
     } catch (error) {
       console.error(`Error enriching iteration "${iteration.title}":`, error.message);
-      // Keep original iteration if enrichment fails
       enrichedIterations.push(iteration);
     }
   }
@@ -122,9 +103,6 @@ const enrichIterationsWithPlaces = async (iterations, destination) => {
   return enrichedIterations;
 };
 
-/**
- * Fallback mock data generator when AI fails
- */
 const generateFallbackIterations = ({
   destination,
   start_date,
@@ -231,9 +209,6 @@ const generateFallbackIterations = ({
   return iterations;
 };
 
-/**
- * Helper to generate mock activities
- */
 const generateActivitiesForDay = (destinationName, dayNumber, count, budget, tripType) => {
   const activityTemplates = [
     {
@@ -296,7 +271,7 @@ const generateActivitiesForDay = (destinationName, dayNumber, count, budget, tri
       category: category.category,
       placeQuery: template.placeQuery,
       image: `https://images.unsplash.com/photo-${1500000000000 + dayNumber * 1000 + i}?w=400&h=300&fit=crop`,
-      rating: 4.0 + Math.random() * 1.0 // 4.0 to 5.0
+      rating: 4.0 + Math.random() * 1.0
     });
   }
 

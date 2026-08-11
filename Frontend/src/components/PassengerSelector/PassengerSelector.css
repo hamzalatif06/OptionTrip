@@ -2,7 +2,7 @@
   position: relative;
 }
 
-/* ── Trigger button ──────────────────────────────────────────────────────── */
+
 .ps-trigger {
   display: flex;
   align-items: center;
@@ -29,7 +29,7 @@
 .ps-trigger__caret { color: #94a3b8; flex-shrink: 0; transition: transform 0.2s; }
 .ps-trigger__caret--up { transform: rotate(180deg); }
 
-/* ── Popup ───────────────────────────────────────────────────────────────── */
+
 .ps-popup {
   position: absolute;
   top: calc(100% + 8px);
@@ -46,7 +46,7 @@
   gap: 0;
 }
 
-/* ── Counter row ─────────────────────────────────────────────────────────── */
+
 .ps-row {
   display: flex;
   align-items: center;
@@ -113,7 +113,7 @@
   text-align: center;
 }
 
-/* ── Note ────────────────────────────────────────────────────────────────── */
+
 .ps-note {
   font-size: 12px;
   color: #64748b;
@@ -125,7 +125,7 @@
   border: 1px solid #f1f5f9;
 }
 
-/* ── Apply button ────────────────────────────────────────────────────────── */
+
 .ps-apply-btn {
   margin-top: 14px;
   width: 100%;

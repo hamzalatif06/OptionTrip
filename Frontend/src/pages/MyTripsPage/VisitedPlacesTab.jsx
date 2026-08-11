@@ -108,7 +108,7 @@ const VisitedPlacesTab = ({ locations = [], trips = [], onAdd, onRemove }) => {
 
   return (
     <div className="visited-tab">
-      {/* Sidebar */}
+
       <aside className="vt__sidebar">
         <div className="vt__sidebar-header">
           <h3 className="vt__sidebar-title">
@@ -120,7 +120,7 @@ const VisitedPlacesTab = ({ locations = [], trips = [], onAdd, onRemove }) => {
           </button>
         </div>
 
-        {/* Add form */}
+
         {showForm && (
           <form className="vt__form" onSubmit={handleSubmit}>
             <input
@@ -165,7 +165,7 @@ const VisitedPlacesTab = ({ locations = [], trips = [], onAdd, onRemove }) => {
           </form>
         )}
 
-        {/* Quick-mark trips as visited */}
+
         {trips.length > 0 && (
           <div className="vt__trips-section">
             <p className="vt__trips-label">Mark destination as visited:</p>
@@ -183,7 +183,7 @@ const VisitedPlacesTab = ({ locations = [], trips = [], onAdd, onRemove }) => {
           </div>
         )}
 
-        {/* List */}
+
         <div className="vt__list">
           {locations.length === 0 ? (
             <p className="vt__empty">
@@ -210,7 +210,7 @@ const VisitedPlacesTab = ({ locations = [], trips = [], onAdd, onRemove }) => {
         </div>
       </aside>
 
-      {/* Map */}
+
       <div className="vt__map" ref={containerRef} />
     </div>
   );

@@ -71,7 +71,7 @@
   margin-top: 4px;
 }
 
-/* Date Input Wrapper */
+
 .date-input-wrapper {
   position: relative;
 }
@@ -157,7 +157,7 @@
   border-color: #0A539D;
 }
 
-/* Select Wrapper */
+
 .select-wrapper {
   position: relative;
 }
@@ -178,7 +178,7 @@
   font-size: 12px;
 }
 
-/* ─── Smart Description Section ─────────────────────────────── */
+
 .smart-description-section {
   margin-bottom: 8px;
 }
@@ -240,13 +240,13 @@
   box-shadow: 0 0 0 3px rgba(10, 83, 157, 0.08);
 }
 
-/* Listening (recording) state — red pulse border */
+
 .smart-textarea-wrapper.is-listening textarea {
   border-color: #e53935;
   box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.12);
 }
 
-/* ── Mic button ────────────────────────────────────────────── */
+
 .mic-btn {
   position: absolute;
   bottom: 12px;
@@ -263,7 +263,7 @@
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 2px 8px rgba(10, 83, 157, 0.3);
-  /* Large tap target for mobile */
+  
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   z-index: 2;
@@ -278,7 +278,7 @@
   transform: scale(0.95);
 }
 
-/* Active / recording state */
+
 .mic-btn--active {
   background: linear-gradient(135deg, #e53935, #c62828);
   box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.5);
@@ -291,7 +291,7 @@
   100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0); }
 }
 
-/* ── Sound-wave bars while listening ──────────────────────── */
+
 .mic-wave-indicator {
   display: flex;
   align-items: center;
@@ -320,7 +320,7 @@
   color: #e53935 !important;
 }
 
-/* ── Speech error ──────────────────────────────────────────── */
+
 .speech-error {
   display: flex;
   align-items: center;
@@ -335,12 +335,12 @@
   border: 1px solid rgba(229, 57, 53, 0.2);
 }
 
-/* Give textarea room for both bottom-left indicator AND bottom-right mic btn */
+
 .smart-textarea-wrapper textarea {
   padding-right: 58px !important;
 }
 
-/* AI parsing indicator inside the textarea */
+
 .ai-parsing-indicator {
   position: absolute;
   bottom: 14px;
@@ -358,7 +358,7 @@
   letter-spacing: 0.02em;
 }
 
-/* Three-dot pulsing spinner */
+
 .ai-dot-spinner {
   display: flex;
   align-items: center;
@@ -381,7 +381,7 @@
   40% { transform: scale(1); opacity: 1; }
 }
 
-/* AI detected chips bar */
+
 .ai-detected-bar {
   display: flex;
   align-items: center;
@@ -429,7 +429,7 @@
   line-height: 1;
 }
 
-/* Field-filled visual state — subtle green glow */
+
 .form-field.field-filled > *:first-child,
 .form-field.field-filled .autocomplete-input,
 .form-field.field-filled select {
@@ -437,7 +437,7 @@
   box-shadow: 0 0 0 2px rgba(2,158,157,0.12) !important;
 }
 
-/* Divider between smart box and manual fields */
+
 .form-divider {
   display: flex;
   align-items: center;
@@ -456,7 +456,7 @@
   background: #E8ECEF;
 }
 
-/* Description Wrapper (legacy, kept for compatibility) */
+
 .description-wrapper {
   position: relative;
 }
@@ -475,7 +475,7 @@
   z-index: 1;
 }
 
-/* ── Required field note ─────────────────────────────────── */
+
 .form-required-note {
   font-size: 12px;
   color: #9FAAB6;
@@ -491,14 +491,14 @@
   font-size: 14px;
 }
 
-/* Required field indicator — red dot on the label */
+
 [data-required] label::after {
   content: ' *';
   color: #e53935;
   font-weight: 700;
 }
 
-/* Search Button */
+
 .form-actions {
   display: flex;
   flex-direction: column;
@@ -562,7 +562,7 @@
   opacity: 0.85;
 }
 
-/* Reassurance subtext under button */
+
 .form-cta-subtext {
   display: flex;
   align-items: center;
@@ -596,7 +596,7 @@
   }
 }
 
-/* Button Spinner */
+
 .button-spinner {
   width: 18px;
   height: 18px;
@@ -618,7 +618,7 @@
   flex-shrink: 0;
 }
 
-/* Responsive Design */
+
 @media (max-width: 991px) {
   .form-grid {
     gap: 20px;
@@ -672,7 +672,7 @@
   }
 }
 
-/* ── Tooltip icon on field labels ──────────────────────────── */
+
 .field-tooltip-wrapper {
   position: relative;
   display: inline-flex;
@@ -736,7 +736,7 @@
   display: block;
 }
 
-/* ── Example chips under the smart textarea ────────────────── */
+
 .example-chips {
   display: flex;
   flex-wrap: wrap;
@@ -765,7 +765,7 @@
   background: rgba(10, 83, 157, 0.05);
 }
 
-/* Autocomplete Styles */
+
 .autocomplete-wrapper {
   position: relative;
   width: 100%;
@@ -804,7 +804,7 @@
   border-color: #F30F89;
 }
 
-/* Suggestions Dropdown */
+
 .autocomplete-dropdown {
   position: absolute;
   top: calc(100% + 8px);
@@ -822,7 +822,7 @@
   padding: 0;
 }
 
-/* Suggestion Items */
+
 .autocomplete-item {
   padding: 12px 20px;
   font-size: 15px;
@@ -868,7 +868,7 @@
   font-weight: 500;
 }
 
-/* Loading Spinner - Simple monochrome */
+
 .autocomplete-spinner {
   position: absolute;
   right: 16px;
@@ -890,7 +890,7 @@
   }
 }
 
-/* Input loading state - subtle shimmer effect */
+
 .autocomplete-input.loading {
   background: linear-gradient(90deg, #FFFFFF 0%, #F8F9FA 50%, #FFFFFF 100%);
   background-size: 200% 100%;
@@ -906,7 +906,7 @@
   }
 }
 
-/* Loading & No Results Messages */
+
 .autocomplete-loading,
 .autocomplete-no-results {
   padding: 12px 20px;
@@ -915,7 +915,7 @@
   text-align: center;
 }
 
-/* Responsive Autocomplete Styles */
+
 @media (max-width: 767px) {
   .autocomplete-dropdown {
     max-height: 200px;

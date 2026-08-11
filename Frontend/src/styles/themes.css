@@ -1,10 +1,6 @@
-/* ═══════════════════════════════════════════════════════════
-   OptionTrip — Theme System
-   Uses CSS custom properties on :root / [data-theme] so every
-   component that references var(--primary) adapts automatically.
-   ═══════════════════════════════════════════════════════════ */
 
-/* ── Default (Teal) ── */
+
+
 :root {
   --primary:          #029e9d;
   --primary-dark:     #027b7a;
@@ -14,28 +10,26 @@
   --primary-50:       #ccfbf1;
   --primary-gradient: linear-gradient(135deg, #012f3e 0%, #014d5c 50%, #029e9d 100%);
 
-  /* Backgrounds */
+  
   --bg-page:      #ffffff;
   --bg-section:   #f8fafc;
   --bg-card:      #ffffff;
   --bg-elevated:  #ffffff;
   --bg-input:     #ffffff;
 
-  /* Text */
+  
   --text-base:    #0f172a;
   --text-heading: #122d46;
   --text-muted:   #64748b;
   --text-faint:   #94a3b8;
   --text-inverse: #ffffff;
 
-  /* Borders */
+  
   --border:       #e2e8f0;
   --border-input: #e2e8f0;
 }
 
-/* ══════════════════════════════════════════════════════════
-   DARK MODE
-   ══════════════════════════════════════════════════════════ */
+
 [data-theme="dark"] {
   --bg-page:      #0f172a;
   --bg-section:   #111827;
@@ -52,11 +46,11 @@
   color-scheme: dark;
 }
 
-/* ── 1. Full-page base ── */
+
 [data-theme="dark"] body,
 [data-theme="dark"] #root { background: #0f172a; color: #e2e8f0; }
 
-/* ── 2. ALL headings everywhere ── */
+
 [data-theme="dark"] h1,
 [data-theme="dark"] h2,
 [data-theme="dark"] h3,
@@ -64,10 +58,10 @@
 [data-theme="dark"] h5,
 [data-theme="dark"] h6 { color: #f8fafc !important; }
 
-/* ── 3. ALL paragraph / body text ── */
+
 [data-theme="dark"] p { color: #94a3b8 !important; }
 
-/* ── 4. ALL native form controls ── */
+
 [data-theme="dark"] input,
 [data-theme="dark"] input[type="text"],
 [data-theme="dark"] input[type="email"],
@@ -85,8 +79,8 @@
 [data-theme="dark"] textarea::placeholder { color: #64748b !important; }
 [data-theme="dark"] label { color: #94a3b8 !important; }
 
-/* ── Heading links: #17233e (dark navy) is invisible on dark card bg ──────── */
-/* Default: light text. Hover: primary accent. */
+
+
 [data-theme="dark"] h1 a, [data-theme="dark"] h2 a,
 [data-theme="dark"] h3 a, [data-theme="dark"] h4 a,
 [data-theme="dark"] h5 a, [data-theme="dark"] h6 a {
@@ -98,7 +92,7 @@
   color: var(--primary) !important;
 }
 
-/* ── 5. ALL sections / page areas — strip bg-images + set dark background ── */
+
 [data-theme="dark"] section,
 [data-theme="dark"] .about-us,
 [data-theme="dark"] .about-image-box,
@@ -122,16 +116,16 @@
 [data-theme="dark"] .partner-area,
 [data-theme="dark"] .destinations-area {
   background-color: #0f172a !important;
-  background-image: none !important;    /* strip shape PNGs */
+  background-image: none !important;    
 }
 
-/* Slightly raised section backgrounds */
+
 [data-theme="dark"] .explore-section,
 [data-theme="dark"] .flt-hotels-section,
 [data-theme="dark"] .hotel-search-form-section,
 [data-theme="dark"] .hotel-search-results { background: #111827 !important; }
 
-/* ── 6. Navigation ── */
+
 [data-theme="dark"] .header-area,
 [data-theme="dark"] header,
 [data-theme="dark"] nav,
@@ -142,7 +136,7 @@
 [data-theme="dark"] .navbar a:hover,
 [data-theme="dark"] .nav-link:hover { color: #f8fafc !important; }
 
-/* ── 7. Footer ── */
+
 [data-theme="dark"] .footer-area,
 [data-theme="dark"] footer { background: #060d1a !important; }
 [data-theme="dark"] .footer-area *,
@@ -152,7 +146,7 @@
 [data-theme="dark"] .footer-area h3,
 [data-theme="dark"] .footer-area h4 { color: #f1f5f9 !important; }
 
-/* ── 8. ALL cards and panels ── */
+
 [data-theme="dark"] .flight-search-card,
 [data-theme="dark"] .hc-card,
 [data-theme="dark"] .fcdf,
@@ -185,7 +179,7 @@
   border-color: #2d3f55 !important;
 }
 
-/* ── 9. All form input-like elements ── */
+
 [data-theme="dark"] .fcdf__chip,
 [data-theme="dark"] .fcgf__chip,
 [data-theme="dark"] .tdp-field,
@@ -204,7 +198,7 @@
 [data-theme="dark"] .fsf-ac-item:hover,
 [data-theme="dark"] .fsf-ac-item--active { background: #2d3f55 !important; }
 
-/* ── 10. Text elements inside components ── */
+
 [data-theme="dark"] .fcdf__time,
 [data-theme="dark"] .fcdf__iata,
 [data-theme="dark"] .fcdf__airline-name,
@@ -258,7 +252,7 @@
   color: #e2e8f0 !important;
 }
 
-/* ── 11. Muted text ── */
+
 [data-theme="dark"] .fcdf__flight-num,
 [data-theme="dark"] .fcgf__flight-num,
 [data-theme="dark"] .hc-star,
@@ -268,7 +262,7 @@
 [data-theme="dark"] .fcdf__layover-name,
 [data-theme="dark"] .fcgf__layover-name { color: #94a3b8 !important; }
 
-/* ── 12. Month/price calendar cells ── */
+
 [data-theme="dark"] .pc-day:not(.pc-day--empty):not(.pc-day--past):not(.pc-day--selected):not(.pc-day--cheap) {
   background: #243044 !important;
 }
@@ -281,14 +275,14 @@
   border-color: var(--primary) !important;
 }
 
-/* ── 13. Flight filter sidebar ── */
+
 [data-theme="dark"] .flf-aside { background: #1e293b !important; }
 [data-theme="dark"] .flf-section-title,
 [data-theme="dark"] .flf-option-label,
 [data-theme="dark"] .flf-airline-label { color: #e2e8f0 !important; }
 [data-theme="dark"] .flf-group { background: #243044 !important; border-color: #2d3f55 !important; }
 
-/* ── 14. Dropdowns / autocomplete ── */
+
 [data-theme="dark"] .hs-ac-dropdown,
 [data-theme="dark"] .fsf-ac-dropdown {
   background: #1e293b !important;
@@ -300,36 +294,36 @@
 [data-theme="dark"] .hs-ac-dropdown__name,
 [data-theme="dark"] .hs-ac-dropdown__country { color: #e2e8f0 !important; }
 
-/* ── 15. Skeleton loaders ── */
+
 [data-theme="dark"] .pulse,
 [data-theme="dark"] .hs-skeleton__img,
 [data-theme="dark"] .hs-skeleton__line,
 [data-theme="dark"] .hs-skeleton__cta { background: #2d3f55 !important; }
 
-/* ── 16. ThemeSwitcher panel ── */
+
 [data-theme="dark"] .ts-panel { background: #1e293b !important; border-color: #2d3f55 !important; }
 [data-theme="dark"] .ts-option { background: #243044 !important; border-color: #2d3f55 !important; color: #94a3b8 !important; }
 [data-theme="dark"] .ts-option:hover,
 [data-theme="dark"] .ts-option--active { border-color: var(--primary) !important; background: #2d3f55 !important; color: var(--primary) !important; }
 [data-theme="dark"] .ts-panel__title { color: #64748b !important; }
 
-/* ── 17. PassengerSelector popup ── */
+
 [data-theme="dark"] .ps-popup { background: #1e293b !important; border-color: #2d3f55 !important; }
 [data-theme="dark"] .ps-row { border-color: #2d3f55 !important; }
 [data-theme="dark"] .ps-counter-val { color: #f8fafc !important; }
 [data-theme="dark"] .ps-note { background: #243044 !important; border-color: #2d3f55 !important; color: #94a3b8 !important; }
 
-/* ── 18. NearbyAirportsBanner ── */
+
 [data-theme="dark"] .nab-wrap { background: #1e293b !important; border-color: #2d3f55 !important; }
 [data-theme="dark"] .nab-icon-wrap { background: #243044 !important; }
 [data-theme="dark"] .nab-title { color: #f8fafc !important; }
 [data-theme="dark"] .nab-desc { color: #94a3b8 !important; }
 
-/* ── 19. WhyChooseUs section ── */
+
 [data-theme="dark"] .wcu-section::before { opacity: 0.06 !important; }
 [data-theme="dark"] .wcu-eyebrow { background: rgba(2,158,157,0.15) !important; }
 
-/* ── 20. Hotel card inner ── */
+
 [data-theme="dark"] .hc-body { background: #1e293b !important; }
 [data-theme="dark"] .hc-info { background: #1e293b !important; }
 [data-theme="dark"] .hc-rooms-section { background: #243044 !important; border-color: #2d3f55 !important; }
@@ -338,7 +332,7 @@
 [data-theme="dark"] .hc-room__bed { color: #e2e8f0 !important; }
 [data-theme="dark"] .hc-facility-chip { background: #243044 !important; border-color: #2d3f55 !important; }
 
-/* ── 21. TripDatePicker calendar overlay ── */
+
 [data-theme="dark"] .tdp-popup .rdrCalendarWrapper { background: #1e293b !important; }
 [data-theme="dark"] .tdp-popup .rdrMonth { background: #1e293b !important; }
 [data-theme="dark"] .tdp-popup .rdrDay:not(.rdrDayPassive) .rdrDayNumber span { color: #e2e8f0 !important; }
@@ -348,32 +342,28 @@
 [data-theme="dark"] .tdp-footer { background: #162032 !important; border-color: #2d3f55 !important; }
 [data-theme="dark"] .tdp-btn--cancel { background: #243044 !important; color: #94a3b8 !important; }
 
-/* ── 22. Country city picker ── */
+
 [data-theme="dark"] .ccp-wrap { background: #0f172a !important; }
 [data-theme="dark"] .ccp-card { background: #1e293b !important; border-color: #2d3f55 !important; }
 [data-theme="dark"] .ccp-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important; }
 [data-theme="dark"] .ccp-back-btn { background: #243044 !important; border-color: #2d3f55 !important; color: #94a3b8 !important; }
 
-/* ── 23. Misc: badges, separators, icons ── */
+
 [data-theme="dark"] .fc-badge--stops { background: #243044 !important; color: #94a3b8 !important; }
 [data-theme="dark"] .fcdf__route-dash,
 [data-theme="dark"] .fcgf__route-dash { background: #2d3f55 !important; }
 [data-theme="dark"] .hc-img-fallback { background: #243044 !important; }
 
-/* ── 24. Header-area specific ── */
+
 [data-theme="dark"] .header-area { background: #0a1628 !important; }
 [data-theme="dark"] .header-area .nav-link,
 [data-theme="dark"] .header-area a { color: #cbd5e1 !important; }
 [data-theme="dark"] .header-lang__toggle,
 [data-theme="dark"] .header-lang__dropdown { background: #1e293b !important; border-color: #2d3f55 !important; color: #e2e8f0 !important; }
 
-/* ══════════════════════════════════════════════════════════
-   25. Homepage sections — remove shape/pattern bg-images that
-       look gray/broken in dark mode, darken cards
-   ══════════════════════════════════════════════════════════ */
 
-/* Strip ALL decorative shape/pattern background images — named explicitly
-   because inline React styles sometimes need class-level overrides        */
+
+
 [data-theme="dark"] .banner,
 [data-theme="dark"] .about-us,
 [data-theme="dark"] .discount-action,
@@ -386,10 +376,10 @@
 [data-theme="dark"] .recent-articles {
   background-image: none !important;
   background-color: #0f172a !important;
-  background: #0f172a !important;       /* shorthand reset */
+  background: #0f172a !important;       
 }
 
-/* Category items inside Banner (Camping / Hiking / Beach etc.) */
+
 [data-theme="dark"] .category-item {
   background: #1e293b !important;
   border-color: #2d3f55 !important;
@@ -399,14 +389,14 @@
 [data-theme="dark"] .category-item h4 a { color: var(--primary, #029e9d) !important; }
 [data-theme="dark"] .category-item img  { filter: brightness(0.85) invert(0); opacity: 0.8; }
 
-/* Banner heading & text */
+
 [data-theme="dark"] .banner-content h1,
 [data-theme="dark"] .banner-content h2,
 [data-theme="dark"] .banner-content h3 { color: #f8fafc !important; }
 [data-theme="dark"] .banner-content p   { color: #94a3b8 !important; }
 [data-theme="dark"] .category-main-inner { border-color: #2d3f55 !important; }
 
-/* ── "3 Steps" AboutUs cards ── */
+
 [data-theme="dark"] .why-us-item {
   background: #1e293b !important;
   border: 1px solid #2d3f55 !important;
@@ -417,14 +407,14 @@
 [data-theme="dark"] .why-us-item h5 { color: #f8fafc !important; }
 [data-theme="dark"] .why-us-item p   { color: #94a3b8 !important; }
 
-/* ── DiscountAction heading text ── */
+
 [data-theme="dark"] .discount-action h1,
 [data-theme="dark"] .discount-action h2,
 [data-theme="dark"] .discount-action h3,
 [data-theme="dark"] .discount-action h4 { color: #f8fafc !important; }
 [data-theme="dark"] .discount-action p  { color: #94a3b8 !important; }
 
-/* ── FeaturedBlogSection cards ── */
+
 [data-theme="dark"] .fbs-section { background: #0f172a !important; }
 [data-theme="dark"] .fbs-hero { background: transparent !important; }
 [data-theme="dark"] .fbs-side-card,
@@ -442,11 +432,11 @@
 [data-theme="dark"] .fbs-side-card h4 { color: #f8fafc !important; }
 [data-theme="dark"] .fbs-side-card p  { color: #94a3b8 !important; }
 
-/* ── FeaturedBlogSection skeleton ── */
+
 [data-theme="dark"] .fbs-side-card--skeleton,
 [data-theme="dark"] .fbs-hero--skeleton { background: #1e293b !important; }
 
-/* ── Tour / deal cards ── */
+
 [data-theme="dark"] .trend-item,
 [data-theme="dark"] .trend-item1,
 [data-theme="dark"] .single-tours,
@@ -465,13 +455,13 @@
 [data-theme="dark"] .trend-item1 h4 { color: #f8fafc !important; }
 [data-theme="dark"] .trend-item p,
 [data-theme="dark"] .trend-item1 p,
-/* trend-meta is the coloured tour-days badge — keep its text white always */
+
 [data-theme="dark"] .trend-item .trend-meta,
 [data-theme="dark"] .trend-item .trend-meta *,
 [data-theme="dark"] .trend-item1 .trend-meta,
 [data-theme="dark"] .trend-item1 .trend-meta * { color: #fff !important; }
 
-/* ── Testimonial cards ── */
+
 [data-theme="dark"] .testimonial-item1,
 [data-theme="dark"] .testimonial-item {
   background: #1e293b !important;
@@ -483,20 +473,20 @@
 [data-theme="dark"] .testimonial-item1 h5 { color: #f8fafc !important; }
 [data-theme="dark"] .testimonial-item1 p { color: #94a3b8 !important; }
 
-/* ── About section image/text box ── */
+
 [data-theme="dark"] .about-content h2,
 [data-theme="dark"] .about-content h3,
 [data-theme="dark"] .about-content h4 { color: #f8fafc !important; }
 [data-theme="dark"] .about-content p { color: #94a3b8 !important; }
 [data-theme="dark"] .about-listing li { color: #94a3b8 !important; }
 
-/* ── Section headers (eyebrow text + main headings) ── */
+
 [data-theme="dark"] .section-title h2,
 [data-theme="dark"] .section-title h3,
 [data-theme="dark"] .section-title h4 { color: #f8fafc !important; }
 [data-theme="dark"] .section-title p   { color: #94a3b8 !important; }
 
-/* ── Blog page cards (blog list page) ── */
+
 [data-theme="dark"] .blog-item,
 [data-theme="dark"] .single-blog,
 [data-theme="dark"] .blog-card,
@@ -512,7 +502,7 @@
 [data-theme="dark"] .blog-item p,
 [data-theme="dark"] .single-blog p   { color: #94a3b8 !important; }
 
-/* ── Top destinations ── */
+
 [data-theme="dark"] .single-destination {
   background: #1e293b !important;
   border-color: #2d3f55 !important;
@@ -520,11 +510,11 @@
 [data-theme="dark"] .single-destination h3,
 [data-theme="dark"] .single-destination h4 { color: #f8fafc !important; }
 
-/* ── WhyChooseUs already handled in its own CSS but reinforce ── */
+
 [data-theme="dark"] .wcu-section,
 [data-theme="dark"] .wcu-section section { background: #0f172a !important; }
 
-/* ── Catch-all: Bootstrap bg-white and inline white backgrounds ── */
+
 [data-theme="dark"] .bg-white                     { background-color: #1e293b !important; }
 [data-theme="dark"] .bg-light,
 [data-theme="dark"] .bg-gray                       { background-color: #111827 !important; }
@@ -540,11 +530,11 @@
 [data-theme="dark"] [style*="background: white"],
 [data-theme="dark"] [style*="background:#fff"]     { background-color: #1e293b !important; background-image: none !important; }
 
-/* Force remove ALL shape/pattern background-images across the entire page */
+
 [data-theme="dark"] [style*="background-image"],
 [data-theme="dark"] [style*="backgroundImage"]     { background-image: none !important; }
 
-/* ─── CSS-var driven primary color (applied globally) ─── */
+
 .theme   { color: var(--primary) !important; }
 .btn-primary, [class*="__select-btn"], [class*="-search-btn"], [class*="__book-btn"],
 .fsf-search-btn, .hs-search-btn, .tdp-btn--apply, .ps-apply-btn,

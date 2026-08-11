@@ -2,7 +2,6 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
-// Import all translation files
 import enTranslations from './locales/en.json';
 import ruTranslations from './locales/ru.json';
 import deTranslations from './locales/de.json';
@@ -29,7 +28,6 @@ import idTranslations from './locales/id.json';
 const supportedLngs = ['en','ru','de','fr','it','es','pl','uk','tr','hu','sv','pt','sr','ar','zh','ja','vi','th','ko','hi','bn','id'];
 const rtlLanguages = ['ar'];
 
-// Set text direction based on language
 const setDocumentDirection = (lng) => {
   const base = (lng || 'en').split('-')[0];
   const body = document.body;
@@ -72,7 +70,7 @@ i18n
       id: { translation: idTranslations },
     },
     supportedLngs,
-    nonExplicitSupportedLngs: true, // fr-FR → fr, zh-CN → zh
+    nonExplicitSupportedLngs: true,
     fallbackLng: 'en',
     debug: false,
     interpolation: { escapeValue: false },
@@ -90,9 +88,6 @@ i18n.on('languageChanged', (lng) => {
   localStorage.setItem('i18nextLng', lng);
 });
 
-// ── LibreTranslate: patch any key missing at runtime ─────────────────────
-// missingKey fires synchronously; we return the English fallback immediately
-// and inject the LibreTranslate result into the bundle on the next render.
 i18n.on('missingKey', (_lngs, ns, key, fallbackValue) => {
   const lang = (i18n.language || 'en').split('-')[0];
   if (lang === 'en' || !fallbackValue) return;

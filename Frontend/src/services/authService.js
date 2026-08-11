@@ -1,69 +1,38 @@
-/**
- * Authentication API Service
- * Handles user authentication, registration, and profile management
- */
-
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const AUTH_API = `${API_BASE_URL}/api/auth`;
 
-// Token management
 const TOKEN_KEY = 'accessToken';
 const USER_KEY = 'user';
 
-/**
- * Get stored access token
- */
 export const getAccessToken = () => {
   return localStorage.getItem(TOKEN_KEY);
 };
 
-/**
- * Set access token
- */
 export const setAccessToken = (token) => {
   localStorage.setItem(TOKEN_KEY, token);
 };
 
-/**
- * Remove access token
- */
 export const removeAccessToken = () => {
   localStorage.removeItem(TOKEN_KEY);
 };
 
-/**
- * Get stored user data
- */
 export const getUser = () => {
   const userStr = localStorage.getItem(USER_KEY);
   return userStr ? JSON.parse(userStr) : null;
 };
 
-/**
- * Set user data
- */
 export const setUser = (user) => {
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 };
 
-/**
- * Remove user data
- */
 export const removeUser = () => {
   localStorage.removeItem(USER_KEY);
 };
 
-/**
- * Check if user is authenticated
- */
 export const isAuthenticated = () => {
   return !!getAccessToken();
 };
 
-/**
- * Make authenticated API request
- * Automatically includes JWT token and handles token refresh
- */
 const authenticatedFetch = async (url, options = {}) => {
   const token = getAccessToken();
 
@@ -75,23 +44,20 @@ const authenticatedFetch = async (url, options = {}) => {
       ...(token && { 'Authorization': `Bearer ${token}` }),
       ...options.headers,
     },
-    credentials: 'include', // Include cookies for refresh token
+    credentials: 'include',
   };
 
   try {
     let response = await fetch(url, config);
 
-    // If unauthorized, try to refresh token
     if (response.status === 401 && !url.includes('/refresh-token')) {
       const refreshed = await refreshAccessToken();
 
       if (refreshed) {
-        // Retry original request with new token
         const newToken = getAccessToken();
         config.headers['Authorization'] = `Bearer ${newToken}`;
         response = await fetch(url, config);
       } else {
-        // Refresh failed — clear tokens directly (don't call logout() to avoid recursion)
         removeAccessToken();
         removeUser();
         throw new Error('Session expired. Please login again.');
@@ -105,11 +71,6 @@ const authenticatedFetch = async (url, options = {}) => {
   }
 };
 
-/**
- * Initiate registration — sends OTP to email
- * @param {Object} userData - { name, email, password, phoneNumber }
- * @returns {Promise} { email }
- */
 export const register = async (userData) => {
   try {
     const response = await fetch(`${AUTH_API}/signup`, {
@@ -125,19 +86,13 @@ export const register = async (userData) => {
       throw new Error(data.message || data.error?.message || 'Registration failed');
     }
 
-    return data.data; // { email }
+    return data.data;
   } catch (error) {
     console.error('Registration error:', error);
     throw error;
   }
 };
 
-/**
- * Verify OTP and complete registration
- * @param {string} email
- * @param {string} otp
- * @returns {Promise} { user, accessToken }
- */
 export const verifyOtp = async (email, otp) => {
   try {
     const response = await fetch(`${AUTH_API}/verify-otp`, {
@@ -163,11 +118,6 @@ export const verifyOtp = async (email, otp) => {
   }
 };
 
-/**
- * Resend OTP email
- * @param {string} email
- * @returns {Promise} { message }
- */
 export const resendOtp = async (email) => {
   try {
     const response = await fetch(`${AUTH_API}/resend-otp`, {
@@ -190,12 +140,6 @@ export const resendOtp = async (email) => {
   }
 };
 
-/**
- * Login user
- * @param {string} email - User email
- * @param {string} password - User password
- * @returns {Promise} { user, accessToken }
- */
 export const login = async (email, password) => {
   try {
     const response = await fetch(`${AUTH_API}/login`, {
@@ -214,7 +158,6 @@ export const login = async (email, password) => {
       throw new Error(data.message || data.error?.message || 'Login failed');
     }
 
-    // Store token and user data
     if (data.data.accessToken) {
       setAccessToken(data.data.accessToken);
     }
@@ -229,9 +172,6 @@ export const login = async (email, password) => {
   }
 };
 
-/**
- * Logout user
- */
 export const logout = async () => {
   try {
     const token = getAccessToken();
@@ -246,16 +186,11 @@ export const logout = async () => {
   } catch (error) {
     console.error('Logout error:', error);
   } finally {
-    // Clear local storage regardless of API call result
     removeAccessToken();
     removeUser();
   }
 };
 
-/**
- * Refresh access token using refresh token cookie
- * @returns {Promise<boolean>} Success status
- */
 export const refreshAccessToken = async () => {
   try {
     const response = await fetch(`${AUTH_API}/refresh-token`, {
@@ -285,10 +220,6 @@ export const refreshAccessToken = async () => {
   }
 };
 
-/**
- * Get current user profile
- * @returns {Promise} User object
- */
 export const getProfile = async () => {
   try {
     const response = await authenticatedFetch(`${AUTH_API}/me`);
@@ -298,7 +229,6 @@ export const getProfile = async () => {
       throw new Error(data.message || 'Failed to fetch profile');
     }
 
-    // Update stored user data
     if (data.data.user) {
       setUser(data.data.user);
     }
@@ -310,11 +240,6 @@ export const getProfile = async () => {
   }
 };
 
-/**
- * Update user profile
- * @param {Object} updates - { name, phoneNumber, profileImage }
- * @returns {Promise} Updated user object
- */
 export const updateProfile = async (updates) => {
   try {
     const response = await authenticatedFetch(`${AUTH_API}/me`, {
@@ -328,7 +253,6 @@ export const updateProfile = async (updates) => {
       throw new Error(data.message || 'Failed to update profile');
     }
 
-    // Update stored user data
     if (data.data.user) {
       setUser(data.data.user);
     }
@@ -340,11 +264,6 @@ export const updateProfile = async (updates) => {
   }
 };
 
-/**
- * Upload profile image
- * @param {File} imageFile - The image file to upload
- * @returns {Promise} Updated user object with new image URL
- */
 export const uploadProfileImage = async (imageFile) => {
   try {
     const token = getAccessToken();
@@ -366,7 +285,6 @@ export const uploadProfileImage = async (imageFile) => {
       throw new Error(data.message || 'Failed to upload image');
     }
 
-    // Update stored user data
     if (data.data.user) {
       setUser(data.data.user);
     }
@@ -378,12 +296,6 @@ export const uploadProfileImage = async (imageFile) => {
   }
 };
 
-/**
- * Change password
- * @param {string} currentPassword - Current password
- * @param {string} newPassword - New password
- * @returns {Promise} Success message
- */
 export const changePassword = async (currentPassword, newPassword) => {
   try {
     const response = await authenticatedFetch(`${AUTH_API}/change-password`, {
@@ -397,7 +309,6 @@ export const changePassword = async (currentPassword, newPassword) => {
       throw new Error(data.message || 'Failed to change password');
     }
 
-    // Password changed, user needs to login again
     removeAccessToken();
     removeUser();
 
@@ -408,11 +319,6 @@ export const changePassword = async (currentPassword, newPassword) => {
   }
 };
 
-/**
- * Delete user account
- * @param {string} password - User password for confirmation
- * @returns {Promise} Success message
- */
 export const deleteAccount = async (password) => {
   try {
     const response = await authenticatedFetch(`${AUTH_API}/me`, {
@@ -426,7 +332,6 @@ export const deleteAccount = async (password) => {
       throw new Error(data.message || 'Failed to delete account');
     }
 
-    // Account deleted, clear local storage
     removeAccessToken();
     removeUser();
 
@@ -437,12 +342,7 @@ export const deleteAccount = async (password) => {
   }
 };
 
-/**
- * Initiate OAuth login
- * @param {string} provider - 'google', 'facebook', or 'twitter'
- */
 export const loginWithOAuth = (provider) => {
-  // Twitter doesn't support localhost, use 127.0.0.1 instead
   if (provider === 'twitter') {
     const twitterAuthUrl = AUTH_API.replace('localhost', '127.0.0.1');
     window.location.href = `${twitterAuthUrl}/${provider}`;
@@ -451,11 +351,6 @@ export const loginWithOAuth = (provider) => {
   }
 };
 
-/**
- * Handle OAuth callback
- * Extract token from URL and store it
- * @returns {Object} { success: boolean, token?: string, error?: string }
- */
 export const handleOAuthCallback = () => {
   const params = new URLSearchParams(window.location.search);
   const token = params.get('token');
@@ -467,7 +362,6 @@ export const handleOAuthCallback = () => {
 
   if (token) {
     setAccessToken(token);
-    // Fetch user profile to store user data
     getProfile().catch(err => console.error('Failed to fetch profile after OAuth:', err));
     return { success: true, token };
   }
@@ -475,12 +369,6 @@ export const handleOAuthCallback = () => {
   return { success: false, error: 'No token received' };
 };
 
-/**
- * Link social provider to account
- * @param {string} provider - 'google', 'facebook', or 'twitter'
- * @param {string} providerId - Provider's user ID
- * @returns {Promise} Updated user object
- */
 export const linkProvider = async (provider, providerId) => {
   try {
     const response = await authenticatedFetch(`${AUTH_API}/link-provider`, {
@@ -494,7 +382,6 @@ export const linkProvider = async (provider, providerId) => {
       throw new Error(data.message || 'Failed to link provider');
     }
 
-    // Update stored user data
     if (data.data.user) {
       setUser(data.data.user);
     }
@@ -506,11 +393,6 @@ export const linkProvider = async (provider, providerId) => {
   }
 };
 
-/**
- * Unlink social provider from account
- * @param {string} provider - 'google', 'facebook', or 'twitter'
- * @returns {Promise} Updated user object
- */
 export const unlinkProvider = async (provider) => {
   try {
     const response = await authenticatedFetch(`${AUTH_API}/unlink-provider/${provider}`, {
@@ -523,7 +405,6 @@ export const unlinkProvider = async (provider) => {
       throw new Error(data.message || 'Failed to unlink provider');
     }
 
-    // Update stored user data
     if (data.data.user) {
       setUser(data.data.user);
     }
@@ -536,7 +417,6 @@ export const unlinkProvider = async (provider) => {
 };
 
 export default {
-  // Authentication
   register,
   verifyOtp,
   resendOtp,
@@ -545,25 +425,21 @@ export default {
   refreshAccessToken,
   isAuthenticated,
 
-  // Profile Management
   getProfile,
   updateProfile,
   uploadProfileImage,
   changePassword,
   deleteAccount,
 
-  // OAuth
   loginWithOAuth,
   handleOAuthCallback,
   linkProvider,
   unlinkProvider,
 
-  // Token Management
   getAccessToken,
   setAccessToken,
   removeAccessToken,
 
-  // User Management
   getUser,
   setUser,
   removeUser,

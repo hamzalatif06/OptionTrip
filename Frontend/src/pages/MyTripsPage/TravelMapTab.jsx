@@ -7,10 +7,6 @@ import './TravelMapTab.css';
 const fmt = (d) =>
   d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
 
-/**
- * Try destination.geometry first; if missing fall back to the first
- * activity coordinate found across any option's itinerary.
- */
 const getCoords = (trip) => {
   const g = trip.destination?.geometry;
   if (g?.lat && g?.lng) return { lat: g.lat, lng: g.lng };
@@ -33,7 +29,6 @@ const TravelMapTab = ({ mapTrips }) => {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Destroy any existing map before rebuilding
     if (mapRef.current) {
       mapRef.current.remove();
       mapRef.current = null;
@@ -41,8 +36,8 @@ const TravelMapTab = ({ mapTrips }) => {
 
     ensureLeafletReady().then((L) => {
       if (!containerRef.current) return;
-      // Guard against double-init if effect fires twice
-      if (mapRef.current) return;
+      if (mapRef.current)
+        return;
 
       const map = L.map(containerRef.current, { zoomControl: true, scrollWheelZoom: true });
       mapRef.current = map;
@@ -56,7 +51,6 @@ const TravelMapTab = ({ mapTrips }) => {
 
         points.push([coords.lat, coords.lng]);
 
-        // Use destination icon when we have real geometry; activity icon as fallback
         const hasDestCoords = trip.destination?.geometry?.lat && trip.destination?.geometry?.lng;
         const icon = hasDestCoords
           ? buildDestinationIcon(trip.destination?.name || 'Trip')
@@ -99,12 +93,11 @@ const TravelMapTab = ({ mapTrips }) => {
     };
   }, [mapTrips]);
 
-  // Sidebar shows all trips; dims those without any locatable coordinates
   const allTrips = mapTrips || [];
 
   return (
     <div className="travel-map-tab">
-      {/* Sidebar */}
+
       <aside className="tmt__sidebar">
         <h3 className="tmt__sidebar-title">
           Your Destinations
@@ -139,7 +132,7 @@ const TravelMapTab = ({ mapTrips }) => {
         )}
       </aside>
 
-      {/* Map */}
+
       <div className="tmt__map" ref={containerRef} />
     </div>
   );

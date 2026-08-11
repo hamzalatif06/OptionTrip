@@ -66,7 +66,7 @@ router.get('/', async (req, res) => {
   ].join('\n');
 
   res.setHeader('Content-Type', 'application/xml');
-  res.setHeader('Cache-Control', 'public, max-age=3600'); // 1-hour cache
+  res.setHeader('Cache-Control', 'public, max-age=3600');
   res.send(xml);
 });
 

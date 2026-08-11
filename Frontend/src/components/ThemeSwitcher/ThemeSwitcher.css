@@ -1,4 +1,4 @@
-/* ── Toggle button ───────────────────────────────────────────────────────── */
+
 .ts-toggle {
   display: inline-flex;
   align-items: center;
@@ -17,7 +17,7 @@
   border-color: rgba(255,255,255,0.4);
 }
 
-/* Track (pill that holds the thumb) */
+
 .ts-toggle__track {
   width: 36px;
   height: 22px;
@@ -35,7 +35,7 @@
   border-color: var(--primary, #029e9d);
 }
 
-/* Thumb (moves left/right) */
+
 .ts-toggle__thumb {
   width: 16px;
   height: 16px;
@@ -44,17 +44,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #f59e0b;               /* sun = amber */
+  color: #f59e0b;               
   transform: translateX(0);
   transition: transform 0.25s cubic-bezier(.4,0,.2,1), color 0.2s;
   flex-shrink: 0;
 }
 .ts-toggle--dark .ts-toggle__thumb {
   transform: translateX(14px);
-  color: #6366f1;               /* moon = indigo */
+  color: #6366f1;               
 }
 
-/* Label */
+
 .ts-toggle__label {
   font-size: 12px;
   font-weight: 600;

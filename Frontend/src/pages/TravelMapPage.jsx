@@ -36,16 +36,15 @@ const TravelMapPage = () => {
   const [loading,      setLoading]      = useState(true);
   const [selectedTrip, setSelectedTrip] = useState(null);
   const [sidebarOpen,  setSidebarOpen]  = useState(true);
-  const [popupPos,     setPopupPos]     = useState(null);  // { x, y } over the map wrap
+  const [popupPos,     setPopupPos]     = useState(null);
 
   const containerRef    = useRef(null);
   const mapRef          = useRef(null);
-  const tripMarkersRef  = useRef([]);      // { trip_id, marker }
-  const activityMarkersRef = useRef([]);   // L.marker[]
+  const tripMarkersRef  = useRef([]);
+  const activityMarkersRef = useRef([]);
   const routeLineRef    = useRef(null);
-  const selectedTripRef = useRef(null);    // mirrors selectedTrip for stable callbacks
+  const selectedTripRef = useRef(null);
 
-  // ── Fetch trips ───────────────────────────────────────────────────────────
   useEffect(() => {
     if (!accessToken) { setLoading(false); return; }
     setLoading(true);
@@ -58,7 +57,6 @@ const TravelMapPage = () => {
       .finally(() => setLoading(false));
   }, [accessToken]);
 
-  // ── Initialize the Leaflet map (once) ─────────────────────────────────────
   useEffect(() => {
     let disposed = false;
     let L = null;
@@ -75,11 +73,9 @@ const TravelMapPage = () => {
         attributionControl: true
       });
 
-      // Position default controls in matching corners
       L.control.zoom({ position: 'topright' }).addTo(map);
       L.control.scale({ position: 'bottomright', metric: true, imperial: false }).addTo(map);
 
-      // Custom fullscreen toggle (Leaflet has no built-in)
       const Fullscreen = L.Control.extend({
         options: { position: 'topright' },
         onAdd: () => {
@@ -97,10 +93,8 @@ const TravelMapPage = () => {
       });
       new Fullscreen().addTo(map);
 
-      // Click on empty map area = clear selection
       map.on('click', () => setSelectedTrip(null));
 
-      // Keep the screen-anchored popup glued to its marker as the user pans/zooms.
       const refreshPopupPos = () => {
         const trip = selectedTripRef.current;
         if (!trip || !tripHasCoords(trip)) { setPopupPos(null); return; }
@@ -127,26 +121,22 @@ const TravelMapPage = () => {
     };
   }, []);
 
-  // ── Theme → tile style (light/dark) ───────────────────────────────────────
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !window.L) return;
     applyTileStyle(window.L, map, isDark ? 'dark' : 'light');
   }, [isDark]);
 
-  // ── Render trip markers + route polyline ──────────────────────────────────
   useEffect(() => {
     const map = mapRef.current;
     const L   = window.L;
     if (!map || !L) return;
 
-    // Wipe previous trip markers
     tripMarkersRef.current.forEach(({ marker }) => map.removeLayer(marker));
     tripMarkersRef.current = [];
 
     const withCoords = trips.filter(tripHasCoords);
 
-    // Add markers
     withCoords.forEach(trip => {
       const lat = trip.destination.geometry.lat;
       const lng = trip.destination.geometry.lng;
@@ -170,7 +160,6 @@ const TravelMapPage = () => {
       tripMarkersRef.current.push({ trip_id: trip.trip_id, marker });
     });
 
-    // Route polyline between consecutive destinations
     if (routeLineRef.current) {
       map.removeLayer(routeLineRef.current);
       routeLineRef.current = null;
@@ -190,14 +179,12 @@ const TravelMapPage = () => {
       }).addTo(map);
     }
 
-    // First load: zoom to fit all trips
     if (withCoords.length && !selectedTrip) {
       fitMapToPoints(L, map, routePts, { maxZoom: 6, paddingPx: [60, 60], duration: 0.8 });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trips]);
 
-  // ── Re-skin markers when the selected trip changes ────────────────────────
   useEffect(() => {
     const L = window.L;
     if (!L) return;
@@ -213,12 +200,10 @@ const TravelMapPage = () => {
       }));
     });
 
-    // Refresh popup position to wherever the selected trip is right now
     mapRef.current?._refreshPopupPos?.();
     if (!selectedTrip) setPopupPos(null);
   }, [selectedTrip, trips]);
 
-  // ── Activity markers for the selected trip ────────────────────────────────
   useEffect(() => {
     const map = mapRef.current;
     const L   = window.L;
@@ -246,7 +231,6 @@ const TravelMapPage = () => {
     });
   }, [selectedTrip]);
 
-  // ── Fly to a trip when chosen from sidebar or by marker click ─────────────
   const flyToTrip = useCallback((trip) => {
     const lat = trip.destination?.geometry?.lat;
     const lng = trip.destination?.geometry?.lng;

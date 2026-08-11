@@ -35,10 +35,6 @@ Selection priority:
 6. Region
 7. Country`;
 
-/**
- * Uses AI to extract the best image search term from an article, then
- * searches Unsplash with primary + fallback queries until an image is found.
- */
 export const getSmartHeroImage = async ({ title = '', content = '', postId = 0 }) => {
   const client = getClient();
 
@@ -47,7 +43,6 @@ export const getSmartHeroImage = async ({ title = '', content = '', postId = 0 }
     return { imageUrl: null, source: 'no-openai', searchUsed: null };
   }
 
-  // Truncate to ~2000 chars to keep API cost minimal
   const plainText = stripHtml(content).slice(0, 2000);
   const articleText = `Title: ${title}\n\n${plainText}`;
 
@@ -89,10 +84,6 @@ export const getSmartHeroImage = async ({ title = '', content = '', postId = 0 }
   return { imageUrl: null, source: 'none', searchUsed: null };
 };
 
-/**
- * Uses AI to extract destination names and countries from article content.
- * Returns { destinations: string[], countries: string[] }
- */
 export const extractDestinations = async ({ title = '', content = '' }) => {
   const client = getClient();
   if (!client) return { destinations: [], countries: [] };

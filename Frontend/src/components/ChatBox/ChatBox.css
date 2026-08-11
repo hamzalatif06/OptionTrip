@@ -4,7 +4,7 @@
   max-width: 100%;
 }
 
-/* Example bubble */
+
 .chatbox-example-bubble {
   margin-bottom: 12px;
   animation: fadeInDown 0.5s ease-out;
@@ -34,7 +34,7 @@
   color: #666;
 }
 
-/* Chat form */
+
 .chatbox-form {
   width: 100%;
 }
@@ -145,7 +145,7 @@
   background: #029e9d;
 }
 
-/* Animations */
+
 @keyframes fadeInDown {
   from {
     opacity: 0;
@@ -166,7 +166,7 @@
   }
 }
 
-/* Error & loading states */
+
 .chatbox-error {
   margin-top: 8px;
   padding: 8px 12px;
@@ -185,7 +185,7 @@
   align-items: center;
 }
 
-/* Responsive */
+
 @media (max-width: 991px) {
   .chatbox-input-wrapper {
     height: 72px;

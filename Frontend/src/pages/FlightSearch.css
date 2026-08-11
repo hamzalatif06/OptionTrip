@@ -1,4 +1,4 @@
-/* ── Inter font — applied across the entire flights page ── */
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 .flight-hero,
@@ -21,8 +21,8 @@
   font-family: 'Inter', sans-serif !important;
 }
 
-/* ── Hero ──────────────────────────────────────────────────────────────────── */
-/* Full-width container for the flight search form only */
+
+
 .flight-search-section .container {
   max-width: none !important;
 }
@@ -61,19 +61,19 @@
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
 }
 
-/* ── Results section ───────────────────────────────────────────────────────── */
+
 .flight-results-section {
   padding: 40px 0 80px;
 }
 
-/* ── Hotels under flights ──────────────────────────────────────────────────── */
+
 .flt-hotels-section {
   padding: 48px 0 64px;
   background: #f8fafc;
   border-top: 1px solid #e8ecef;
 }
 
-/* .flt-hotels-header/.flt-hotels-title/.flt-hotels-dates replaced by fs-section-header--hotel */
+
 
 .flt-hotels-grid {
   display: grid;
@@ -124,7 +124,7 @@
   gap: 2px;
 }
 
-/* ── Loading ───────────────────────────────────────────────────────────────── */
+
 .flight-loading {
   display: flex;
   flex-direction: column;
@@ -148,7 +148,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* ── Skeleton ───────────────────────────────────────────────────────────────── */
+
 .fcgf-skeleton {
   display: grid;
   grid-template-columns: 50px 1fr 120px;
@@ -193,7 +193,7 @@
   50%       { opacity: 0.4; }
 }
 
-/* ── Empty ───────────────────────────────────────────────────────────────────── */
+
 .flight-empty {
   text-align: center;
   padding: 60px 0;
@@ -213,7 +213,7 @@
   margin: 0 auto;
 }
 
-/* ── Error ─────────────────────────────────────────────────────────────────── */
+
 .flight-error {
   background: #fef2f2;
   border: 1px solid #fecaca;
@@ -224,7 +224,7 @@
   margin: 24px 0;
 }
 
-/* ── Empty state ───────────────────────────────────────────────────────────── */
+
 .flight-empty {
   text-align: center;
   padding: 72px 24px;
@@ -251,7 +251,7 @@
   line-height: 1.7;
 }
 
-/* ── Flight section headers (Top / Other) ─────────────────────────────────── */
+
 .fs-section-header {
   display: flex;
   align-items: center;
@@ -327,7 +327,7 @@
   flex-shrink: 0;
 }
 
-/* ── Pagination ────────────────────────────────────────────────────────────── */
+
 .fs-pagination {
   display: flex;
   align-items: center;
@@ -389,7 +389,7 @@
   user-select: none;
 }
 
-/* ── Results layout (filters + results) ────────────────────────────────────── */
+
 .fs-results-layout {
   display: flex;
   align-items: flex-start;
@@ -401,7 +401,7 @@
   min-width: 0;
 }
 
-/* Explore Anywhere tickets modal */
+
 .explore-ticket-modal-overlay {
   position: fixed;
   inset: 0;
@@ -559,7 +559,7 @@
   color: #8ca0b1;
 }
 
-/* ── Responsive ────────────────────────────────────────────────────────────── */
+
 @media (max-width: 900px) {
   .fs-results-layout {
     flex-direction: column;

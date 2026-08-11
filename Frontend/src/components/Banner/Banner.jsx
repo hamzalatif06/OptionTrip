@@ -38,7 +38,7 @@ const Banner = () => {
               </div>
             </div>
           </div>
-          {/* Category cards (camping, hiking, beach tours, etc.) hidden */}
+
         </div>
       </div>
     </section>

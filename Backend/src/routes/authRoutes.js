@@ -18,15 +18,6 @@ import { uploadProfileImage, handleUploadError } from '../middleware/upload.js';
 
 const router = express.Router();
 
-// ============================================
-// PUBLIC ROUTES (No authentication required)
-// ============================================
-
-/**
- * @route   POST /api/auth/signup
- * @desc    Register new user with email/password
- * @access  Public
- */
 router.post(
   '/signup',
   authRateLimiter,
@@ -34,11 +25,6 @@ router.post(
   authController.register
 );
 
-/**
- * @route   POST /api/auth/login
- * @desc    Login user with email/password
- * @access  Public
- */
 router.post(
   '/login',
   authRateLimiter,
@@ -46,33 +32,18 @@ router.post(
   authController.login
 );
 
-/**
- * @route   POST /api/auth/verify-otp
- * @desc    Verify OTP and complete registration
- * @access  Public
- */
 router.post(
   '/verify-otp',
   authRateLimiter,
   authController.verifyOtp
 );
 
-/**
- * @route   POST /api/auth/resend-otp
- * @desc    Resend OTP for pending registration
- * @access  Public
- */
 router.post(
   '/resend-otp',
   authRateLimiter,
   authController.resendOtp
 );
 
-/**
- * @route   POST /api/auth/refresh-token
- * @desc    Refresh access token using refresh token
- * @access  Public (requires valid refresh token)
- */
 router.post(
   '/refresh-token',
   generalRateLimiter,
@@ -80,20 +51,7 @@ router.post(
   authController.refreshToken
 );
 
-// ============================================
-// OAUTH ROUTES (Google, Facebook, Twitter)
-// Only register routes if OAuth credentials are configured
-// ============================================
-
-/**
- * Google OAuth Routes (only if configured)
- */
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-  /**
-   * @route   GET /api/auth/google
-   * @desc    Initiate Google OAuth flow
-   * @access  Public
-   */
   router.get(
     '/google',
     passport.authenticate('google', {
@@ -102,11 +60,6 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     })
   );
 
-  /**
-   * @route   GET /api/auth/google/callback
-   * @desc    Google OAuth callback
-   * @access  Public
-   */
   router.get(
     '/google/callback',
     passport.authenticate('google', {
@@ -117,15 +70,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   );
 }
 
-/**
- * Facebook OAuth Routes (only if configured)
- */
 if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
-  /**
-   * @route   GET /api/auth/facebook
-   * @desc    Initiate Facebook OAuth flow
-   * @access  Public
-   */
   router.get(
     '/facebook',
     passport.authenticate('facebook', {
@@ -134,11 +79,6 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
     })
   );
 
-  /**
-   * @route   GET /api/auth/facebook/callback
-   * @desc    Facebook OAuth callback
-   * @access  Public
-   */
   router.get(
     '/facebook/callback',
     passport.authenticate('facebook', {
@@ -149,15 +89,7 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
   );
 }
 
-/**
- * Twitter OAuth Routes (only if configured)
- */
 if (process.env.TWITTER_CONSUMER_KEY && process.env.TWITTER_CONSUMER_SECRET) {
-  /**
-   * @route   GET /api/auth/twitter
-   * @desc    Initiate Twitter OAuth flow
-   * @access  Public
-   */
   router.get(
     '/twitter',
     passport.authenticate('twitter', {
@@ -165,11 +97,6 @@ if (process.env.TWITTER_CONSUMER_KEY && process.env.TWITTER_CONSUMER_SECRET) {
     })
   );
 
-  /**
-   * @route   GET /api/auth/twitter/callback
-   * @desc    Twitter OAuth callback
-   * @access  Public
-   */
   router.get(
     '/twitter/callback',
     passport.authenticate('twitter', {
@@ -180,26 +107,12 @@ if (process.env.TWITTER_CONSUMER_KEY && process.env.TWITTER_CONSUMER_SECRET) {
   );
 }
 
-// ============================================
-// PROTECTED ROUTES (Authentication required)
-// ============================================
-
-/**
- * @route   GET /api/auth/me
- * @desc    Get current user profile
- * @access  Private
- */
 router.get(
   '/me',
   authenticate,
   authController.getMe
 );
 
-/**
- * @route   PUT /api/auth/me
- * @desc    Update user profile
- * @access  Private
- */
 router.put(
   '/me',
   authenticate,
@@ -208,11 +121,6 @@ router.put(
   authController.updateProfile
 );
 
-/**
- * @route   POST /api/auth/upload-profile-image
- * @desc    Upload profile image
- * @access  Private
- */
 router.post(
   '/upload-profile-image',
   authenticate,
@@ -222,22 +130,12 @@ router.post(
   authController.uploadProfileImage
 );
 
-/**
- * @route   POST /api/auth/logout
- * @desc    Logout user (invalidate refresh token)
- * @access  Private
- */
 router.post(
   '/logout',
   authenticate,
   authController.logout
 );
 
-/**
- * @route   POST /api/auth/logout-all
- * @desc    Logout from all devices (invalidate all refresh tokens)
- * @access  Private
- */
 router.post(
   '/logout-all',
   authenticate,
@@ -245,11 +143,6 @@ router.post(
   authController.logoutAll
 );
 
-/**
- * @route   POST /api/auth/change-password
- * @desc    Change user password
- * @access  Private
- */
 router.post(
   '/change-password',
   authenticate,
@@ -258,11 +151,6 @@ router.post(
   authController.changePassword
 );
 
-/**
- * @route   POST /api/auth/link-provider
- * @desc    Link social provider to existing account
- * @access  Private
- */
 router.post(
   '/link-provider',
   authenticate,
@@ -271,11 +159,6 @@ router.post(
   authController.linkProvider
 );
 
-/**
- * @route   DELETE /api/auth/unlink-provider/:provider
- * @desc    Unlink social provider from account
- * @access  Private
- */
 router.delete(
   '/unlink-provider/:provider',
   authenticate,
@@ -283,11 +166,6 @@ router.delete(
   authController.unlinkProvider
 );
 
-/**
- * @route   DELETE /api/auth/me
- * @desc    Delete user account permanently
- * @access  Private
- */
 router.delete(
   '/me',
   authenticate,
@@ -295,11 +173,6 @@ router.delete(
   authController.deleteAccount
 );
 
-/**
- * @route   PATCH /api/auth/preferences
- * @desc    Update user travel preferences
- * @access  Private
- */
 router.patch(
   '/preferences',
   authenticate,

@@ -1,4 +1,4 @@
-/* ── Page layout ─────────────────────────────────────────────────────────── */
+
 .tmp-page {
   position: relative;
   height: calc(100vh - 70px);
@@ -7,7 +7,7 @@
   background: #0f172a;
 }
 
-/* ── Leaflet container ───────────────────────────────────────────────────── */
+
 .tmp-leaflet {
   position: absolute;
   inset: 0;
@@ -17,7 +17,7 @@
 [data-theme="light"] .tmp-leaflet,
 :root:not([data-theme="dark"]) .tmp-leaflet { background: #e7eaee; }
 
-/* ── Map wrapper ─────────────────────────────────────────────────────────── */
+
 .tmp-map-wrap {
   flex: 1;
   position: relative;
@@ -30,7 +30,7 @@
   .tmp-map-wrap--shifted { margin-left: 0; }
 }
 
-/* ── Loading overlay ─────────────────────────────────────────────────────── */
+
 .tmp-loader {
   position: absolute;
   inset: 0;
@@ -56,7 +56,7 @@
 }
 @keyframes tmp-spin { to { transform: rotate(360deg); } }
 
-/* ── Empty state ─────────────────────────────────────────────────────────── */
+
 .tmp-empty {
   position: absolute;
   top: 50%;
@@ -89,7 +89,7 @@
 }
 .tmp-empty__btn:hover { background: #027b7a; color: #fff; }
 
-/* ── No-token screen ─────────────────────────────────────────────────────── */
+
 .tmp-no-token {
   min-height: calc(100vh - 70px);
   display: flex;
@@ -130,7 +130,7 @@
 }
 .tmp-no-token__link:hover { background: #027b7a; color: #fff; }
 
-/* ── Leaflet control overrides ───────────────────────────────────────────── */
+
 .tmp-page .leaflet-bar {
   border-radius: 10px !important;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;

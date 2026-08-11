@@ -1,4 +1,3 @@
-// IMPORTANT: Load environment variables FIRST before any other imports
 import "./config/env.js";
 
 import express from "express";
@@ -43,26 +42,16 @@ connectDB();
 
 const app = express();
 
-// CORS Configuration (must be early)
 app.use(cors(corsOptions));
 
-// Body Parser Middlewares (must be before sanitization)
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Cookie Parser
 app.use(cookieParser());
 
-// Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Security Middlewares (after body parsing)
 app.use(helmet());
-// Note: mongo-sanitize disabled due to Express 5 compatibility issues
-// Input validation is handled by Joi validators which prevent NoSQL injection
-// app.use(mongoSanitize());
-
-// Session Configuration (required for Twitter OAuth 1.0a)
 app.use(session({
   secret: process.env.JWT_ACCESS_SECRET || 'your-session-secret',
   resave: true,
@@ -70,15 +59,13 @@ app.use(session({
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 300000 // 5 minutes - for OAuth flow
+    maxAge: 300000
   }
 }));
 
-// Passport Initialization
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Request logging middleware (development only)
 if (process.env.NODE_ENV !== 'production') {
   app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
@@ -86,7 +73,6 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-// Health check route
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -114,7 +100,6 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productsRouter);
 app.use("/api/trips", tripsRouter);
@@ -137,10 +122,8 @@ app.use("/api/where-can-i-go", whereCanIGoRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/internal/cron", internalCronRouter);
 
-// 404 Handler - must be after all routes
 app.use(notFoundHandler);
 
-// Error Handler - must be last
 app.use(errorHandler);
 
 export default app;

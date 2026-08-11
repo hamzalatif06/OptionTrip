@@ -86,10 +86,8 @@ const BestTours = () => {
     }
   ];
 
-  // Get guest count for a tour (default 2)
   const getGuestCount = (tourId) => guestCounts[tourId] || 2;
 
-  // Update guest count for a tour
   const handleGuestChange = (e, tourId) => {
     e.stopPropagation();
     setGuestCounts(prev => ({
@@ -98,13 +96,11 @@ const BestTours = () => {
     }));
   };
 
-  // Generate trip automatically with tour data
   const handleGenerateTrip = async (e, tour) => {
     e.stopPropagation();
 
     const guests = getGuestCount(tour.id);
 
-    // Calculate dates (start 1 month from now)
     const startDate = new Date();
     startDate.setMonth(startDate.getMonth() + 1);
     const endDate = new Date(startDate);
@@ -201,7 +197,7 @@ const BestTours = () => {
                       </div>
                     </div>
 
-                    {/* Guest Selector and Generate Button */}
+
                     <div className="tour-quick-book">
                       <div className="guest-selector-inline">
                         <label htmlFor={`guests-${tour.id}`}>
