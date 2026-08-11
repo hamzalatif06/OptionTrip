@@ -8,6 +8,9 @@
 
 import OpenAI from 'openai';
 import { formatActivitiesForPrompt } from './userActivityService.js';
+import { searchAirports } from './amadeusService.js';
+import { findAirportByCityName } from './nearbyAirportsService.js';
+import { aggregateFlightSearch } from './chatFlightAggregatorService.js';
 
 let openai = null;
 
@@ -19,6 +22,58 @@ const getOpenAIClient = () => {
 };
 
 const MODEL = process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini';
+
+// ─── Flight search tool (OpenAI function calling) ──────────────────────────
+
+const FLIGHT_SEARCH_TOOL = {
+  type: 'function',
+  function: {
+    name: 'search_flights',
+    description: 'Search real flight prices and options when the user wants to find/book/search flights and origin+destination are known. Do NOT call this for vague "how do I get to X" questions with no clear origin+destination, or for general flight advice/booking-tips questions. A specific date is NOT required to call this — if the user gave no date at all, omit departureDate entirely and the search will run against a default near-term date; mention that default date in your reply and ask for their real dates.',
+    parameters: {
+      type: 'object',
+      properties: {
+        origin: { type: 'string', description: 'IATA airport code if known (e.g. "JFK"), otherwise the city/place name as the user said it (e.g. "New York")' },
+        destination: { type: 'string', description: 'IATA airport code if known, otherwise the city/place name' },
+        departureDate: { type: 'string', description: 'YYYY-MM-DD. Infer a reasonable near-future date if the user gave any hint ("next month" etc.) and say so in your reply. Omit this field entirely if the user gave no date hint whatsoever — do not guess a specific day out of thin air.' },
+        returnDate: { type: 'string', description: 'YYYY-MM-DD, omit entirely for a one-way search' },
+        adults: { type: 'integer', description: 'Number of adult passengers, default 1' },
+        travelClass: { type: 'string', enum: ['economy', 'premium_economy', 'business', 'first'] }
+      },
+      required: ['origin', 'destination']
+    }
+  }
+};
+
+/**
+ * Resolve a city name or IATA code to a real IATA code. Tries, in order:
+ * (1) already a 3-letter code, (2) the static major-hub dataset (fast, no
+ * network call, ~300 airports), (3) Amadeus's live autocomplete (broader
+ * coverage). Step 2 means a live-provider outage/rate-limit on Amadeus alone
+ * doesn't take down flight search for any major-city route.
+ */
+/** Fallback departure date when the user gave no date hint at all — 2 weeks out, YYYY-MM-DD. */
+const DEFAULT_SEARCH_DATE = () => {
+  const d = new Date();
+  d.setDate(d.getDate() + 14);
+  return d.toISOString().slice(0, 10);
+};
+
+const resolveIata = async (place) => {
+  if (!place) return null;
+  const trimmed = String(place).trim();
+  if (/^[A-Za-z]{3}$/.test(trimmed)) return trimmed.toUpperCase();
+
+  const local = findAirportByCityName(trimmed);
+  if (local) return local.iata;
+
+  try {
+    const matches = await searchAirports(trimmed);
+    return matches[0]?.iataCode || null;
+  } catch {
+    return null;
+  }
+};
 
 // ─── Prompt builders ─────────────────────────────────────────────────────────
 
@@ -49,7 +104,12 @@ const buildSystemPrompt = (context) => {
     currentLocation, recentActivities, memoryProfile, serviceSignals
   } = context;
 
+  const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
   let prompt = `You are Vi — an expert AI travel assistant for OptionTrip, a trip-planning, flight, hotel, and activity booking platform.
+
+# Today's date
+${todayStr}. Resolve every relative date ("next Friday", "next month", "in two weeks", "this weekend") against this real date — never guess or default to a date from training data. This matters most for flight search dates, which must always be in the future.
 
 # Identity & Personality
 - Warm, friendly, and genuinely enthusiastic about travel.
@@ -67,8 +127,25 @@ const buildSystemPrompt = (context) => {
 - Practical: packing, visa & docs, currency, transit, SIM/eSIM, tipping, etiquette, safety
 - Restaurant, café, and bar recommendations by neighborhood and vibe
 - Flight & hotel guidance (search tactics, booking timing, loyalty tips)
+- Searching REAL flights for the user — see "Flight search tool" below
 - On-trip help: directions, nearby places, weather expectations, emergencies
 - Steering the user toward the right OptionTrip service at the right moment — see "Contextual service opportunities" below
+
+# Flight search tool
+You have a \`search_flights\` tool. Use it ONLY when the user clearly wants to search/find/book flights with an identifiable origin, destination, and a rough date. Never call it for general questions ("what's the best time to fly to Tokyo", "how do flight prices usually work") — answer those with advice as you already would.
+
+**Auto-fill from what you already know before asking anything:**
+- If "Current trip in focus" above has a destination, that IS the destination — don't ask for it.
+- If it has dates, use dates.start_date as departureDate and dates.end_date as returnDate — don't ask for dates you already have.
+- If "Where the user is right now" shows a live location, that's a reasonable default origin for a bare "find me flights" ask — use it and just mention the assumption in your reply (e.g. "Searching from Belgrade since that's where you are — say the word if you'd rather fly from elsewhere") instead of turning it into a question.
+- Call the tool the moment origin + destination are known from ANY combination of context and the message — don't hold out for the user to spell out things you can already infer.
+
+**Dates are never a reason to block the search.** If you have a date hint ("next month", "around the 10th"), pass your best-inferred \`departureDate\`. If the user gave NO date hint at all, just omit \`departureDate\` from the tool call entirely and still call the tool — it will search a sensible default near-term date. In your reply, briefly show the results as usual, mention in one clause that you searched a default date (the tool result's \`searchedDate\`), and ask them to share their real dates for accurate pricing. Do not hold the search hostage waiting for a date.
+
+**Origin or destination missing** is the only real blocker. If either is still genuinely unknown after checking context, ask exactly ONE short question for just what's missing — e.g. "Which city are you flying from?" — never ask about dates as part of that blocking question, and never split missing pieces across several back-and-forth turns. On that clarifying turn, \`quickReplies\` must be realistic answers the user could tap and send as-is (e.g. "From London", "From New York") — never the question itself restated as a quick reply.
+
+After a tool call resolves, narrate the results briefly (1-2 sentences, e.g. "Found some good options — cheapest is around $X with [airline], nonstop"). Never re-type every individual price/time/flight number — the app renders the actual result cards below your reply. One extra tip is welcome if genuinely useful (e.g. "the cheapest has a long layover — the next one up is nonstop for $30 more").
+If the tool result contains an error: for a rate limit, suggest [/flights](/flights) directly; for \`could_not_resolve_airport\`, ask specifically about whichever of \`unresolvedOrigin\`/\`unresolvedDestination\` is present in the tool result (not both, unless both are) — ask them to spell it out or give the airport code.
 
 # Formatting rules (apply inside the "message" field of the JSON output)
 - Use clean Markdown: short paragraphs, **bold** for key terms, bullet points (\`-\`) and numbered lists where they help scanability.
@@ -89,6 +166,9 @@ const buildSystemPrompt = (context) => {
 - Do not invent prices, schedules, availability, or facts about specific businesses you don't know.
 - If asked something genuinely ambiguous, ask one short clarifying question.
 - Never claim you booked or can book anything — booking happens in the OptionTrip UI.
+
+# Linking to OptionTrip services
+When the user asks about hotels/stays, car rental, eSIM/data, or tours/activities — for their trip or in general — always give them the direct in-app link, never say "visit our website" or "go to OptionTrip" generically, and never write out a full https://... URL. Use EXACTLY these relative paths as the markdown link target (not the full site URL, not a different label-only phrasing): stays → [/hotels](/hotels), car rental → [/car-rental](/car-rental), eSIM → [/esim](/esim), tours/activities → [/tours](/tours), flights → [/flights](/flights). The link text itself can read naturally (e.g. "you can [browse stays](/hotels) right in the app"), but the URL inside the parentheses must be exactly one of the paths above, verbatim. Weave it into a real, specific answer (recommend what to look for, a tip, etc.) — don't just paste a bare link with no context. Flights get this treatment too whenever the user isn't asking you to search right now (e.g. asking about baggage policy or booking timing).
 
 # Output format
 Respond ONLY with valid JSON, no surrounding prose, in this exact shape:
@@ -268,6 +348,167 @@ export const generateViResponse = async (userMessage, context = {}, conversation
   }
 };
 
+// ─── Tool-calling (flight search) ──────────────────────────────────────────
+//
+// Two-pass flow: pass 1 (cheap, non-streamed, `tools` + `tool_choice:'auto'`)
+// decides whether the user's message warrants a real flight search. Pass 2
+// (only run if a tool call was made) narrates the results back in the same
+// JSON schema every other reply uses. The model's pass-2 output is never
+// trusted to carry the actual result numbers — `results`/`resultsType` are
+// attached in code from the deterministic aggregator output, so there's no
+// risk of the model paraphrasing/rounding real prices.
+
+/**
+ * Pass 1 only: decide whether this turn needs the flight-search tool.
+ * Always non-streamed — tool-call decisions aren't meaningfully streamable.
+ * @returns {Promise<{toolCall: object|null, messages: array|null}>}
+ */
+export const detectFlightToolCall = async (userMessage, context = {}, conversationHistory = []) => {
+  const client = getOpenAIClient();
+  if (!client) return { toolCall: null, messages: null };
+
+  const messages = buildMessages(userMessage, context, conversationHistory);
+
+  try {
+    const completion = await client.chat.completions.create({
+      model: MODEL,
+      messages,
+      tools: [FLIGHT_SEARCH_TOOL],
+      tool_choice: 'auto',
+      temperature: 0.3,
+      max_tokens: 300
+    });
+    const toolCalls = completion.choices[0]?.message?.tool_calls;
+    return { toolCall: toolCalls?.[0] || null, messages };
+  } catch (err) {
+    console.error('Vi tool-detection error:', err.message);
+    return { toolCall: null, messages };
+  }
+};
+
+/**
+ * Execute a detected flight tool call (IATA resolution + aggregator) and
+ * generate the final narrated reply (pass 2). Always non-streamed.
+ * @param {object}  toolCall            From detectFlightToolCall
+ * @param {array}   messages            The pass-1 message array (system+history+user), reused as the pass-2 base
+ * @param {object}  context
+ * @param {object}  [options]
+ * @param {boolean} [options.canUseFlightTool=true]  Rate-limit gate — set false to skip execution and let the model explain the limit
+ */
+export const resolveFlightToolCall = async (toolCall, messages, context = {}, options = {}) => {
+  const { canUseFlightTool = true } = options;
+
+  let args;
+  try {
+    args = JSON.parse(toolCall.function.arguments);
+  } catch {
+    args = {};
+  }
+
+  let toolResultPayload;
+  let results = null;
+  let resultsType = null;
+  let providerStatus = null;
+
+  if (!canUseFlightTool) {
+    toolResultPayload = { error: 'rate_limited' };
+  } else if (!args.origin || !args.destination) {
+    toolResultPayload = { error: 'missing_search_params' };
+  } else {
+    try {
+      const [origin, destination] = await Promise.all([resolveIata(args.origin), resolveIata(args.destination)]);
+      if (!origin || !destination) {
+        toolResultPayload = {
+          error: 'could_not_resolve_airport',
+          unresolvedOrigin: !origin ? args.origin : null,
+          unresolvedDestination: !destination ? args.destination : null
+        };
+      } else {
+        const usedDefaultDate = !args.departureDate;
+        const departureDate = args.departureDate || DEFAULT_SEARCH_DATE();
+        const agg = await aggregateFlightSearch({
+          origin,
+          destination,
+          departureDate,
+          returnDate: args.returnDate || null,
+          adults: args.adults || 1,
+          travelClass: args.travelClass || 'economy'
+        });
+        results = agg.results;
+        resultsType = 'flights';
+        providerStatus = agg.providerStatus;
+        toolResultPayload = {
+          resultCount: agg.results.length,
+          providerStatus: agg.providerStatus,
+          usedDefaultDate,
+          searchedDate: departureDate,
+          cheapest: agg.results[0]
+            ? { airline: agg.results[0].airline, price: agg.results[0].price, currency: agg.results[0].currency, stops: agg.results[0].stops }
+            : null
+        };
+      }
+    } catch (err) {
+      console.error('Flight tool execution error:', err.message);
+      toolResultPayload = { error: 'search_failed' };
+    }
+  }
+
+  const fallbackText = results?.length
+    ? `Found ${results.length} flight option${results.length !== 1 ? 's' : ''} for you!`
+    : "Sorry, I couldn't complete that search — try again in a moment, or use [/flights](/flights) directly.";
+  const fallbackType = results?.length ? 'flight_results' : 'error';
+
+  const client = getOpenAIClient();
+  if (!client) {
+    return { text: fallbackText, type: fallbackType, quickReplies: getContextualQuickReplies(context), results, resultsType, providerStatus };
+  }
+
+  const pass2Messages = [
+    ...messages,
+    { role: 'assistant', content: null, tool_calls: [toolCall] },
+    { role: 'tool', tool_call_id: toolCall.id, content: JSON.stringify(toolResultPayload) }
+  ];
+
+  try {
+    const completion = await client.chat.completions.create({
+      model: MODEL,
+      messages: pass2Messages,
+      temperature: 0.75,
+      max_tokens: 700,
+      response_format: { type: 'json_object' }
+    });
+    const parsed = JSON.parse(completion.choices[0].message.content);
+    return {
+      text: parsed.message || parsed.text || fallbackText,
+      type: parsed.type || fallbackType,
+      quickReplies: Array.isArray(parsed.quickReplies) && parsed.quickReplies.length
+        ? parsed.quickReplies.slice(0, 4)
+        : getContextualQuickReplies(context),
+      results,
+      resultsType,
+      providerStatus
+    };
+  } catch (err) {
+    console.error('Vi tool pass-2 error:', err.message);
+    return { text: fallbackText, type: fallbackType, quickReplies: getContextualQuickReplies(context), results, resultsType, providerStatus };
+  }
+};
+
+/**
+ * Full non-streaming tool-aware flow: detect intent, then either the
+ * existing single-pass reply (no tool needed) or the tool execution + pass 2.
+ */
+export const generateViResponseWithTools = async (userMessage, context = {}, conversationHistory = [], options = {}) => {
+  const { toolCall, messages } = await detectFlightToolCall(userMessage, context, conversationHistory);
+
+  if (!toolCall) {
+    const reply = await generateViResponse(userMessage, context, conversationHistory);
+    return { ...reply, results: null, resultsType: null, providerStatus: null };
+  }
+
+  return resolveFlightToolCall(toolCall, messages, context, options);
+};
+
 // ─── Fallback (offline / no API key) ─────────────────────────────────────────
 
 const generateFallbackResponse = (userMessage, context) => {
@@ -371,4 +612,4 @@ const getContextualQuickReplies = (context) => {
   return [...base.slice(0, 3), serviceReply];
 };
 
-export default { generateViResponse };
+export default { generateViResponse, generateViResponseWithTools, detectFlightToolCall, resolveFlightToolCall };

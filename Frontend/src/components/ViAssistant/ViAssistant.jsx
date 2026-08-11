@@ -11,6 +11,7 @@ import {
 } from '../../services/chatService';
 import { getActivityContext, logActivity } from '../../services/activityService';
 import { readCachedLocation, detectPreciseLocation, reverseGeocodeRobust } from '../../services/planMyDayService';
+import ChatFlightResults from './ChatFlightResults';
 import './ViAssistant.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -186,6 +187,7 @@ const ViAssistant = () => {
   const [inputMessage, setInputMessage]   = useState('');
   const [isTyping, setIsTyping]           = useState(false); // "thinking" dots phase
   const [isStreaming, setIsStreaming]     = useState(false); // text is streaming in
+  const [searchStatus, setSearchStatus]   = useState(null);  // e.g. "Searching flights across 4 sources…" while a tool call runs
   const [showDisclaimer, setShowDisclaimer] = useState(true);
 
   // Trip context
@@ -364,7 +366,10 @@ const ViAssistant = () => {
           sender: m.role === 'assistant' ? 'bot' : 'user',
           timestamp: new Date(m.timestamp),
           type: m.type,
-          quickReplies: m.quickReplies?.length > 0 ? m.quickReplies : undefined
+          quickReplies: m.quickReplies?.length > 0 ? m.quickReplies : undefined,
+          results: m.results,
+          resultsType: m.resultsType,
+          providerStatus: m.providerStatus
         }));
         setMessages(msgs.length > 0 ? msgs : [makeWelcomeMessage()]);
         setActiveConversationId(convId);
@@ -555,15 +560,34 @@ const ViAssistant = () => {
           let event;
           try { event = JSON.parse(payload); } catch { continue; }
 
+          if (event.status === 'searching_flights') {
+            // Tool call detected server-side — a multi-second, multi-provider
+            // search is running. Keep the typing indicator up but swap its
+            // label; the actual reply arrives as one complete delta below,
+            // not character-by-character (see backend streamMessage).
+            setSearchStatus('Searching flights across sources…');
+            continue;
+          }
+
           if (event.done) {
             // Stream closed — finalize the message bubble
             setMessages(prev => prev.map(m =>
               m.id === streamMsgId
-                ? { ...m, text: streamText || m.text, type: event.type || 'general', quickReplies: event.quickReplies?.length ? event.quickReplies : undefined, isStreaming: false }
+                ? {
+                    ...m,
+                    text: streamText || m.text,
+                    type: event.type || 'general',
+                    quickReplies: event.quickReplies?.length ? event.quickReplies : undefined,
+                    results: event.results || undefined,
+                    resultsType: event.resultsType || undefined,
+                    providerStatus: event.providerStatus || undefined,
+                    isStreaming: false
+                  }
                 : m
             ));
             setIsTyping(false);
             setIsStreaming(false);
+            setSearchStatus(null);
 
             if (event.conversationId && event.conversationId !== activeConversationId) {
               setActiveConversationId(event.conversationId);
@@ -581,6 +605,7 @@ const ViAssistant = () => {
 
           if (event.delta) {
             rawBuffer += event.delta;
+            setSearchStatus(null);
 
             // Locate start of the "message" JSON value on first delta that contains it
             if (msgStart === -1) {
@@ -627,6 +652,7 @@ const ViAssistant = () => {
     } finally {
       setIsTyping(false);
       setIsStreaming(false);
+      setSearchStatus(null);
       requestAbortRef.current = null;
     }
   };
@@ -1153,6 +1179,15 @@ const ViAssistant = () => {
                         : <p className="vi-user-text">{message.text}</p>
                       }
 
+                      {/* Inline flight results (deterministic, attached server-side — see chatController.js) */}
+                      {message.resultsType === 'flights' && message.results?.length > 0 && (
+                        <ChatFlightResults
+                          results={message.results}
+                          providerStatus={message.providerStatus}
+                          destination={message.results[0]?.destination}
+                        />
+                      )}
+
                       {/* Quick replies */}
                       {message.quickReplies && (
                         <div className="quick-replies">
@@ -1234,6 +1269,7 @@ const ViAssistant = () => {
                 <div className="vi-message bot typing">
                   <div className="message-avatar"><i className="fas fa-plane vi-msg-icon"></i></div>
                   <div className="message-content">
+                    {searchStatus && <span className="vi-search-status">{searchStatus}</span>}
                     <div className="typing-indicator"><span/><span/><span/></div>
                   </div>
                 </div>

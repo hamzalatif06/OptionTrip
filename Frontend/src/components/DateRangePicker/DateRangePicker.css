@@ -31,16 +31,20 @@
   border-color: #F30F89;
 }
 
+/* Portalled to <body> (see DateRangePicker.jsx) — position: fixed with top/left
+   set inline from getBoundingClientRect(), so it always renders above sibling
+   sections regardless of the ancestor stacking context the input sits inside
+   (Banner and HomeBookingSection are separate z-indexed stacking contexts;
+   a nested absolute + z-index popup can never escape its own ancestor's). */
 .date-range-picker-dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
+  position: fixed;
   z-index: 1000;
   background: #fff;
   border: 1px solid #C2CAD2;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   overflow: hidden;
+  max-width: calc(100vw - 32px);
 }
 
 /* Override react-date-range styles to match OptionTrip theme */
@@ -64,6 +68,10 @@
   color: #596C7E;
   font-weight: 600;
   font-size: 13px;
+}
+
+.date-range-picker-dropdown .rdrStaticRangeLabel {
+  color: #000;
 }
 
 .date-range-picker-dropdown .rdrDay {
@@ -141,9 +149,9 @@
 
 /* Responsive */
 @media (max-width: 767px) {
+  /* left/top now come from an inline style (see toggleShowPicker in the JSX),
+     already clamped to stay within the viewport — just cap the width here. */
   .date-range-picker-dropdown {
-    left: 50%;
-    transform: translateX(-50%);
     max-width: 90vw;
   }
 

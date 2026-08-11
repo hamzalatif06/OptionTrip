@@ -65,21 +65,19 @@
 .tdp-field__err   { font-size: 11px; color: #ef4444; margin: 4px 0 0; }
 
 /* ── Popup ───────────────────────────────────────────────────────────────── */
+/* Portalled to <body> (see TripDatePicker.jsx) — position: fixed with top/left
+   set inline from getBoundingClientRect(), so it always escapes whatever
+   ancestor stacking context the trigger happens to be inside. */
 .tdp-popup {
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 0;
+  position: fixed;
   z-index: 1000;
   background: #fff;
   border-radius: 18px;
   box-shadow: 0 12px 48px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.06);
   border: 1px solid #e8ecef;
   overflow: hidden;
-  min-width: 660px;
-}
-
-@media (max-width: 720px) {
-  .tdp-popup { min-width: calc(100vw - 32px); left: 50%; transform: translateX(-50%); }
+  width: 660px;
+  max-width: calc(100vw - 32px);
 }
 
 /* ── Tabs ────────────────────────────────────────────────────────────────── */

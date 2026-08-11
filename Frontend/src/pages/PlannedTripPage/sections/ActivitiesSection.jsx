@@ -20,6 +20,7 @@ import CarRentalTab from './CarRentalTab';
 import EsimTab from './EsimTab';
 import ToursTab from './ToursTab';
 import TripMapTab from './TripMapTab';
+import CalendarTab from './CalendarTab';
 
 const ActivityCardSkeleton = () => (
   <div className="act-sk-card">
@@ -435,9 +436,7 @@ const ActivitiesSection = ({ tripId, tripData, daysData: propDaysData, isGenerat
             <TripMapTab tripData={tripData} daysData={daysData} />
           )}
           {activeTab === 5 && (
-            <div className="activities-section__coming-soon">
-              <p>Calendar view coming soon</p>
-            </div>
+            <CalendarTab tripData={tripData} daysData={daysData} />
           )}
           {activeTab === 6 && <EsimTab tripData={tripData} source="trip_itinerary" />}
           {activeTab === 7 && <ToursTab tripData={tripData} source="trip_itinerary" />}

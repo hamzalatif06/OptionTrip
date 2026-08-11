@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { DateRange, Calendar } from 'react-date-range';
 import {
   format, addDays, addMonths,
@@ -237,15 +238,46 @@ const TripDatePicker = ({
   const [flexMonth,     setFlexMonth]     = useState(null);
   const [monthPrices,   setMonthPrices]   = useState({});
   const [pricesLoading, setPricesLoading] = useState(false);
-  const wrapRef = useRef(null);
+  const [popupPos,      setPopupPos]      = useState({ top: 0, left: 0 });
+  const wrapRef    = useRef(null);
+  const triggerRef = useRef(null);
+  const popupRef   = useRef(null);
 
   useEffect(() => { setRange(buildRange()); }, [startDate, endDate]);
 
   useEffect(() => {
-    const h = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); };
+    // The popup is portalled to <body>, so it's no longer a DOM descendant of
+    // wrapRef — check both refs, or every portal click would look "outside".
+    const h = (e) => {
+      if (wrapRef.current?.contains(e.target)) return;
+      if (popupRef.current?.contains(e.target)) return;
+      setOpen(false);
+    };
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
   }, []);
+
+  // The popup is `position: fixed` (see the CSS comment), which anchors it to
+  // the viewport, not the page — it doesn't move when the page scrolls, so
+  // it visibly drifts away from its trigger. Close it on scroll instead of
+  // tracking position live, same behavior most date pickers use.
+  //
+  // Arm the listener a beat after opening, not immediately: clicking the
+  // trigger can itself cause the browser to auto-scroll it into view (if it
+  // wasn't fully visible), which fires a scroll event as a *side effect of
+  // opening* — listening from frame one would close the popup before anyone
+  // ever sees it.
+  useEffect(() => {
+    if (!open) return;
+    const closeOnScroll = () => setOpen(false);
+    const armTimer = setTimeout(() => {
+      window.addEventListener('scroll', closeOnScroll, { capture: true, passive: true });
+    }, 150);
+    return () => {
+      clearTimeout(armTimer);
+      window.removeEventListener('scroll', closeOnScroll, { capture: true });
+    };
+  }, [open]);
 
   const apply = (s, e) => {
     onApply({ startDate: toStr(s), endDate: mode === 'range' ? toStr(e) : toStr(s) });
@@ -291,7 +323,14 @@ const TripDatePicker = ({
     ? Math.max(0, Math.round((range[0].endDate - range[0].startDate) / 86400000))
     : 0;
 
+  const POPUP_WIDTH = 660;
+
   const handleOpen = () => {
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const left = Math.max(16, Math.min(rect.left, window.innerWidth - POPUP_WIDTH - 16));
+      setPopupPos({ top: rect.bottom + 10, left });
+    }
     setOpen(true);
     setDateMode('specific');
     setFlexView('months');
@@ -303,7 +342,7 @@ const TripDatePicker = ({
     <div className="tdp-wrap" ref={wrapRef}>
 
       {/* ── Trigger fields ── */}
-      <div className="tdp-trigger">
+      <div className="tdp-trigger" ref={triggerRef}>
         <div
           className={`tdp-field${open ? ' tdp-field--active' : ''}${startError ? ' tdp-field--error' : ''}`}
           onClick={handleOpen}
@@ -344,9 +383,9 @@ const TripDatePicker = ({
         )}
       </div>
 
-      {/* ── Popup ── */}
-      {open && (
-        <div className="tdp-popup">
+      {/* ── Popup (portalled to <body> so it escapes any ancestor stacking context) ── */}
+      {open && createPortal(
+        <div className="tdp-popup" ref={popupRef} style={{ top: popupPos.top, left: popupPos.left }}>
 
           {/* Tabs */}
           <div className="tdp-tabs">
@@ -436,7 +475,8 @@ const TripDatePicker = ({
               </div>
             </>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

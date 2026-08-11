@@ -105,4 +105,20 @@ export const findNearbyForRoute = (originIata, destIata, radiusKm = 250, limit =
 export const getAirportInfo = (iata) =>
   airportIndex.get(iata?.toUpperCase().trim()) || null;
 
+/**
+ * Resolve a free-text city/airport name to an IATA code using this static
+ * dataset — no network call, near-instant. Covers major hubs only (~300
+ * airports); callers should fall back to a live autocomplete API (e.g.
+ * Amadeus searchAirports) for less common places this doesn't cover.
+ */
+export const findAirportByCityName = (name) => {
+  if (!name || typeof name !== 'string') return null;
+  const needle = name.trim().toLowerCase();
+  if (!needle) return null;
+  const match = airports.find(a =>
+    a.city?.toLowerCase() === needle || a.name?.toLowerCase().includes(needle)
+  ) || airports.find(a => a.city?.toLowerCase().includes(needle));
+  return match || null;
+};
+
 console.log(`✅ Nearby airports service loaded: ${airports.length} airports indexed`);

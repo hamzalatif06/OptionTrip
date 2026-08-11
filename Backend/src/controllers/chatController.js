@@ -3,13 +3,20 @@
  * Handles Vi AI Assistant chat endpoints with conversation persistence
  */
 
-import { generateViResponse, streamViResponse } from '../services/chatService.js';
+import {
+  generateViResponse,
+  streamViResponse,
+  generateViResponseWithTools,
+  detectFlightToolCall,
+  resolveFlightToolCall
+} from '../services/chatService.js';
 import Trip from '../models/Trip.js';
 import Conversation from '../models/Conversation.js';
 import {
   getUnfedActivities,
   getRecentActivities,
-  markActivitiesAsFed
+  markActivitiesAsFed,
+  logActivity
 } from '../services/userActivityService.js';
 import {
   getOrCreateProfile,
@@ -20,6 +27,7 @@ import {
   formatMemoryForPrompt
 } from '../services/memoryProfileService.js';
 import { computeServiceSignals } from '../services/serviceSignalsService.js';
+import { checkFlightToolBudget } from '../middleware/chatToolLimiter.js';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -28,6 +36,29 @@ const generateConversationId = () =>
 
 const autoTitle = (text) =>
   text.length > 45 ? text.substring(0, 42).trimEnd() + '...' : text;
+
+/**
+ * Log a UserActivity entry when Vi's flight tool actually ran, so
+ * serviceSignalsService's "have they searched flights" signal stays accurate
+ * whether the search happened on /flights or via chat.
+ */
+const logFlightToolActivity = (user, response) => {
+  if (!user || response?.resultsType !== 'flights') return;
+  const params = response.results?.length ? { origin: response.results[0].origin, destination: response.results[0].destination } : {};
+  logActivity({
+    userId: user._id,
+    type: 'flight',
+    action: 'searched',
+    title: `Vi searched flights: ${params.origin || '?'} → ${params.destination || '?'}`,
+    metadata: {
+      origin: params.origin,
+      destination: params.destination,
+      resultCount: response.results?.length || 0,
+      providerStatus: response.providerStatus,
+      source: 'chat'
+    }
+  }).catch(err => console.error('Failed to log chat flight search activity:', err.message));
+};
 
 /** Infer user travel preferences from their trip history */
 const buildPreferences = (trips) => {
@@ -187,7 +218,12 @@ export const sendMessage = async (req, res) => {
     const { context, conversation, conversationHistory } =
       await prepareChat(user, { message, tripId, conversationId, location });
 
-    const response = await generateViResponse(message, context, conversationHistory);
+    const budgetKey = user?._id?.toString() || req.ip;
+    const response = await generateViResponseWithTools(message, context, conversationHistory, {
+      canUseFlightTool: checkFlightToolBudget(budgetKey)
+    });
+
+    logFlightToolActivity(user, response);
 
     if (conversation) {
       try {
@@ -195,7 +231,10 @@ export const sendMessage = async (req, res) => {
           role: 'assistant',
           text: response.text,
           type: response.type || 'general',
-          quickReplies: response.quickReplies || []
+          quickReplies: response.quickReplies || [],
+          results: response.results || undefined,
+          resultsType: response.resultsType || undefined,
+          providerStatus: response.providerStatus || undefined
         });
         conversation.last_message_at = new Date();
         await conversation.save();
@@ -217,6 +256,9 @@ export const sendMessage = async (req, res) => {
         message: response.text,
         type: response.type,
         quickReplies: response.quickReplies,
+        results: response.results || null,
+        resultsType: response.resultsType || null,
+        providerStatus: response.providerStatus || null,
         timestamp: new Date().toISOString(),
         conversationId: conversation?.conversation_id || null
       }
@@ -258,37 +300,74 @@ export const streamMessage = async (req, res) => {
     const { context, conversation, conversationHistory } =
       await prepareChat(user, { message, tripId, conversationId, location });
 
-    const aiStream = await streamViResponse(message, context, conversationHistory);
+    // Always run the cheap intent-detection pass first — tool-call decisions
+    // aren't meaningfully character-streamable the way plain text is.
+    const { toolCall, messages: toolMessages } = await detectFlightToolCall(message, context, conversationHistory);
 
-    let fullText = '';
+    let responseText, quickReplies, type, results = null, resultsType = null, providerStatus = null;
 
-    if (!aiStream) {
-      // No API key — fall back to non-streaming
-      const fallback = await generateViResponse(message, context, conversationHistory);
-      send({ delta: JSON.stringify({ message: fallback.text, type: fallback.type, quickReplies: fallback.quickReplies }) });
-      send({ done: true, type: fallback.type, quickReplies: fallback.quickReplies, conversationId: conversation?.conversation_id || null });
-      return res.end();
-    }
+    if (toolCall) {
+      // Flight search triggered — tell the UI, then run the (multi-second,
+      // multi-provider) tool + narration non-streamed, and deliver the whole
+      // reply as one chunk rather than a character-typed stream.
+      send({ status: 'searching_flights' });
 
-    for await (const chunk of aiStream) {
-      const delta = chunk.choices[0]?.delta?.content || '';
-      if (delta) {
-        fullText += delta;
-        send({ delta });
+      const budgetKey = user?._id?.toString() || req.ip;
+      const toolResponse = await resolveFlightToolCall(toolCall, toolMessages, context, {
+        canUseFlightTool: checkFlightToolBudget(budgetKey)
+      });
+
+      responseText   = toolResponse.text;
+      quickReplies   = toolResponse.quickReplies || [];
+      type           = toolResponse.type || 'general';
+      results        = toolResponse.results || null;
+      resultsType    = toolResponse.resultsType || null;
+      providerStatus = toolResponse.providerStatus || null;
+
+      logFlightToolActivity(user, toolResponse);
+
+      send({ delta: JSON.stringify({ message: responseText, type, quickReplies }) });
+    } else {
+      // No tool needed — existing character-streamed path, unchanged.
+      const aiStream = await streamViResponse(message, context, conversationHistory);
+
+      if (!aiStream) {
+        // No API key — fall back to non-streaming
+        const fallback = await generateViResponse(message, context, conversationHistory);
+        send({ delta: JSON.stringify({ message: fallback.text, type: fallback.type, quickReplies: fallback.quickReplies }) });
+        send({ done: true, type: fallback.type, quickReplies: fallback.quickReplies, conversationId: conversation?.conversation_id || null });
+        return res.end();
       }
+
+      let fullText = '';
+      for await (const chunk of aiStream) {
+        const delta = chunk.choices[0]?.delta?.content || '';
+        if (delta) {
+          fullText += delta;
+          send({ delta });
+        }
+      }
+
+      let parsed = {};
+      try { parsed = JSON.parse(fullText); } catch { /* noop */ }
+
+      responseText = parsed.message || parsed.text || fullText;
+      quickReplies = Array.isArray(parsed.quickReplies) ? parsed.quickReplies.slice(0, 4) : [];
+      type = parsed.type || 'general';
     }
-
-    let parsed = {};
-    try { parsed = JSON.parse(fullText); } catch { /* noop */ }
-
-    const responseText = parsed.message || parsed.text || fullText;
-    const quickReplies = Array.isArray(parsed.quickReplies) ? parsed.quickReplies.slice(0, 4) : [];
-    const type = parsed.type || 'general';
 
     let savedConvId = conversation?.conversation_id || null;
     if (conversation) {
       try {
-        conversation.messages.push({ role: 'assistant', text: responseText, type, quickReplies });
+        conversation.messages.push({
+          role: 'assistant',
+          text: responseText,
+          type,
+          quickReplies,
+          results: results || undefined,
+          resultsType: resultsType || undefined,
+          providerStatus: providerStatus || undefined
+        });
         conversation.last_message_at = new Date();
         await conversation.save();
         savedConvId = conversation.conversation_id;
@@ -301,7 +380,7 @@ export const streamMessage = async (req, res) => {
       markActivitiesAsFed(user._id, context.unfedActivityIds).catch(() => {});
     }
 
-    send({ done: true, type, quickReplies, conversationId: savedConvId });
+    send({ done: true, type, quickReplies, results, resultsType, providerStatus, conversationId: savedConvId });
   } catch (err) {
     if (err?.name !== 'AbortError') console.error('Stream chat error:', err);
     send({ error: 'Stream failed' });

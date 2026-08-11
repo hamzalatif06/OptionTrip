@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { DateRangePicker } from 'react-date-range';
 import { format, addMonths, addDays, differenceInDays } from 'date-fns';
 import 'react-date-range/dist/styles.css';
@@ -16,7 +17,10 @@ const DateRangePickerComponent = ({
     endDate: null,
     key: 'selection'
   });
+  const [popupPos, setPopupPos] = useState({ top: 0, left: 0 });
   const pickerRef = useRef(null);
+  const inputRef = useRef(null);
+  const POPUP_WIDTH = 700;
 
   // Sync internal state with the controlled prop. Runs on mount AND whenever
   // selectedDates changes (e.g. the AI / voice parser fills the form).
@@ -54,6 +58,29 @@ const DateRangePickerComponent = ({
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showPicker]);
+
+  // The dropdown is `position: fixed` (anchored to the viewport, see the CSS
+  // comment), so it doesn't move with the page and visibly drifts away from
+  // the input on scroll. Dismiss it outright rather than tracking position
+  // live — and bypass handleClose's validation alert, since a passive scroll
+  // isn't a deliberate close action and shouldn't pop a dialog.
+  //
+  // Arm the listener a beat after opening, not immediately: clicking the
+  // input can itself cause the browser to auto-scroll it into view (if it
+  // wasn't fully visible), which fires a scroll event as a *side effect of
+  // opening* — listening from frame one would close the dropdown before
+  // anyone ever sees it.
+  useEffect(() => {
+    if (!showPicker) return;
+    const closeOnScroll = () => setShowPicker(false);
+    const armTimer = setTimeout(() => {
+      window.addEventListener('scroll', closeOnScroll, { capture: true, passive: true });
+    }, 150);
+    return () => {
+      clearTimeout(armTimer);
+      window.removeEventListener('scroll', closeOnScroll, { capture: true });
     };
   }, [showPicker]);
 
@@ -100,6 +127,15 @@ const DateRangePickerComponent = ({
     }
   };
 
+  const toggleShowPicker = () => {
+    if (!showPicker && inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      const left = Math.max(16, Math.min(rect.left, window.innerWidth - POPUP_WIDTH - 16));
+      setPopupPos({ top: rect.bottom + 8, left });
+    }
+    setShowPicker(v => !v);
+  };
+
   const formatDisplayDate = () => {
     if (dateRange.startDate && dateRange.endDate) {
       const start = format(dateRange.startDate, 'EEE, MMM d');
@@ -120,17 +156,22 @@ const DateRangePickerComponent = ({
       </label>
       <div className="date-range-input-container">
         <input
+          ref={inputRef}
           type="text"
           className={`date-range-display-input ${error ? 'error' : ''}`}
           value={formatDisplayDate()}
-          onClick={() => setShowPicker(!showPicker)}
+          onClick={toggleShowPicker}
           readOnly
           placeholder="Select dates"
         />
         {error && <span className="error-message">{error}</span>}
 
-        {showPicker && (
-          <div className="date-range-picker-dropdown" ref={pickerRef}>
+        {showPicker && createPortal(
+          <div
+            className="date-range-picker-dropdown"
+            ref={pickerRef}
+            style={{ top: popupPos.top, left: popupPos.left }}
+          >
             <DateRangePicker
               ranges={[dateRange]}
               onChange={handleSelect}
@@ -141,7 +182,8 @@ const DateRangePickerComponent = ({
               showDateDisplay={false}
               rangeColors={['#0A539D']}
             />
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </div>
