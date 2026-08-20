@@ -3,6 +3,7 @@ import { formatActivitiesForPrompt } from './userActivityService.js';
 import { searchAirports } from './amadeusService.js';
 import { findAirportByCityName } from './nearbyAirportsService.js';
 import { aggregateFlightSearch } from './chatFlightAggregatorService.js';
+import { aggregateHotelSearch } from './chatHotelAggregatorService.js';
 
 let openai = null;
 
@@ -35,9 +36,34 @@ const FLIGHT_SEARCH_TOOL = {
   }
 };
 
+const HOTEL_SEARCH_TOOL = {
+  type: 'function',
+  function: {
+    name: 'search_hotels',
+    description: 'Search real hotel prices and options when the user wants to find/book a hotel or place to stay and the destination city is known. Do NOT call this for vague browsing questions with no clear destination, or for general hotel-booking-tips questions. Specific check-in/check-out dates are NOT required to call this — if the user gave no date at all, omit checkIn/checkOut entirely and the search will run against sensible default dates; mention that default in your reply and ask for their real dates.',
+    parameters: {
+      type: 'object',
+      properties: {
+        destination: { type: 'string', description: 'City/place name the user wants to stay in, as they said it (e.g. "Paris", "Rome")' },
+        checkIn: { type: 'string', description: 'YYYY-MM-DD. Infer a reasonable near-future date if the user gave any hint ("next month" etc.) and say so in your reply. Omit this field entirely if the user gave no date hint whatsoever.' },
+        checkOut: { type: 'string', description: 'YYYY-MM-DD. Omit if unknown — a default of a few nights after check-in will be used.' },
+        adults: { type: 'integer', description: 'Number of adult guests, default 1' },
+        rooms: { type: 'integer', description: 'Number of rooms, default 1' }
+      },
+      required: ['destination']
+    }
+  }
+};
+
 const DEFAULT_SEARCH_DATE = () => {
   const d = new Date();
   d.setDate(d.getDate() + 14);
+  return d.toISOString().slice(0, 10);
+};
+
+const DEFAULT_CHECKOUT_DATE = (checkIn) => {
+  const d = checkIn ? new Date(checkIn) : new Date();
+  d.setDate(d.getDate() + 3);
   return d.toISOString().slice(0, 10);
 };
 
@@ -81,7 +107,7 @@ const formatItineraryForPrompt = (trip) => {
 const buildSystemPrompt = (context) => {
   const {
     user, currentTrip, tripPhase, allTrips, preferences,
-    currentLocation, recentActivities, memoryProfile, serviceSignals
+    currentLocation, recentActivities, memoryProfile, serviceSignals, weather
   } = context;
 
   const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -107,7 +133,7 @@ ${todayStr}. Resolve every relative date ("next Friday", "next month", "in two w
 - Practical: packing, visa & docs, currency, transit, SIM/eSIM, tipping, etiquette, safety
 - Restaurant, café, and bar recommendations by neighborhood and vibe
 - Flight & hotel guidance (search tactics, booking timing, loyalty tips)
-- Searching REAL flights for the user — see "Flight search tool" below
+- Searching REAL flights and hotels for the user — see "Flight search tool" and "Hotel search tool" below
 - On-trip help: directions, nearby places, weather expectations, emergencies
 - Steering the user toward the right OptionTrip service at the right moment — see "Contextual service opportunities" below
 
@@ -126,6 +152,23 @@ You have a \`search_flights\` tool. Use it ONLY when the user clearly wants to s
 
 After a tool call resolves, narrate the results briefly (1-2 sentences, e.g. "Found some good options — cheapest is around $X with [airline], nonstop"). Never re-type every individual price/time/flight number — the app renders the actual result cards below your reply. One extra tip is welcome if genuinely useful (e.g. "the cheapest has a long layover — the next one up is nonstop for $30 more").
 If the tool result contains an error: for a rate limit, suggest [/flights](/flights) directly; for \`could_not_resolve_airport\`, ask specifically about whichever of \`unresolvedOrigin\`/\`unresolvedDestination\` is present in the tool result (not both, unless both are) — ask them to spell it out or give the airport code.
+
+# Hotel search tool
+You have a \`search_hotels\` tool. Use it ONLY when the user clearly wants to search/find/book a hotel or place to stay with an identifiable destination city. Never call it for general questions ("what's a good area to stay in Rome", "how far ahead should I book a hotel") — answer those with advice as you already would.
+
+**Auto-fill from what you already know before asking anything:**
+- If "Current trip in focus" above has a destination, that IS the destination — don't ask for it.
+- If it has dates, use dates.start_date as checkIn and dates.end_date as checkOut — don't ask for dates you already have.
+- Call the tool the moment the destination is known from ANY combination of context and the message — don't hold out for the user to spell out things you can already infer.
+
+**Dates are never a reason to block the search.** If you have a date hint, pass your best-inferred \`checkIn\`/\`checkOut\`. If the user gave NO date hint at all, omit both fields entirely and still call the tool — it will search sensible default dates. In your reply, briefly show the results as usual, mention in one clause that you searched default dates, and ask them to share their real dates for accurate pricing. Do not hold the search hostage waiting for a date.
+
+**Destination missing** is the only real blocker. If it's still genuinely unknown after checking context, ask exactly ONE short question — e.g. "Which city are you looking to stay in?" — never ask about dates as part of that blocking question. \`quickReplies\` on that turn must be realistic answers the user could tap and send as-is (e.g. "Paris", "Tokyo") — never the question itself restated as a quick reply.
+
+After a tool call resolves, narrate the results briefly (1-2 sentences, e.g. "Found some solid options — cheapest is around $X a night, 4-star"). Never re-type every individual price/rating — the app renders the actual result cards below your reply. One extra tip is welcome if genuinely useful.
+If the tool result contains an error: for a rate limit or a failed search, suggest [/hotels](/hotels) directly.
+
+**One combined question, ever.** If BOTH origin/destination (flight) and hotel destination are missing in the same turn — e.g. the user says "help me plan a trip to Lisbon" with no origin — ask for whatever's missing as ONE single combined question, not one tool's question then the other's on a later turn.
 
 # Formatting rules (apply inside the "message" field of the JSON output)
 - Use clean Markdown: short paragraphs, **bold** for key terms, bullet points (\`-\`) and numbered lists where they help scanability.
@@ -148,7 +191,7 @@ If the tool result contains an error: for a rate limit, suggest [/flights](/flig
 - Never claim you booked or can book anything — booking happens in the OptionTrip UI.
 
 # Linking to OptionTrip services
-When the user asks about hotels/stays, car rental, eSIM/data, or tours/activities — for their trip or in general — always give them the direct in-app link, never say "visit our website" or "go to OptionTrip" generically, and never write out a full https://... URL. Use EXACTLY these relative paths as the markdown link target (not the full site URL, not a different label-only phrasing): stays → [/hotels](/hotels), car rental → [/car-rental](/car-rental), eSIM → [/esim](/esim), tours/activities → [/tours](/tours), flights → [/flights](/flights). The link text itself can read naturally (e.g. "you can [browse stays](/hotels) right in the app"), but the URL inside the parentheses must be exactly one of the paths above, verbatim. Weave it into a real, specific answer (recommend what to look for, a tip, etc.) — don't just paste a bare link with no context. Flights get this treatment too whenever the user isn't asking you to search right now (e.g. asking about baggage policy or booking timing).
+When the user asks about car rental, eSIM/data, or tours/activities — for their trip or in general — always give them the direct in-app link, never say "visit our website" or "go to OptionTrip" generically, and never write out a full https://... URL. Use EXACTLY these relative paths as the markdown link target (not the full site URL, not a different label-only phrasing): car rental → [/car-rental](/car-rental), eSIM → [/esim](/esim), tours/activities → [/tours](/tours). The link text itself can read naturally (e.g. "you can [browse tours](/tours) right in the app"), but the URL inside the parentheses must be exactly one of the paths above, verbatim. Weave it into a real, specific answer (recommend what to look for, a tip, etc.) — don't just paste a bare link with no context. Flights and hotels/stays do NOT get this link treatment when the user is actually trying to search — use the \`search_flights\`/\`search_hotels\` tools instead (see above); only fall back to [/flights](/flights) or [/hotels](/hotels) as a plain link when the question isn't a search at all (e.g. baggage policy, booking timing, or a search/rate-limit error).
 
 # Output format
 Respond ONLY with valid JSON, no surrounding prose, in this exact shape:
@@ -188,6 +231,22 @@ Respond ONLY with valid JSON, no surrounding prose, in this exact shape:
     else if (currentTrip.guests?.total) prompt += `\n- Travelers: ${currentTrip.guests.total}`;
     if (currentTrip.trip_type) prompt += `\n- Trip style: ${currentTrip.trip_type}`;
     if (currentTrip.budget) prompt += `\n- Budget tier: ${currentTrip.budget}`;
+    if (currentTrip.travel_status) prompt += `\n- Travel status: ${currentTrip.travel_status}`;
+    if (currentTrip.selectedFlight?.airline) {
+      const f = currentTrip.selectedFlight;
+      prompt += `\n- Booked flight: ${f.airline}${f.flightNumber ? ` ${f.flightNumber}` : ''}, ${f.departure || '?'} → ${f.arrival || '?'}${f.price ? `, ${f.currency || 'USD'} ${f.price}` : ''}`;
+    }
+    if (currentTrip.selectedHotel?.name) {
+      const h = currentTrip.selectedHotel;
+      prompt += `\n- Booked stay: ${h.name}${h.checkIn ? `, ${h.checkIn} → ${h.checkOut}` : ''}${h.price ? `, ${h.currency || 'USD'} ${h.price}/night` : ''}`;
+    }
+    if (currentTrip.selectedCar?.carType) {
+      const c = currentTrip.selectedCar;
+      prompt += `\n- Booked car: ${c.carType}${c.pickupLocation ? ` from ${c.pickupLocation}` : ''}`;
+    }
+    if (currentTrip.notes?.length) {
+      prompt += `\n- Trip notes:\n${currentTrip.notes.slice(-5).map(n => `  - ${n.text}`).join('\n')}`;
+    }
     prompt += `\n- Phase: **${tripPhase || 'planning'}** — `;
     prompt += tripPhase === 'before'
       ? 'pre-trip; focus on prep, anticipation, last-minute tweaks.'
@@ -215,6 +274,15 @@ Respond ONLY with valid JSON, no surrounding prose, in this exact shape:
       prompt += `\n- Coordinates: ${currentLocation.lat.toFixed(4)}, ${currentLocation.lng.toFixed(4)}`;
     }
     prompt += `\nUse this to answer "near me" questions, ground walking-time / commute advice, and bias recommendations to their actual surroundings. If their saved trip is somewhere else, gently distinguish "today, where you are" from "for your upcoming trip".`;
+  }
+
+  if (weather) {
+    const hour = new Date().getHours();
+    const timeOfDay = hour < 5 ? 'late night' : hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : hour < 21 ? 'evening' : 'night';
+    prompt += `\n\n# Live conditions\n- Time of day: ${timeOfDay}`;
+    prompt += `\n- Weather: ${weather.emoji || ''} ${weather.label || 'Unknown'}${typeof weather.temp_now_c === 'number' ? `, ${Math.round(weather.temp_now_c)}°C now` : ''}${typeof weather.temp_max_c === 'number' ? ` (${Math.round(weather.temp_min_c)}–${Math.round(weather.temp_max_c)}°C today)` : ''}`;
+    if (weather.precip_prob != null) prompt += `\n- Chance of rain: ${weather.precip_prob}%`;
+    prompt += `\nWeave this in naturally when relevant (what to wear, indoor vs outdoor plans, best time for a walk) — don't just recite the numbers unless asked directly.`;
   }
 
   if (Array.isArray(recentActivities) && recentActivities.length) {
@@ -312,7 +380,7 @@ export const generateViResponse = async (userMessage, context = {}, conversation
   }
 };
 
-export const detectFlightToolCall = async (userMessage, context = {}, conversationHistory = []) => {
+export const detectToolCall = async (userMessage, context = {}, conversationHistory = []) => {
   const client = getOpenAIClient();
   if (!client) return { toolCall: null, messages: null };
 
@@ -322,7 +390,7 @@ export const detectFlightToolCall = async (userMessage, context = {}, conversati
     const completion = await client.chat.completions.create({
       model: MODEL,
       messages,
-      tools: [FLIGHT_SEARCH_TOOL],
+      tools: [FLIGHT_SEARCH_TOOL, HOTEL_SEARCH_TOOL],
       tool_choice: 'auto',
       temperature: 0.3,
       max_tokens: 300
@@ -335,8 +403,96 @@ export const detectFlightToolCall = async (userMessage, context = {}, conversati
   }
 };
 
-export const resolveFlightToolCall = async (toolCall, messages, context = {}, options = {}) => {
-  const { canUseFlightTool = true } = options;
+const executeFlightTool = async (args, options) => {
+  const { canUseTool = true } = options;
+
+  if (!canUseTool) return { toolResultPayload: { error: 'rate_limited' } };
+  if (!args.origin || !args.destination) return { toolResultPayload: { error: 'missing_search_params' } };
+
+  try {
+    const [origin, destination] = await Promise.all([resolveIata(args.origin), resolveIata(args.destination)]);
+    if (!origin || !destination) {
+      return {
+        toolResultPayload: {
+          error: 'could_not_resolve_airport',
+          unresolvedOrigin: !origin ? args.origin : null,
+          unresolvedDestination: !destination ? args.destination : null
+        }
+      };
+    }
+
+    const usedDefaultDate = !args.departureDate;
+    const departureDate = args.departureDate || DEFAULT_SEARCH_DATE();
+    const agg = await aggregateFlightSearch({
+      origin,
+      destination,
+      departureDate,
+      returnDate: args.returnDate || null,
+      adults: args.adults || 1,
+      travelClass: args.travelClass || 'economy'
+    });
+
+    return {
+      results: agg.results,
+      resultsType: 'flights',
+      providerStatus: agg.providerStatus,
+      toolResultPayload: {
+        resultCount: agg.results.length,
+        providerStatus: agg.providerStatus,
+        usedDefaultDate,
+        searchedDate: departureDate,
+        cheapest: agg.results[0]
+          ? { airline: agg.results[0].airline, price: agg.results[0].price, currency: agg.results[0].currency, stops: agg.results[0].stops }
+          : null
+      }
+    };
+  } catch (err) {
+    console.error('Flight tool execution error:', err.message);
+    return { toolResultPayload: { error: 'search_failed' } };
+  }
+};
+
+const executeHotelTool = async (args, options) => {
+  const { canUseTool = true } = options;
+
+  if (!canUseTool) return { toolResultPayload: { error: 'rate_limited' } };
+  if (!args.destination) return { toolResultPayload: { error: 'missing_search_params' } };
+
+  try {
+    const usedDefaultDates = !args.checkIn;
+    const checkIn = args.checkIn || DEFAULT_SEARCH_DATE();
+    const checkOut = args.checkOut || DEFAULT_CHECKOUT_DATE(checkIn);
+    const agg = await aggregateHotelSearch({
+      destination: args.destination,
+      checkIn,
+      checkOut,
+      adults: args.adults || 1,
+      rooms: args.rooms || 1
+    });
+
+    return {
+      results: agg.results,
+      resultsType: 'hotels',
+      providerStatus: agg.providerStatus,
+      toolResultPayload: {
+        resultCount: agg.results.length,
+        providerStatus: agg.providerStatus,
+        usedDefaultDates,
+        searchedCheckIn: checkIn,
+        searchedCheckOut: checkOut,
+        cheapest: agg.results[0]
+          ? { name: agg.results[0].name, price: agg.results[0].price, currency: agg.results[0].currency, stars: agg.results[0].stars }
+          : null
+      }
+    };
+  } catch (err) {
+    console.error('Hotel tool execution error:', err.message);
+    return { toolResultPayload: { error: 'search_failed' } };
+  }
+};
+
+export const resolveToolCall = async (toolCall, messages, context = {}, options = {}) => {
+  const isHotel = toolCall.function.name === 'search_hotels';
 
   let args;
   try {
@@ -345,58 +501,16 @@ export const resolveFlightToolCall = async (toolCall, messages, context = {}, op
     args = {};
   }
 
-  let toolResultPayload;
-  let results = null;
-  let resultsType = null;
-  let providerStatus = null;
+  const { toolResultPayload, results = null, resultsType = null, providerStatus = null } = isHotel
+    ? await executeHotelTool(args, options)
+    : await executeFlightTool(args, options);
 
-  if (!canUseFlightTool) {
-    toolResultPayload = { error: 'rate_limited' };
-  } else if (!args.origin || !args.destination) {
-    toolResultPayload = { error: 'missing_search_params' };
-  } else {
-    try {
-      const [origin, destination] = await Promise.all([resolveIata(args.origin), resolveIata(args.destination)]);
-      if (!origin || !destination) {
-        toolResultPayload = {
-          error: 'could_not_resolve_airport',
-          unresolvedOrigin: !origin ? args.origin : null,
-          unresolvedDestination: !destination ? args.destination : null
-        };
-      } else {
-        const usedDefaultDate = !args.departureDate;
-        const departureDate = args.departureDate || DEFAULT_SEARCH_DATE();
-        const agg = await aggregateFlightSearch({
-          origin,
-          destination,
-          departureDate,
-          returnDate: args.returnDate || null,
-          adults: args.adults || 1,
-          travelClass: args.travelClass || 'economy'
-        });
-        results = agg.results;
-        resultsType = 'flights';
-        providerStatus = agg.providerStatus;
-        toolResultPayload = {
-          resultCount: agg.results.length,
-          providerStatus: agg.providerStatus,
-          usedDefaultDate,
-          searchedDate: departureDate,
-          cheapest: agg.results[0]
-            ? { airline: agg.results[0].airline, price: agg.results[0].price, currency: agg.results[0].currency, stops: agg.results[0].stops }
-            : null
-        };
-      }
-    } catch (err) {
-      console.error('Flight tool execution error:', err.message);
-      toolResultPayload = { error: 'search_failed' };
-    }
-  }
-
+  const servicePath = isHotel ? '/hotels' : '/flights';
+  const noun = isHotel ? 'hotel' : 'flight';
   const fallbackText = results?.length
-    ? `Found ${results.length} flight option${results.length !== 1 ? 's' : ''} for you!`
-    : "Sorry, I couldn't complete that search — try again in a moment, or use [/flights](/flights) directly.";
-  const fallbackType = results?.length ? 'flight_results' : 'error';
+    ? `Found ${results.length} ${noun} option${results.length !== 1 ? 's' : ''} for you!`
+    : `Sorry, I couldn't complete that search — try again in a moment, or use [${servicePath}](${servicePath}) directly.`;
+  const fallbackType = results?.length ? `${noun}_results` : 'error';
 
   const client = getOpenAIClient();
   if (!client) {
@@ -435,14 +549,14 @@ export const resolveFlightToolCall = async (toolCall, messages, context = {}, op
 };
 
 export const generateViResponseWithTools = async (userMessage, context = {}, conversationHistory = [], options = {}) => {
-  const { toolCall, messages } = await detectFlightToolCall(userMessage, context, conversationHistory);
+  const { toolCall, messages } = await detectToolCall(userMessage, context, conversationHistory);
 
   if (!toolCall) {
     const reply = await generateViResponse(userMessage, context, conversationHistory);
     return { ...reply, results: null, resultsType: null, providerStatus: null };
   }
 
-  return resolveFlightToolCall(toolCall, messages, context, options);
+  return resolveToolCall(toolCall, messages, context, options);
 };
 
 const generateFallbackResponse = (userMessage, context) => {
@@ -545,4 +659,4 @@ const getContextualQuickReplies = (context) => {
   return [...base.slice(0, 3), serviceReply];
 };
 
-export default { generateViResponse, generateViResponseWithTools, detectFlightToolCall, resolveFlightToolCall };
+export default { generateViResponse, generateViResponseWithTools, detectToolCall, resolveToolCall };

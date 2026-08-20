@@ -1,0 +1,134 @@
+.hiw-section {
+  padding: 76px 0 88px;
+  background: #f8fafb;
+}
+
+.hiw-header {
+  text-align: center;
+  max-width: 620px;
+  margin: 0 auto 52px;
+}
+
+.hiw-eyebrow {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--primary, #029e9d);
+  background: var(--primary-light, #f0fdfa);
+  border: 1px solid var(--primary-50, #ccfbf1);
+  padding: 4px 14px;
+  border-radius: 100px;
+  margin-bottom: 14px;
+}
+
+.hiw-title {
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  font-weight: 800;
+  color: #122d46;
+  margin: 0 0 14px;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.hiw-title .theme {
+  color: var(--primary, #029e9d);
+}
+
+.hiw-sub {
+  font-size: 15px;
+  color: #64748b;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.hiw-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.hiw-card {
+  position: relative;
+  background: #fff;
+  border: 1px solid #eef1f4;
+  border-radius: 18px;
+  padding: 32px 24px 28px;
+  box-shadow: 0 4px 20px rgba(18, 45, 70, 0.05);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.hiw-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 28px rgba(18, 45, 70, 0.1);
+}
+
+.hiw-card__num {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--primary, #029e9d);
+  opacity: 0.14;
+  line-height: 1;
+}
+
+.hiw-card__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0a539d, #029e9d);
+  color: #fff;
+  font-size: 20px;
+  margin-bottom: 18px;
+}
+
+.hiw-card__title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #17233e;
+  margin: 0 0 10px;
+}
+
+.hiw-card__desc {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: #64748b;
+  margin: 0;
+}
+
+.hiw-footer {
+  text-align: center;
+  margin-top: 44px;
+}
+
+.hiw-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--primary, #029e9d);
+  text-decoration: none;
+}
+
+.hiw-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 991px) {
+  .hiw-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .hiw-grid {
+    grid-template-columns: 1fr;
+  }
+}

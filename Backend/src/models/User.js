@@ -79,6 +79,31 @@ const userSchema = new mongoose.Schema({
     dietaryRestrictions: { type: [String], default: [] },
     accessibility: { type: [String], default: [] }
   },
+  notificationPreferences: {
+    tripReminders: { type: Boolean, default: true },
+    bookingConfirmations: { type: Boolean, default: true },
+    aiRecommendations: { type: Boolean, default: true },
+    tripStoryActivity: { type: Boolean, default: true }
+  },
+  mapPrivacy: {
+    type: String,
+    enum: ['private', 'countries_only', 'full_map', 'selected_trips'],
+    default: 'private'
+  },
+  mapShareToken: { type: String, index: true, sparse: true },
+  achievements: [{
+    id: { type: String, required: true },
+    unlockedAt: { type: Date, default: Date.now }
+  }],
+  newsletterSubscribed: { type: Boolean, default: false },
+  shippingAddress: {
+    line1: { type: String, trim: true, default: '' },
+    line2: { type: String, trim: true, default: '' },
+    city: { type: String, trim: true, default: '' },
+    state: { type: String, trim: true, default: '' },
+    postalCode: { type: String, trim: true, default: '' },
+    country: { type: String, trim: true, default: '' }
+  },
   isActive: {
     type: Boolean,
     default: true

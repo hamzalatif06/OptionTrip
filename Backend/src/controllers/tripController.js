@@ -1,9 +1,18 @@
+import mongoose from 'mongoose';
 import Trip from '../models/Trip.js';
 import VisitedLocation from '../models/VisitedLocation.js';
 import crypto from 'crypto';
 import { generateLightweightTripOptions, generateDetailedItinerary, generateSingleDayItinerary, parseTripDescription, suggestDestinations as aiSuggestDestinations } from '../services/openaiService.js';
 import { enrichItineraryWithPlaces, enrichSingleDayWithPlaces } from '../services/placesService.js';
 import { searchDestinationImage } from '../services/unsplashService.js';
+import { startTripNow } from '../services/tripLifecycleService.js';
+import { checkAndUnlockAchievements } from '../services/achievementService.js';
+
+const maybeCheckAchievements = (userId) => {
+  if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+    checkAndUnlockAchievements(userId).catch(() => {});
+  }
+};
 
 export const generateTripOptions = async (req, res) => {
   try {
@@ -80,6 +89,7 @@ export const generateTripOptions = async (req, res) => {
     });
 
     await trip.save();
+    maybeCheckAchievements(user_id);
 
     console.log(`💾 Trip saved with ID: ${trip_id}`);
 
@@ -637,6 +647,7 @@ export const addVisitedLocation = async (req, res) => {
       image
     });
     await location.save();
+    maybeCheckAchievements(userId);
     res.status(201).json({ success: true, data: { location } });
   } catch (err) {
     console.error('Error adding visited location:', err);
@@ -777,6 +788,36 @@ export const markTripConfirmed = async (req, res) => {
     );
     if (!updated) return res.status(404).json({ success: false, message: 'Trip not found' });
     return res.json({ success: true, data: { status: updated.status } });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+export const startTrip = async (req, res) => {
+  try {
+    const userId = req.user?._id?.toString();
+    const { trip, error } = await startTripNow(req.params.tripId, userId);
+    if (error === 'not_found') return res.status(404).json({ success: false, message: 'Trip not found' });
+    if (error === 'forbidden') return res.status(403).json({ success: false, message: 'Not authorized' });
+    return res.json({ success: true, data: { travel_status: trip.travel_status } });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+export const addTripNote = async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text || !text.trim()) {
+      return res.status(400).json({ success: false, message: 'Note text is required' });
+    }
+    const updated = await Trip.findOneAndUpdate(
+      { trip_id: req.params.tripId },
+      { $push: { notes: { text: text.trim() } } },
+      { new: true }
+    );
+    if (!updated) return res.status(404).json({ success: false, message: 'Trip not found' });
+    return res.status(201).json({ success: true, data: { notes: updated.notes } });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }

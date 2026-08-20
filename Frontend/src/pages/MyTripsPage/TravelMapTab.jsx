@@ -1,7 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ensureLeafletReady, applyTileStyle, fitMapToPoints } from '../../utils/leafletUtils';
 import { buildDestinationIcon, buildActivityIcon } from '../../components/TravelMap/markerIcons';
+import { getMyTripStoryEntries } from '../../services/tripStoryService';
+import LeaveTripStoryModal from '../../components/TripStory/LeaveTripStoryModal';
 import './TravelMapTab.css';
 
 const fmt = (d) =>
@@ -25,6 +27,14 @@ const getCoords = (trip) => {
 const TravelMapTab = ({ mapTrips }) => {
   const containerRef = useRef(null);
   const mapRef       = useRef(null);
+  const [tips, setTips]         = useState([]);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+
+  useEffect(() => {
+    getMyTripStoryEntries().then((res) => {
+      if (res?.success) setTips(res.data.entries || []);
+    });
+  }, []);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -41,6 +51,7 @@ const TravelMapTab = ({ mapTrips }) => {
 
       const map = L.map(containerRef.current, { zoomControl: true, scrollWheelZoom: true });
       mapRef.current = map;
+      map.setView([20, 0], 2);
       applyTileStyle(L, map, 'voyager');
 
       const points = [];
@@ -49,12 +60,12 @@ const TravelMapTab = ({ mapTrips }) => {
         const coords = getCoords(trip);
         if (!coords) return;
 
-        points.push([coords.lat, coords.lng]);
+        points.push({ lat: coords.lat, lng: coords.lng });
 
         const hasDestCoords = trip.destination?.geometry?.lat && trip.destination?.geometry?.lng;
         const icon = hasDestCoords
-          ? buildDestinationIcon(trip.destination?.name || 'Trip')
-          : buildActivityIcon('destination', trip.destination?.name || 'Trip');
+          ? buildDestinationIcon(L, { name: trip.destination?.name || 'Trip' })
+          : buildActivityIcon(L, { category: 'destination', title: trip.destination?.name || 'Trip' });
 
         const marker = L.marker([coords.lat, coords.lng], { icon }).addTo(map);
 
@@ -78,6 +89,25 @@ const TravelMapTab = ({ mapTrips }) => {
         `);
       });
 
+      tips.forEach((tip) => {
+        const lat = tip.location?.coordinates?.lat;
+        const lng = tip.location?.coordinates?.lng;
+        if (typeof lat !== 'number' || typeof lng !== 'number') return;
+
+        points.push({ lat, lng });
+        const icon = buildActivityIcon(L, { category: 'activity', title: tip.location?.name });
+        const marker = L.marker([lat, lng], { icon }).addTo(map);
+        const safeText = String(tip.text || '').replace(/[<>&"]/g, (ch) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[ch]));
+        marker.bindPopup(`
+          <div style="min-width:200px;max-width:240px;font-family:inherit;padding:4px 0">
+            <strong style="font-size:13px;color:#122d46;display:block;margin-bottom:4px">
+              📍 ${tip.location?.name || 'Tip'}
+            </strong>
+            <span style="font-size:12.5px;color:#475569;line-height:1.5">${safeText}</span>
+          </div>
+        `);
+      });
+
       if (points.length > 0) {
         fitMapToPoints(L, map, points);
       } else {
@@ -91,7 +121,7 @@ const TravelMapTab = ({ mapTrips }) => {
         mapRef.current = null;
       }
     };
-  }, [mapTrips]);
+  }, [mapTrips, tips]);
 
   const allTrips = mapTrips || [];
 
@@ -103,6 +133,14 @@ const TravelMapTab = ({ mapTrips }) => {
           Your Destinations
           <span className="tmt__sidebar-count">{allTrips.length}</span>
         </h3>
+
+        <button type="button" className="tmt__add-tip-btn" onClick={() => setShowLeaveModal(true)}>
+          + Leave a travel tip
+        </button>
+
+        {tips.length > 0 && (
+          <p className="tmt__tips-count">{tips.length} tip{tips.length !== 1 ? 's' : ''} on your map</p>
+        )}
 
         {allTrips.length === 0 ? (
           <p className="tmt__sidebar-empty">
@@ -134,6 +172,13 @@ const TravelMapTab = ({ mapTrips }) => {
 
 
       <div className="tmt__map" ref={containerRef} />
+
+      {showLeaveModal && (
+        <LeaveTripStoryModal
+          onClose={() => setShowLeaveModal(false)}
+          onCreated={(entry) => setTips((prev) => [entry, ...prev])}
+        />
+      )}
     </div>
   );
 };

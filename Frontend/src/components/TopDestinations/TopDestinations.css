@@ -443,3 +443,23 @@
     font-size: 12px;
   }
 }
+
+.card-guide-link {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #122D46;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  text-decoration: none;
+  z-index: 2;
+  transition: background 0.15s ease;
+}
+
+.card-guide-link:hover {
+  background: #fff;
+  color: #0A539D;
+}

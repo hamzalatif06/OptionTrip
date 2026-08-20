@@ -349,6 +349,27 @@ export const parseTripDescription = async (text) => {
   }
 };
 
+export const suggestDestinations = async (query, budget) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/trips/suggest-destinations`, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, budget }),
+    });
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error('Error suggesting destinations:', error);
+    throw error;
+  }
+};
+
+export const getAchievements = async (token) => {
+  const response = await authenticatedFetch(`${API_BASE_URL}/api/auth/achievements`, { method: 'GET' }, token);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json();
+};
+
 export const getMapData = async (token) => {
   try {
     const response = await authenticatedFetch(`${API_BASE_URL}/api/trips/map-data`, { method: 'GET' }, token);
@@ -469,6 +490,26 @@ export const shareTrip = async (tripId, token) => {
   const response = await authenticatedFetch(
     `${API_BASE_URL}/api/trips/${tripId}/share`,
     { method: 'POST' },
+    token
+  );
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json();
+};
+
+export const startTrip = async (tripId, token) => {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/trips/${tripId}/start`,
+    { method: 'PATCH' },
+    token
+  );
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json();
+};
+
+export const addTripNote = async (tripId, text, token) => {
+  const response = await authenticatedFetch(
+    `${API_BASE_URL}/api/trips/${tripId}/notes`,
+    { method: 'POST', body: JSON.stringify({ text }) },
     token
   );
   if (!response.ok) throw new Error(`HTTP ${response.status}`);

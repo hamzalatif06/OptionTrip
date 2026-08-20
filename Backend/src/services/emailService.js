@@ -9,6 +9,33 @@ const createTransporter = () =>
     },
   });
 
+export const sendNotificationEmail = async (email, name, { title, body, ctaLabel, ctaUrl }) => {
+  const transporter = createTransporter();
+  const siteUrl = process.env.VITE_SITE_URL || 'https://optiontrip.com';
+
+  await transporter.sendMail({
+    from: `"OptionTrip" <${process.env.SMTP_USER}>`,
+    to: email,
+    subject: title,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px;background:#f9f9f9;border-radius:10px;">
+        <div style="text-align:center;margin-bottom:24px;">
+          <img src="${siteUrl}/images/newLogo.png" alt="OptionTrip" style="height:48px;" />
+        </div>
+        <h2 style="color:#0A539D;margin:0 0 8px;">${title}</h2>
+        <p style="color:#555;margin:0 0 24px;">Hi ${name},</p>
+        <p style="color:#555;margin:0 0 24px;">${body}</p>
+        ${ctaUrl ? `
+        <div style="text-align:center;margin-bottom:24px;">
+          <a href="${siteUrl}${ctaUrl}" style="display:inline-block;padding:12px 28px;background:#0A539D;color:#fff;border-radius:999px;text-decoration:none;font-weight:600;">${ctaLabel || 'View'}</a>
+        </div>` : ''}
+        <hr style="border:none;border-top:1px solid #eee;margin:24px 0;" />
+        <p style="color:#bbb;font-size:12px;text-align:center;">© ${new Date().getFullYear()} OptionTrip. All rights reserved.</p>
+      </div>
+    `,
+  });
+};
+
 export const sendOtpEmail = async (email, name, otp) => {
   const transporter = createTransporter();
 

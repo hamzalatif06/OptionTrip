@@ -180,4 +180,18 @@ router.patch(
   authController.updatePreferences
 );
 
+router.patch(
+  '/settings',
+  authenticate,
+  generalRateLimiter,
+  authController.updateSettings
+);
+
+router.get(
+  '/achievements',
+  authenticate,
+  generalRateLimiter,
+  authController.getAchievements
+);
+
 export default router;

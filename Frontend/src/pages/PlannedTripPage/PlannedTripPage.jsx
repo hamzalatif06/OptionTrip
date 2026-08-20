@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import HeroSection from './sections/HeroSection';
+import LiveTripPanel from './sections/LiveTripPanel';
 import ActivitiesSection from './sections/ActivitiesSection';
 import ViAssistant from '../../components/ViAssistant/ViAssistant';
 import PageMeta from '../../hooks/usePageMeta';
@@ -13,6 +14,7 @@ import {
   saveTrip,
   confirmTrip,
   shareTrip,
+  startTrip,
 } from '../../services/tripsService';
 import { getAccessToken } from '../../services/authService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -64,6 +66,8 @@ const PlannedTripPage = () => {
   const [markingBooked,  setMarkingBooked]  = useState(false);
   const [shareUrl,       setShareUrl]       = useState(null);
   const [isSharing,      setIsSharing]      = useState(false);
+  const [travelStatus,   setTravelStatus]   = useState(null);
+  const [startingTrip,   setStartingTrip]   = useState(false);
 
   const handleSaveTrip = async () => {
     if (!isAuthenticated) {
@@ -99,6 +103,7 @@ const PlannedTripPage = () => {
       if (tripData.selectedFlight) setSelectedFlight(tripData.selectedFlight);
       if (tripData.selectedHotel)  setSelectedHotel(tripData.selectedHotel);
       if (tripData.status)         setTripStatus(tripData.status);
+      setTravelStatus(tripData.travel_status || 'planned');
     }
   }, [tripData]);
 
@@ -263,6 +268,27 @@ const PlannedTripPage = () => {
         isSaving={isSaving}
       />
 
+
+      <LiveTripPanel tripData={{ ...tripData, travel_status: travelStatus }} daysData={tripDaysData} />
+
+      {isAuthenticated && travelStatus === 'planned' && (
+        <div className="planned-trip-start-bar">
+          <button
+            className="planned-trip-share-bar__btn"
+            disabled={startingTrip}
+            onClick={async () => {
+              setStartingTrip(true);
+              try {
+                const token = getAccessToken();
+                const res = await startTrip(tripId, token);
+                if (res.success) setTravelStatus(res.data.travel_status);
+              } catch {} finally { setStartingTrip(false); }
+            }}
+          >
+            {startingTrip ? 'Starting…' : '🧳 Start this trip'}
+          </button>
+        </div>
+      )}
 
       <ActivitiesSection
         tripId={tripId}

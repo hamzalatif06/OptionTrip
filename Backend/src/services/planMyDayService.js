@@ -150,7 +150,7 @@ const weatherCodeMap = {
   99: { label: 'Severe thunderstorm',emoji: '⛈️' }
 };
 
-const fetchWeather = async (lat, lng, dateISO) => {
+export const fetchWeather = async (lat, lng, dateISO) => {
   if (typeof lat !== 'number' || typeof lng !== 'number') return null;
   try {
     const url =
@@ -431,4 +431,4 @@ const generateFallbackPlan = async ({ location, dateISO, vibe, weather, await: w
   };
 };
 
-export default { generateDayPlan };
+export default { generateDayPlan, fetchWeather };

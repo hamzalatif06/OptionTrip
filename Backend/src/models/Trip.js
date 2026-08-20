@@ -234,6 +234,16 @@ const tripSchema = new mongoose.Schema({
     default: 'draft'
   },
 
+  travel_status: {
+    type: String,
+    enum: ['planned', 'active', 'completed'],
+    default: 'planned'
+  },
+  notes: [{
+    text: { type: String, required: true, trim: true, maxlength: 1000 },
+    createdAt: { type: Date, default: Date.now }
+  }],
+
   shareToken: { type: String, index: true, sparse: true },
   isPublic: { type: Boolean, default: false }
 }, {

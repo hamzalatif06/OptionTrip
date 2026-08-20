@@ -1,0 +1,61 @@
+.share-btn {
+  position: relative;
+  display: inline-block;
+}
+
+.share-btn__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #17233e;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.share-btn__trigger:hover { border-color: #029e9d; color: #029e9d; }
+
+.share-btn__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 50;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+  min-width: 170px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.share-btn__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: none;
+  background: none;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.share-btn__item:hover { background: #f1f5f9; }
+.share-btn__item i { width: 16px; color: #64748b; }
+
+@media (prefers-color-scheme: dark) {
+  .share-btn__trigger { background: #1e293b; border-color: #334155; color: #f8fafc; }
+  .share-btn__menu { background: #1e293b; border-color: #334155; }
+  .share-btn__item { color: #e2e8f0; }
+  .share-btn__item:hover { background: #334155; }
+}

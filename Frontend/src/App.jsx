@@ -33,6 +33,8 @@ import PopularRoutesPage from './pages/PopularRoutesPage';
 import TravelTipsPage from './pages/TravelTipsPage';
 import AdminPage from './pages/AdminPage/AdminPage';
 import SharedTripPage from './pages/SharedTripPage/SharedTripPage';
+import SharedTravelMapPage from './pages/SharedTravelMapPage/SharedTravelMapPage';
+import DestinationPage from './pages/DestinationPage/DestinationPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import CookiePolicyPage from './pages/CookiePolicyPage';
@@ -97,6 +99,8 @@ function App() {
               <Route path="/trips/:tripId" element={<TripIterationsPage />} />
               <Route path="/planned-trip/:tripId" element={<PlannedTripPage />} />
               <Route path="/shared/:shareToken" element={<SharedTripPage />} />
+              <Route path="/shared-map/:token" element={<SharedTravelMapPage />} />
+              <Route path="/destination/:slug" element={<DestinationPage />} />
               <Route path="/my-trips" element={<MyTripsPage />} />
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/profile" element={<ProfilePage />} />

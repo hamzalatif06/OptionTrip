@@ -516,17 +516,24 @@
   justify-content: center;
   gap: 10px;
   width: 100%;
-  padding: 8px 15px;
+  min-height: 52px;
+  padding: 15px 22px;
   background: linear-gradient(135deg, #0A539D 0%, #029e9d 100%);
   color: white;
   border: none;
-  border-radius: 5px;
-  font-size: 16px;
+  border-radius: 8px;
+  font-size: 17px;
   font-weight: 700;
   cursor: pointer;
   transition: all ease-in-out 0.5s;
-  box-shadow: 0 6px 24px rgba(10, 83, 157, 0.35);
+  box-shadow: 0 10px 30px rgba(10, 83, 157, 0.4);
   letter-spacing: 0.01em;
+}
+
+.search-button svg {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
 }
 
 .search-button::before {
@@ -949,3 +956,124 @@
   }
 }
 
+
+
+.destination-discovery__loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #64748b;
+  margin-top: 12px;
+}
+
+.destination-discovery {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.destination-discovery__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #17233e;
+  margin: 0 0 12px;
+}
+
+.destination-discovery__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.destination-discovery__card {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.destination-discovery__card:focus-visible {
+  outline: 2px solid #0A539D;
+  outline-offset: 2px;
+}
+
+.destination-discovery__card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(10, 83, 157, 0.12);
+  border-color: #0A539D;
+}
+
+.destination-discovery__img-wrap {
+  position: relative;
+  width: 100%;
+  height: 90px;
+  background: #eef2f7;
+}
+
+.destination-discovery__img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.destination-discovery__heart {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.destination-discovery__heart:hover { transform: scale(1.1); }
+.destination-discovery__heart--saved { color: #F30F89; }
+
+.destination-discovery__info {
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.destination-discovery__city {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #17233e;
+}
+
+.destination-discovery__country {
+  font-size: 11.5px;
+  color: #94a3b8;
+}
+
+.destination-discovery__why {
+  font-size: 11.5px;
+  color: #475569;
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .destination-discovery { border-color: #334155; }
+  .destination-discovery__label { color: #f8fafc; }
+  .destination-discovery__card { background: #1e293b; border-color: #334155; }
+  .destination-discovery__img-wrap { background: #334155; }
+  .destination-discovery__city { color: #f8fafc; }
+  .destination-discovery__why { color: #cbd5e1; }
+}

@@ -2,19 +2,17 @@ import {
   searchHotelLocations as tpSearchLocations,
 } from '../services/travelpayoutsService.js';
 import {
-  searchDestination,
-  searchHotels    as bookingSearchHotels,
   getHotelDetails as bookingGetDetails,
   getRoomList     as bookingGetRooms,
   getHotelPhotos  as bookingGetPhotos,
   getReviewScores as bookingGetReviews,
 } from '../services/bookingHotelService.js';
 import {
-  searchHotelsHotelbeds,
   getHotelbedsDetails,
   getHotelbedsRooms,
   HB_PREFIX,
 } from '../services/hotelbedsService.js';
+import { searchHotelsWithFallback } from '../services/hotelSearchService.js';
 
 const parseHbId = (hotelId) => {
   const inner = hotelId.slice(HB_PREFIX.length);
@@ -50,57 +48,16 @@ export const getHotelLocations = async (req, res) => {
 };
 
 export const searchHotels = async (req, res) => {
-  const { destId, searchType = 'CITY', checkIn, checkOut, adults = 1, rooms = 1, cityName = '' } = req.query;
+  const { destId, checkIn, checkOut, adults = 1, rooms = 1, cityName = '' } = req.query;
 
   if (!destId || !checkIn || !checkOut)
     return res.status(400).json({ success: false, message: 'destId, checkIn and checkOut are required' });
 
-  try {
-    const hotels = await searchHotelsHotelbeds({
-      destinationCode: destId,
-      checkIn,
-      checkOut,
-      adults:  Number(adults),
-      rooms:   Number(rooms),
-      cityName,
-    });
+  const { hotels, source } = await searchHotelsWithFallback({
+    destId, cityName, checkIn, checkOut, adults: Number(adults), rooms: Number(rooms)
+  });
 
-    if (hotels.length > 0) {
-      console.log(`🏨 Hotelbeds: ${hotels.length} hotel(s) for ${destId}`);
-      return res.json({ success: true, data: { hotels, count: hotels.length, source: 'hotelbeds' } });
-    }
-
-    console.log(`⚠️  Hotelbeds: 0 results for "${destId}" — trying Booking.com fallback`);
-  } catch (err) {
-    console.warn(`⚠️  Hotelbeds failed for "${destId}": ${err.message} — trying Booking.com fallback`);
-  }
-
-  try {
-    const searchTerm = cityName || destId;
-    const destinations = await searchDestination(searchTerm);
-
-    if (destinations.length > 0) {
-      const dest = destinations[0];
-      const hotels = await bookingSearchHotels({
-        destId:     dest.destId,
-        searchType: dest.searchType || 'CITY',
-        checkIn,
-        checkOut,
-        adults:   Number(adults),
-        rooms:    Number(rooms),
-        cityName: dest.name || cityName,
-      });
-
-      if (hotels.length > 0) {
-        console.log(`🏨 Booking.com fallback: ${hotels.length} hotel(s) for "${searchTerm}"`);
-        return res.json({ success: true, data: { hotels, count: hotels.length, source: 'booking' } });
-      }
-    }
-  } catch (err) {
-    console.warn(`⚠️  Booking.com fallback failed: ${err.message}`);
-  }
-
-  return res.json({ success: true, data: { hotels: [], count: 0 } });
+  return res.json({ success: true, data: { hotels, count: hotels.length, source: source || undefined } });
 };
 
 export const getHotelDetailsHandler = async (req, res) => {

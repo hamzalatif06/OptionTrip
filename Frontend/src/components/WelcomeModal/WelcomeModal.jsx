@@ -4,6 +4,13 @@ import './WelcomeModal.css';
 
 const STORAGE_KEY = 'ot_welcome_seen';
 
+const TRIP_CATEGORIES = [
+  { id: 'beach', label: '🏖️ Beach', text: 'A relaxing beach getaway with warm weather and great food' },
+  { id: 'adventure', label: '🏔️ Adventure', text: 'An adventure trip with hiking, nature, and outdoor activities' },
+  { id: 'culture', label: '🏛️ Culture', text: 'A culture-focused trip with history, museums, and local traditions' },
+  { id: 'relaxation', label: '🧘 Relaxation', text: 'A slow, relaxing trip to unwind and recharge' },
+];
+
 const FEATURES = [
   {
     id: 'ai',
@@ -90,6 +97,11 @@ const WelcomeModal = () => {
     if (path !== '/') navigate(path);
   };
 
+  const goWithCategory = (category) => {
+    dismiss();
+    navigate('/', { state: { starterDescription: category.text } });
+  };
+
   if (!visible) return null;
 
   return (
@@ -114,6 +126,18 @@ const WelcomeModal = () => {
           <p className="wm__hero-sub">
             Powered by Travel Partner Vi · Flights · Stays · Car Rentals — everything in one place.
           </p>
+        </div>
+
+
+        <div className="wm__quickstart">
+          <span className="wm__quickstart-label">What kind of trip do you want?</span>
+          <div className="wm__quickstart-chips">
+            {TRIP_CATEGORIES.map((cat) => (
+              <button key={cat.id} className="wm__quickstart-chip" onClick={() => goWithCategory(cat)}>
+                {cat.label}
+              </button>
+            ))}
+          </div>
         </div>
 
 

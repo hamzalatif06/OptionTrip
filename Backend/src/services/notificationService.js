@@ -2,9 +2,27 @@ import mongoose from 'mongoose';
 import OpenAI from 'openai';
 import Notification from '../models/Notification.js';
 import Trip from '../models/Trip.js';
+import User from '../models/User.js';
 import UserMemoryProfile from '../models/UserMemoryProfile.js';
 import { getRecentActivities } from './userActivityService.js';
 import { computeServiceSignals } from './serviceSignalsService.js';
+import { sendNotificationEmail } from './emailService.js';
+
+const EMAILABLE_TYPES = new Set(['trip_reminder']);
+
+const maybeSendEmail = async ({ user_id, type, title, body, cta }) => {
+  if (!EMAILABLE_TYPES.has(type)) return;
+  try {
+    const user = await User.findById(user_id).select('name email notificationPreferences');
+    if (!user?.email) return;
+    if (user.notificationPreferences?.tripReminders === false) return;
+    await sendNotificationEmail(user.email, user.name || 'traveler', {
+      title, body, ctaLabel: cta?.label, ctaUrl: cta?.url
+    });
+  } catch (err) {
+    console.error('maybeSendEmail failed:', err.message);
+  }
+};
 
 const hasNotifiableUser = (userId) => mongoose.Types.ObjectId.isValid(userId);
 
@@ -49,6 +67,9 @@ export const createNotification = async ({
       { upsert: true, new: false, includeResultMetadata: true }
     );
     const created = !result.lastErrorObject?.updatedExisting;
+    if (created) {
+      maybeSendEmail({ user_id, type, title, body, cta }).catch(() => {});
+    }
     return { created };
   } catch (err) {
     if (err.code === 11000)
@@ -238,6 +259,49 @@ export const generateDestinationNewsNotifications = async (limit = 100) => {
   return created;
 };
 
+const YEAR_WRAP_UP_WINDOW = { startMonth: 11, startDay: 28, endMonth: 0, endDay: 7 };
+
+const isInYearWrapUpWindow = (date) => {
+  const month = date.getMonth();
+  const day = date.getDate();
+  return (month === YEAR_WRAP_UP_WINDOW.startMonth && day >= YEAR_WRAP_UP_WINDOW.startDay) ||
+         (month === YEAR_WRAP_UP_WINDOW.endMonth && day <= YEAR_WRAP_UP_WINDOW.endDay);
+};
+
+export const generateYearlyReportNotifications = async () => {
+  const now = new Date();
+  if (!isInYearWrapUpWindow(now)) return 0;
+
+  const reportYear = now.getMonth() === 11 ? now.getFullYear() : now.getFullYear() - 1;
+  const yearStart = `${reportYear}-01-01`;
+  const yearEnd = `${reportYear}-12-31`;
+
+  const activeUserIds = await Trip.distinct('user_id', {
+    deleted: { $ne: true },
+    'dates.start_date': { $gte: yearStart, $lte: yearEnd }
+  });
+
+  let created = 0;
+  for (const userId of activeUserIds) {
+    if (!hasNotifiableUser(userId)) continue;
+    try {
+      const { created: didCreate } = await createNotification({
+        user_id: userId,
+        type: 'yearly_report',
+        title: `Your ${reportYear} Travel Report is ready`,
+        body: `See where you went, how far you traveled, and relive your ${reportYear} trips.`,
+        cta: { label: 'View report', url: '/my-trips' },
+        dedupe_key: `yearly_report:${userId}:${reportYear}`,
+        priority: 'low'
+      });
+      if (didCreate) created++;
+    } catch (err) {
+      console.error(`generateYearlyReportNotifications: user ${userId} failed:`, err.message);
+    }
+  }
+  return created;
+};
+
 export default {
   createNotification,
   getNotifications,
@@ -247,5 +311,6 @@ export default {
   dismiss,
   generateTripReminders,
   generateServiceUpsellNotifications,
-  generateDestinationNewsNotifications
+  generateDestinationNewsNotifications,
+  generateYearlyReportNotifications
 };

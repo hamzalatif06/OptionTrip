@@ -1,0 +1,132 @@
+.ltp {
+  max-width: 1100px;
+  margin: 0 auto 24px;
+  padding: 24px 28px;
+  background: linear-gradient(135deg, #0a539d 0%, #029e9d 100%);
+  border-radius: 20px;
+  color: #fff;
+}
+
+.ltp__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.ltp__eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: rgba(255, 255, 255, 0.18);
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+}
+
+.ltp__title {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0;
+  color: #fff;
+}
+
+.ltp__weather {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 20px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.ltp__weather-icon { font-size: 26px; }
+
+.ltp__plan {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.ltp__plan-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  font-size: 13.5px;
+  flex-wrap: wrap;
+}
+
+.ltp__plan-time {
+  font-weight: 700;
+  min-width: 56px;
+}
+
+.ltp__plan-title { font-weight: 600; }
+.ltp__plan-place { opacity: 0.8; font-size: 12.5px; }
+
+.ltp__no-plan {
+  font-size: 14px;
+  opacity: 0.9;
+  margin: 0 0 18px;
+}
+
+.ltp__actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.ltp__actions button {
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ltp__actions button:hover { background: rgba(255, 255, 255, 0.22); }
+
+.ltp__note-row {
+  display: flex;
+  gap: 8px;
+}
+
+.ltp__note-row input {
+  flex: 1;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: none;
+  font-size: 13.5px;
+  color: #17233e;
+}
+
+.ltp__note-row input:focus { outline: 2px solid rgba(255, 255, 255, 0.5); }
+
+.ltp__note-row button {
+  padding: 9px 18px;
+  border-radius: 10px;
+  border: none;
+  background: #fff;
+  color: #029e9d;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ltp__note-row button:disabled { opacity: 0.6; cursor: default; }
+
+@media (max-width: 640px) {
+  .ltp { margin-left: 16px; margin-right: 16px; padding: 20px; }
+  .ltp__header { flex-direction: column; }
+}

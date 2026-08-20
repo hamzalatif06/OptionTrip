@@ -24,9 +24,70 @@
   --text-faint:   #94a3b8;
   --text-inverse: #ffffff;
 
-  
+
   --border:       #e2e8f0;
   --border-input: #e2e8f0;
+}
+
+
+[data-accent="blue"] {
+  --primary:          #2563eb;
+  --primary-dark:     #1d4ed8;
+  --primary-hover:    #1e40af;
+  --primary-light:    #eff6ff;
+  --primary-ring:     rgba(37, 99, 235, 0.18);
+  --primary-50:       #dbeafe;
+  --primary-gradient: linear-gradient(135deg, #0c1e3d 0%, #1e3a6e 50%, #2563eb 100%);
+}
+
+[data-accent="green"] {
+  --primary:          #16a34a;
+  --primary-dark:     #15803d;
+  --primary-hover:    #166534;
+  --primary-light:    #f0fdf4;
+  --primary-ring:     rgba(22, 163, 74, 0.18);
+  --primary-50:       #bbf7d0;
+  --primary-gradient: linear-gradient(135deg, #0a2e17 0%, #14532d 50%, #16a34a 100%);
+}
+
+[data-accent="red"] {
+  --primary:          #e11d48;
+  --primary-dark:     #be123c;
+  --primary-hover:    #9f1239;
+  --primary-light:    #fff1f2;
+  --primary-ring:     rgba(225, 29, 72, 0.18);
+  --primary-50:       #fecdd3;
+  --primary-gradient: linear-gradient(135deg, #3f0a17 0%, #7f1d3a 50%, #e11d48 100%);
+}
+
+[data-accent="orange"] {
+  --primary:          #ea580c;
+  --primary-dark:     #c2410c;
+  --primary-hover:    #9a3412;
+  --primary-light:    #fff7ed;
+  --primary-ring:     rgba(234, 88, 12, 0.18);
+  --primary-50:       #fed7aa;
+  --primary-gradient: linear-gradient(135deg, #3d1a05 0%, #7c2d12 50%, #ea580c 100%);
+}
+
+[data-accent="yellow"] {
+  --primary:          #ca8a04;
+  --primary-dark:     #a16207;
+  --primary-hover:    #854d0e;
+  --primary-light:    #fefce8;
+  --primary-ring:     rgba(202, 138, 4, 0.18);
+  --primary-50:       #fef08a;
+  --primary-gradient: linear-gradient(135deg, #422006 0%, #713f12 50%, #ca8a04 100%);
+}
+
+[data-accent="purple"] {
+  --primary:          #7c3aed;
+  --primary-dark:     #6d28d9;
+  --primary-hover:    #5b21b6;
+  --primary-light:    #f5f3ff;
+  --primary-ring:     rgba(124, 58, 237, 0.18);
+  --primary-50:       #ddd6fe;
+  --primary-gradient: linear-gradient(135deg, #1e1033 0%, #3b1f6b 50%, #7c3aed 100%);
 }
 
 

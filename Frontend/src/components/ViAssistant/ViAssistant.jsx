@@ -12,6 +12,7 @@ import {
 import { getActivityContext, logActivity } from '../../services/activityService';
 import { readCachedLocation, detectPreciseLocation, reverseGeocodeRobust } from '../../services/planMyDayService';
 import ChatFlightResults from './ChatFlightResults';
+import ChatHotelResults from './ChatHotelResults';
 import './ViAssistant.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -505,6 +506,11 @@ const ViAssistant = () => {
             continue;
           }
 
+          if (event.status === 'searching_hotels') {
+            setSearchStatus('Searching hotels across sources…');
+            continue;
+          }
+
           if (event.done) {
             setMessages(prev => prev.map(m =>
               m.id === streamMsgId
@@ -825,6 +831,19 @@ const ViAssistant = () => {
     }
   };
 
+  useEffect(() => {
+    const handler = (e) => {
+      setIsOpen(true);
+      setTimeout(() => {
+        if (e.detail?.message) setInputMessage(e.detail.message);
+        inputRef.current?.focus();
+      }, 300);
+      if (isAuthenticated) setIsSidebarOpen(true);
+    };
+    window.addEventListener('vi:open', handler);
+    return () => window.removeEventListener('vi:open', handler);
+  }, [isAuthenticated]);
+
   const handleCopyMessage = async (text) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -1099,6 +1118,14 @@ const ViAssistant = () => {
                           results={message.results}
                           providerStatus={message.providerStatus}
                           destination={message.results[0]?.destination}
+                        />
+                      )}
+
+                      {message.resultsType === 'hotels' && message.results?.length > 0 && (
+                        <ChatHotelResults
+                          results={message.results}
+                          providerStatus={message.providerStatus}
+                          destination={message.results[0]?.location?.name}
                         />
                       )}
 

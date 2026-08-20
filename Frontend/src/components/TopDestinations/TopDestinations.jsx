@@ -238,6 +238,13 @@ const TopDestinations = () => {
                       <i className="fas fa-fire"></i>
                     </span>
                   )}
+                  <Link
+                    to={`/destination/${destination.city.toLowerCase().replace(/\s+/g, '-')}`}
+                    className="card-guide-link"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Guide
+                  </Link>
                 </div>
                 <div className="card-content">
                   <div className="card-location">

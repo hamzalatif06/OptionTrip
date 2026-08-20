@@ -2,8 +2,8 @@ import {
   generateViResponse,
   streamViResponse,
   generateViResponseWithTools,
-  detectFlightToolCall,
-  resolveFlightToolCall,
+  detectToolCall,
+  resolveToolCall,
 } from '../services/chatService.js';
 import Trip from '../models/Trip.js';
 import Conversation from '../models/Conversation.js';
@@ -22,7 +22,8 @@ import {
   formatMemoryForPrompt
 } from '../services/memoryProfileService.js';
 import { computeServiceSignals } from '../services/serviceSignalsService.js';
-import { checkFlightToolBudget } from '../middleware/chatToolLimiter.js';
+import { checkToolBudget } from '../middleware/chatToolLimiter.js';
+import { fetchWeather } from '../services/planMyDayService.js';
 
 const generateConversationId = () =>
   `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -30,22 +31,39 @@ const generateConversationId = () =>
 const autoTitle = (text) =>
   text.length > 45 ? text.substring(0, 42).trimEnd() + '...' : text;
 
-const logFlightToolActivity = (user, response) => {
-  if (!user || response?.resultsType !== 'flights') return;
-  const params = response.results?.length ? { origin: response.results[0].origin, destination: response.results[0].destination } : {};
-  logActivity({
-    userId: user._id,
-    type: 'flight',
-    action: 'searched',
-    title: `Vi searched flights: ${params.origin || '?'} → ${params.destination || '?'}`,
-    metadata: {
-      origin: params.origin,
-      destination: params.destination,
-      resultCount: response.results?.length || 0,
-      providerStatus: response.providerStatus,
-      source: 'chat'
-    }
-  }).catch(err => console.error('Failed to log chat flight search activity:', err.message));
+const logToolActivity = (user, response) => {
+  if (!user || !response?.resultsType) return;
+
+  if (response.resultsType === 'flights') {
+    const first = response.results?.[0] || {};
+    logActivity({
+      userId: user._id,
+      type: 'flight',
+      action: 'searched',
+      title: `Vi searched flights: ${first.origin || '?'} → ${first.destination || '?'}`,
+      metadata: {
+        origin: first.origin,
+        destination: first.destination,
+        resultCount: response.results?.length || 0,
+        providerStatus: response.providerStatus,
+        source: 'chat'
+      }
+    }).catch(err => console.error('Failed to log chat flight search activity:', err.message));
+  } else if (response.resultsType === 'hotels') {
+    const first = response.results?.[0] || {};
+    logActivity({
+      userId: user._id,
+      type: 'hotel',
+      action: 'searched',
+      title: `Vi searched hotels: ${first.location?.name || '?'}`,
+      metadata: {
+        destination: first.location?.name,
+        resultCount: response.results?.length || 0,
+        providerStatus: response.providerStatus,
+        source: 'chat'
+      }
+    }).catch(err => console.error('Failed to log chat hotel search activity:', err.message));
+  }
 };
 
 const buildPreferences = (trips) => {
@@ -73,7 +91,8 @@ const prepareChat = async (user, { message, tripId, conversationId, location }) 
     recentActivities: [],
     unfedActivityIds: [],
     memoryProfile: '',
-    serviceSignals: []
+    serviceSignals: [],
+    weather: null
   };
 
   let conversation = null;
@@ -83,7 +102,7 @@ const prepareChat = async (user, { message, tripId, conversationId, location }) 
     try {
       const userTrips = await Trip.find({ user_id: user._id })
         .sort({ createdAt: -1 })
-        .select('trip_id destination origin dates trip_type guests budget description options selected_option_id status')
+        .select('trip_id destination origin dates trip_type guests budget description options selected_option_id status travel_status notes selectedFlight selectedHotel selectedCar')
         .limit(15);
 
       context.allTrips = userTrips;
@@ -107,6 +126,16 @@ const prepareChat = async (user, { message, tripId, conversationId, location }) 
       }
     } catch (tripErr) {
       console.error('Error fetching trips for chat context:', tripErr);
+    }
+
+    try {
+      const lat = context.currentLocation?.lat ?? context.currentTrip?.destination?.geometry?.lat;
+      const lng = context.currentLocation?.lng ?? context.currentTrip?.destination?.geometry?.lng;
+      if (typeof lat === 'number' && typeof lng === 'number') {
+        context.weather = await fetchWeather(lat, lng);
+      }
+    } catch (weatherErr) {
+      console.error('Error fetching weather for chat context:', weatherErr.message);
     }
 
     try {
@@ -185,10 +214,10 @@ export const sendMessage = async (req, res) => {
 
     const budgetKey = user?._id?.toString() || req.ip;
     const response = await generateViResponseWithTools(message, context, conversationHistory, {
-      canUseFlightTool: checkFlightToolBudget(budgetKey)
+      canUseTool: checkToolBudget(budgetKey)
     });
 
-    logFlightToolActivity(user, response);
+    logToolActivity(user, response);
 
     if (conversation) {
       try {
@@ -257,16 +286,16 @@ export const streamMessage = async (req, res) => {
     const { context, conversation, conversationHistory } =
       await prepareChat(user, { message, tripId, conversationId, location });
 
-    const { toolCall, messages: toolMessages } = await detectFlightToolCall(message, context, conversationHistory);
+    const { toolCall, messages: toolMessages } = await detectToolCall(message, context, conversationHistory);
 
     let responseText, quickReplies, type, results = null, resultsType = null, providerStatus = null;
 
     if (toolCall) {
-      send({ status: 'searching_flights' });
+      send({ status: toolCall.function.name === 'search_hotels' ? 'searching_hotels' : 'searching_flights' });
 
       const budgetKey = user?._id?.toString() || req.ip;
-      const toolResponse = await resolveFlightToolCall(toolCall, toolMessages, context, {
-        canUseFlightTool: checkFlightToolBudget(budgetKey)
+      const toolResponse = await resolveToolCall(toolCall, toolMessages, context, {
+        canUseTool: checkToolBudget(budgetKey)
       });
 
       responseText   = toolResponse.text;
@@ -276,7 +305,7 @@ export const streamMessage = async (req, res) => {
       resultsType    = toolResponse.resultsType || null;
       providerStatus = toolResponse.providerStatus || null;
 
-      logFlightToolActivity(user, toolResponse);
+      logToolActivity(user, toolResponse);
 
       send({ delta: JSON.stringify({ message: responseText, type, quickReplies }) });
     } else {

@@ -20,7 +20,9 @@ import {
   suggestDestinationsController,
   markTripConfirmed,
   shareTrip,
-  getSharedTrip
+  getSharedTrip,
+  startTrip,
+  addTripNote
 } from '../controllers/tripController.js';
 import {
   validateTripGeneration,
@@ -67,6 +69,8 @@ router.delete('/:tripId', authenticate, validateTripId, deleteTrip);
 
 router.patch('/:tripId/rename',   authenticate, validateTripId, renameTrip);
 router.patch('/:tripId/confirm',  authenticate, validateTripId, markTripConfirmed);
+router.patch('/:tripId/start',    authenticate, validateTripId, startTrip);
+router.post('/:tripId/notes',     authenticate, validateTripId, addTripNote);
 router.post('/:tripId/share',     authenticate, validateTripId, shareTrip);
 
 export default router;

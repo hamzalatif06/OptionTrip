@@ -3,7 +3,7 @@ const MAX_TOOL_CALLS = 8;
 
 const buckets = new Map();
 
-export const checkFlightToolBudget = (key) => {
+export const checkToolBudget = (key) => {
   const now = Date.now();
   const bucket = buckets.get(key);
 
@@ -18,4 +18,4 @@ export const checkFlightToolBudget = (key) => {
   return true;
 };
 
-export default { checkFlightToolBudget };
+export default { checkToolBudget };

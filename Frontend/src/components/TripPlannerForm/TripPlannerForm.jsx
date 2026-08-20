@@ -7,9 +7,10 @@ import DateRangePickerComponent from '../DateRangePicker/DateRangePicker';
 import GuestSelector from '../GuestSelector/GuestSelector';
 import TripTypeSelector from '../TripTypeSelector/TripTypeSelector';
 import Loader from '../Loader/Loader';
-import { generateTripOptions, parseTripDescription } from '../../services/tripsService';
+import { generateTripOptions, parseTripDescription, suggestDestinations } from '../../services/tripsService';
 import { logActivity } from '../../services/activityService';
 import { trackTripGenerated } from '../../services/analyticsService';
+import { addToWishlist } from '../../services/wishlistService';
 import { useAuth } from '../../contexts/AuthContext';
 
 const TRIP_TYPE_LABELS = {
@@ -65,6 +66,11 @@ const TripPlannerForm = () => {
   const [isListening, setIsListening]   = useState(false);
   const [speechInterim, setSpeechInterim] = useState('');
   const [speechError, setSpeechError]   = useState('');
+
+  const [destinationSuggestions, setDestinationSuggestions] = useState([]);
+  const [isFetchingSuggestions, setIsFetchingSuggestions]   = useState(false);
+  const suggestionsRequestId = useRef(0);
+  const [wishlistedSuggestions, setWishlistedSuggestions]   = useState({});
 
   const debounceTimer   = useRef(null);
   const recognitionRef  = useRef(null);
@@ -196,6 +202,43 @@ const TripPlannerForm = () => {
     });
   }, []);
 
+  const maybeFetchDestinationSuggestions = useCallback((rawText, parsed) => {
+    if (parsed.destination?.text) { setDestinationSuggestions([]); return; }
+    if (formData.destination?.text) return;
+
+    const requestId = ++suggestionsRequestId.current;
+    setIsFetchingSuggestions(true);
+    suggestDestinations(rawText, parsed.budget)
+      .then((res) => {
+        if (requestId !== suggestionsRequestId.current) return;
+        if (res.success && Array.isArray(res.data)) setDestinationSuggestions(res.data);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (requestId === suggestionsRequestId.current) setIsFetchingSuggestions(false);
+      });
+  }, [formData.destination]);
+
+  const handleSaveSuggestion = async (e, s) => {
+    e.stopPropagation();
+    if (wishlistedSuggestions[s.destination]) return;
+    try {
+      await addToWishlist({ destinationName: s.destination, country: s.country, imageUrl: s.imageUrl || '' });
+      setWishlistedSuggestions(prev => ({ ...prev, [s.destination]: true }));
+    } catch (err) {
+      if (err.message === 'not_authenticated') window.location.href = '/login';
+    }
+  };
+
+  const handlePickSuggestion = (s) => {
+    setFormData(prev => ({
+      ...prev,
+      destination: { text: `${s.destination}, ${s.country}`, place_id: '', name: s.destination, geometry: null }
+    }));
+    setDestinationSuggestions([]);
+    if (errors.destination) setErrors(prev => ({ ...prev, destination: '' }));
+  };
+
   const triggerParse = useCallback((value) => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     if (value.trim().length < 10) { setAiDetected(null); return; }
@@ -211,10 +254,11 @@ const TripPlannerForm = () => {
             parsed.budget ||
             (parsed.guests && ((parsed.guests.adults ?? 0) + (parsed.guests.children ?? 0) + (parsed.guests.infants ?? 0)) > 0);
           if (hasAny) { setAiDetected(parsed); applyParsedData(parsed); }
+          maybeFetchDestinationSuggestions(value, parsed);
         }
       } catch {} finally { setIsParsing(false); }
     }, 900);
-  }, [applyParsedData]);
+  }, [applyParsedData, maybeFetchDestinationSuggestions]);
 
   const handleDescriptionChange = (e) => {
     const value = e.target.value;
@@ -222,6 +266,15 @@ const TripPlannerForm = () => {
     if (errors.description) setErrors(prev => ({ ...prev, description: '' }));
     triggerParse(value);
   };
+
+  useEffect(() => {
+    if (location.state?.starterDescription) {
+      const text = location.state.starterDescription;
+      setFormData(prev => ({ ...prev, description: text }));
+      triggerParse(text);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]);
 
   const SPEECH_LANG = 'en-US';
 
@@ -241,6 +294,7 @@ const TripPlannerForm = () => {
             parsed.tripType || parsed.budget ||
             (parsed.guests && ((parsed.guests.adults ?? 0) + (parsed.guests.children ?? 0) + (parsed.guests.infants ?? 0)) > 0);
           if (hasAny) { setAiDetected(parsed); applyParsedData(parsed); }
+          maybeFetchDestinationSuggestions(text, parsed);
         }
       } catch (err) {
         console.error('[speech] parse failed:', err);
@@ -248,7 +302,7 @@ const TripPlannerForm = () => {
         setIsParsing(false);
       }
     })();
-  }, [applyParsedData]);
+  }, [applyParsedData, maybeFetchDestinationSuggestions]);
 
   const startListening = () => {
     if (!SpeechRecognitionAPI) return;
@@ -561,6 +615,50 @@ const TripPlannerForm = () => {
         </div>
 
         {errors.description && <span className="error-message">{errors.description}</span>}
+
+        {isFetchingSuggestions && (
+          <div className="destination-discovery__loading">
+            <span className="ai-dot-spinner"><span /><span /><span /></span>
+            Not sure where yet — finding a few ideas that fit…
+          </div>
+        )}
+
+        {!isFetchingSuggestions && destinationSuggestions.length > 0 && !formData.destination?.text && (
+          <div className="destination-discovery">
+            <p className="destination-discovery__label">Not sure where? A few ideas based on what you described:</p>
+            <div className="destination-discovery__grid">
+              {destinationSuggestions.map((s, i) => (
+                <div
+                  key={i}
+                  role="button"
+                  tabIndex={0}
+                  className="destination-discovery__card"
+                  onClick={() => handlePickSuggestion(s)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handlePickSuggestion(s); } }}
+                >
+                  <div className="destination-discovery__img-wrap">
+                    <button
+                      type="button"
+                      className={`destination-discovery__heart${wishlistedSuggestions[s.destination] ? ' destination-discovery__heart--saved' : ''}`}
+                      onClick={(e) => handleSaveSuggestion(e, s)}
+                      title={wishlistedSuggestions[s.destination] ? 'Saved to wishlist' : 'Save to wishlist'}
+                    >
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill={wishlistedSuggestions[s.destination] ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                      </svg>
+                    </button>
+                    {s.imageUrl && <img src={s.imageUrl} alt={s.destination} loading="lazy" />}
+                  </div>
+                  <div className="destination-discovery__info">
+                    <span className="destination-discovery__city">{s.destination}</span>
+                    <span className="destination-discovery__country">{s.country}</span>
+                    <span className="destination-discovery__why">{s.why}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="form-divider">

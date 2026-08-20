@@ -1,6 +1,7 @@
 import authService from '../services/authService.js';
 import { asyncHandler } from '../middleware/security.js';
 import { setCookieOptions } from '../middleware/security.js';
+import { ACHIEVEMENTS, getUserStats, computeTravelLevel } from '../services/achievementService.js';
 
 class AuthController {
   register = asyncHandler(async (req, res) => {
@@ -238,6 +239,67 @@ class AuthController {
       message: 'Preferences saved',
       data: { preferences: updated.preferences }
     });
+  });
+
+  updateSettings = asyncHandler(async (req, res) => {
+    const { notificationPreferences, mapPrivacy, newsletterSubscribed, shippingAddress } = req.body;
+    const user = req.user;
+
+    const update = {};
+    if (notificationPreferences !== undefined) {
+      for (const key of ['tripReminders', 'bookingConfirmations', 'aiRecommendations', 'tripStoryActivity']) {
+        if (typeof notificationPreferences[key] === 'boolean') {
+          update[`notificationPreferences.${key}`] = notificationPreferences[key];
+        }
+      }
+    }
+    if (mapPrivacy !== undefined && ['private', 'countries_only', 'full_map', 'selected_trips'].includes(mapPrivacy)) {
+      update.mapPrivacy = mapPrivacy;
+    }
+    if (typeof newsletterSubscribed === 'boolean') {
+      update.newsletterSubscribed = newsletterSubscribed;
+    }
+    if (shippingAddress !== undefined) {
+      for (const key of ['line1', 'line2', 'city', 'state', 'postalCode', 'country']) {
+        if (typeof shippingAddress[key] === 'string') {
+          update[`shippingAddress.${key}`] = shippingAddress[key].trim();
+        }
+      }
+    }
+
+    const updated = await user.constructor.findByIdAndUpdate(
+      user._id,
+      { $set: update },
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Settings saved',
+      data: {
+        notificationPreferences: updated.notificationPreferences,
+        mapPrivacy: updated.mapPrivacy,
+        newsletterSubscribed: updated.newsletterSubscribed,
+        shippingAddress: updated.shippingAddress
+      }
+    });
+  });
+
+  getAchievements = asyncHandler(async (req, res) => {
+    const user = req.user;
+    const stats = await getUserStats(user._id);
+    const level = computeTravelLevel(stats);
+    const unlockedIds = new Set((user.achievements || []).map(a => a.id));
+
+    const achievements = ACHIEVEMENTS.map((a) => ({
+      id: a.id,
+      label: a.label,
+      icon: a.icon,
+      unlocked: unlockedIds.has(a.id),
+      unlockedAt: (user.achievements || []).find(u => u.id === a.id)?.unlockedAt || null
+    }));
+
+    res.status(200).json({ success: true, data: { achievements, level, stats } });
   });
 
   oauthCallback = asyncHandler(async (req, res) => {

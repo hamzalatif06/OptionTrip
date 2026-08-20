@@ -279,6 +279,12 @@
   right: 16px;
   z-index: 150;
 }
+.planned-trip-start-bar {
+  position: fixed;
+  top: 122px;
+  right: 16px;
+  z-index: 150;
+}
 .planned-trip-share-bar__btn,
 .planned-trip-share-bar__copy {
   padding: 8px 16px;

@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import { getAccessToken } from '../../services/authService';
+import { getMemory, updateMemory, forgetMemory } from '../../services/memoryService';
+import { getAchievements } from '../../services/tripsService';
+import { useTheme, ACCENT_OPTIONS } from '../../contexts/ThemeContext';
+import ThemeSwitcher from '../../components/ThemeSwitcher/ThemeSwitcher';
 import PageMeta from '../../hooks/usePageMeta';
 import Loader from '../../components/Loader/Loader';
 import './ProfilePage.css';
@@ -13,12 +17,42 @@ const ACTIVITY_OPTIONS = ['Beach', 'Hiking', 'Culture', 'Food & Dining', 'Shoppi
 const DIETARY_OPTIONS  = ['Vegetarian', 'Vegan', 'Halal', 'Kosher', 'Gluten-Free', 'Dairy-Free', 'Nut-Free'];
 const ACCESS_OPTIONS   = ['Wheelchair Accessible', 'Limited Mobility', 'Visual Impairment', 'Hearing Impairment'];
 
+const NOTIFICATION_TYPES = [
+  { key: 'tripReminders',        label: 'Trip reminders',         desc: 'Upcoming trip start dates and wrap-ups' },
+  { key: 'bookingConfirmations', label: 'Booking confirmations',  desc: 'Updates when a flight, hotel, or car is confirmed' },
+  { key: 'aiRecommendations',    label: 'AI recommendations',     desc: 'Suggestions and travel inspiration from Vi' },
+  { key: 'tripStoryActivity',    label: 'TripStory activity',     desc: 'Comments and interactions on your travel map' }
+];
+
+const MAP_PRIVACY_OPTIONS = [
+  { value: 'private',         label: 'Private',                description: 'Only visible to you' },
+  { value: 'countries_only',  label: 'Countries only',         description: 'Share which countries you\'ve visited' },
+  { value: 'full_map',        label: 'Full map',               description: 'Share your complete travel map' },
+  { value: 'selected_trips',  label: 'Selected trips',         description: 'Choose specific trips to share' }
+];
+
+const MEMORY_LIST_FIELDS = [
+  { key: 'favorite_destinations', label: 'Places you love' },
+  { key: 'avoided_or_disliked',   label: 'Places or things you avoid' },
+  { key: 'trip_types',            label: 'Trip styles' },
+  { key: 'interests',             label: 'Interests' },
+  { key: 'dietary',               label: 'Dietary notes' },
+  { key: 'notable_quotes',        label: 'Things you\'ve told Vi' }
+];
+
+const EMPTY_MEMORY_FACTS = {
+  home_base: '', favorite_destinations: [], avoided_or_disliked: [],
+  trip_types: [], interests: [], dietary: [], notable_quotes: []
+};
+
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, loading, updateProfile, uploadProfileImage, changePassword, deleteAccount, logout } = useAuth();
+  const { accent, changeAccent } = useTheme();
   const fileInputRef = useRef(null);
 
   const [activeTab, setActiveTab] = useState('profile');
+  const [achievementsData, setAchievementsData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -48,6 +82,26 @@ const ProfilePage = () => {
   });
   const [isSavingPrefs, setIsSavingPrefs] = useState(false);
 
+  const [settingsForm, setSettingsForm] = useState({
+    notificationPreferences: {
+      tripReminders: true,
+      bookingConfirmations: true,
+      aiRecommendations: true,
+      tripStoryActivity: true
+    },
+    mapPrivacy: 'private',
+    newsletterSubscribed: false,
+    shippingAddress: { line1: '', line2: '', city: '', state: '', postalCode: '', country: '' }
+  });
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+
+  const [memorySummary, setMemorySummary] = useState('');
+  const [memoryFacts, setMemoryFacts] = useState(EMPTY_MEMORY_FACTS);
+  const [isLoadingMemory, setIsLoadingMemory] = useState(false);
+  const [isSavingMemory, setIsSavingMemory] = useState(false);
+  const [showForgetConfirm, setShowForgetConfirm] = useState(false);
+  const [newFactDraft, setNewFactDraft] = useState({});
+
   useEffect(() => {
     if (user) {
       setProfileForm({
@@ -65,6 +119,24 @@ const ProfilePage = () => {
           accessibility:        user.preferences.accessibility        || []
         });
       }
+      setSettingsForm({
+        notificationPreferences: {
+          tripReminders:        user.notificationPreferences?.tripReminders        ?? true,
+          bookingConfirmations: user.notificationPreferences?.bookingConfirmations ?? true,
+          aiRecommendations:    user.notificationPreferences?.aiRecommendations    ?? true,
+          tripStoryActivity:    user.notificationPreferences?.tripStoryActivity    ?? true
+        },
+        mapPrivacy: user.mapPrivacy || 'private',
+        newsletterSubscribed: user.newsletterSubscribed || false,
+        shippingAddress: {
+          line1: user.shippingAddress?.line1 || '',
+          line2: user.shippingAddress?.line2 || '',
+          city: user.shippingAddress?.city || '',
+          state: user.shippingAddress?.state || '',
+          postalCode: user.shippingAddress?.postalCode || '',
+          country: user.shippingAddress?.country || ''
+        }
+      });
     }
   }, [user]);
 
@@ -73,6 +145,26 @@ const ProfilePage = () => {
       navigate('/login');
     }
   }, [loading, isAuthenticated, navigate]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const token = getAccessToken();
+    getAchievements(token).then((res) => {
+      if (res?.success) setAchievementsData(res.data);
+    }).catch(() => {});
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (activeTab !== 'memory') return;
+    let cancelled = false;
+    setIsLoadingMemory(true);
+    getMemory().then((res) => {
+      if (cancelled || !res?.success) return;
+      setMemorySummary(res.data.summary || '');
+      setMemoryFacts({ ...EMPTY_MEMORY_FACTS, ...res.data.facts });
+    }).finally(() => { if (!cancelled) setIsLoadingMemory(false); });
+    return () => { cancelled = true; };
+  }, [activeTab]);
 
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
@@ -192,6 +284,73 @@ const ProfilePage = () => {
     }
   };
 
+  const toggleNotificationPref = (key) => {
+    setSettingsForm(prev => ({
+      ...prev,
+      notificationPreferences: { ...prev.notificationPreferences, [key]: !prev.notificationPreferences[key] }
+    }));
+  };
+
+  const handleSaveSettings = async (e) => {
+    e.preventDefault();
+    setIsSavingSettings(true);
+    try {
+      const token = getAccessToken();
+      const res = await fetch(`${API_BASE}/api/auth/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(settingsForm)
+      });
+      if (!res.ok) throw new Error('Failed');
+      toast.success('Settings saved!');
+    } catch {
+      toast.error('Failed to save settings');
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
+
+  const removeMemoryItem = (field, index) => {
+    setMemoryFacts(prev => ({ ...prev, [field]: prev[field].filter((_, i) => i !== index) }));
+  };
+
+  const addMemoryItem = (field) => {
+    const value = (newFactDraft[field] || '').trim();
+    if (!value) return;
+    setMemoryFacts(prev => ({ ...prev, [field]: [...prev[field], value] }));
+    setNewFactDraft(prev => ({ ...prev, [field]: '' }));
+  };
+
+  const handleSaveMemory = async () => {
+    setIsSavingMemory(true);
+    try {
+      const res = await updateMemory(memoryFacts);
+      if (res?.success) toast.success('Memory updated!');
+      else throw new Error();
+    } catch {
+      toast.error('Failed to save memory');
+    } finally {
+      setIsSavingMemory(false);
+    }
+  };
+
+  const handleForgetMemory = async () => {
+    setIsSavingMemory(true);
+    try {
+      const res = await forgetMemory();
+      if (res?.success) {
+        toast.success('Memory cleared — Vi will start fresh.');
+        setMemorySummary('');
+        setMemoryFacts(EMPTY_MEMORY_FACTS);
+        setShowForgetConfirm(false);
+      } else throw new Error();
+    } catch {
+      toast.error('Failed to clear memory');
+    } finally {
+      setIsSavingMemory(false);
+    }
+  };
+
   const handleLogout = async () => {
     await logout();
     navigate('/');
@@ -300,6 +459,28 @@ const ProfilePage = () => {
             <p className="profile-email">{user.email}</p>
           </div>
 
+          {achievementsData && (
+            <div className="profile-level-card">
+              <div className="profile-level-card__badge">🏆</div>
+              <div className="profile-level-card__info">
+                <span className="profile-level-card__label">Travel Level</span>
+                <span className="profile-level-card__value">{achievementsData.level.label}</span>
+              </div>
+              <div className="profile-level-card__stats">
+                <span>{achievementsData.stats.countries} countries</span>
+                <span>{achievementsData.stats.cities} cities</span>
+                <span>{achievementsData.stats.tripsCreated} trips</span>
+              </div>
+              {achievementsData.achievements.some(a => a.unlocked) && (
+                <div className="profile-level-card__badges">
+                  {achievementsData.achievements.filter(a => a.unlocked).map((a) => (
+                    <span key={a.id} className="profile-level-card__achievement" title={a.label}>{a.icon}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <nav className="profile-nav">
             <button
               className={`profile-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
@@ -328,6 +509,20 @@ const ProfilePage = () => {
             >
               <i className="fas fa-sliders-h"></i>
               <span>Travel Preferences</span>
+            </button>
+            <button
+              className={`profile-nav-item ${activeTab === 'settings' ? 'active' : ''}`}
+              onClick={() => setActiveTab('settings')}
+            >
+              <i className="fas fa-bell"></i>
+              <span>Settings</span>
+            </button>
+            <button
+              className={`profile-nav-item ${activeTab === 'memory' ? 'active' : ''}`}
+              onClick={() => setActiveTab('memory')}
+            >
+              <i className="fas fa-brain"></i>
+              <span>Vi's Memory</span>
             </button>
             <button
               className="profile-nav-item profile-nav-trips"
@@ -727,6 +922,273 @@ const ProfilePage = () => {
                   {isSavingPrefs ? 'Saving…' : 'Save Preferences'}
                 </button>
               </form>
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="profile-section">
+              <div className="profile-section-header">
+                <div>
+                  <h3>Appearance</h3>
+                  <p>Choose how OptionTrip looks for you</p>
+                </div>
+              </div>
+
+              <div className="pref-group" style={{ marginBottom: 24 }}>
+                <label className="pref-label">Mode</label>
+                <ThemeSwitcher />
+              </div>
+
+              <div className="pref-group" style={{ marginBottom: 32 }}>
+                <label className="pref-label">Accent color</label>
+                <div className="accent-swatch-row">
+                  {ACCENT_OPTIONS.map((opt) => (
+                    <button
+                      type="button"
+                      key={opt.id}
+                      className={`accent-swatch${accent === opt.id ? ' accent-swatch--active' : ''}`}
+                      style={{ '--swatch-color': opt.swatch }}
+                      onClick={() => changeAccent(opt.id)}
+                      title={opt.label}
+                      aria-label={`Use ${opt.label} accent color`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="profile-section-header">
+                <div>
+                  <h3>Notifications</h3>
+                  <p>Choose what you want to hear about</p>
+                </div>
+              </div>
+
+              <form className="pref-form" onSubmit={handleSaveSettings}>
+                <div className="settings-toggle-list">
+                  {NOTIFICATION_TYPES.map(({ key, label, desc }) => (
+                    <label className="settings-toggle-row" key={key}>
+                      <div className="settings-toggle-row__text">
+                        <span className="settings-toggle-row__label">{label}</span>
+                        <span className="settings-toggle-row__desc">{desc}</span>
+                      </div>
+                      <span
+                        className={`settings-toggle${settingsForm.notificationPreferences[key] ? ' settings-toggle--on' : ''}`}
+                        role="switch"
+                        aria-checked={settingsForm.notificationPreferences[key]}
+                        tabIndex={0}
+                        onClick={() => toggleNotificationPref(key)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleNotificationPref(key); } }}
+                      >
+                        <span className="settings-toggle__knob" />
+                      </span>
+                    </label>
+                  ))}
+                </div>
+
+                <div className="profile-section-header" style={{ marginTop: 32 }}>
+                  <div>
+                    <h3>Privacy</h3>
+                    <p>Control who can see your travel map</p>
+                  </div>
+                </div>
+
+                <div className="pref-group">
+                  <div className="pref-chips">
+                    {MAP_PRIVACY_OPTIONS.map(opt => (
+                      <button
+                        type="button"
+                        key={opt.value}
+                        className={`pref-chip${settingsForm.mapPrivacy === opt.value ? ' pref-chip--active' : ''}`}
+                        title={opt.description}
+                        onClick={() => setSettingsForm(p => ({ ...p, mapPrivacy: opt.value }))}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="profile-section-header" style={{ marginTop: 32 }}>
+                  <div>
+                    <h3>Newsletter</h3>
+                    <p>Travel ideas and platform updates by email</p>
+                  </div>
+                </div>
+
+                <div className="settings-toggle-list">
+                  <label className="settings-toggle-row">
+                    <div className="settings-toggle-row__text">
+                      <span className="settings-toggle-row__label">Subscribe to the newsletter</span>
+                      <span className="settings-toggle-row__desc">You can unsubscribe anytime</span>
+                    </div>
+                    <span
+                      className={`settings-toggle${settingsForm.newsletterSubscribed ? ' settings-toggle--on' : ''}`}
+                      role="switch"
+                      aria-checked={settingsForm.newsletterSubscribed}
+                      tabIndex={0}
+                      onClick={() => setSettingsForm(p => ({ ...p, newsletterSubscribed: !p.newsletterSubscribed }))}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSettingsForm(p => ({ ...p, newsletterSubscribed: !p.newsletterSubscribed })); } }}
+                    >
+                      <span className="settings-toggle__knob" />
+                    </span>
+                  </label>
+                </div>
+
+                <div className="profile-section-header" style={{ marginTop: 32 }}>
+                  <div>
+                    <h3>Shipping Address</h3>
+                    <p>Used if a delivery or shipment is ever required</p>
+                  </div>
+                </div>
+
+                <div className="profile-form-grid">
+                  <div className="profile-form-group">
+                    <label>Address line 1</label>
+                    <input
+                      type="text"
+                      value={settingsForm.shippingAddress.line1}
+                      onChange={(e) => setSettingsForm(p => ({ ...p, shippingAddress: { ...p.shippingAddress, line1: e.target.value } }))}
+                      placeholder="Street address"
+                    />
+                  </div>
+                  <div className="profile-form-group">
+                    <label>Address line 2 <span style={{ fontWeight: 400, opacity: 0.6 }}>(optional)</span></label>
+                    <input
+                      type="text"
+                      value={settingsForm.shippingAddress.line2}
+                      onChange={(e) => setSettingsForm(p => ({ ...p, shippingAddress: { ...p.shippingAddress, line2: e.target.value } }))}
+                      placeholder="Apartment, suite, etc."
+                    />
+                  </div>
+                  <div className="profile-form-group">
+                    <label>City</label>
+                    <input
+                      type="text"
+                      value={settingsForm.shippingAddress.city}
+                      onChange={(e) => setSettingsForm(p => ({ ...p, shippingAddress: { ...p.shippingAddress, city: e.target.value } }))}
+                    />
+                  </div>
+                  <div className="profile-form-group">
+                    <label>State / Region</label>
+                    <input
+                      type="text"
+                      value={settingsForm.shippingAddress.state}
+                      onChange={(e) => setSettingsForm(p => ({ ...p, shippingAddress: { ...p.shippingAddress, state: e.target.value } }))}
+                    />
+                  </div>
+                  <div className="profile-form-group">
+                    <label>Postal code</label>
+                    <input
+                      type="text"
+                      value={settingsForm.shippingAddress.postalCode}
+                      onChange={(e) => setSettingsForm(p => ({ ...p, shippingAddress: { ...p.shippingAddress, postalCode: e.target.value } }))}
+                    />
+                  </div>
+                  <div className="profile-form-group">
+                    <label>Country</label>
+                    <input
+                      type="text"
+                      value={settingsForm.shippingAddress.country}
+                      onChange={(e) => setSettingsForm(p => ({ ...p, shippingAddress: { ...p.shippingAddress, country: e.target.value } }))}
+                    />
+                  </div>
+                </div>
+
+                <button type="submit" className="profile-save-btn" disabled={isSavingSettings} style={{ marginTop: 24 }}>
+                  {isSavingSettings ? 'Saving…' : 'Save Settings'}
+                </button>
+              </form>
+            </div>
+          )}
+
+          {activeTab === 'memory' && (
+            <div className="profile-section">
+              <div className="profile-section-header">
+                <div>
+                  <h3>What Vi Remembers</h3>
+                  <p>Vi uses this to personalize recommendations — edit or remove anything that's wrong</p>
+                </div>
+              </div>
+
+              {isLoadingMemory ? (
+                <p className="profile-form-value">Loading…</p>
+              ) : (
+                <>
+                  {memorySummary && (
+                    <p className="memory-summary">{memorySummary}</p>
+                  )}
+
+                  <div className="pref-group" style={{ marginBottom: 24 }}>
+                    <label className="pref-label">Home base</label>
+                    <input
+                      type="text"
+                      className="memory-text-input"
+                      value={memoryFacts.home_base || ''}
+                      onChange={(e) => setMemoryFacts(prev => ({ ...prev, home_base: e.target.value }))}
+                      placeholder="Not set"
+                    />
+                  </div>
+
+                  {MEMORY_LIST_FIELDS.map(({ key, label }) => (
+                    <div className="pref-group" key={key} style={{ marginBottom: 24 }}>
+                      <label className="pref-label">{label}</label>
+                      <div className="memory-chip-list">
+                        {(memoryFacts[key] || []).length === 0 && (
+                          <span className="dash-empty">Nothing here yet</span>
+                        )}
+                        {(memoryFacts[key] || []).map((item, i) => (
+                          <span className="memory-chip" key={`${key}-${i}`}>
+                            {item}
+                            <button type="button" onClick={() => removeMemoryItem(key, i)} aria-label={`Remove ${item}`}>×</button>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="memory-add-row">
+                        <input
+                          type="text"
+                          value={newFactDraft[key] || ''}
+                          onChange={(e) => setNewFactDraft(prev => ({ ...prev, [key]: e.target.value }))}
+                          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addMemoryItem(key); } }}
+                          placeholder="Add..."
+                          className="memory-text-input memory-text-input--small"
+                        />
+                        <button type="button" className="memory-add-btn" onClick={() => addMemoryItem(key)}>Add</button>
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className="profile-form-actions">
+                    <button className="profile-btn profile-btn-primary" onClick={handleSaveMemory} disabled={isSavingMemory}>
+                      {isSavingMemory ? 'Saving…' : 'Save Changes'}
+                    </button>
+                  </div>
+
+                  <div className="profile-danger-zone">
+                    <div className="profile-section-header">
+                      <div>
+                        <h3>Forget Everything</h3>
+                        <p>Clear everything Vi has learned about you and start fresh</p>
+                      </div>
+                    </div>
+                    {!showForgetConfirm ? (
+                      <button className="profile-btn profile-btn-danger" onClick={() => setShowForgetConfirm(true)}>
+                        <i className="fas fa-eraser"></i>
+                        Forget Everything
+                      </button>
+                    ) : (
+                      <div className="profile-delete-confirm">
+                        <p>This clears all of Vi's memory about you. This cannot be undone.</p>
+                        <div className="profile-delete-actions">
+                          <button className="profile-btn profile-btn-secondary" onClick={() => setShowForgetConfirm(false)}>Cancel</button>
+                          <button className="profile-btn profile-btn-danger" onClick={handleForgetMemory} disabled={isSavingMemory}>
+                            {isSavingMemory ? 'Clearing…' : 'Confirm Forget'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           )}
         </main>

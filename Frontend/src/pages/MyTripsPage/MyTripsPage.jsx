@@ -14,6 +14,8 @@ import {
   renameTrip,
 } from '../../services/tripsService';
 import { getWishlist, removeFromWishlist } from '../../services/wishlistService';
+import { shareTravelMap } from '../../services/travelMapService';
+import DashboardTab from './DashboardTab';
 import TravelMapTab from './TravelMapTab';
 import VisitedPlacesTab from './VisitedPlacesTab';
 import ViAssistant from '../../components/ViAssistant/ViAssistant';
@@ -54,6 +56,7 @@ const fmtDate = (d) =>
   d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
 
 const BUDGET_LABELS = { budget: 'Budget', moderate: 'Moderate', luxury: 'Luxury', premium: 'Premium' };
+const PRIVACY_LABELS = { private: 'Private', countries_only: 'Countries only', full_map: 'Full map', selected_trips: 'Selected trips' };
 
 const TripCard = ({ trip, onDelete, onRename }) => {
   const dest          = trip.customTitle || trip.destination?.name || 'Unknown Destination';
@@ -216,7 +219,7 @@ const MyTripsPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, loading: authLoading } = useAuth();
 
-  const [activeTab, setActiveTab]       = useState('trips');
+  const [activeTab, setActiveTab]       = useState('dashboard');
   const [trips, setTrips]               = useState([]);
   const [mapTrips, setMapTrips]         = useState([]);
   const [visited, setVisited]           = useState([]);
@@ -226,6 +229,10 @@ const MyTripsPage = () => {
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting]         = useState(false);
+
+  const [sharingMap, setSharingMap]     = useState(false);
+  const [shareMapUrl, setShareMapUrl]   = useState('');
+  const mapPrivacy = user?.mapPrivacy || 'private';
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -323,6 +330,28 @@ const MyTripsPage = () => {
     }
   };
 
+  const handleShareMap = async () => {
+    setSharingMap(true);
+    try {
+      const res = await shareTravelMap();
+      if (res?.success) setShareMapUrl(res.data.shareUrl);
+      else toast.error('Failed to generate share link.');
+    } catch {
+      toast.error('Failed to generate share link.');
+    } finally {
+      setSharingMap(false);
+    }
+  };
+
+  const handleCopyShareLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareMapUrl);
+      toast.success('Link copied!');
+    } catch {
+      toast.error('Could not copy link.');
+    }
+  };
+
   const handleRemoveWishlist = async (id) => {
     try {
       await removeFromWishlist(id);
@@ -341,6 +370,7 @@ const MyTripsPage = () => {
   }), [trips, visited]);
 
   const TABS = [
+    { id: 'dashboard', label: 'Dashboard',     icon: '🏠' },
     { id: 'trips',    label: 'My Trips',       icon: '🗺️' },
     { id: 'map',      label: 'Travel Map',      icon: '🌍' },
     { id: 'visited',  label: 'Visited Places',  icon: '📍' },
@@ -440,6 +470,10 @@ const MyTripsPage = () => {
             </div>
           )}
 
+          {activeTab === 'dashboard' && (
+            <DashboardTab trips={trips} wishlist={wishlist} onViewMap={() => setActiveTab('map')} />
+          )}
+
           {activeTab === 'trips' && (
             <MyTripsGrid trips={trips} onDelete={handleDeleteRequest} onRename={handleRenameTrip} />
           )}
@@ -454,11 +488,26 @@ const MyTripsPage = () => {
 
           {activeTab === 'map' && (
             <div className="mtp__map-section">
-              <p className="mtp__map-hint">
-                {mapTrips.length > 0
-                  ? `Showing ${mapTrips.length} saved trip destination${mapTrips.length !== 1 ? 's' : ''}. Click a marker for details.`
-                  : 'Save trips to see them pinned on your world map.'}
-              </p>
+              <div className="mtp__map-toolbar">
+                <p className="mtp__map-hint">
+                  {mapTrips.length > 0
+                    ? `Showing ${mapTrips.length} saved trip destination${mapTrips.length !== 1 ? 's' : ''}. Click a marker for details.`
+                    : 'Save trips to see them pinned on your world map.'}
+                </p>
+                <button type="button" className="mtp__share-map-btn" onClick={handleShareMap} disabled={sharingMap}>
+                  {sharingMap ? 'Generating link…' : '🔗 Share my travel map'}
+                </button>
+              </div>
+              {shareMapUrl && (
+                <div className="mtp__share-map-result">
+                  <input type="text" readOnly value={shareMapUrl} onFocus={(e) => e.target.select()} />
+                  <button type="button" onClick={handleCopyShareLink}>Copy link</button>
+                  <span className="mtp__share-map-note">
+                    Visibility: <strong>{PRIVACY_LABELS[mapPrivacy] || mapPrivacy}</strong> — change this in{' '}
+                    <Link to="/profile">Profile → Settings</Link>.
+                  </span>
+                </div>
+              )}
               <TravelMapTab mapTrips={mapTrips} />
             </div>
           )}

@@ -1,0 +1,218 @@
+.lts-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 20px;
+}
+
+.lts-modal {
+  background: #fff;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.lts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.lts-header h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #17233e;
+}
+
+.lts-close {
+  border: none;
+  background: none;
+  font-size: 22px;
+  line-height: 1;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.lts-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.lts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.lts-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lts-field label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lts-optional {
+  text-transform: none;
+  font-weight: 400;
+  color: #cbd5e1;
+}
+
+.lts-field input,
+.lts-field textarea {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  font-size: 14px;
+  color: #17233e;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.lts-field input:focus,
+.lts-field textarea:focus {
+  outline: none;
+  border-color: #029e9d;
+}
+
+.lts-textarea-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lts-mic-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #029e9d;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.lts-mic-btn--recording {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.lts-refine-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.lts-refine-row button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lts-refine-row button:hover:not(:disabled) { border-color: #029e9d; color: #029e9d; }
+.lts-refine-row button:disabled { opacity: 0.5; cursor: default; }
+
+.lts-link-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lts-link-checking {
+  font-size: 12px;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.lts-media-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.lts-media-preview img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.lts-media-preview span {
+  font-size: 12.5px;
+  color: #334155;
+}
+
+.lts-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.lts-btn {
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+}
+
+.lts-btn--secondary {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.lts-btn--primary {
+  background: linear-gradient(135deg, #0a539d, #029e9d);
+  color: #fff;
+}
+
+.lts-btn--primary:disabled { opacity: 0.6; cursor: default; }
+
+@media (prefers-color-scheme: dark) {
+  .lts-modal { background: #1e293b; }
+  .lts-header { border-color: #334155; }
+  .lts-header h3 { color: #f8fafc; }
+  .lts-field label { color: #94a3b8; }
+  .lts-field input, .lts-field textarea { background: #0f172a; border-color: #334155; color: #f8fafc; }
+  .lts-refine-row button { background: #0f172a; border-color: #334155; color: #cbd5e1; }
+  .lts-media-preview { background: #0f172a; border-color: #334155; }
+  .lts-media-preview span { color: #cbd5e1; }
+  .lts-footer { border-color: #334155; }
+  .lts-btn--secondary { background: #334155; color: #e2e8f0; }
+}

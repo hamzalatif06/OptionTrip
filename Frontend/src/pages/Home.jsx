@@ -2,17 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import PageMeta from '../hooks/usePageMeta';
 import Banner from '../components/Banner/Banner';
-import AboutUs from '../components/AboutUs/AboutUs';
-import TopDestinations from '../components/TopDestinations/TopDestinations';
-import AboutSection from '../components/AboutSection/AboutSection';
 import BestTours from '../components/BestTours/BestTours';
-import LastMinuteDeals from '../components/LastMinuteDeals/LastMinuteDeals';
-import DiscountAction from '../components/DiscountAction/DiscountAction';
 import FeaturedBlogSection from '../components/FeaturedBlogSection/FeaturedBlogSection';
 import WhyChooseUs from '../components/WhyChooseUs/WhyChooseUs';
-import OurTeam from '../components/OurTeam/OurTeam';
-import Testimonials from '../components/Testimonials/Testimonials';
-import RecentArticles from '../components/RecentArticles/RecentArticles';
+import HowItWorksSection from '../components/HowItWorksSection/HowItWorksSection';
 import Loader from '../components/Loader/Loader';
 import HomeBookingSection from '../components/HomeBookingSection/HomeBookingSection';
 import WelcomeModal from '../components/WelcomeModal/WelcomeModal';
@@ -61,6 +54,7 @@ const Home = () => {
 
 
 
+      <HowItWorksSection />
       <WhyChooseUs ctaOnly />
       <BestTours />
 

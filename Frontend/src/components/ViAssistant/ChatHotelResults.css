@@ -1,0 +1,126 @@
+.chr-root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.chr-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid var(--vi-border, #e6eaf0);
+  background: #fbfcfe;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.chr-row:hover {
+  border-color: var(--vi-teal, #029e9d);
+  background: #f0fdfc;
+}
+
+.chr-row__img {
+  flex-shrink: 0;
+  width: 56px;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+  background-color: #eef1f5;
+}
+
+.chr-row__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chr-row__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.chr-row__name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vi-ink, #1e293b);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chr-row__source {
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--vi-teal, #029e9d);
+  background: rgba(2, 158, 157, 0.1);
+  padding: 2px 6px;
+  border-radius: 5px;
+}
+
+.chr-row__mid {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chr-row__stars {
+  font-size: 10.5px;
+  color: #f5a623;
+  letter-spacing: 1px;
+}
+
+.chr-row__rating {
+  font-size: 10.5px;
+  color: var(--vi-ink-muted, #94a3b8);
+}
+
+.chr-row__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 2px;
+}
+
+.chr-row__price-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chr-row__price {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--vi-ink, #1e293b);
+}
+
+.chr-row__night {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--vi-ink-muted, #94a3b8);
+  margin-left: 2px;
+}
+
+.chr-row__book {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--vi-teal, #029e9d);
+  white-space: nowrap;
+}
+
+.chr-footnote {
+  font-size: 10.5px;
+  color: var(--vi-ink-muted, #94a3b8);
+  margin: 2px 2px 0;
+}

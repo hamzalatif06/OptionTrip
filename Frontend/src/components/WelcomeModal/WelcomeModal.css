@@ -337,3 +337,47 @@
     animation: none;
   }
 }
+
+.wm__quickstart {
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.wm__quickstart-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-secondary, #64748b);
+  white-space: nowrap;
+}
+
+.wm__quickstart-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.wm__quickstart-chip {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border, #e2e8f0);
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary, #17233e);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.wm__quickstart-chip:hover {
+  border-color: var(--primary, #029e9d);
+  background: var(--primary-light, #f0fdfa);
+  color: var(--primary, #029e9d);
+}
+
+[data-theme="dark"] .wm__quickstart {
+  border-color: var(--border, #2d3f55);
+}
