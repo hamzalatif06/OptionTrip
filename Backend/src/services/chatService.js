@@ -67,6 +67,37 @@ const DEFAULT_CHECKOUT_DATE = (checkIn) => {
   return d.toISOString().slice(0, 10);
 };
 
+const ROUTE_STOPWORDS = 'on|next|this|for|around|by|in|near|during|and|with|at|starting|leaving';
+
+const FLIGHT_ROUTE_PATTERN = new RegExp(
+  `\\bfrom\\s+([a-z][a-z\\s]{1,28}?)\\s+to\\s+([a-z][a-z\\s]{1,28}?)(?=[.,!?;]|\\s+(?:${ROUTE_STOPWORDS})\\b|$)`,
+  'i'
+);
+
+const extractFlightRouteHint = (text) => {
+  if (!text) return null;
+  const m = String(text).match(FLIGHT_ROUTE_PATTERN);
+  if (!m) return null;
+  const origin = m[1].trim();
+  const destination = m[2].trim();
+  if (origin.length < 2 || destination.length < 2) return null;
+  return { origin, destination };
+};
+
+const HOTEL_DESTINATION_PATTERN = new RegExp(
+  `\\b(?:hotel|stay|accommodation|place to stay|room)\\b.{0,20}?\\bin\\s+([a-z][a-z\\s]{1,28}?)(?=[.,!?;]|\\s+(?:${ROUTE_STOPWORDS})\\b|$)`,
+  'i'
+);
+
+const extractHotelDestinationHint = (text) => {
+  if (!text) return null;
+  const m = String(text).match(HOTEL_DESTINATION_PATTERN);
+  if (!m) return null;
+  const destination = m[1].trim();
+  if (destination.length < 2) return null;
+  return { destination };
+};
+
 const resolveIata = async (place) => {
   if (!place) return null;
   const trimmed = String(place).trim();
@@ -138,32 +169,34 @@ ${todayStr}. Resolve every relative date ("next Friday", "next month", "in two w
 - Steering the user toward the right OptionTrip service at the right moment — see "Contextual service opportunities" below
 
 # Flight search tool
-You have a \`search_flights\` tool. Use it ONLY when the user clearly wants to search/find/book flights with an identifiable origin, destination, and a rough date. Never call it for general questions ("what's the best time to fly to Tokyo", "how do flight prices usually work") — answer those with advice as you already would.
+You have a \`search_flights\` tool. Use it the moment the user names or implies both an origin and a destination — including phrasing like "I want to travel from X to Y", "flight to Y", "book me a ticket to Y" combined with a known origin. Never call it for general questions with no real trip in mind ("how do flight prices usually work", "what's the best time to fly somewhere") — answer those with advice as you already would.
 
 **Auto-fill from what you already know before asking anything:**
 - If "Current trip in focus" above has a destination, that IS the destination — don't ask for it.
 - If it has dates, use dates.start_date as departureDate and dates.end_date as returnDate — don't ask for dates you already have.
-- If "Where the user is right now" shows a live location, that's a reasonable default origin for a bare "find me flights" ask — use it and just mention the assumption in your reply (e.g. "Searching from Belgrade since that's where you are — say the word if you'd rather fly from elsewhere") instead of turning it into a question.
-- Call the tool the moment origin + destination are known from ANY combination of context and the message — don't hold out for the user to spell out things you can already infer.
+- If "Where the user is right now" shows a live location, that's a reasonable default origin for a bare "find me flights" ask — use it and just mention the assumption in your reply instead of turning it into a question.
+- Scan the ENTIRE conversation above, not just the latest message — if the user named an origin or destination in an earlier turn (even several turns back, even via a quick-reply tap), that value still stands. Never ask again for something already given.
+- Call the tool the moment origin + destination are known from ANY combination of context, message, and prior turns — don't hold out for the user to repeat things you already know.
 
 **Dates are never a reason to block the search.** If you have a date hint ("next month", "around the 10th"), pass your best-inferred \`departureDate\`. If the user gave NO date hint at all, just omit \`departureDate\` from the tool call entirely and still call the tool — it will search a sensible default near-term date. In your reply, briefly show the results as usual, mention in one clause that you searched a default date (the tool result's \`searchedDate\`), and ask them to share their real dates for accurate pricing. Do not hold the search hostage waiting for a date.
 
-**Origin or destination missing** is the only real blocker. If either is still genuinely unknown after checking context, ask exactly ONE short question for just what's missing — e.g. "Which city are you flying from?" — never ask about dates as part of that blocking question, and never split missing pieces across several back-and-forth turns. On that clarifying turn, \`quickReplies\` must be realistic answers the user could tap and send as-is (e.g. "From London", "From New York") — never the question itself restated as a quick reply.
+**Origin or destination missing** is the only real blocker, and only after you've genuinely checked context and the full conversation history for it. If it's still unknown, ask exactly ONE short question for just what's missing — e.g. "Which city are you flying from?" — never ask about dates as part of that blocking question, and never split missing pieces across several back-and-forth turns. \`quickReplies\` on that turn are NEVER invented city names — a city you make up is indistinguishable from real flight data to the user and is a hard rule violation. Only ever offer a real city that is already visible somewhere above (their live location, a place named earlier in this conversation). If no real city is available to offer, quickReplies must be non-city actions instead: "Use my current location", "I'll type it in" — never a fabricated place.
 
 After a tool call resolves, narrate the results briefly (1-2 sentences, e.g. "Found some good options — cheapest is around $X with [airline], nonstop"). Never re-type every individual price/time/flight number — the app renders the actual result cards below your reply. One extra tip is welcome if genuinely useful (e.g. "the cheapest has a long layover — the next one up is nonstop for $30 more").
 If the tool result contains an error: for a rate limit, suggest [/flights](/flights) directly; for \`could_not_resolve_airport\`, ask specifically about whichever of \`unresolvedOrigin\`/\`unresolvedDestination\` is present in the tool result (not both, unless both are) — ask them to spell it out or give the airport code.
 
 # Hotel search tool
-You have a \`search_hotels\` tool. Use it ONLY when the user clearly wants to search/find/book a hotel or place to stay with an identifiable destination city. Never call it for general questions ("what's a good area to stay in Rome", "how far ahead should I book a hotel") — answer those with advice as you already would.
+You have a \`search_hotels\` tool. Use it the moment the user names or implies a destination city to stay in — including "hotel in Y", "somewhere to stay in Y", or a Y already established as the trip destination. Never call it for general questions with no real trip in mind ("what's a good area to stay in general", "how far ahead should I book a hotel") — answer those with advice as you already would.
 
 **Auto-fill from what you already know before asking anything:**
 - If "Current trip in focus" above has a destination, that IS the destination — don't ask for it.
 - If it has dates, use dates.start_date as checkIn and dates.end_date as checkOut — don't ask for dates you already have.
-- Call the tool the moment the destination is known from ANY combination of context and the message — don't hold out for the user to spell out things you can already infer.
+- Scan the ENTIRE conversation above, not just the latest message — if the user named a destination in an earlier turn, that value still stands. Never ask again for something already given.
+- Call the tool the moment the destination is known from ANY combination of context, message, and prior turns — don't hold out for the user to repeat things you already know.
 
 **Dates are never a reason to block the search.** If you have a date hint, pass your best-inferred \`checkIn\`/\`checkOut\`. If the user gave NO date hint at all, omit both fields entirely and still call the tool — it will search sensible default dates. In your reply, briefly show the results as usual, mention in one clause that you searched default dates, and ask them to share their real dates for accurate pricing. Do not hold the search hostage waiting for a date.
 
-**Destination missing** is the only real blocker. If it's still genuinely unknown after checking context, ask exactly ONE short question — e.g. "Which city are you looking to stay in?" — never ask about dates as part of that blocking question. \`quickReplies\` on that turn must be realistic answers the user could tap and send as-is (e.g. "Paris", "Tokyo") — never the question itself restated as a quick reply.
+**Destination missing** is the only real blocker, and only after you've genuinely checked context and the full conversation history for it. If it's still unknown, ask exactly ONE short question — e.g. "Which city are you looking to stay in?" — never ask about dates as part of that blocking question. \`quickReplies\` on that turn are NEVER invented city names — a city you make up is indistinguishable from real data to the user and is a hard rule violation. Only ever offer a real city that is already visible somewhere above (a place named earlier in this conversation). If no real city is available to offer, quickReplies must be non-city actions instead: "I'll type it in" — never a fabricated place.
 
 After a tool call resolves, narrate the results briefly (1-2 sentences, e.g. "Found some solid options — cheapest is around $X a night, 4-star"). Never re-type every individual price/rating — the app renders the actual result cards below your reply. One extra tip is welcome if genuinely useful.
 If the tool result contains an error: for a rate limit or a failed search, suggest [/hotels](/hotels) directly.
@@ -189,6 +222,7 @@ If the tool result contains an error: for a rate limit or a failed search, sugge
 - Do not invent prices, schedules, availability, or facts about specific businesses you don't know.
 - If asked something genuinely ambiguous, ask one short clarifying question.
 - Never claim you booked or can book anything — booking happens in the OptionTrip UI.
+- Never say you are "searching", "checking", "looking into it", or "just a moment" for flights, hotels, or any live data unless you are actually calling the matching tool on this exact turn — this message is only shown after a tool call already resolved, so a promise to search that isn't backed by an actual tool call in this turn will never be followed up on. If you have enough info, call the tool now; if you don't, ask directly instead of pretending to work on it.
 
 # Linking to OptionTrip services
 When the user asks about car rental, eSIM/data, or tours/activities — for their trip or in general — always give them the direct in-app link, never say "visit our website" or "go to OptionTrip" generically, and never write out a full https://... URL. Use EXACTLY these relative paths as the markdown link target (not the full site URL, not a different label-only phrasing): car rental → [/car-rental](/car-rental), eSIM → [/esim](/esim), tours/activities → [/tours](/tours). The link text itself can read naturally (e.g. "you can [browse tours](/tours) right in the app"), but the URL inside the parentheses must be exactly one of the paths above, verbatim. Weave it into a real, specific answer (recommend what to look for, a tip, etc.) — don't just paste a bare link with no context. Flights and hotels/stays do NOT get this link treatment when the user is actually trying to search — use the \`search_flights\`/\`search_hotels\` tools instead (see above); only fall back to [/flights](/flights) or [/hotels](/hotels) as a plain link when the question isn't a search at all (e.g. baggage policy, booking timing, or a search/rate-limit error).
@@ -381,10 +415,38 @@ export const generateViResponse = async (userMessage, context = {}, conversation
 };
 
 export const detectToolCall = async (userMessage, context = {}, conversationHistory = []) => {
+  const messages = buildMessages(userMessage, context, conversationHistory);
+
+  // Deterministic fast path: when the user's own words spell out a clear route
+  // ("from X to Y") or hotel destination ("hotel in X"), search immediately
+  // instead of trusting the model to notice — this is the single biggest
+  // source of Vi asking questions it doesn't need to ask.
+  const routeHint = extractFlightRouteHint(userMessage);
+  if (routeHint) {
+    return {
+      toolCall: {
+        id: `forced_flight_${Date.now()}`,
+        type: 'function',
+        function: { name: 'search_flights', arguments: JSON.stringify(routeHint) }
+      },
+      messages
+    };
+  }
+
+  const hotelHint = extractHotelDestinationHint(userMessage);
+  if (hotelHint) {
+    return {
+      toolCall: {
+        id: `forced_hotel_${Date.now()}`,
+        type: 'function',
+        function: { name: 'search_hotels', arguments: JSON.stringify(hotelHint) }
+      },
+      messages
+    };
+  }
+
   const client = getOpenAIClient();
   if (!client) return { toolCall: null, messages: null };
-
-  const messages = buildMessages(userMessage, context, conversationHistory);
 
   try {
     const completion = await client.chat.completions.create({
@@ -392,7 +454,7 @@ export const detectToolCall = async (userMessage, context = {}, conversationHist
       messages,
       tools: [FLIGHT_SEARCH_TOOL, HOTEL_SEARCH_TOOL],
       tool_choice: 'auto',
-      temperature: 0.3,
+      temperature: 0,
       max_tokens: 300
     });
     const toolCalls = completion.choices[0]?.message?.tool_calls;
