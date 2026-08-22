@@ -9,7 +9,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.0
@@ -17,24 +17,40 @@ jobs:
           host: 64.23.237.250
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: true
           script: |
-            echo '📥 Pulling latest changes...'
+            set -euo pipefail
+
+            echo '📥 Syncing to origin/main (force-push safe)...'
             cd ~/OptionTrip
-            git pull origin main
-            
+            git merge --abort 2>/dev/null || true
+            git rebase --abort 2>/dev/null || true
+            git fetch origin main
+            git reset --hard origin/main
+            echo "Deploying commit: $(git rev-parse --short HEAD) - $(git log -1 --pretty=%s)"
+
+            echo '🔎 Integrity check...'
+            if grep -qE "createRequire|_0x[0-9a-f]{4,}\(" Frontend/vite.config.js; then
+              echo '❌ ABORT: vite.config.js contains injected code. Not building.'
+              exit 1
+            fi
+
             echo '🚀 Deploying Backend...'
             cd ~/OptionTrip/Backend
             npm install
-            pm2 restart optiontrip-backend
-            
-            echo '🎨 Deploying Frontend...'
+            pm2 restart optiontrip-backend --update-env
+
+            echo '🎨 Building Frontend...'
             cd ~/OptionTrip/Frontend
             npm install
             npm run build
+            test -f dist/index.html
+
+            echo '📦 Publishing build...'
             rm -rf /var/www/optiontrip/*
             cp -r dist/* /var/www/optiontrip/
             chown -R www-data:www-data /var/www/optiontrip
             chmod -R 755 /var/www/optiontrip
-            
+
             echo '✅ Deployment complete!'
             pm2 status
