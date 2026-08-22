@@ -27,7 +27,7 @@ const Footer = () => {
           <div className="footer-subscribe-inner">
             <div className="footer-subscribe-text">
               <h4 className="footer-subscribe-title">Stay Inspired</h4>
-              <p className="footer-subscribe-subtitle">Get travel ideas and updates from Option Trip.</p>
+              <p className="footer-subscribe-subtitle">Get travel ideas and updates from Option Trip</p>
             </div>
             {subscribed ? (
               <p className="footer-subscribe-success">✓ You're subscribed! Check your inbox soon.</p>
