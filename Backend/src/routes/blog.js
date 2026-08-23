@@ -1,7 +1,19 @@
 import express from 'express';
 import { getSmartHeroImage, extractDestinations } from '../services/blogImageService.js';
+import BlogImageOverride from '../models/BlogImageOverride.js';
 
 const router = express.Router();
+
+router.get('/image-overrides', async (req, res) => {
+  try {
+    const overrides = await BlogImageOverride.find().select('postId imageUrl');
+    const data = Object.fromEntries(overrides.map(o => [o.postId, o.imageUrl]));
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error('❌ /api/blog/image-overrides error:', err.message);
+    res.json({ success: true, data: {} });
+  }
+});
 
 router.post('/hero-image', async (req, res) => {
   try {

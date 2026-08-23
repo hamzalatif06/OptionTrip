@@ -5,7 +5,7 @@ import {
   fetchPostBySlug, fetchPrevPost, fetchNextPost,
   fetchComments, submitComment,
   getFeaturedImage, formatDate, getAIFallbackImage, fetchSmartHeroImage,
-  stripHtml,
+  stripHtml, fetchImageOverrides,
 } from '../../services/wordpressApi';
 import PageMeta from '../../hooks/usePageMeta';
 import './BlogDetail.css';
@@ -74,7 +74,10 @@ const BlogDetail = () => {
   const [copied, setCopied] = useState(false);
   const [smartImage, setSmartImage] = useState(null);
   const [tripDestinations, setTripDestinations] = useState([]);
+  const [overrides, setOverrides] = useState({});
   const extractedRef = useRef(false);
+
+  useEffect(() => { fetchImageOverrides().then(setOverrides); }, []);
 
   useEffect(() => {
     if (!slug) return;
@@ -104,13 +107,13 @@ const BlogDetail = () => {
   }, [slug]);
 
   useEffect(() => {
-    if (!post || getFeaturedImage(post, 'full') || getFeaturedImage(post, 'medium_large')) return;
+    if (!post || overrides[post.id] || getFeaturedImage(post, 'full') || getFeaturedImage(post, 'medium_large')) return;
     let cancelled = false;
     fetchSmartHeroImage(post).then(url => {
       if (!cancelled && url) setSmartImage(url);
     }).catch(() => {});
     return () => { cancelled = true; };
-  }, [post]);
+  }, [post, overrides]);
 
   useEffect(() => {
     if (!post || extractedRef.current) return;
@@ -212,9 +215,10 @@ const BlogDetail = () => {
     );
   }
 
+  const overrideImage = overrides[post?.id];
   const wpImage   = getFeaturedImage(post, 'full') || getFeaturedImage(post, 'medium_large');
-  const heroImage = wpImage || smartImage || getAIFallbackImage(post?.title?.rendered || 'travel', post?.id || 1);
-  const isAIImage = !wpImage && !smartImage;
+  const heroImage = overrideImage || wpImage || smartImage || getAIFallbackImage(post?.title?.rendered || 'travel', post?.id || 1);
+  const isAIImage = !overrideImage && !wpImage && !smartImage;
   const title      = post?.title?.rendered || '';
   const content    = DOMPurify.sanitize(post?.content?.rendered || '');
   const date       = formatDate(post?.date);
@@ -232,7 +236,7 @@ const BlogDetail = () => {
       <PageMeta
         title={title ? DOMPurify.sanitize(title) : 'Travel Article'}
         description={stripHtml(post?.excerpt?.rendered || '', 160)}
-        image={wpImage || smartImage || undefined}
+        image={overrideImage || wpImage || smartImage || undefined}
         path={`/blog/${slug}`}
       />
       <div className="blog-detail__container">

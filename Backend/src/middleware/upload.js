@@ -11,6 +11,11 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
+const blogImagesDir = path.join(__dirname, '../../uploads/blog-images');
+if (!fs.existsSync(blogImagesDir)) {
+  fs.mkdirSync(blogImagesDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadsDir);
@@ -20,6 +25,18 @@ const storage = multer.diskStorage({
     const timestamp = Date.now();
     const ext = path.extname(file.originalname).toLowerCase();
     cb(null, `${userId}_${timestamp}${ext}`);
+  }
+});
+
+const blogImageStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, blogImagesDir);
+  },
+  filename: (req, file, cb) => {
+    const postId = req.body?.postId || 'unknown';
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `post_${postId}_${timestamp}${ext}`);
   }
 });
 
@@ -41,7 +58,16 @@ const upload = multer({
   }
 });
 
+const blogImageUpload = multer({
+  storage: blogImageStorage,
+  fileFilter,
+  limits: {
+    fileSize: 8 * 1024 * 1024,
+  }
+});
+
 export const uploadProfileImage = upload.single('profileImage');
+export const uploadBlogImage = blogImageUpload.single('image');
 
 export const handleUploadError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {

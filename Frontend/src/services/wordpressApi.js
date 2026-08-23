@@ -110,6 +110,31 @@ export const fetchSmartHeroImage = async (post) => {
   }
 };
 
+let overridesCache = null;
+let overridesPromise = null;
+
+// Admin-uploaded images take priority over whatever WordPress or the AI
+// fallback would otherwise show. Cached at module scope so every component
+// that mounts (BlogCard, FeaturedBlogSection, BlogDetail) shares one fetch.
+export const fetchImageOverrides = () => {
+  if (overridesCache) return Promise.resolve(overridesCache);
+  if (!overridesPromise) {
+    overridesPromise = fetch(`${API_BASE}/api/blog/image-overrides`)
+      .then((res) => (res.ok ? res.json() : { data: {} }))
+      .then((d) => {
+        overridesCache = d.data || {};
+        return overridesCache;
+      })
+      .catch(() => ({}));
+  }
+  return overridesPromise;
+};
+
+export const invalidateImageOverridesCache = () => {
+  overridesCache = null;
+  overridesPromise = null;
+};
+
 export const getAIFallbackImage = (title = 'travel', seed = 1) => {
   const prompt = encodeURIComponent(
     `beautiful travel photography ${title} stunning landscape destination cinematic`

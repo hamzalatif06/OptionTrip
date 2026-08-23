@@ -183,8 +183,98 @@
 .adm-pagination button:hover:not(:disabled) { background: #f1f5f9; }
 .adm-pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
 
+.adm-blog-hint { font-size: 13px; color: #64748b; margin: 0 0 18px; }
+.adm-blog-error { font-size: 13px; color: #dc2626; margin: 0 0 14px; }
+
+.adm-blog-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.adm-blog-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.adm-blog-card__img-wrap { position: relative; aspect-ratio: 16/10; background: #f1f5f9; }
+.adm-blog-card__img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.adm-blog-card__badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: #4f46e5;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.adm-blog-card__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.adm-blog-card__body { padding: 12px 14px 14px; }
+
+.adm-blog-card__title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.35;
+  min-height: 36px;
+}
+
+.adm-blog-card__actions { display: flex; gap: 8px; }
+
+.adm-blog-card__btn {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #1e293b;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.adm-blog-card__btn:hover:not(:disabled) { background: #eef2ff; border-color: #c7d2fe; }
+.adm-blog-card__btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.adm-blog-card__btn--revert {
+  flex: 0 0 auto;
+  background: #fff;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+.adm-blog-card__btn--revert:hover:not(:disabled) { background: #fef2f2; }
+
+@media (max-width: 900px) {
+  .adm-blog-grid { grid-template-columns: 1fr 1fr; }
+}
+
 @media (max-width: 640px) {
   .adm-header, .adm-tabs, .adm-main { padding-left: 16px; padding-right: 16px; }
   .adm-stats-grid { grid-template-columns: 1fr 1fr; }
+  .adm-blog-grid { grid-template-columns: 1fr; }
   .adm-search { width: 100%; }
 }

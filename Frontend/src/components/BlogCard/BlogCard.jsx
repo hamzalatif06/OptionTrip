@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getFeaturedImage, formatDate, stripHtml } from '../../services/wordpressApi';
+import { getFeaturedImage, formatDate, stripHtml, fetchImageOverrides } from '../../services/wordpressApi';
 import './BlogCard.css';
 
 const FALLBACK_IMAGE = '/images/trending/trending10.jpg';
 
 const BlogCard = ({ post }) => {
-  const image = getFeaturedImage(post, 'medium_large') || FALLBACK_IMAGE;
+  const [overrides, setOverrides] = useState({});
+  useEffect(() => { fetchImageOverrides().then(setOverrides); }, []);
+
+  const image = overrides[post?.id] || getFeaturedImage(post, 'medium_large') || FALLBACK_IMAGE;
   const title = post?.title?.rendered || 'Untitled';
   const excerpt = stripHtml(post?.excerpt?.rendered || '', 130);
   const slug = post?.slug;

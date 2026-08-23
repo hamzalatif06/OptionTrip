@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchPosts, getFeaturedImage, formatDate, stripHtml } from '../../services/wordpressApi';
+import { fetchPosts, getFeaturedImage, formatDate, stripHtml, fetchImageOverrides } from '../../services/wordpressApi';
 import './FeaturedBlogSection.css';
 
 const FALLBACK = '/images/trending/trending10.jpg';
@@ -27,6 +27,9 @@ const SideCardSkeleton = () => (
 const FeaturedBlogSection = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [overrides, setOverrides] = useState({});
+
+  useEffect(() => { fetchImageOverrides().then(setOverrides); }, []);
 
   const loadPosts = (bg = false) => {
     if (!bg) setLoading(true);
@@ -49,7 +52,7 @@ const FeaturedBlogSection = () => {
 
   const [hero, ...sidePosts] = posts;
 
-  const heroImage   = hero ? (getFeaturedImage(hero, 'large') || FALLBACK) : FALLBACK;
+  const heroImage   = hero ? (overrides[hero.id] || getFeaturedImage(hero, 'large') || FALLBACK) : FALLBACK;
   const heroTitle   = hero?.title?.rendered || '';
   const heroExcerpt = hero ? stripHtml(hero?.excerpt?.rendered || '', 160) : '';
   const heroSlug    = hero?.slug || '';
@@ -102,7 +105,7 @@ const FeaturedBlogSection = () => {
             {loading
               ? [0, 1, 2, 3].map((i) => <SideCardSkeleton key={i} />)
               : sidePosts.map((post) => {
-                  const img      = getFeaturedImage(post, 'medium') || FALLBACK;
+                  const img      = overrides[post.id] || getFeaturedImage(post, 'medium') || FALLBACK;
                   const title    = post?.title?.rendered || '';
                   const slug     = post?.slug || '';
                   const date     = formatDate(post?.date);
