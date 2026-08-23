@@ -25,29 +25,43 @@
 .adm-header__back:hover { color: #fff; }
 
 
-.adm-tabs {
+.adm-body {
   display: flex;
-  gap: 0;
+  align-items: flex-start;
+}
+
+.adm-sidebar {
+  flex: 0 0 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   background: #fff;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 0 32px;
+  border-right: 1px solid #e2e8f0;
+  padding: 16px 12px;
+  min-height: calc(100vh - 61px);
 }
 .adm-tab {
-  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 14px;
   font-size: 14px;
   font-weight: 500;
   color: #64748b;
   background: none;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-radius: 8px;
+  text-align: left;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition: color 0.15s, background 0.15s;
 }
-.adm-tab:hover    { color: #1e293b; }
-.adm-tab--active  { color: #4f46e5; border-bottom-color: #4f46e5; font-weight: 600; }
+.adm-tab i { font-size: 15px; width: 16px; text-align: center; flex-shrink: 0; }
+.adm-tab:hover    { color: #1e293b; background: #f8fafc; }
+.adm-tab--active  { color: #4f46e5; background: #eef2ff; font-weight: 600; }
 
 
-.adm-main { padding: 28px 32px; max-width: 1200px; }
+.adm-main { flex: 1; min-width: 0; padding: 28px 32px; max-width: 1200px; }
 
 .adm-loading { color: #64748b; font-size: 14px; padding: 20px 0; }
 
@@ -272,8 +286,23 @@
   .adm-blog-grid { grid-template-columns: 1fr 1fr; }
 }
 
+@media (max-width: 768px) {
+  .adm-body { flex-direction: column; }
+  .adm-sidebar {
+    flex-direction: row;
+    flex: none;
+    width: 100%;
+    min-height: 0;
+    overflow-x: auto;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 8px 12px;
+  }
+  .adm-tab { flex-shrink: 0; }
+}
+
 @media (max-width: 640px) {
-  .adm-header, .adm-tabs, .adm-main { padding-left: 16px; padding-right: 16px; }
+  .adm-header, .adm-main { padding-left: 16px; padding-right: 16px; }
   .adm-stats-grid { grid-template-columns: 1fr 1fr; }
   .adm-blog-grid { grid-template-columns: 1fr; }
   .adm-search { width: 100%; }

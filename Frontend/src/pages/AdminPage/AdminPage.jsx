@@ -10,6 +10,12 @@ import PageMeta from '../../hooks/usePageMeta';
 import './AdminPage.css';
 
 const ACTIVITY_TYPES = ['', 'trip', 'flight', 'hotel', 'car', 'esim', 'tours', 'chat', 'plan_my_day', 'destination', 'page'];
+const SIDEBAR_ITEMS = [
+  { id: 'stats',    label: 'Stats',       icon: 'icon-speedometer' },
+  { id: 'users',    label: 'Users',       icon: 'icon-user-follow' },
+  { id: 'activity', label: 'Activity',    icon: 'icon-bell' },
+  { id: 'blog',     label: 'Blog Images', icon: 'icon-picture' }
+];
 const BLOG_FALLBACK_IMAGE = '/images/trending/trending10.jpg';
 const BLOG_POSTS_PER_PAGE = 9;
 
@@ -212,19 +218,21 @@ const AdminPage = () => {
         <button className="adm-header__back" onClick={() => navigate('/')}>← Back to site</button>
       </header>
 
-      <nav className="adm-tabs">
-        {[['stats', 'Stats'], ['users', 'Users'], ['activity', 'Activity'], ['blog', 'Blog Images']].map(([t, label]) => (
-          <button
-            key={t}
-            className={`adm-tab${tab === t ? ' adm-tab--active' : ''}`}
-            onClick={() => setTab(t)}
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
+      <div className="adm-body">
+        <nav className="adm-sidebar">
+          {SIDEBAR_ITEMS.map(({ id, label, icon }) => (
+            <button
+              key={id}
+              className={`adm-tab${tab === id ? ' adm-tab--active' : ''}`}
+              onClick={() => setTab(id)}
+            >
+              <i className={icon}></i>
+              <span>{label}</span>
+            </button>
+          ))}
+        </nav>
 
-      <main className="adm-main">
+        <main className="adm-main">
 
 
         {tab === 'stats' && (
@@ -386,7 +394,8 @@ const AdminPage = () => {
             )}
           </div>
         )}
-      </main>
+        </main>
+      </div>
     </div>
   );
 };
