@@ -304,6 +304,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  color: darkcyan;
   font-size: 15px;
   font-weight: 600;
   
@@ -314,11 +315,18 @@
   padding: 8px 16px;
   border-radius: 8px;
   position: relative;
+  span{
+    color: black;
+  }
 }
 
 .auth-dropdown-toggle:hover {
   color: #0A539D;
   background-color: rgba(10, 83, 157, 0.05);
+}
+
+[data-theme="dark"] .auth-dropdown-toggle span {
+  color: #fff;
 }
 
 .auth-dropdown-toggle i.icon-user {
