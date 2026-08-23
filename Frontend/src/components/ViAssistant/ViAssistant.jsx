@@ -461,6 +461,19 @@ const ViAssistant = () => {
       body.location = liveLocation;
     }
 
+    // Guests have no server-side conversation record, so the backend has no
+    // memory of anything said earlier in this chat unless we send it —
+    // without this, every guest turn looked like the very first message.
+    const recentHistory = messages
+      .filter(m => !m.isWelcome && (m.sender === 'user' || m.sender === 'bot') && m.text)
+      .slice(-16)
+      .map(m => ({
+        role: m.sender === 'user' ? 'user' : 'assistant',
+        text: m.text,
+        ...(m.sender === 'bot' && m.pendingSearch ? { pendingSearch: m.pendingSearch } : {})
+      }));
+    if (recentHistory.length) body.history = recentHistory;
+
     const streamMsgId = `b-${Date.now()}`;
     let rawBuffer  = '';
     let msgStart   = -1;
@@ -522,6 +535,7 @@ const ViAssistant = () => {
                     results: event.results || undefined,
                     resultsType: event.resultsType || undefined,
                     providerStatus: event.providerStatus || undefined,
+                    pendingSearch: event.pendingSearch || undefined,
                     isStreaming: false
                   }
                 : m

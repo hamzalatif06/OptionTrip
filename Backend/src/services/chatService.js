@@ -414,6 +414,125 @@ export const generateViResponse = async (userMessage, context = {}, conversation
   }
 };
 
+// A message is "sticky" pending-search state only for exactly one turn: the
+// reply immediately following a clarifying question Vi asked. It lives on the
+// assistant message right before the current user turn in conversationHistory
+// (the current turn's own user message is always last).
+const getPendingSearch = (conversationHistory) => {
+  const prev = conversationHistory[conversationHistory.length - 2];
+  return prev?.role === 'assistant' && prev.pendingSearch ? prev.pendingSearch : null;
+};
+
+const RESET_PHRASES = [
+  'find flights', 'search hotels', 'explore activities', 'looking for flights',
+  'finding a hotel', 'need trip tips', 'help me with destinations',
+  'help me with flights', 'help me plan my trip', 'no, a different place',
+  'plan a trip', 'my trips', 'need help with flights'
+];
+
+const cleanPlaceValue = (text) => {
+  let t = String(text).trim();
+  t = t.replace(/^(yes,?|no,?|sure,?|ok,?|okay,?)\s*/i, '');
+  t = t.replace(/^(from|to|in)\s+/i, '');
+  t = t.replace(/[!.?]+$/g, '');
+  return t.trim();
+};
+
+// Given a clarifying question Vi already asked (pending) and the user's reply,
+// try to fill the missing slot deterministically instead of hoping the model
+// reconstructs it from raw text. Returns 'complete' (ready to search now),
+// 'unchanged' (still missing something, ask again without losing state), or
+// null (reply doesn't relate to the pending search at all — let the normal
+// flow take over).
+const resolvePendingSlot = (pending, userMessage, context) => {
+  if (!pending || !pending.missing) return null;
+  const raw = String(userMessage || '').trim();
+  if (!raw) return null;
+  const lower = raw.toLowerCase();
+
+  if (RESET_PHRASES.some(p => lower === p || lower.startsWith(p))) {
+    return { status: 'unchanged', pending };
+  }
+
+  let value = null;
+
+  if (pending.missing === 'origin' && /^use my current location$/i.test(lower)) {
+    value = context?.currentLocation?.city || context?.currentLocation?.label || null;
+    if (!value) return { status: 'unchanged', pending };
+  } else if (/^(i'?ll type it in|type it in)$/i.test(lower)) {
+    return { status: 'unchanged', pending };
+  } else {
+    const cleaned = cleanPlaceValue(raw);
+    if (!cleaned || cleaned.split(/\s+/).length > 4 || /\b(help|find|search|explore|looking|need|plan|book)\b/i.test(cleaned)) {
+      return { status: 'unchanged', pending };
+    }
+    value = cleaned;
+  }
+
+  const filled = { ...pending, [pending.missing]: value, missing: undefined };
+  const stillMissing =
+    pending.type === 'flight' && !filled.origin ? 'origin' :
+    pending.type === 'flight' && !filled.destination ? 'destination' :
+    pending.type === 'hotel' && !filled.destination ? 'destination' :
+    null;
+
+  if (stillMissing) {
+    return { status: 'unchanged', pending: { ...filled, missing: stillMissing } };
+  }
+
+  return { status: 'complete', args: filled };
+};
+
+const buildPendingClarification = (pending, context) => {
+  const question = pending.missing === 'origin'
+    ? 'Which city are you flying from?'
+    : pending.type === 'hotel'
+    ? 'Which city are you looking to stay in?'
+    : 'Which city are you flying to?';
+  const quickReplies = pending.missing === 'origin'
+    ? ['Use my current location', "I'll type it in"]
+    : ["I'll type it in"];
+  return {
+    text: question,
+    type: 'planning',
+    quickReplies,
+    results: null,
+    resultsType: null,
+    providerStatus: null,
+    pendingSearch: pending
+  };
+};
+
+// Single entry point both the non-streaming and streaming chat flows use to
+// decide what happens with a user's turn: resume a search that was waiting on
+// one missing piece, force a search the user's own words already spell out,
+// let the model decide via a real tool call, or fall through to plain chat.
+export const planTurn = async (userMessage, context = {}, conversationHistory = [], options = {}) => {
+  const pending = getPendingSearch(conversationHistory);
+  if (pending) {
+    const resolution = resolvePendingSlot(pending, userMessage, context);
+    if (resolution?.status === 'complete') {
+      const messages = buildMessages(userMessage, context, conversationHistory);
+      return {
+        kind: 'tool',
+        toolCall: {
+          id: `resumed_${pending.type}_${Date.now()}`,
+          type: 'function',
+          function: { name: pending.type === 'hotel' ? 'search_hotels' : 'search_flights', arguments: JSON.stringify(resolution.args) }
+        },
+        messages
+      };
+    }
+    if (resolution?.status === 'unchanged') {
+      return { kind: 'direct', response: buildPendingClarification(resolution.pending, context) };
+    }
+  }
+
+  const { toolCall, messages } = await detectToolCall(userMessage, context, conversationHistory);
+  if (toolCall) return { kind: 'tool', toolCall, messages };
+  return { kind: 'chat' };
+};
+
 export const detectToolCall = async (userMessage, context = {}, conversationHistory = []) => {
   const messages = buildMessages(userMessage, context, conversationHistory);
 
@@ -469,7 +588,21 @@ const executeFlightTool = async (args, options) => {
   const { canUseTool = true } = options;
 
   if (!canUseTool) return { toolResultPayload: { error: 'rate_limited' } };
-  if (!args.origin || !args.destination) return { toolResultPayload: { error: 'missing_search_params' } };
+  if (!args.origin || !args.destination) {
+    return {
+      toolResultPayload: { error: 'missing_search_params' },
+      pendingSearch: {
+        type: 'flight',
+        origin: args.origin || null,
+        destination: args.destination || null,
+        missing: !args.origin ? 'origin' : 'destination',
+        departureDate: args.departureDate || null,
+        returnDate: args.returnDate || null,
+        adults: args.adults || 1,
+        travelClass: args.travelClass || 'economy'
+      }
+    };
+  }
 
   try {
     const [origin, destination] = await Promise.all([resolveIata(args.origin), resolveIata(args.destination)]);
@@ -479,6 +612,16 @@ const executeFlightTool = async (args, options) => {
           error: 'could_not_resolve_airport',
           unresolvedOrigin: !origin ? args.origin : null,
           unresolvedDestination: !destination ? args.destination : null
+        },
+        pendingSearch: {
+          type: 'flight',
+          origin: origin ? args.origin : null,
+          destination: destination ? args.destination : null,
+          missing: !origin ? 'origin' : 'destination',
+          departureDate: args.departureDate || null,
+          returnDate: args.returnDate || null,
+          adults: args.adults || 1,
+          travelClass: args.travelClass || 'economy'
         }
       };
     }
@@ -518,7 +661,20 @@ const executeHotelTool = async (args, options) => {
   const { canUseTool = true } = options;
 
   if (!canUseTool) return { toolResultPayload: { error: 'rate_limited' } };
-  if (!args.destination) return { toolResultPayload: { error: 'missing_search_params' } };
+  if (!args.destination) {
+    return {
+      toolResultPayload: { error: 'missing_search_params' },
+      pendingSearch: {
+        type: 'hotel',
+        destination: null,
+        missing: 'destination',
+        checkIn: args.checkIn || null,
+        checkOut: args.checkOut || null,
+        adults: args.adults || 1,
+        rooms: args.rooms || 1
+      }
+    };
+  }
 
   try {
     const usedDefaultDates = !args.checkIn;
@@ -563,7 +719,7 @@ export const resolveToolCall = async (toolCall, messages, context = {}, options 
     args = {};
   }
 
-  const { toolResultPayload, results = null, resultsType = null, providerStatus = null } = isHotel
+  const { toolResultPayload, results = null, resultsType = null, providerStatus = null, pendingSearch = undefined } = isHotel
     ? await executeHotelTool(args, options)
     : await executeFlightTool(args, options);
 
@@ -576,7 +732,7 @@ export const resolveToolCall = async (toolCall, messages, context = {}, options 
 
   const client = getOpenAIClient();
   if (!client) {
-    return { text: fallbackText, type: fallbackType, quickReplies: getContextualQuickReplies(context), results, resultsType, providerStatus };
+    return { text: fallbackText, type: fallbackType, quickReplies: getContextualQuickReplies(context), results, resultsType, providerStatus, pendingSearch };
   }
 
   const pass2Messages = [
@@ -602,23 +758,23 @@ export const resolveToolCall = async (toolCall, messages, context = {}, options 
         : getContextualQuickReplies(context),
       results,
       resultsType,
-      providerStatus
+      providerStatus,
+      pendingSearch
     };
   } catch (err) {
     console.error('Vi tool pass-2 error:', err.message);
-    return { text: fallbackText, type: fallbackType, quickReplies: getContextualQuickReplies(context), results, resultsType, providerStatus };
+    return { text: fallbackText, type: fallbackType, quickReplies: getContextualQuickReplies(context), results, resultsType, providerStatus, pendingSearch };
   }
 };
 
 export const generateViResponseWithTools = async (userMessage, context = {}, conversationHistory = [], options = {}) => {
-  const { toolCall, messages } = await detectToolCall(userMessage, context, conversationHistory);
+  const plan = await planTurn(userMessage, context, conversationHistory, options);
 
-  if (!toolCall) {
-    const reply = await generateViResponse(userMessage, context, conversationHistory);
-    return { ...reply, results: null, resultsType: null, providerStatus: null };
-  }
+  if (plan.kind === 'direct') return plan.response;
+  if (plan.kind === 'tool') return resolveToolCall(plan.toolCall, plan.messages, context, options);
 
-  return resolveToolCall(toolCall, messages, context, options);
+  const reply = await generateViResponse(userMessage, context, conversationHistory);
+  return { ...reply, results: null, resultsType: null, providerStatus: null };
 };
 
 const generateFallbackResponse = (userMessage, context) => {
@@ -721,4 +877,4 @@ const getContextualQuickReplies = (context) => {
   return [...base.slice(0, 3), serviceReply];
 };
 
-export default { generateViResponse, generateViResponseWithTools, detectToolCall, resolveToolCall };
+export default { generateViResponse, generateViResponseWithTools, detectToolCall, resolveToolCall, planTurn };

@@ -2,7 +2,7 @@ import {
   generateViResponse,
   streamViResponse,
   generateViResponseWithTools,
-  detectToolCall,
+  planTurn,
   resolveToolCall,
 } from '../services/chatService.js';
 import Trip from '../models/Trip.js';
@@ -66,6 +66,21 @@ const logToolActivity = (user, response) => {
   }
 };
 
+// Guests have no server-side conversation to read back, so the client is the
+// only place recent turns live — it already rendered them. Trust only the
+// shape we need and cap it, same as the server-side history slice below.
+const sanitizeClientHistory = (history) => {
+  if (!Array.isArray(history)) return [];
+  return history
+    .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.text === 'string')
+    .slice(-20)
+    .map(m => ({
+      role: m.role,
+      text: m.text.slice(0, 2000),
+      pendingSearch: (m.role === 'assistant' && m.pendingSearch && typeof m.pendingSearch === 'object') ? m.pendingSearch : undefined
+    }));
+};
+
 const buildPreferences = (trips) => {
   const destinations = [...new Set(trips.map(t => t.destination?.name).filter(Boolean))];
   const tripTypes    = [...new Set(trips.map(t => t.trip_type).filter(Boolean))];
@@ -78,7 +93,7 @@ const buildPreferences = (trips) => {
   return { destinations, tripTypes, preferredBudget, loveDescriptions: descriptions };
 };
 
-const prepareChat = async (user, { message, tripId, conversationId, location }) => {
+const prepareChat = async (user, { message, tripId, conversationId, location, history }) => {
   const context = {
     user: user ? { id: user._id, name: user.name, email: user.email } : null,
     currentTrip: null,
@@ -191,10 +206,16 @@ const prepareChat = async (user, { message, tripId, conversationId, location }) 
       conversation.messages.push({ role: 'user', text: message, type: 'user' });
       conversationHistory = conversation.messages
         .slice(-20)
-        .map(m => ({ role: m.role, text: m.text }));
+        .map(m => ({ role: m.role, text: m.text, pendingSearch: m.pendingSearch }));
     } catch (convErr) {
       console.error('Error loading conversation:', convErr);
     }
+  } else {
+    // Guests get no server-side conversation record — without this, every
+    // guest message was answered with zero memory of anything said before it,
+    // which is why Vi looked like it was forgetting the destination the user
+    // just gave it. The client sends back what it already has on screen.
+    conversationHistory = sanitizeClientHistory(history);
   }
 
   return { context, conversation, conversationHistory };
@@ -202,7 +223,7 @@ const prepareChat = async (user, { message, tripId, conversationId, location }) 
 
 export const sendMessage = async (req, res) => {
   try {
-    const { message, tripId, conversationId, location } = req.body;
+    const { message, tripId, conversationId, location, history } = req.body;
     const user = req.user;
 
     if (!message || typeof message !== 'string') {
@@ -210,7 +231,7 @@ export const sendMessage = async (req, res) => {
     }
 
     const { context, conversation, conversationHistory } =
-      await prepareChat(user, { message, tripId, conversationId, location });
+      await prepareChat(user, { message, tripId, conversationId, location, history });
 
     const budgetKey = user?._id?.toString() || req.ip;
     const response = await generateViResponseWithTools(message, context, conversationHistory, {
@@ -228,7 +249,8 @@ export const sendMessage = async (req, res) => {
           quickReplies: response.quickReplies || [],
           results: response.results || undefined,
           resultsType: response.resultsType || undefined,
-          providerStatus: response.providerStatus || undefined
+          providerStatus: response.providerStatus || undefined,
+          pendingSearch: response.pendingSearch || undefined
         });
         conversation.last_message_at = new Date();
         await conversation.save();
@@ -252,6 +274,7 @@ export const sendMessage = async (req, res) => {
         results: response.results || null,
         resultsType: response.resultsType || null,
         providerStatus: response.providerStatus || null,
+        pendingSearch: response.pendingSearch || null,
         timestamp: new Date().toISOString(),
         conversationId: conversation?.conversation_id || null
       }
@@ -268,7 +291,7 @@ export const sendMessage = async (req, res) => {
 };
 
 export const streamMessage = async (req, res) => {
-  const { message, tripId, conversationId, location } = req.body;
+  const { message, tripId, conversationId, location, history } = req.body;
   const user = req.user;
 
   if (!message || typeof message !== 'string') {
@@ -284,17 +307,26 @@ export const streamMessage = async (req, res) => {
 
   try {
     const { context, conversation, conversationHistory } =
-      await prepareChat(user, { message, tripId, conversationId, location });
+      await prepareChat(user, { message, tripId, conversationId, location, history });
 
-    const { toolCall, messages: toolMessages } = await detectToolCall(message, context, conversationHistory);
+    const budgetKey = user?._id?.toString() || req.ip;
+    const plan = await planTurn(message, context, conversationHistory, {
+      canUseTool: checkToolBudget(budgetKey)
+    });
 
-    let responseText, quickReplies, type, results = null, resultsType = null, providerStatus = null;
+    let responseText, quickReplies, type, results = null, resultsType = null, providerStatus = null, pendingSearch;
 
-    if (toolCall) {
-      send({ status: toolCall.function.name === 'search_hotels' ? 'searching_hotels' : 'searching_flights' });
+    if (plan.kind === 'direct') {
+      responseText   = plan.response.text;
+      quickReplies   = plan.response.quickReplies || [];
+      type           = plan.response.type || 'general';
+      pendingSearch  = plan.response.pendingSearch;
 
-      const budgetKey = user?._id?.toString() || req.ip;
-      const toolResponse = await resolveToolCall(toolCall, toolMessages, context, {
+      send({ delta: JSON.stringify({ message: responseText, type, quickReplies }) });
+    } else if (plan.kind === 'tool') {
+      send({ status: plan.toolCall.function.name === 'search_hotels' ? 'searching_hotels' : 'searching_flights' });
+
+      const toolResponse = await resolveToolCall(plan.toolCall, plan.messages, context, {
         canUseTool: checkToolBudget(budgetKey)
       });
 
@@ -304,6 +336,7 @@ export const streamMessage = async (req, res) => {
       results        = toolResponse.results || null;
       resultsType    = toolResponse.resultsType || null;
       providerStatus = toolResponse.providerStatus || null;
+      pendingSearch  = toolResponse.pendingSearch;
 
       logToolActivity(user, toolResponse);
 
@@ -345,7 +378,8 @@ export const streamMessage = async (req, res) => {
           quickReplies,
           results: results || undefined,
           resultsType: resultsType || undefined,
-          providerStatus: providerStatus || undefined
+          providerStatus: providerStatus || undefined,
+          pendingSearch: pendingSearch || undefined
         });
         conversation.last_message_at = new Date();
         await conversation.save();
@@ -359,7 +393,7 @@ export const streamMessage = async (req, res) => {
       markActivitiesAsFed(user._id, context.unfedActivityIds).catch(() => {});
     }
 
-    send({ done: true, type, quickReplies, results, resultsType, providerStatus, conversationId: savedConvId });
+    send({ done: true, type, quickReplies, results, resultsType, providerStatus, pendingSearch: pendingSearch || null, conversationId: savedConvId });
   } catch (err) {
     if (err?.name !== 'AbortError') console.error('Stream chat error:', err);
     send({ error: 'Stream failed' });

@@ -27,6 +27,10 @@ const messageSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.Mixed,
     default: undefined
   },
+  pendingSearch: {
+    type: mongoose.Schema.Types.Mixed,
+    default: undefined
+  },
   timestamp: {
     type: Date,
     default: Date.now
