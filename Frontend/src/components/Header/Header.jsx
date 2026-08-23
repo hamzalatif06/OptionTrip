@@ -308,6 +308,11 @@ const Header = () => {
                     <div className="auth-dropdown-menu">
                       {isAuthenticated ? (
                         <>
+                          {user?.role === 'admin' && (
+                            <Link to="/admin" className="auth-dropdown-item" onClick={closeAuthDropdownImmediately}>
+                              <i className="icon-speedometer"></i><span>Dashboard</span>
+                            </Link>
+                          )}
                           <Link to="/profile" className="auth-dropdown-item" onClick={closeAuthDropdownImmediately}>
                             <i className="icon-user"></i><span>My Profile</span>
                           </Link>
@@ -403,6 +408,9 @@ const Header = () => {
                 </div>
                 <span>{user?.name}</span>
               </div>
+              {user?.role === 'admin' && (
+                <Link to="/admin" className="mobile-drawer__auth-item" onClick={toggleMenu}><i className="icon-speedometer"></i> Dashboard</Link>
+              )}
               <Link to="/profile" className="mobile-drawer__auth-item" onClick={toggleMenu}><i className="icon-user"></i> My Profile</Link>
               <Link to="/my-trips" className="mobile-drawer__auth-item" onClick={toggleMenu}><i className="icon-compass"></i> My Trips</Link>
               <button className="mobile-drawer__auth-item mobile-drawer__logout" onClick={() => { handleLogout(); toggleMenu(); }}>
